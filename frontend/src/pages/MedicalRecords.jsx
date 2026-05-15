@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FileText, Download, Eye, Search, Filter, Calendar, User } from 'lucide-react'
+import { FileText, Download, Eye, Search, Filter, Calendar, User, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { medicalRecords } from '../data/mockData'
 import { fadeIn, staggerContainer } from '../utils/motion'
@@ -11,6 +11,13 @@ const MedicalRecords = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('All')
   const [selectedRecord, setSelectedRecord] = useState(null)
+  const [showCreateForm, setShowCreateForm] = useState(false)
+
+  const handleCreateRecord = (e) => {
+    e.preventDefault()
+    toast.success('Medical record created successfully!')
+    setShowCreateForm(false)
+  }
 
   const userRecords = medicalRecords.filter(rec => {
     if (user.role === 'patient') return rec.patientId === user.id
@@ -32,11 +39,129 @@ const MedicalRecords = () => {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <motion.div {...fadeIn('down')} className="mb-8">
-        <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
-          Medical Records
-        </h1>
-        <p className="text-gray-600">View and manage patient medical records</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+              Medical Records
+            </h1>
+            <p className="text-gray-600">View and manage patient medical records</p>
+          </div>
+          {user.role === 'doctor' && (
+            <button
+              onClick={() => setShowCreateForm(!showCreateForm)}
+              className="btn-primary flex items-center gap-2"
+            >
+              <Plus size={20} />
+              New Record
+            </button>
+          )}
+        </div>
       </motion.div>
+
+      {showCreateForm && (
+        <motion.div {...fadeIn('up', 0.1)} className="card mb-8">
+          <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
+            Create New Medical Record
+          </h2>
+          <form onSubmit={handleCreateRecord} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Patient Name *
+                </label>
+                <input type="text" className="input-field" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Visit Type *
+                </label>
+                <select className="input-field" required>
+                  <option value="Check-up">Check-up</option>
+                  <option value="Treatment">Treatment</option>
+                  <option value="Consultation">Consultation</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date *
+                </label>
+                <input type="date" className="input-field" required />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Diagnosis *
+                </label>
+                <input type="text" className="input-field" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Treatment *
+                </label>
+                <input type="text" className="input-field" required />
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 pt-4">
+              <h3 className="font-medium text-gray-900 mb-3">Vital Signs</h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    BP (mmHg)
+                  </label>
+                  <input type="text" className="input-field" placeholder="120/80" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Height (cm)
+                  </label>
+                  <input type="text" className="input-field" placeholder="175" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Weight (kg)
+                  </label>
+                  <input type="text" className="input-field" placeholder="70" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Heart Rate
+                  </label>
+                  <input type="number" className="input-field" placeholder="72" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Temp (°F)
+                  </label>
+                  <input type="text" className="input-field" placeholder="98.6" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Clinical Notes
+              </label>
+              <textarea className="input-field" rows={3} placeholder="Enter detailed clinical notes..." />
+            </div>
+
+            <div className="flex gap-3">
+              <button type="submit" className="btn-primary">
+                Create Record
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCreateForm(false)}
+                className="btn-outline"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      )}
 
       <motion.div {...fadeIn('up', 0.1)} className="card mb-6">
         <div className="flex flex-col md:flex-row gap-4">
@@ -200,11 +325,19 @@ const MedicalRecords = () => {
                       <p className="text-gray-900">{selectedRecord.vitalSigns.bloodPressure}</p>
                     </div>
                     <div>
+                      <p className="text-gray-600">Height</p>
+                      <p className="text-gray-900">{selectedRecord.vitalSigns.height}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Weight</p>
+                      <p className="text-gray-900">{selectedRecord.vitalSigns.weight}</p>
+                    </div>
+                    <div>
                       <p className="text-gray-600">Heart Rate</p>
                       <p className="text-gray-900">{selectedRecord.vitalSigns.heartRate} bpm</p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Temperature</p>
+                      <p className="text-gray-600">Temp</p>
                       <p className="text-gray-900">{selectedRecord.vitalSigns.temperature}°F</p>
                     </div>
                   </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Pill, Search, Filter, Plus } from 'lucide-react'
+import { Pill, Search, Filter, Plus, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { prescriptions } from '../data/mockData'
 import PrescriptionCard from '../components/PrescriptionCard'
@@ -12,6 +12,21 @@ const Prescriptions = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('All')
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [medications, setMedications] = useState([{ name: '', dosage: '', frequency: '', duration: '', quantity: '', instructions: '' }])
+
+  const addMedication = () => {
+    setMedications([...medications, { name: '', dosage: '', frequency: '', duration: '', quantity: '', instructions: '' }])
+  }
+
+  const removeMedication = (index) => {
+    setMedications(medications.filter((_, i) => i !== index))
+  }
+
+  const handleMedicationChange = (index, field, value) => {
+    const newMedications = [...medications]
+    newMedications[index][field] = value
+    setMedications(newMedications)
+  }
 
   const userPrescriptions = prescriptions.filter(pres => {
     if (user.role === 'patient') return pres.patientId === user.id
@@ -30,6 +45,7 @@ const Prescriptions = () => {
     e.preventDefault()
     toast.success('Prescription created successfully!')
     setShowCreateForm(false)
+    setMedications([{ name: '', dosage: '', frequency: '', duration: '', quantity: '', instructions: '' }])
   }
 
   return (
@@ -74,54 +90,118 @@ const Prescriptions = () => {
                 <input type="text" className="input-field" required />
               </div>
             </div>
+
             <div className="border-t border-gray-200 pt-4">
-              <h3 className="font-medium text-gray-900 mb-3">Medication Details</h3>
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Medication Name *
-                    </label>
-                    <input type="text" className="input-field" required />
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-medium text-gray-900">Medication List & Doses</h3>
+                <button
+                  type="button"
+                  onClick={addMedication}
+                  className="text-sm text-primary hover:underline flex items-center gap-1"
+                >
+                  <Plus size={16} /> Add Another Medication
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {medications.map((med, index) => (
+                  <div key={index} className="p-4 bg-gray-50 rounded-lg relative">
+                    {medications.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeMedication(index)}
+                        className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Medication Name *
+                        </label>
+                        <input
+                          type="text"
+                          className="input-field bg-white"
+                          value={med.name}
+                          onChange={(e) => handleMedicationChange(index, 'name', e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Dose / Dosage *
+                        </label>
+                        <input
+                          type="text"
+                          className="input-field bg-white"
+                          placeholder="e.g., 500mg"
+                          value={med.dosage}
+                          onChange={(e) => handleMedicationChange(index, 'dosage', e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Frequency *
+                        </label>
+                        <input
+                          type="text"
+                          className="input-field bg-white"
+                          placeholder="e.g., 3 times daily"
+                          value={med.frequency}
+                          onChange={(e) => handleMedicationChange(index, 'frequency', e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Duration *
+                          </label>
+                          <input
+                            type="text"
+                            className="input-field bg-white"
+                            placeholder="e.g., 7 days"
+                            value={med.duration}
+                            onChange={(e) => handleMedicationChange(index, 'duration', e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Quantity *
+                          </label>
+                          <input
+                            type="number"
+                            className="input-field bg-white"
+                            value={med.quantity}
+                            onChange={(e) => handleMedicationChange(index, 'quantity', e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Instructions *
+                        </label>
+                        <input
+                          type="text"
+                          className="input-field bg-white"
+                          placeholder="e.g., Take after meals"
+                          value={med.instructions}
+                          onChange={(e) => handleMedicationChange(index, 'instructions', e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Dosage *
-                    </label>
-                    <input type="text" className="input-field" placeholder="e.g., 500mg" required />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Frequency *
-                    </label>
-                    <input type="text" className="input-field" placeholder="e.g., 3 times daily" required />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Duration *
-                    </label>
-                    <input type="text" className="input-field" placeholder="e.g., 7 days" required />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Quantity *
-                    </label>
-                    <input type="number" className="input-field" required />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Instructions *
-                  </label>
-                  <textarea
-                    className="input-field"
-                    rows={2}
-                    placeholder="Special instructions for taking this medication"
-                    required
-                  />
-                </div>
+                ))}
               </div>
             </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Additional Notes
@@ -130,7 +210,7 @@ const Prescriptions = () => {
             </div>
             <div className="flex gap-3">
               <button type="submit" className="btn-primary">
-                Create Prescription
+                Generate Prescription
               </button>
               <button
                 type="button"

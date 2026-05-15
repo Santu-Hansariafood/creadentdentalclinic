@@ -171,6 +171,11 @@ const PatientDashboard = () => {
                     <p className="text-sm text-gray-600 mb-2">
                       {new Date(record.date).toLocaleDateString()}
                     </p>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-600">BP: {record.vitalSigns.bloodPressure}</span>
+                      <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-600">H: {record.vitalSigns.height}</span>
+                      <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-600">W: {record.vitalSigns.weight}</span>
+                    </div>
                     <p className="text-xs text-gray-500 line-clamp-2">
                       {record.notes}
                     </p>

@@ -22,6 +22,9 @@ const PatientRegistration = () => {
     medications: '',
     previousSurgeries: '',
     familyHistory: '',
+    bloodPressure: '',
+    height: '',
+    weight: '',
     lastVisit: '',
     previousTreatments: '',
     currentIssues: '',
@@ -330,6 +333,50 @@ const PatientRegistration = () => {
                   rows={2}
                   placeholder="Relevant family medical history"
                 />
+              </div>
+              <div className="border-t border-gray-100 pt-4">
+                <h3 className="font-medium text-gray-900 mb-3">Vital Signs (Baseline)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Blood Pressure
+                    </label>
+                    <input
+                      type="text"
+                      name="bloodPressure"
+                      value={formData.bloodPressure}
+                      onChange={handleChange}
+                      className="input-field"
+                      placeholder="e.g., 120/80"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Height (cm)
+                    </label>
+                    <input
+                      type="text"
+                      name="height"
+                      value={formData.height}
+                      onChange={handleChange}
+                      className="input-field"
+                      placeholder="e.g., 175"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Weight (kg)
+                    </label>
+                    <input
+                      type="text"
+                      name="weight"
+                      value={formData.weight}
+                      onChange={handleChange}
+                      className="input-field"
+                      placeholder="e.g., 70"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}

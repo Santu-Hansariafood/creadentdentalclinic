@@ -212,7 +212,9 @@ export const medicalRecords = [
     vitalSigns: {
       bloodPressure: '120/80',
       heartRate: 72,
-      temperature: 98.6
+      temperature: 98.6,
+      height: "175 cm",
+      weight: "70 kg"
     },
     followUpDate: '2024-06-03'
   },
@@ -234,7 +236,9 @@ export const medicalRecords = [
     vitalSigns: {
       bloodPressure: '118/78',
       heartRate: 70,
-      temperature: 98.4
+      temperature: 98.4,
+      height: "175 cm",
+      weight: "72 kg"
     },
     followUpDate: '2024-07-15'
   },
@@ -257,7 +261,9 @@ export const medicalRecords = [
     vitalSigns: {
       bloodPressure: '115/75',
       heartRate: 68,
-      temperature: 98.2
+      temperature: 98.2,
+      height: "162 cm",
+      weight: "55 kg"
     },
     followUpDate: null
   },
@@ -280,7 +286,9 @@ export const medicalRecords = [
     vitalSigns: {
       bloodPressure: '135/85',
       heartRate: 76,
-      temperature: 98.8
+      temperature: 98.8,
+      height: "180 cm",
+      weight: "85 kg"
     },
     followUpDate: '2024-01-21'
   }
