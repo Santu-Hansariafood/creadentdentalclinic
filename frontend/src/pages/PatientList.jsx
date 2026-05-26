@@ -3,14 +3,21 @@ import { fadeIn } from '../utils/motion'
 import PatientCard from '../components/PatientCard'
 import { useQuery } from '@apollo/client'
 import { GET_PATIENTS } from '../graphql/queries'
+import Pagination from '../components/Pagination'
+import { useState } from 'react'
 
 const PatientList = () => {
-  const { loading, error, data } = useQuery(GET_PATIENTS)
+  const [page, setPage] = useState(1)
+  const limit = 10
+
+  const { loading, error, data } = useQuery(GET_PATIENTS, {
+    variables: { page, limit }
+  })
 
   if (loading) return <div className="p-6 text-center">Loading patients...</div>
   if (error) return <div className="p-6 text-center text-red-500">Error: {error.message}</div>
 
-  const patients = data?.getPatients || []
+  const { patients = [], totalPages = 1 } = data?.getPatients || {}
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -22,16 +29,22 @@ const PatientList = () => {
       </motion.div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {patients && patients.map((patient, index) => (
+        {patients.map((patient, index) => (
           <PatientCard key={patient.id} patient={patient} delay={index * 0.1} />
         ))}
       </div>
-      
-      {(!patients || patients.length === 0) && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+
+      {patients.length === 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center mt-6">
           <p className="text-gray-500">No patients found.</p>
         </div>
       )}
+
+      <Pagination 
+        currentPage={page} 
+        totalPages={totalPages} 
+        onPageChange={setPage} 
+      />
     </div>
   )
 }

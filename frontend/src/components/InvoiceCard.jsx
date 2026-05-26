@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { FileText, Calendar, CreditCard, DollarSign, Download, RefreshCw } from 'lucide-react'
 import { fadeIn } from '../utils/motion'
-import { format } from 'date-fns'
+import { formatDate } from '../utils/dateUtils'
 import toast from 'react-hot-toast'
 import { generateInvoicePDF } from '../utils/pdfGenerator'
 
@@ -52,11 +52,11 @@ const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
       <div className="space-y-2 mb-4">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Calendar size={16} />
-          <span>Date: {format(new Date(invoice.date), 'MMM dd, yyyy')}</span>
+          <span>Date: {formatDate(invoice.date, 'MMM dd, yyyy')}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Calendar size={16} />
-          <span>Due: {format(new Date(invoice.dueDate), 'MMM dd, yyyy')}</span>
+          <span>Due: {formatDate(invoice.dueDate, 'MMM dd, yyyy')}</span>
         </div>
         {invoice.paymentMethod && (
           <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -75,7 +75,7 @@ const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
         {invoice.paymentDate && (
           <div className="flex items-center gap-2 text-sm text-success">
             <Calendar size={16} />
-            <span>Paid: {format(new Date(invoice.paymentDate), 'MMM dd, yyyy')}</span>
+            <span>Paid: {formatDate(invoice.paymentDate, 'MMM dd, yyyy')}</span>
           </div>
         )}
       </div>

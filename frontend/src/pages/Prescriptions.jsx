@@ -2,20 +2,35 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Pill, Search, Filter, Plus, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { prescriptions } from '../data/mockData'
 import PrescriptionCard from '../components/PrescriptionCard'
 import { fadeIn, staggerContainer } from '../utils/motion'
 import toast from 'react-hot-toast'
+import { useQuery, useMutation } from '@apollo/client'
+import { GET_PRESCRIPTIONS } from '../graphql/queries'
+import { CREATE_PRESCRIPTION } from '../graphql/mutations'
 
 const Prescriptions = () => {
   const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('All')
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [medications, setMedications] = useState([{ name: '', dosage: '', frequency: '', duration: '', quantity: '', instructions: '' }])
+  const [medications, setMedications] = useState([{ name: '', dosage: '', frequency: '', duration: '', instructions: '' }])
+  const [patientName, setPatientName] = useState('')
+  const [diagnosis, setDiagnosis] = useState('')
+  const [notes, setNotes] = useState('')
+
+  const { loading, error, data } = useQuery(GET_PRESCRIPTIONS)
+  const [createPrescription] = useMutation(CREATE_PRESCRIPTION, {
+    refetchQueries: [{ query: GET_PRESCRIPTIONS }]
+  })
+
+  if (loading) return <div className="p-6 text-center">Loading prescriptions...</div>
+  if (error) return <div className="p-6 text-center text-red-500">Error: {error.message}</div>
+
+  const prescriptions = data?.getPrescriptions || []
 
   const addMedication = () => {
-    setMedications([...medications, { name: '', dosage: '', frequency: '', duration: '', quantity: '', instructions: '' }])
+    setMedications([...medications, { name: '', dosage: '', frequency: '', duration: '', instructions: '' }])
   }
 
   const removeMedication = (index) => {
@@ -28,24 +43,38 @@ const Prescriptions = () => {
     setMedications(newMedications)
   }
 
-  const userPrescriptions = prescriptions.filter(pres => {
-    if (user.role === 'patient') return pres.patientId === user.id
-    if (user.role === 'doctor') return pres.doctorId === user.id
-    return true
-  })
-
-  const filteredPrescriptions = userPrescriptions.filter(pres => {
+  const filteredPrescriptions = prescriptions.filter(pres => {
     const matchesSearch = pres.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          pres.medications.some(med => med.name.toLowerCase().includes(searchTerm.toLowerCase()))
     const matchesStatus = filterStatus === 'All' || pres.status === filterStatus
     return matchesSearch && matchesStatus
   })
 
-  const handleCreatePrescription = (e) => {
+  const handleCreatePrescription = async (e) => {
     e.preventDefault()
-    toast.success('Prescription created successfully!')
-    setShowCreateForm(false)
-    setMedications([{ name: '', dosage: '', frequency: '', duration: '', quantity: '', instructions: '' }])
+    try {
+      await createPrescription({
+        variables: {
+          patientId: user.id, // Simplified for now, in real app would select from patient list
+          patientName,
+          doctorId: user.id,
+          doctorName: user.name,
+          diagnosis,
+          medications: medications.map(({ name, dosage, frequency, duration, instructions }) => ({
+            name, dosage, frequency, duration, instructions
+          })),
+          notes
+        }
+      })
+      toast.success('Prescription created successfully!')
+      setShowCreateForm(false)
+      setMedications([{ name: '', dosage: '', frequency: '', duration: '', instructions: '' }])
+      setPatientName('')
+      setDiagnosis('')
+      setNotes('')
+    } catch (err) {
+      toast.error('Failed to create prescription')
+    }
   }
 
   return (
@@ -81,13 +110,25 @@ const Prescriptions = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Patient Name *
                 </label>
-                <input type="text" className="input-field" required />
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  value={patientName}
+                  onChange={(e) => setPatientName(e.target.value)}
+                  required 
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Diagnosis *
                 </label>
-                <input type="text" className="input-field" required />
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  value={diagnosis}
+                  onChange={(e) => setDiagnosis(e.target.value)}
+                  required 
+                />
               </div>
             </div>
 
@@ -170,18 +211,6 @@ const Prescriptions = () => {
                             required
                           />
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Quantity *
-                          </label>
-                          <input
-                            type="number"
-                            className="input-field bg-white"
-                            value={med.quantity}
-                            onChange={(e) => handleMedicationChange(index, 'quantity', e.target.value)}
-                            required
-                          />
-                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -206,7 +235,12 @@ const Prescriptions = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Additional Notes
               </label>
-              <textarea className="input-field" rows={3} />
+              <textarea 
+                className="input-field" 
+                rows={3} 
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
             </div>
             <div className="flex gap-3">
               <button type="submit" className="btn-primary">

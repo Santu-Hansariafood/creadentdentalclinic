@@ -11,6 +11,7 @@ import {
   UserPlus,
   Package,
   PlusCircle,
+  Award,
   BarChart3,
   Settings
 } from 'lucide-react'
@@ -47,6 +48,7 @@ const Sidebar = () => {
     { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/patients', icon: Users, label: 'Patients' },
     { to: '/admin/patient-registration', icon: UserPlus, label: 'Register Patient' },
+    { to: '/admin/doctor-registration', icon: Award, label: 'Register Doctor' },
     { to: '/admin/medicines', icon: Package, label: 'Medicines' },
     { to: '/admin/medicine-registration', icon: PlusCircle, label: 'Register Medicine' },
     { to: '/admin/payment-ledger', icon: FileText, label: 'Payment Ledger' },

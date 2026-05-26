@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Calendar, Clock, User, MapPin } from 'lucide-react'
 import { fadeIn } from '../utils/motion'
+import { formatDate } from '../utils/dateUtils'
 
 const AppointmentCard = ({ appointment, delay = 0, onAction }) => {
   const statusColors = {
@@ -37,12 +38,7 @@ const AppointmentCard = ({ appointment, delay = 0, onAction }) => {
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Calendar size={16} />
-          <span>{new Date(appointment.date).toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}</span>
+          <span>{formatDate(appointment.date, 'EEEE, MMMM do, yyyy')}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Clock size={16} />

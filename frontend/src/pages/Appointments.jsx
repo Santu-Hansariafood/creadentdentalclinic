@@ -2,17 +2,24 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Calendar as CalendarIcon, Plus, Filter, Search } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { appointments, doctors, appointmentSlots } from '../data/mockData'
+import { doctors, appointmentSlots } from '../data/mockData'
 import AppointmentCard from '../components/AppointmentCard'
 import { fadeIn, staggerContainer } from '../utils/motion'
 import toast from 'react-hot-toast'
+import { useQuery, useMutation } from '@apollo/client'
+import { GET_APPOINTMENTS, GET_USERS_BY_ROLE, GET_PATIENTS } from '../graphql/queries'
+import { CREATE_APPOINTMENT } from '../graphql/mutations'
+import Pagination from '../components/Pagination'
 
 const Appointments = () => {
   const { user } = useAuth()
   const [showBooking, setShowBooking] = useState(false)
   const [filterStatus, setFilterStatus] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
+  const [page, setPage] = useState(1)
+  const limit = 10
   const [bookingData, setBookingData] = useState({
+    patientId: '',
     doctorId: '',
     date: '',
     time: '',
@@ -20,13 +27,24 @@ const Appointments = () => {
     reason: ''
   })
 
-  const userAppointments = appointments.filter(apt => {
-    if (user.role === 'patient') return apt.patientId === user.id
-    if (user.role === 'doctor') return apt.doctorId === user.id
-    return true
+  const { loading: loadingApts, error: errorApts, data: dataApts } = useQuery(GET_APPOINTMENTS, {
+    variables: { page, limit }
+  })
+  const { data: dataDoctors } = useQuery(GET_USERS_BY_ROLE, { variables: { role: 'doctor' } })
+  const { data: dataPatients } = useQuery(GET_PATIENTS, { variables: { page: 1, limit: 100 } })
+
+  const [createAppointment] = useMutation(CREATE_APPOINTMENT, {
+    refetchQueries: [{ query: GET_APPOINTMENTS }]
   })
 
-  const filteredAppointments = userAppointments.filter(apt => {
+  if (loadingApts) return <div className="p-6 text-center">Loading appointments...</div>
+  if (errorApts) return <div className="p-6 text-center text-red-500">Error: {errorApts.message}</div>
+
+  const { appointments = [], totalPages = 1 } = dataApts?.getAppointments || {}
+  const doctors = dataDoctors?.getUsersByRole || []
+  const patients = dataPatients?.getPatients?.patients || []
+
+  const filteredAppointments = appointments.filter(apt => {
     const matchesStatus = filterStatus === 'All' || apt.status === filterStatus
     const matchesSearch = apt.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          apt.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -38,11 +56,32 @@ const Appointments = () => {
     setBookingData({ ...bookingData, [e.target.name]: e.target.value })
   }
 
-  const handleBooking = (e) => {
+  const handleBooking = async (e) => {
     e.preventDefault()
-    toast.success('Appointment booked successfully!')
-    setShowBooking(false)
-    setBookingData({ doctorId: '', date: '', time: '', type: '', reason: '' })
+    try {
+      const selectedDoctor = doctors.find(d => d.id === bookingData.doctorId)
+      const selectedPatient = user.role === 'patient' 
+        ? { id: user.id, name: user.name } 
+        : patients.find(p => p.id === bookingData.patientId)
+
+      await createAppointment({
+        variables: {
+          patientId: selectedPatient?.id,
+          patientName: selectedPatient?.name,
+          doctorId: bookingData.doctorId,
+          doctorName: selectedDoctor ? selectedDoctor.name : 'Unknown',
+          date: bookingData.date,
+          time: bookingData.time,
+          type: bookingData.type,
+          reason: bookingData.reason
+        }
+      })
+      toast.success('Appointment booked successfully!')
+      setShowBooking(false)
+      setBookingData({ patientId: '', doctorId: '', date: '', time: '', type: '', reason: '' })
+    } catch (err) {
+      toast.error('Failed to book appointment')
+    }
   }
 
   const handleAppointmentAction = (action, appointment) => {
@@ -82,6 +121,27 @@ const Appointments = () => {
           </h2>
           <form onSubmit={handleBooking} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {user.role === 'admin' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Patient *
+                  </label>
+                  <select
+                    name="patientId"
+                    value={bookingData.patientId}
+                    onChange={handleBookingChange}
+                    className="input-field"
+                    required
+                  >
+                    <option value="">Choose a patient</option>
+                    {patients.map(patient => (
+                      <option key={patient.id} value={patient.id}>
+                        {patient.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Select Doctor *
@@ -96,7 +156,7 @@ const Appointments = () => {
                   <option value="">Choose a doctor</option>
                   {doctors.map(doctor => (
                     <option key={doctor.id} value={doctor.id}>
-                      {doctor.name} - {doctor.specialization}
+                      {doctor.name} {doctor.specialization ? `- ${doctor.specialization}` : ''}
                     </option>
                   ))}
                 </select>
@@ -249,6 +309,12 @@ const Appointments = () => {
           </motion.div>
         )}
       </motion.div>
+
+      <Pagination 
+        currentPage={page} 
+        totalPages={totalPages} 
+        onPageChange={setPage} 
+      />
     </div>
   )
 }

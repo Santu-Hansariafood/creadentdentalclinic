@@ -3,6 +3,7 @@ const cors = require('cors');
 const { ApolloServer } = require('@apollo/server');
 const { expressMiddleware } = require('@apollo/server/express4');
 const connectDB = require('./config/db');
+const seedAdmin = require('./seedAdmin');
 const typeDefs = require('./graphql/typeDefs');
 const resolvers = require('./graphql/resolvers');
 const jwt = require('jsonwebtoken');
@@ -14,7 +15,10 @@ const startServer = async () => {
   const PORT = process.env.PORT || 5000;
 
   // Connect to Database
-  connectDB();
+  await connectDB();
+  
+  // Seed Admin from .env
+  await seedAdmin();
 
   const server = new ApolloServer({
     typeDefs,

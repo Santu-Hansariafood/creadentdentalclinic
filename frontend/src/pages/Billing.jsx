@@ -2,13 +2,16 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { CreditCard, Search, Filter, DollarSign, Download, Calendar, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { invoices, paymentMethods } from '../data/mockData'
+import { paymentMethods } from '../data/mockData'
 import InvoiceCard from '../components/InvoiceCard'
 import PaymentModal from '../components/PaymentModal'
 import PaymentMethodCard from '../components/PaymentMethodCard'
 import { fadeIn, staggerContainer } from '../utils/motion'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
+import { useQuery, useMutation } from '@apollo/client'
+import { GET_INVOICES } from '../graphql/queries'
+import { CREATE_INVOICE } from '../graphql/mutations'
 
 const Billing = () => {
   const { user } = useAuth()
@@ -20,15 +23,26 @@ const Billing = () => {
   const [selectedInvoices, setSelectedInvoices] = useState([])
   const [showPaymentMethods, setShowPaymentMethods] = useState(false)
   const [activeTab, setActiveTab] = useState('invoices')
-
-  const userInvoices = invoices.filter(inv => {
-    if (user.role === 'patient') return inv.patientId === user.id
-    return true
+  const [showCreateInvoice, setShowCreateInvoice] = useState(false)
+  const [newInvoice, setNewInvoice] = useState({
+    invoiceNumber: '',
+    patientId: '',
+    patientName: '',
+    date: format(new Date(), 'yyyy-MM-dd'),
+    total: 0
   })
 
-  const userPaymentMethods = paymentMethods.filter(pm => pm.userId === user.id)
+  const { loading, error, data } = useQuery(GET_INVOICES)
+  const [createInvoice] = useMutation(CREATE_INVOICE, {
+    refetchQueries: [{ query: GET_INVOICES }]
+  })
 
-  const filteredInvoices = userInvoices.filter(inv => {
+  if (loading) return <div className="p-6 text-center">Loading billing...</div>
+  if (error) return <div className="p-6 text-center text-red-500">Error: {error.message}</div>
+
+  const invoices = data?.getInvoices || []
+
+  const filteredInvoices = invoices.filter(inv => {
     const matchesSearch = inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          inv.patientName.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = filterStatus === 'All' || inv.status === filterStatus
@@ -42,15 +56,40 @@ const Billing = () => {
     return matchesSearch && matchesStatus && matchesDate
   })
 
-  const totalPending = userInvoices
+  const totalPending = invoices
     .filter(inv => inv.balance > 0)
     .reduce((sum, inv) => sum + inv.balance, 0)
 
-  const totalPaid = userInvoices
+  const totalPaid = invoices
     .filter(inv => inv.status === 'Paid')
     .reduce((sum, inv) => sum + inv.total, 0)
 
-  const pendingCount = userInvoices.filter(inv => inv.balance > 0).length
+  const pendingCount = invoices.filter(inv => inv.balance > 0).length
+
+  const handleCreateInvoice = async (e) => {
+    e.preventDefault()
+    try {
+      await createInvoice({
+        variables: {
+          ...newInvoice,
+          subtotal: parseFloat(newInvoice.total),
+          total: parseFloat(newInvoice.total),
+          balance: parseFloat(newInvoice.total)
+        }
+      })
+      toast.success('Invoice created successfully!')
+      setShowCreateInvoice(false)
+      setNewInvoice({
+        invoiceNumber: '',
+        patientId: '',
+        patientName: '',
+        date: format(new Date(), 'yyyy-MM-dd'),
+        total: 0
+      })
+    } catch (err) {
+      toast.error('Failed to create invoice')
+    }
+  }
 
   const handlePayment = (invoice) => {
     setSelectedInvoice(invoice)
@@ -63,7 +102,7 @@ const Billing = () => {
       return
     }
     const totalAmount = selectedInvoices.reduce((sum, id) => {
-      const inv = userInvoices.find(i => i.id === id)
+      const inv = invoices.find(i => i.id === id)
       return sum + (inv?.balance || 0)
     }, 0)
     toast.success(`Processing bulk payment of $${totalAmount.toFixed(2)}...`)
@@ -90,12 +129,72 @@ const Billing = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <motion.div {...fadeIn('down')} className="mb-8">
-        <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
-          Billing & Payments
-        </h1>
-        <p className="text-gray-600">Manage invoices, payments, and financial records</p>
+      <motion.div {...fadeIn('down')} className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+            Billing & Payments
+          </h1>
+          <p className="text-gray-600">Manage invoices, payments, and financial records</p>
+        </div>
+        {user.role === 'admin' && (
+          <button 
+            onClick={() => setShowCreateInvoice(true)}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Plus size={20} />
+            Create Invoice
+          </button>
+        )}
       </motion.div>
+
+      {showCreateInvoice && (
+        <motion.div {...fadeIn('up')} className="card mb-8">
+          <h2 className="text-xl font-bold mb-4">Create New Invoice</h2>
+          <form onSubmit={handleCreateInvoice} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input 
+              type="text" 
+              placeholder="Invoice Number" 
+              className="input-field" 
+              value={newInvoice.invoiceNumber}
+              onChange={(e) => setNewInvoice({...newInvoice, invoiceNumber: e.target.value})}
+              required
+            />
+            <input 
+              type="text" 
+              placeholder="Patient Name" 
+              className="input-field" 
+              value={newInvoice.patientName}
+              onChange={(e) => setNewInvoice({...newInvoice, patientName: e.target.value})}
+              required
+            />
+            <input 
+              type="date" 
+              className="input-field" 
+              value={newInvoice.date}
+              onChange={(e) => setNewInvoice({...newInvoice, date: e.target.value})}
+              required
+            />
+            <input 
+              type="number" 
+              placeholder="Total Amount" 
+              className="input-field" 
+              value={newInvoice.total}
+              onChange={(e) => setNewInvoice({...newInvoice, total: e.target.value})}
+              required
+            />
+            <div className="md:col-span-2 flex gap-2">
+              <button type="submit" className="btn-primary">Generate Invoice</button>
+              <button 
+                type="button" 
+                className="btn-outline"
+                onClick={() => setShowCreateInvoice(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <motion.div {...fadeIn('up', 0.1)} className="card">
@@ -131,7 +230,7 @@ const Billing = () => {
             </div>
             <div>
               <p className="text-sm text-gray-600">Total Invoices</p>
-              <p className="text-2xl font-bold text-gray-900">{userInvoices.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{invoices.length}</p>
             </div>
           </div>
           <p className="text-xs text-gray-500 mt-2">Generated invoices</p>

@@ -4,18 +4,24 @@ import { Search, Filter, Plus, Truck, Calendar, DollarSign, FileText } from 'luc
 import { fadeIn } from '../utils/motion'
 import { useQuery } from '@apollo/client'
 import { GET_PAYMENT_LEDGERS } from '../graphql/queries'
-import { format } from 'date-fns'
+import { formatDate } from '../utils/dateUtils'
+import Pagination from '../components/Pagination'
 
 const PaymentLedger = () => {
   const [searchTerm, setSearchTerm] = useState('')
-  const { loading, error, data } = useQuery(GET_PAYMENT_LEDGERS)
+  const [page, setPage] = useState(1)
+  const limit = 10
+
+  const { loading, error, data } = useQuery(GET_PAYMENT_LEDGERS, {
+    variables: { page, limit }
+  })
 
   if (loading) return <div className="p-6 text-center">Loading ledger...</div>
   if (error) return <div className="p-6 text-center text-red-500">Error: {error.message}</div>
 
-  const ledgers = data?.getPaymentLedgers || []
+  const { paymentLedgers = [], totalPages = 1 } = data?.getPaymentLedgers || {}
 
-  const filteredLedgers = ledgers.filter(ledger => 
+  const filteredLedgers = paymentLedgers.filter(ledger => 
     ledger.lorryNo.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
@@ -76,7 +82,7 @@ const PaymentLedger = () => {
                   <td className="px-6 py-4 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
                       <Calendar size={14} />
-                      {format(new Date(ledger.paymentDate), 'dd MMM yyyy')}
+                      {formatDate(ledger.paymentDate)}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -137,6 +143,12 @@ const PaymentLedger = () => {
           </table>
         </div>
       </motion.div>
+
+      <Pagination 
+        currentPage={page} 
+        totalPages={totalPages} 
+        onPageChange={setPage} 
+      />
     </div>
   )
 }

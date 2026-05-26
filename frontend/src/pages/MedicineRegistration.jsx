@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Pill, Tag, Factory, DollarSign, Package, Calendar, FileText } from 'lucide-react'
+import { Pill, Tag } from 'lucide-react'
 import { fadeIn } from '../utils/motion'
 import toast from 'react-hot-toast'
 import { useMutation } from '@apollo/client'
@@ -10,13 +10,7 @@ import { GET_MEDICINES } from '../graphql/queries'
 const MedicineRegistration = () => {
   const [formData, setFormData] = useState({
     name: '',
-    category: '',
-    manufacturer: '',
-    dosage: '',
-    price: '',
-    stock: '',
-    expiryDate: '',
-    description: ''
+    category: ''
   })
 
   const [registerMedicine, { loading }] = useMutation(REGISTER_MEDICINE, {
@@ -25,13 +19,7 @@ const MedicineRegistration = () => {
       toast.success('Medicine registered successfully!')
       setFormData({
         name: '',
-        category: '',
-        manufacturer: '',
-        dosage: '',
-        price: '',
-        stock: '',
-        expiryDate: '',
-        description: ''
+        category: ''
       })
     },
     onError: (error) => {
@@ -47,9 +35,7 @@ const MedicineRegistration = () => {
     e.preventDefault()
     await registerMedicine({
       variables: {
-        ...formData,
-        price: parseFloat(formData.price),
-        stock: parseInt(formData.stock)
+        ...formData
       }
     })
   }
@@ -107,110 +93,6 @@ const MedicineRegistration = () => {
                 </select>
               </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Manufacturer *
-              </label>
-              <div className="relative">
-                <Factory className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  name="manufacturer"
-                  value={formData.manufacturer}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                  placeholder="e.g. Pfizer"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Dosage/Strength *
-              </label>
-              <div className="relative">
-                <FileText className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  name="dosage"
-                  value={formData.dosage}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                  placeholder="e.g. 500mg"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price per Unit *
-              </label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="number"
-                  step="0.01"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                  placeholder="0.00"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Stock Quantity *
-              </label>
-              <div className="relative">
-                <Package className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="number"
-                  name="stock"
-                  value={formData.stock}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                  placeholder="0"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Expiry Date *
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="date"
-                  name="expiryDate"
-                  value={formData.expiryDate}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="3"
-              className="input-field"
-              placeholder="Enter medicine description and usage instructions..."
-            ></textarea>
           </div>
 
           <div className="flex justify-end pt-4">

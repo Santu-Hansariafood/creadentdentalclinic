@@ -7,23 +7,27 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useQuery } from '@apollo/client'
 import { GET_MEDICINES } from '../graphql/queries'
+import Pagination from '../components/Pagination'
 
 const MedicineList = () => {
   const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState('All')
+  const [page, setPage] = useState(1)
+  const limit = 12
 
-  const { loading, error, data } = useQuery(GET_MEDICINES)
+  const { loading, error, data } = useQuery(GET_MEDICINES, {
+    variables: { page, limit }
+  })
 
   if (loading) return <div className="p-6 text-center">Loading inventory...</div>
   if (error) return <div className="p-6 text-center text-red-500">Error loading inventory: {error.message}</div>
 
-  const medicines = data?.getMedicines || []
+  const { medicines = [], totalPages = 1 } = data?.getMedicines || {}
   const categories = ['All', ...new Set(medicines.map(m => m.category))]
 
   const filteredMedicines = medicines.filter(medicine => {
-    const matchesSearch = medicine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         medicine.manufacturer.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = medicine.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = filterCategory === 'All' || medicine.category === filterCategory
     return matchesSearch && matchesCategory
   })
@@ -90,6 +94,12 @@ const MedicineList = () => {
           <p className="text-gray-500 text-lg">No medicines found matching your criteria.</p>
         </div>
       )}
+
+      <Pagination 
+        currentPage={page} 
+        totalPages={totalPages} 
+        onPageChange={setPage} 
+      />
     </div>
   )
 }

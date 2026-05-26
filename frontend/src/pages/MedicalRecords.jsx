@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { FileText, Download, Eye, Search, Filter, Calendar, User, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { medicalRecords } from '../data/mockData'
 import { fadeIn, staggerContainer } from '../utils/motion'
 import toast from 'react-hot-toast'
+import { useQuery, useMutation } from '@apollo/client'
+import { GET_MEDICAL_RECORDS } from '../graphql/queries'
+import { CREATE_MEDICAL_RECORD } from '../graphql/mutations'
 
 const MedicalRecords = () => {
   const { user } = useAuth()
@@ -13,18 +15,40 @@ const MedicalRecords = () => {
   const [selectedRecord, setSelectedRecord] = useState(null)
   const [showCreateForm, setShowCreateForm] = useState(false)
 
-  const handleCreateRecord = (e) => {
-    e.preventDefault()
-    toast.success('Medical record created successfully!')
-    setShowCreateForm(false)
-  }
-
-  const userRecords = medicalRecords.filter(rec => {
-    if (user.role === 'patient') return rec.patientId === user.id
-    return true
+  const { loading, error, data } = useQuery(GET_MEDICAL_RECORDS)
+  const [createMedicalRecord] = useMutation(CREATE_MEDICAL_RECORD, {
+    refetchQueries: [{ query: GET_MEDICAL_RECORDS }]
   })
 
-  const filteredRecords = userRecords.filter(rec => {
+  const handleCreateRecord = async (e) => {
+    e.preventDefault()
+    try {
+      const formData = new FormData(e.target)
+      await createMedicalRecord({
+        variables: {
+          patientId: user.id, // Simplified for now
+          patientName: formData.get('patientName'),
+          doctorId: user.id,
+          doctorName: user.name,
+          date: formData.get('date'),
+          diagnosis: formData.get('diagnosis'),
+          treatment: formData.get('treatment'),
+          prescriptions: [] // Simplified
+        }
+      })
+      toast.success('Medical record created successfully!')
+      setShowCreateForm(false)
+    } catch (err) {
+      toast.error('Failed to create record')
+    }
+  }
+
+  if (loading) return <div className="p-6 text-center">Loading records...</div>
+  if (error) return <div className="p-6 text-center text-red-500">Error: {error.message}</div>
+
+  const medicalRecords = data?.getMedicalRecords || []
+
+  const filteredRecords = medicalRecords.filter(rec => {
     const matchesSearch = rec.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          rec.diagnosis.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          rec.treatment.toLowerCase().includes(searchTerm.toLowerCase())
@@ -245,14 +269,7 @@ const MedicalRecords = () => {
                   <p className="text-sm text-gray-700 line-clamp-2">{record.notes}</p>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-2">
-                    {record.attachments.map((att, idx) => (
-                      <span key={idx} className="badge badge-info text-xs">
-                        {att.type === 'image' ? '📷' : '📄'} {att.name}
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex items-center justify-end">
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
@@ -317,31 +334,33 @@ const MedicalRecords = () => {
                     </ul>
                   </div>
                 )}
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Vital Signs</p>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <p className="text-gray-600">BP</p>
-                      <p className="text-gray-900">{selectedRecord.vitalSigns.bloodPressure}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">Height</p>
-                      <p className="text-gray-900">{selectedRecord.vitalSigns.height}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">Weight</p>
-                      <p className="text-gray-900">{selectedRecord.vitalSigns.weight}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">Heart Rate</p>
-                      <p className="text-gray-900">{selectedRecord.vitalSigns.heartRate} bpm</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">Temp</p>
-                      <p className="text-gray-900">{selectedRecord.vitalSigns.temperature}°F</p>
+                {selectedRecord.vitalSigns && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-1">Vital Signs</p>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <p className="text-gray-600">BP</p>
+                        <p className="text-gray-900">{selectedRecord.vitalSigns.bloodPressure}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">Height</p>
+                        <p className="text-gray-900">{selectedRecord.vitalSigns.height}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">Weight</p>
+                        <p className="text-gray-900">{selectedRecord.vitalSigns.weight}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">Heart Rate</p>
+                        <p className="text-gray-900">{selectedRecord.vitalSigns.heartRate} bpm</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">Temp</p>
+                        <p className="text-gray-900">{selectedRecord.vitalSigns.temperature}°F</p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
                 <div>
                   <p className="text-sm font-medium text-gray-700 mb-1">Notes</p>
                   <p className="text-sm text-gray-600">{selectedRecord.notes}</p>

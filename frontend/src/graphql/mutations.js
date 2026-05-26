@@ -72,27 +72,117 @@ export const REGISTER = gql`
 export const REGISTER_MEDICINE = gql`
   mutation RegisterMedicine(
     $name: String!,
-    $category: String!,
-    $manufacturer: String!,
-    $dosage: String!,
-    $price: Float!,
-    $stock: Int!,
-    $expiryDate: String!,
-    $description: String
+    $category: String!
   ) {
     registerMedicine(
       name: $name,
-      category: $category,
-      manufacturer: $manufacturer,
-      dosage: $dosage,
-      price: $price,
-      stock: $stock,
-      expiryDate: $expiryDate,
-      description: $description
+      category: $category
     ) {
       id
       name
-      stock
+    }
+  }
+`;
+
+export const CREATE_APPOINTMENT = gql`
+  mutation CreateAppointment(
+    $patientId: ID!,
+    $patientName: String!,
+    $doctorId: ID!,
+    $doctorName: String!,
+    $date: String!,
+    $time: String!,
+    $type: String!,
+    $reason: String
+  ) {
+    createAppointment(
+      patientId: $patientId,
+      patientName: $patientName,
+      doctorId: $doctorId,
+      doctorName: $doctorName,
+      date: $date,
+      time: $time,
+      type: $type,
+      reason: $reason
+    ) {
+      id
+      status
+    }
+  }
+`;
+
+export const CREATE_PRESCRIPTION = gql`
+  mutation CreatePrescription(
+    $patientId: ID!,
+    $patientName: String!,
+    $doctorId: ID!,
+    $doctorName: String!,
+    $diagnosis: String,
+    $medications: [MedicationInput],
+    $notes: String
+  ) {
+    createPrescription(
+      patientId: $patientId,
+      patientName: $patientName,
+      doctorId: $doctorId,
+      doctorName: $doctorName,
+      diagnosis: $diagnosis,
+      medications: $medications,
+      notes: $notes
+    ) {
+      id
+      status
+    }
+  }
+`;
+
+export const CREATE_MEDICAL_RECORD = gql`
+  mutation CreateMedicalRecord(
+    $patientId: ID!,
+    $patientName: String!,
+    $doctorId: ID!,
+    $doctorName: String!,
+    $date: String!,
+    $diagnosis: String,
+    $treatment: String,
+    $prescriptions: [String]
+  ) {
+    createMedicalRecord(
+      patientId: $patientId,
+      patientName: $patientName,
+      doctorId: $doctorId,
+      doctorName: $doctorName,
+      date: $date,
+      diagnosis: $diagnosis,
+      treatment: $treatment,
+      prescriptions: $prescriptions
+    ) {
+      id
+    }
+  }
+`;
+
+export const CREATE_INVOICE = gql`
+  mutation CreateInvoice(
+    $invoiceNumber: String!,
+    $patientId: ID!,
+    $patientName: String!,
+    $date: String!,
+    $subtotal: Float!,
+    $total: Float!,
+    $balance: Float!
+  ) {
+    createInvoice(
+      invoiceNumber: $invoiceNumber,
+      patientId: $patientId,
+      patientName: $patientName,
+      date: $date,
+      subtotal: $subtotal,
+      total: $total,
+      balance: $balance
+    ) {
+      id
+      status
     }
   }
 `;

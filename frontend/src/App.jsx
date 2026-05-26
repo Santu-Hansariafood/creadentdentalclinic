@@ -19,6 +19,7 @@ import Reports from './pages/Reports'
 import PatientList from './pages/PatientList'
 import MedicineList from './pages/MedicineList'
 import MedicineRegistration from './pages/MedicineRegistration'
+import DoctorRegistration from './pages/DoctorRegistration'
 import PaymentLedger from './pages/PaymentLedger'
 import Settings from './pages/Settings'
 
@@ -72,6 +73,7 @@ const App = () => {
             <Route path="/admin/dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/patients" element={<ProtectedRoute role="admin"><PatientList /></ProtectedRoute>} />
             <Route path="/admin/patient-registration" element={<ProtectedRoute role="admin"><PatientRegistration /></ProtectedRoute>} />
+            <Route path="/admin/doctor-registration" element={<ProtectedRoute role="admin"><DoctorRegistration /></ProtectedRoute>} />
             <Route path="/admin/medicines" element={<ProtectedRoute role="admin"><MedicineList /></ProtectedRoute>} />
             <Route path="/admin/medicine-registration" element={<ProtectedRoute role="admin"><MedicineRegistration /></ProtectedRoute>} />
             <Route path="/admin/payment-ledger" element={<ProtectedRoute role="admin"><PaymentLedger /></ProtectedRoute>} />
