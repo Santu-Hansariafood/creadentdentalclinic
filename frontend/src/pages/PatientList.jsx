@@ -1,9 +1,17 @@
 import { motion } from 'framer-motion'
 import { fadeIn } from '../utils/motion'
 import PatientCard from '../components/PatientCard'
-import { patients } from '../data/mockData'
+import { useQuery } from '@apollo/client'
+import { GET_PATIENTS } from '../graphql/queries'
 
 const PatientList = () => {
+  const { loading, error, data } = useQuery(GET_PATIENTS)
+
+  if (loading) return <div className="p-6 text-center">Loading patients...</div>
+  if (error) return <div className="p-6 text-center text-red-500">Error: {error.message}</div>
+
+  const patients = data?.getPatients || []
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <motion.div {...fadeIn('down')} className="mb-8">

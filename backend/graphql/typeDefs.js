@@ -34,16 +34,46 @@ const typeDefs = `#graphql
     status: String
   }
 
+  type PaymentLedger {
+    id: ID!
+    slNo: Int!
+    lorryNo: String!
+    paymentDate: String!
+    paymentAmount: Float!
+    dueAmount: Float!
+    status: String
+    remarks: String
+  }
+
+  type AuthPayload {
+    token: String!
+    user: User!
+  }
+
   type Query {
+    me: User
     getUsers: [User]
     getUser(id: ID!): User
     getMedicines: [Medicine]
     getMedicine(id: ID!): Medicine
     getPatients: [Patient]
     getPatient(id: ID!): Patient
+    getPaymentLedgers: [PaymentLedger]
   }
 
   type Mutation {
+    register(
+      name: String!,
+      email: String!,
+      password: String!,
+      role: String!,
+      phone: String,
+      specialization: String,
+      license: String
+    ): AuthPayload
+
+    login(email: String!, password: String!): AuthPayload
+
     registerMedicine(
       name: String!,
       category: String!,
@@ -56,6 +86,25 @@ const typeDefs = `#graphql
     ): Medicine
 
     updateMedicineStock(id: ID!, stock: Int!): Medicine
+
+    createPatient(
+      name: String!,
+      email: String!,
+      phone: String!,
+      dateOfBirth: String!,
+      gender: String!,
+      address: String,
+      bloodGroup: String
+    ): Patient
+
+    addPaymentLedger(
+      slNo: Int!,
+      lorryNo: String!,
+      paymentDate: String!,
+      paymentAmount: Float!,
+      dueAmount: Float!,
+      remarks: String
+    ): PaymentLedger
   }
 `;
 

@@ -5,6 +5,8 @@ const { expressMiddleware } = require('@apollo/server/express4');
 const connectDB = require('./config/db');
 const typeDefs = require('./graphql/typeDefs');
 const resolvers = require('./graphql/resolvers');
+const jwt = require('jsonwebtoken');
+const User = require('./models/User');
 require('dotenv').config();
 
 const startServer = async () => {
@@ -24,7 +26,24 @@ const startServer = async () => {
   app.use(cors());
   app.use(express.json());
 
-  app.use('/graphql', expressMiddleware(server));
+  app.use('/graphql', expressMiddleware(server, {
+    context: async ({ req }) => {
+      const authHeader = req.headers.authorization || '';
+      const token = authHeader.split(' ')[1];
+      
+      let user = null;
+      if (token) {
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          user = await User.findById(decoded.id).select('-password');
+        } catch (err) {
+          console.error('Invalid token');
+        }
+      }
+      
+      return { user };
+    },
+  }));
 
   app.get('/', (req, res) => {
     res.send('Clinic Management API is running');

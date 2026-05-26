@@ -16,15 +16,11 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    const result = login(email, password)
+    const result = await login(email, password)
     setLoading(false)
     
     if (result.success) {
-      if (result.requiresOTP) {
-        navigate('/verify-otp')
-      } else {
-        navigate('/')
-      }
+      navigate('/')
     }
   }
 

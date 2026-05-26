@@ -12,7 +12,9 @@ const Register = () => {
     phone: '',
     password: '',
     confirmPassword: '',
-    role: 'patient'
+    role: 'patient',
+    specialization: '',
+    license: ''
   })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -26,15 +28,15 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match')
+      toast.error('Passwords do not match')
       return
     }
     setLoading(true)
-    const result = register(formData)
+    const result = await register(formData)
     setLoading(false)
     
     if (result.success) {
-      navigate('/verify-otp')
+      navigate('/')
     }
   }
 
@@ -165,8 +167,42 @@ const Register = () => {
               >
                 <option value="patient">Patient</option>
                 <option value="doctor">Doctor</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
+
+            {formData.role === 'doctor' && (
+              <motion.div {...fadeIn('up')} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Specialization
+                  </label>
+                  <input
+                    type="text"
+                    name="specialization"
+                    value={formData.specialization}
+                    onChange={handleChange}
+                    className="input-field"
+                    placeholder="e.g. General Dentistry"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    License Number
+                  </label>
+                  <input
+                    type="text"
+                    name="license"
+                    value={formData.license}
+                    onChange={handleChange}
+                    className="input-field"
+                    placeholder="e.g. DEN-12345"
+                    required
+                  />
+                </div>
+              </motion.div>
+            )}
 
             <div className="flex items-start gap-2">
               <input type="checkbox" className="mt-1 rounded border-gray-300" required />

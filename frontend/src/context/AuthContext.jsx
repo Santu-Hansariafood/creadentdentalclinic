@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { users } from '../data/mockData'
-import { stripeCustomers } from '../data/mockData'
 import toast from 'react-hot-toast'
+import { useMutation, useQuery } from '@apollo/client'
+import { LOGIN, REGISTER } from '../graphql/mutations'
+import { GET_ME } from '../graphql/queries'
 
 const AuthContext = createContext()
 
@@ -17,119 +18,78 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [otpSent, setOtpSent] = useState(false)
-  const [pendingUser, setPendingUser] = useState(null)
+
+  const [loginMutation] = useMutation(LOGIN)
+  const [registerMutation] = useMutation(REGISTER)
+  
+  const { data: meData, loading: meLoading, error: meError } = useQuery(GET_ME, {
+    skip: !localStorage.getItem('token'),
+  })
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
+    if (meData?.me) {
+      setUser(meData.me)
       setIsAuthenticated(true)
+      localStorage.setItem('user', JSON.stringify(meData.me))
+    } else if (meError) {
+      logout()
     }
-    setLoading(false)
-  }, [])
+    setLoading(meLoading)
+  }, [meData, meError, meLoading])
 
-  const login = (email, password) => {
-    const foundUser = users.find(u => u.email === email && u.password === password)
-    if (foundUser) {
-      if (!foundUser.verified) {
-        setPendingUser(foundUser)
-        setOtpSent(true)
-        toast.success('OTP sent to your email')
-        return { success: true, requiresOTP: true }
+  const login = async (email, password) => {
+    try {
+      const { data } = await loginMutation({
+        variables: { email, password }
+      })
+      
+      if (data?.login) {
+        const { token, user: userData } = data.login
+        setUser(userData)
+        setIsAuthenticated(true)
+        localStorage.setItem('user', JSON.stringify(userData))
+        localStorage.setItem('token', token)
+        toast.success(`Welcome back, ${userData.name}!`)
+        return { success: true }
       }
-      const stripeCustomer = stripeCustomers.find(c => c.userId === foundUser.id)
-      const userWithStripe = { ...foundUser, stripeCustomerId: stripeCustomer?.stripeCustomerId }
-      setUser(userWithStripe)
-      setIsAuthenticated(true)
-      localStorage.setItem('user', JSON.stringify(userWithStripe))
-      toast.success(`Welcome back, ${userWithStripe.name}!`)
-      return { success: true, requiresOTP: false }
-    }
-    toast.error('Invalid email or password')
-    return { success: false }
-  }
-
-  const register = (userData) => {
-    const existingUser = users.find(u => u.email === userData.email)
-    if (existingUser) {
-      toast.error('Email already registered')
+    } catch (error) {
+      toast.error(error.message || 'Login failed')
       return { success: false }
     }
-    const newUser = {
-      id: users.length + 1,
-      ...userData,
-      verified: false
-    }
-    users.push(newUser)
-    setPendingUser(newUser)
-    setOtpSent(true)
-    toast.success('Registration successful! Please verify your OTP')
-    return { success: true }
   }
 
-  const verifyOTP = (otp) => {
-    if (otp === '123456' && pendingUser) {
-      const verifiedUser = { ...pendingUser, verified: true }
-      const userIndex = users.findIndex(u => u.id === pendingUser.id)
-      if (userIndex !== -1) {
-        users[userIndex] = verifiedUser
+  const register = async (userData) => {
+    try {
+      const { data } = await registerMutation({
+        variables: { ...userData }
+      })
+      
+      if (data?.register) {
+        const { token, user: newUser } = data.register
+        setUser(newUser)
+        setIsAuthenticated(true)
+        localStorage.setItem('user', JSON.stringify(newUser))
+        localStorage.setItem('token', token)
+        toast.success('Registration successful!')
+        return { success: true }
       }
-      setUser(verifiedUser)
-      setIsAuthenticated(true)
-      localStorage.setItem('user', JSON.stringify(verifiedUser))
-      setPendingUser(null)
-      setOtpSent(false)
-      toast.success('OTP verified successfully!')
-      return { success: true }
+    } catch (error) {
+      toast.error(error.message || 'Registration failed')
+      return { success: false }
     }
-    toast.error('Invalid OTP')
-    return { success: false }
-  }
-
-  const resendOTP = () => {
-    if (pendingUser) {
-      setOtpSent(true)
-      toast.success('OTP resent successfully')
-      return { success: true }
-    }
-    return { success: false }
   }
 
   const logout = () => {
     setUser(null)
     setIsAuthenticated(false)
     localStorage.removeItem('user')
+    localStorage.removeItem('token')
     toast.success('Logged out successfully')
   }
 
-  const canProcessPayments = () => {
-    return user && ['patient', 'admin'].includes(user.role)
-  }
-
-  const canIssueRefunds = () => {
-    return user && user.role === 'admin'
-  }
-
-  const getStripeCustomerId = () => {
-    return user?.stripeCustomerId || null
-  }
-
-  const value = {
-    user,
-    isAuthenticated,
-    loading,
-    otpSent,
-    pendingUser,
-    login,
-    register,
-    verifyOTP,
-    resendOTP,
-    logout,
-    canProcessPayments,
-    canIssueRefunds,
-    getStripeCustomerId
-  }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, register, logout }}>
+      {!loading && children}
+    </AuthContext.Provider>
+  )
 }

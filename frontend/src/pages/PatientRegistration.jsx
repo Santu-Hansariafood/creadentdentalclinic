@@ -3,6 +3,9 @@ import { motion } from 'framer-motion'
 import { User, Mail, Phone, Calendar, MapPin, Heart, AlertCircle, FileText, Shield } from 'lucide-react'
 import { fadeIn } from '../utils/motion'
 import toast from 'react-hot-toast'
+import { useMutation } from '@apollo/client'
+import { CREATE_PATIENT } from '../graphql/mutations'
+import { GET_PATIENTS } from '../graphql/queries'
 
 const PatientRegistration = () => {
   const [currentStep, setCurrentStep] = useState(1)
@@ -33,6 +36,43 @@ const PatientRegistration = () => {
     expiryDate: ''
   })
 
+  const [createPatient, { loading }] = useMutation(CREATE_PATIENT, {
+    refetchQueries: [{ query: GET_PATIENTS }],
+    onCompleted: () => {
+      toast.success('Patient registered successfully!')
+      setCurrentStep(1)
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        dateOfBirth: '',
+        gender: '',
+        address: '',
+        bloodGroup: '',
+        emergencyContactName: '',
+        emergencyContactRelation: '',
+        emergencyContactPhone: '',
+        allergies: '',
+        chronicConditions: '',
+        medications: '',
+        previousSurgeries: '',
+        familyHistory: '',
+        bloodPressure: '',
+        height: '',
+        weight: '',
+        lastVisit: '',
+        previousTreatments: '',
+        currentIssues: '',
+        insuranceProvider: '',
+        policyNumber: '',
+        expiryDate: ''
+      })
+    },
+    onError: (error) => {
+      toast.error(`Error: ${error.message}`)
+    }
+  })
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
@@ -45,10 +85,19 @@ const PatientRegistration = () => {
     setCurrentStep(currentStep - 1)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    toast.success('Patient registered successfully!')
-    console.log('Patient data:', formData)
+    await createPatient({
+      variables: {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        address: formData.address,
+        bloodGroup: formData.bloodGroup
+      }
+    })
   }
 
   const steps = [
