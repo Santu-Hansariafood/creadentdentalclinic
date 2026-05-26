@@ -17,6 +17,8 @@ import Chat from './pages/Chat'
 import Billing from './pages/Billing'
 import Reports from './pages/Reports'
 import PatientList from './pages/PatientList'
+import MedicineList from './pages/MedicineList'
+import MedicineRegistration from './pages/MedicineRegistration'
 import Settings from './pages/Settings'
 
 const App = () => {
@@ -60,12 +62,16 @@ const App = () => {
             <Route path="/doctor/patients" element={<ProtectedRoute role="doctor"><PatientList /></ProtectedRoute>} />
             <Route path="/doctor/records" element={<ProtectedRoute role="doctor"><MedicalRecords /></ProtectedRoute>} />
             <Route path="/doctor/prescriptions" element={<ProtectedRoute role="doctor"><Prescriptions /></ProtectedRoute>} />
+            <Route path="/doctor/medicines" element={<ProtectedRoute role="doctor"><MedicineList /></ProtectedRoute>} />
+            <Route path="/doctor/medicine-registration" element={<ProtectedRoute role="doctor"><MedicineRegistration /></ProtectedRoute>} />
             <Route path="/doctor/chat" element={<ProtectedRoute role="doctor"><Chat /></ProtectedRoute>} />
             <Route path="/doctor/settings" element={<ProtectedRoute role="doctor"><Settings /></ProtectedRoute>} />
             
             <Route path="/admin/dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/patients" element={<ProtectedRoute role="admin"><PatientList /></ProtectedRoute>} />
             <Route path="/admin/patient-registration" element={<ProtectedRoute role="admin"><PatientRegistration /></ProtectedRoute>} />
+            <Route path="/admin/medicines" element={<ProtectedRoute role="admin"><MedicineList /></ProtectedRoute>} />
+            <Route path="/admin/medicine-registration" element={<ProtectedRoute role="admin"><MedicineRegistration /></ProtectedRoute>} />
             <Route path="/admin/appointments" element={<ProtectedRoute role="admin"><Appointments /></ProtectedRoute>} />
             <Route path="/admin/records" element={<ProtectedRoute role="admin"><MedicalRecords /></ProtectedRoute>} />
             <Route path="/admin/billing" element={<ProtectedRoute role="admin"><Billing /></ProtectedRoute>} />

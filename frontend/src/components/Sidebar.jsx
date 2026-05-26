@@ -9,6 +9,8 @@ import {
   CreditCard,
   Users,
   UserPlus,
+  Package,
+  PlusCircle,
   BarChart3,
   Settings
 } from 'lucide-react'
@@ -34,6 +36,8 @@ const Sidebar = () => {
     { to: '/doctor/patients', icon: Users, label: 'Patients' },
     { to: '/doctor/records', icon: FileText, label: 'Medical Records' },
     { to: '/doctor/prescriptions', icon: Pill, label: 'Prescriptions' },
+    { to: '/doctor/medicines', icon: Package, label: 'Medicines' },
+    { to: '/doctor/medicine-registration', icon: PlusCircle, label: 'Register Medicine' },
     { to: '/doctor/chat', icon: MessageSquare, label: 'Messages' },
     { to: '/doctor/settings', icon: Settings, label: 'Settings' }
   ]
@@ -42,6 +46,8 @@ const Sidebar = () => {
     { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/patients', icon: Users, label: 'Patients' },
     { to: '/admin/patient-registration', icon: UserPlus, label: 'Register Patient' },
+    { to: '/admin/medicines', icon: Package, label: 'Medicines' },
+    { to: '/admin/medicine-registration', icon: PlusCircle, label: 'Register Medicine' },
     { to: '/admin/appointments', icon: Calendar, label: 'Appointments' },
     { to: '/admin/records', icon: FileText, label: 'Medical Records' },
     { to: '/admin/billing', icon: CreditCard, label: 'Billing' },

@@ -694,6 +694,53 @@ export const treatmentTypes = [
   { id: 10, name: 'Emergency', duration: 30, price: 200 }
 ]
 
+export const medicines = [
+  {
+    id: 1,
+    name: 'Amoxicillin',
+    category: 'Antibiotic',
+    manufacturer: 'Pfizer',
+    dosage: '500mg',
+    price: 15.50,
+    stock: 100,
+    expiryDate: '2025-12-31',
+    description: 'Used to treat various bacterial infections.'
+  },
+  {
+    id: 2,
+    name: 'Ibuprofen',
+    category: 'Analgesic',
+    manufacturer: 'Bayer',
+    dosage: '400mg',
+    price: 8.25,
+    stock: 250,
+    expiryDate: '2026-06-30',
+    description: 'Nonsteroidal anti-inflammatory drug (NSAID) used for pain and fever.'
+  },
+  {
+    id: 3,
+    name: 'Chlorhexidine Gluconate',
+    category: 'Antiseptic',
+    manufacturer: '3M',
+    dosage: '0.12%',
+    price: 12.00,
+    stock: 50,
+    expiryDate: '2025-08-15',
+    description: 'Antiseptic mouthwash used to treat gingivitis.'
+  },
+  {
+    id: 4,
+    name: 'Paracetamol',
+    category: 'Analgesic',
+    manufacturer: 'GSK',
+    dosage: '500mg',
+    price: 5.50,
+    stock: 300,
+    expiryDate: '2026-03-20',
+    description: 'Used to treat pain and fever.'
+  }
+]
+
 export const doctors = [
   {
     id: 2,
