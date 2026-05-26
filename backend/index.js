@@ -1,17 +1,39 @@
 const express = require('express');
 const cors = require('cors');
+const { ApolloServer } = require('@apollo/server');
+const { expressMiddleware } = require('@apollo/server/express4');
+const connectDB = require('./config/db');
+const typeDefs = require('./graphql/typeDefs');
+const resolvers = require('./graphql/resolvers');
 require('dotenv').config();
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+const startServer = async () => {
+  const app = express();
+  const PORT = process.env.PORT || 5000;
 
-app.use(cors());
-app.use(express.json());
+  // Connect to Database
+  connectDB();
 
-app.get('/', (req, res) => {
-  res.send('Server is running');
-});
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+  });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+  await server.start();
+
+  app.use(cors());
+  app.use(express.json());
+
+  app.use('/graphql', expressMiddleware(server));
+
+  app.get('/', (req, res) => {
+    res.send('Clinic Management API is running');
+  });
+
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    console.log(`GraphQL endpoint: http://localhost:${PORT}/graphql`);
+  });
+};
+
+startServer();

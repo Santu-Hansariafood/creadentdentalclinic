@@ -5,13 +5,16 @@ import App from './App'
 import './index.css'
 import { AuthProvider } from './context/AuthContext'
 import { Toaster } from 'react-hot-toast'
+import { ApolloProvider } from '@apollo/client'
+import client from './apolloClient'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-        <Toaster
+    <ApolloProvider client={client}>
+      <BrowserRouter>
+        <AuthProvider>
+          <App />
+          <Toaster
           position="top-right"
           toastOptions={{
             duration: 3000,
@@ -37,6 +40,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           }}
         />
       </AuthProvider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </ApolloProvider>
   </React.StrictMode>
 )

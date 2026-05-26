@@ -3,15 +3,22 @@ import { motion } from 'framer-motion'
 import { Search, Filter, Plus, Pill } from 'lucide-react'
 import { fadeIn } from '../utils/motion'
 import MedicineCard from '../components/MedicineCard'
-import { medicines } from '../data/mockData'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useQuery } from '@apollo/client'
+import { GET_MEDICINES } from '../graphql/queries'
 
 const MedicineList = () => {
   const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState('All')
 
+  const { loading, error, data } = useQuery(GET_MEDICINES)
+
+  if (loading) return <div className="p-6 text-center">Loading inventory...</div>
+  if (error) return <div className="p-6 text-center text-red-500">Error loading inventory: {error.message}</div>
+
+  const medicines = data?.getMedicines || []
   const categories = ['All', ...new Set(medicines.map(m => m.category))]
 
   const filteredMedicines = medicines.filter(medicine => {

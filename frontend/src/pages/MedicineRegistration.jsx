@@ -3,6 +3,9 @@ import { motion } from 'framer-motion'
 import { Pill, Tag, Factory, DollarSign, Package, Calendar, FileText } from 'lucide-react'
 import { fadeIn } from '../utils/motion'
 import toast from 'react-hot-toast'
+import { useMutation } from '@apollo/client'
+import { REGISTER_MEDICINE } from '../graphql/mutations'
+import { GET_MEDICINES } from '../graphql/queries'
 
 const MedicineRegistration = () => {
   const [formData, setFormData] = useState({
@@ -16,23 +19,38 @@ const MedicineRegistration = () => {
     description: ''
   })
 
+  const [registerMedicine, { loading }] = useMutation(REGISTER_MEDICINE, {
+    refetchQueries: [{ query: GET_MEDICINES }],
+    onCompleted: () => {
+      toast.success('Medicine registered successfully!')
+      setFormData({
+        name: '',
+        category: '',
+        manufacturer: '',
+        dosage: '',
+        price: '',
+        stock: '',
+        expiryDate: '',
+        description: ''
+      })
+    },
+    onError: (error) => {
+      toast.error(`Error: ${error.message}`)
+    }
+  })
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    toast.success('Medicine registered successfully!')
-    console.log('Medicine data:', formData)
-    setFormData({
-      name: '',
-      category: '',
-      manufacturer: '',
-      dosage: '',
-      price: '',
-      stock: '',
-      expiryDate: '',
-      description: ''
+    await registerMedicine({
+      variables: {
+        ...formData,
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock)
+      }
     })
   }
 
@@ -196,8 +214,8 @@ const MedicineRegistration = () => {
           </div>
 
           <div className="flex justify-end pt-4">
-            <button type="submit" className="btn-primary px-8">
-              Register Medicine
+            <button type="submit" className="btn-primary px-8" disabled={loading}>
+              {loading ? 'Registering...' : 'Register Medicine'}
             </button>
           </div>
         </form>
