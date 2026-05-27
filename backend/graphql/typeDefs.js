@@ -202,6 +202,14 @@ const typeDefs = `#graphql
       reason: String
     ): Appointment
 
+    updateAppointment(
+      id: ID!,
+      date: String,
+      time: String,
+      status: String,
+      notes: String
+    ): Appointment
+
     createMedicalRecord(
       patientId: ID!,
       patientName: String!,

@@ -1,4 +1,5 @@
 const express = require('express');
+const http = require('http');
 const cors = require('cors');
 const { ApolloServer } = require('@apollo/server');
 const { expressMiddleware } = require('@apollo/server/express4');
@@ -8,11 +9,24 @@ const typeDefs = require('./graphql/typeDefs');
 const resolvers = require('./graphql/resolvers');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
+const socket = require('./socket');
 require('dotenv').config();
 
 const startServer = async () => {
   const app = express();
+  const httpServer = http.createServer(app);
   const PORT = process.env.PORT || 5000;
+
+  // Initialize Socket.io
+  const io = socket.init(httpServer);
+
+  io.on('connection', (socket) => {
+    console.log('A user connected:', socket.id);
+    
+    socket.on('disconnect', () => {
+      console.log('User disconnected:', socket.id);
+    });
+  });
 
   // Connect to Database
   await connectDB();
@@ -45,7 +59,7 @@ const startServer = async () => {
         }
       }
       
-      return { user };
+      return { user, io };
     },
   }));
 
@@ -53,7 +67,7 @@ const startServer = async () => {
     res.send('Clinic Management API is running');
   });
 
-  app.listen(PORT, () => {
+  httpServer.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     console.log(`GraphQL endpoint: http://localhost:${PORT}/graphql`);
   });

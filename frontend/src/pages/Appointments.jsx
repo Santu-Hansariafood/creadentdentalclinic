@@ -8,7 +8,7 @@ import { fadeIn, staggerContainer } from '../utils/motion'
 import toast from 'react-hot-toast'
 import { useQuery, useMutation } from '@apollo/client'
 import { GET_APPOINTMENTS, GET_USERS_BY_ROLE, GET_PATIENTS } from '../graphql/queries'
-import { CREATE_APPOINTMENT } from '../graphql/mutations'
+import { CREATE_APPOINTMENT, UPDATE_APPOINTMENT } from '../graphql/mutations'
 import Pagination from '../components/Pagination'
 
 const Appointments = () => {
@@ -36,6 +36,13 @@ const Appointments = () => {
   const [createAppointment] = useMutation(CREATE_APPOINTMENT, {
     refetchQueries: [{ query: GET_APPOINTMENTS }]
   })
+
+  const [updateAppointment] = useMutation(UPDATE_APPOINTMENT, {
+    refetchQueries: [{ query: GET_APPOINTMENTS }]
+  })
+
+  const [reschedulingAppointment, setReschedulingAppointment] = useState(null)
+  const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' })
 
   if (loadingApts) return <div className="p-6 text-center">Loading appointments...</div>
   if (errorApts) return <div className="p-6 text-center text-red-500">Error: {errorApts.message}</div>
@@ -84,11 +91,42 @@ const Appointments = () => {
     }
   }
 
-  const handleAppointmentAction = (action, appointment) => {
+  const handleAppointmentAction = async (action, appointment) => {
     if (action === 'reschedule') {
-      toast.success('Rescheduling appointment...')
+      setReschedulingAppointment(appointment)
+      setRescheduleData({
+        date: appointment.date.split('T')[0],
+        time: appointment.time
+      })
     } else if (action === 'cancel') {
-      toast.success('Appointment cancelled')
+      try {
+        await updateAppointment({
+          variables: {
+            id: appointment.id,
+            status: 'Cancelled'
+          }
+        })
+        toast.success('Appointment cancelled')
+      } catch (err) {
+        toast.error('Failed to cancel appointment')
+      }
+    }
+  }
+
+  const handleReschedule = async (e) => {
+    e.preventDefault()
+    try {
+      await updateAppointment({
+        variables: {
+          id: reschedulingAppointment.id,
+          date: rescheduleData.date,
+          time: rescheduleData.time
+        }
+      })
+      toast.success('Appointment rescheduled successfully!')
+      setReschedulingAppointment(null)
+    } catch (err) {
+      toast.error('Failed to reschedule appointment')
     }
   }
 
@@ -113,6 +151,63 @@ const Appointments = () => {
           )}
         </div>
       </motion.div>
+
+      {reschedulingAppointment && (
+        <motion.div {...fadeIn('up', 0.1)} className="card mb-8 bg-blue-50 border-blue-200">
+          <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
+            Reschedule Appointment for {reschedulingAppointment.patientName}
+          </h2>
+          <form onSubmit={handleReschedule} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  New Date *
+                </label>
+                <input
+                  type="date"
+                  name="date"
+                  value={rescheduleData.date}
+                  onChange={(e) => setRescheduleData({ ...rescheduleData, date: e.target.value })}
+                  className="input-field"
+                  min={new Date().toISOString().split('T')[0]}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  New Time Slot *
+                </label>
+                <select
+                  name="time"
+                  value={rescheduleData.time}
+                  onChange={(e) => setRescheduleData({ ...rescheduleData, time: e.target.value })}
+                  className="input-field"
+                  required
+                >
+                  <option value="">Select time</option>
+                  {appointmentSlots.map(slot => (
+                    <option key={slot.time} value={slot.time}>
+                      {slot.time}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button type="submit" className="btn-primary">
+                Confirm Reschedule
+              </button>
+              <button
+                type="button"
+                onClick={() => setReschedulingAppointment(null)}
+                className="btn-outline"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      )}
 
       {showBooking && (
         <motion.div {...fadeIn('up', 0.1)} className="card mb-8">

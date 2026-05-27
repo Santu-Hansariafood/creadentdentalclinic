@@ -112,9 +112,42 @@ const resolvers = {
       const medicine = new Medicine(args);
       return await medicine.save();
     },
-    createAppointment: async (_, args) => {
+    createAppointment: async (_, args, { io }) => {
       const appointment = new Appointment(args);
-      return await appointment.save();
+      const savedAppointment = await appointment.save();
+      
+      // Emit notification via socket
+      if (io) {
+        io.emit('notification', {
+          type: 'NEW_APPOINTMENT',
+          message: `New appointment booked for ${savedAppointment.patientName} on ${savedAppointment.date}`,
+          appointment: savedAppointment
+        });
+      }
+      
+      return savedAppointment;
+    },
+    updateAppointment: async (_, { id, ...args }, { io }) => {
+      const updatedAppointment = await Appointment.findByIdAndUpdate(id, args, { new: true });
+      
+      // Emit notification via socket if status is changed or date/time is changed (rescheduled)
+      if (io && updatedAppointment) {
+        let message = `Appointment for ${updatedAppointment.patientName} has been updated`;
+        let type = 'APPOINTMENT_UPDATED';
+
+        if (args.date || args.time) {
+          message = `Appointment for ${updatedAppointment.patientName} has been rescheduled to ${updatedAppointment.date} at ${updatedAppointment.time}`;
+          type = 'APPOINTMENT_RESCHEDULED';
+        }
+
+        io.emit('notification', {
+          type,
+          message,
+          appointment: updatedAppointment
+        });
+      }
+
+      return updatedAppointment;
     },
     createMedicalRecord: async (_, args) => {
       const record = new MedicalRecord(args);

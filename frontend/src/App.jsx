@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -22,9 +23,29 @@ import MedicineRegistration from './pages/MedicineRegistration'
 import DoctorRegistration from './pages/DoctorRegistration'
 import PaymentLedger from './pages/PaymentLedger'
 import Settings from './pages/Settings'
+import socketService from './services/socket'
+import toast from 'react-hot-toast'
 
 const App = () => {
   const { user, isAuthenticated } = useAuth()
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const socket = socketService.connect();
+      
+      socketService.onNotification((notification) => {
+        toast.success(notification.message, {
+          duration: 5000,
+          position: 'top-right',
+          icon: '🔔',
+        });
+      });
+
+      return () => {
+        socketService.disconnect();
+      };
+    }
+  }, [isAuthenticated]);
 
   const getDashboardRoute = () => {
     if (!user) return '/login'

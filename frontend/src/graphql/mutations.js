@@ -111,6 +111,29 @@ export const CREATE_APPOINTMENT = gql`
   }
 `;
 
+export const UPDATE_APPOINTMENT = gql`
+  mutation UpdateAppointment(
+    $id: ID!,
+    $date: String,
+    $time: String,
+    $status: String,
+    $notes: String
+  ) {
+    updateAppointment(
+      id: $id,
+      date: $date,
+      time: $time,
+      status: $status,
+      notes: $notes
+    ) {
+      id
+      status
+      date
+      time
+    }
+  }
+`;
+
 export const CREATE_PRESCRIPTION = gql`
   mutation CreatePrescription(
     $patientId: ID!,
