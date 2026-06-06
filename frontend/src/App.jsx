@@ -1,30 +1,38 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import OTPVerification from './pages/OTPVerification'
-import PatientDashboard from './pages/PatientDashboard'
-import DoctorDashboard from './pages/DoctorDashboard'
-import AdminDashboard from './pages/AdminDashboard'
-import PatientRegistration from './pages/PatientRegistration'
-import Appointments from './pages/Appointments'
-import MedicalRecords from './pages/MedicalRecords'
-import Prescriptions from './pages/Prescriptions'
-import Chat from './pages/Chat'
-import Billing from './pages/Billing'
-import Reports from './pages/Reports'
-import PatientList from './pages/PatientList'
-import MedicineList from './pages/MedicineList'
-import MedicineRegistration from './pages/MedicineRegistration'
-import DoctorRegistration from './pages/DoctorRegistration'
-import PaymentLedger from './pages/PaymentLedger'
-import Settings from './pages/Settings'
 import socketService from './services/socket'
 import toast from 'react-hot-toast'
+
+// Lazy load components
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const OTPVerification = lazy(() => import('./pages/OTPVerification'))
+const PatientDashboard = lazy(() => import('./pages/PatientDashboard'))
+const DoctorDashboard = lazy(() => import('./pages/DoctorDashboard'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
+const PatientRegistration = lazy(() => import('./pages/PatientRegistration'))
+const Appointments = lazy(() => import('./pages/Appointments'))
+const MedicalRecords = lazy(() => import('./pages/MedicalRecords'))
+const Prescriptions = lazy(() => import('./pages/Prescriptions'))
+const Chat = lazy(() => import('./pages/Chat'))
+const Billing = lazy(() => import('./pages/Billing'))
+const Reports = lazy(() => import('./pages/Reports'))
+const PatientList = lazy(() => import('./pages/PatientList'))
+const MedicineList = lazy(() => import('./pages/MedicineList'))
+const MedicineRegistration = lazy(() => import('./pages/MedicineRegistration'))
+const DoctorRegistration = lazy(() => import('./pages/DoctorRegistration'))
+const PaymentLedger = lazy(() => import('./pages/PaymentLedger'))
+const Settings = lazy(() => import('./pages/Settings'))
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-[60vh]">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  </div>
+)
 
 const App = () => {
   const { user, isAuthenticated } = useAuth()
@@ -72,8 +80,9 @@ const App = () => {
         {isAuthenticated && <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />}
         <main className={`flex-1 transition-all duration-300 ${isAuthenticated ? 'lg:ml-64 mt-16' : ''}`}>
           <div className="p-4 sm:p-6 lg:p-8">
-          <Routes>
-            <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to={getDashboardRoute()} />} />
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to={getDashboardRoute()} />} />
             <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to={getDashboardRoute()} />} />
             <Route path="/verify-otp" element={<OTPVerification />} />
             
@@ -112,6 +121,7 @@ const App = () => {
             <Route path="/" element={<Navigate to={isAuthenticated ? getDashboardRoute() : '/login'} />} />
             <Route path="*" element={<Navigate to={isAuthenticated ? getDashboardRoute() : '/login'} />} />
           </Routes>
+          </Suspense>
           </div>
         </main>
       </div>
