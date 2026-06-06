@@ -22,8 +22,8 @@ export const GET_USERS_BY_ROLE = gql`
 `;
 
 export const GET_MEDICINES = gql`
-  query GetMedicines($page: Int, $limit: Int) {
-    getMedicines(page: $page, limit: $limit) {
+  query GetMedicines($page: Int, $limit: Int, $search: String) {
+    getMedicines(page: $page, limit: $limit, search: $search) {
       medicines {
         id
         name
@@ -37,8 +37,8 @@ export const GET_MEDICINES = gql`
 `;
 
 export const GET_APPOINTMENTS = gql`
-  query GetAppointments($page: Int, $limit: Int) {
-    getAppointments(page: $page, limit: $limit) {
+  query GetAppointments($page: Int, $limit: Int, $search: String, $status: String) {
+    getAppointments(page: $page, limit: $limit, search: $search, status: $status) {
       appointments {
         id
         patientName
@@ -105,8 +105,8 @@ export const GET_PRESCRIPTIONS = gql`
 `;
 
 export const GET_PAYMENT_LEDGERS = gql`
-  query GetPaymentLedgers($page: Int, $limit: Int) {
-    getPaymentLedgers(page: $page, limit: $limit) {
+  query GetPaymentLedgers($page: Int, $limit: Int, $search: String) {
+    getPaymentLedgers(page: $page, limit: $limit, search: $search) {
       paymentLedgers {
         id
         slNo
@@ -125,8 +125,8 @@ export const GET_PAYMENT_LEDGERS = gql`
 `;
 
 export const GET_PATIENTS = gql`
-  query GetPatients($page: Int, $limit: Int) {
-    getPatients(page: $page, limit: $limit) {
+  query GetPatients($page: Int, $limit: Int, $search: String) {
+    getPatients(page: $page, limit: $limit, search: $search) {
       patients {
         id
         name
@@ -137,6 +137,103 @@ export const GET_PATIENTS = gql`
       totalCount
       totalPages
       currentPage
+    }
+  }
+`;
+
+export const GET_DASHBOARD_STATS = gql`
+  query GetDashboardStats {
+    getDashboardStats {
+      patient {
+        upcomingAppointments
+        totalAppointments
+        pendingBills
+        unreadMessages
+      }
+      doctor {
+        todayAppointments
+        totalPatients
+        pendingReports
+        unreadMessages
+      }
+      admin {
+        totalPatients
+        todayAppointments
+        pendingPayments
+        monthlyRevenue
+      }
+    }
+  }
+`;
+
+export const GET_REPORTS_DATA = gql`
+  query GetReportsData {
+    getReportsData {
+      monthlyRevenue {
+        month
+        revenue
+      }
+      appointmentsByType {
+        type
+        count
+      }
+      patientDemographics {
+        ageGroup
+        count
+      }
+      treatmentSuccess {
+        treatment
+        successRate
+      }
+    }
+  }
+`;
+
+export const GET_CONVERSATIONS = gql`
+  query GetConversations {
+    getConversations {
+      id
+      participants {
+        id
+        name
+        role
+      }
+      lastMessage
+      lastMessageTime
+      unreadCount
+    }
+  }
+`;
+
+export const GET_CHAT_MESSAGES = gql`
+  query GetChatMessages($conversationId: ID!) {
+    getChatMessages(conversationId: $conversationId) {
+      id
+      conversationId
+      senderId
+      senderName
+      senderRole
+      receiverId
+      receiverName
+      receiverRole
+      message
+      timestamp
+      read
+    }
+  }
+`;
+
+export const GET_NOTIFICATIONS = gql`
+  query GetNotifications {
+    getNotifications {
+      id
+      userId
+      type
+      title
+      message
+      timestamp
+      read
+      priority
     }
   }
 `;

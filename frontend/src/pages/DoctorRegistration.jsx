@@ -55,12 +55,12 @@ const DoctorRegistration = () => {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <motion.div {...fadeIn('down')} className="mb-8">
-        <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+    <div className="max-w-4xl mx-auto">
+      <motion.div {...fadeIn('down')} className="mb-6 sm:mb-8">
+        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Doctor Registration
         </h1>
-        <p className="text-gray-600">Add a new doctor to the clinic system</p>
+        <p className="text-sm sm:text-base text-gray-600">Add a new doctor to the clinic system</p>
       </motion.div>
 
       <motion.div {...fadeIn('up', 0.2)} className="card">

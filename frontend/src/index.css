@@ -113,7 +113,7 @@
   }
 
   .card {
-    @apply bg-white rounded-lg border border-gray-200 shadow-sm p-6 transition-all duration-200;
+    @apply bg-white rounded-lg border border-gray-200 shadow-sm p-4 sm:p-6 transition-all duration-200;
   }
 
   .card-hover {
@@ -121,31 +121,31 @@
   }
 
   .container-bordered {
-    @apply border border-gray-200 rounded-lg p-4;
+    @apply border border-gray-200 rounded-lg p-3 sm:p-4;
   }
 
   .btn-primary {
-    @apply bg-primary text-white px-6 py-2.5 rounded-lg font-medium hover:bg-primary/90 transition-all duration-200 shadow-sm hover:shadow-md;
+    @apply bg-primary text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium hover:bg-primary/90 transition-all duration-200 shadow-sm hover:shadow-md text-sm sm:text-base;
   }
 
   .btn-secondary {
-    @apply bg-secondary text-primary border border-primary px-6 py-2.5 rounded-lg font-medium hover:bg-primary/10 transition-all duration-200;
+    @apply bg-secondary text-primary border border-primary px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium hover:bg-primary/10 transition-all duration-200 text-sm sm:text-base;
   }
 
   .btn-outline {
-    @apply bg-transparent border-2 border-primary text-primary px-6 py-2.5 rounded-lg font-medium hover:bg-primary hover:text-white transition-all duration-200;
+    @apply bg-transparent border-2 border-primary text-primary px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium hover:bg-primary hover:text-white transition-all duration-200 text-sm sm:text-base;
   }
 
   .btn-success {
-    @apply bg-success text-white px-6 py-2.5 rounded-lg font-medium hover:bg-success/90 transition-all duration-200 shadow-sm;
+    @apply bg-success text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium hover:bg-success/90 transition-all duration-200 shadow-sm text-sm sm:text-base;
   }
 
   .btn-danger {
-    @apply bg-danger text-white px-6 py-2.5 rounded-lg font-medium hover:bg-danger/90 transition-all duration-200 shadow-sm;
+    @apply bg-danger text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium hover:bg-danger/90 transition-all duration-200 shadow-sm text-sm sm:text-base;
   }
 
   .input-field {
-    @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200;
+    @apply w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base;
   }
 
   .input-error {
@@ -157,15 +157,15 @@
   }
 
   .divider {
-    @apply border-t border-gray-200 my-6;
+    @apply border-t border-gray-200 my-4 sm:my-6;
   }
 
   .divider-vertical {
-    @apply border-l border-gray-200 mx-6;
+    @apply border-l border-gray-200 mx-4 sm:mx-6;
   }
 
   .panel {
-    @apply bg-white rounded-lg shadow-sm p-6;
+    @apply bg-white rounded-lg shadow-sm p-4 sm:p-6;
   }
 
   .panel-bordered {

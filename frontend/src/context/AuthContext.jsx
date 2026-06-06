@@ -37,10 +37,10 @@ export const AuthProvider = ({ children }) => {
     setLoading(meLoading)
   }, [meData, meError, meLoading])
 
-  const login = async (email, password) => {
+  const login = async (phone, password) => {
     try {
       const { data } = await loginMutation({
-        variables: { email, password }
+        variables: { phone, password }
       })
       
       if (data?.login) {

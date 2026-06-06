@@ -3,16 +3,18 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Bell, User, LogOut, Menu, X, MessageSquare } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { notifications } from '../data/mockData'
+import { useQuery } from '@apollo/client'
+import { GET_NOTIFICATIONS } from '../graphql/queries'
 
-const Navbar = () => {
+const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [showNotifications, setShowNotifications] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const unreadNotifications = notifications.filter(n => n.userId === user?.id && !n.read)
+  const { data: notifData } = useQuery(GET_NOTIFICATIONS)
+  const notifications = notifData?.getNotifications || []
+  const unreadNotifications = notifications.filter(n => !n.read)
 
   const handleLogout = () => {
     logout()
@@ -38,22 +40,23 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              onClick={toggleSidebar}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600"
+              aria-label="Toggle Sidebar"
             >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             <Link to={getDashboardLink()} className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-medical rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-medical rounded-lg flex items-center justify-center shrink-0">
                 <span className="text-white font-bold text-xl">DC</span>
               </div>
-              <span className="font-heading font-bold text-xl text-primary hidden sm:block">
+              <span className="font-heading font-bold text-lg sm:text-xl text-primary truncate max-w-[150px] sm:max-w-none">
                 creadent dental clinic
               </span>
             </Link>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link
               to={`/${user?.role}/chat`}
               className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -76,12 +79,12 @@ const Navbar = () => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden"
+                  className="absolute right-[-80px] sm:right-0 mt-2 w-[280px] sm:w-80 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden"
                 >
                   <div className="p-4 border-b border-gray-200">
                     <h3 className="font-heading font-semibold text-gray-900">Notifications</h3>
                   </div>
-                  <div className="max-h-96 overflow-y-auto">
+                  <div className="max-h-[60vh] overflow-y-auto">
                     {unreadNotifications.length > 0 ? (
                       unreadNotifications.map(notification => (
                         <div
@@ -109,12 +112,12 @@ const Navbar = () => {
             <div className="relative">
               <button
                 onClick={() => setShowProfile(!showProfile)}
-                className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-2 p-1 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
                   <User size={18} className="text-primary" />
                 </div>
-                <span className="font-medium text-sm text-gray-700 hidden sm:block">
+                <span className="font-medium text-sm text-gray-700 hidden md:block">
                   {user?.name}
                 </span>
               </button>
@@ -126,7 +129,7 @@ const Navbar = () => {
                   className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden"
                 >
                   <div className="p-4 border-b border-gray-200">
-                    <p className="font-heading font-semibold text-gray-900">{user?.name}</p>
+                    <p className="font-heading font-semibold text-gray-900 truncate">{user?.name}</p>
                     <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
                   </div>
                   <div className="p-2">
@@ -152,38 +155,6 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-
-      {mobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          className="lg:hidden border-t border-gray-200 bg-white"
-        >
-          <div className="p-4 space-y-2">
-            <Link
-              to={getDashboardLink()}
-              className="block px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Dashboard
-            </Link>
-            <Link
-              to={`/${user?.role}/chat`}
-              className="block px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Messages
-            </Link>
-            <Link
-              to={`/${user?.role}/settings`}
-              className="block px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Settings
-            </Link>
-          </div>
-        </motion.div>
-      )}
     </nav>
   )
 }

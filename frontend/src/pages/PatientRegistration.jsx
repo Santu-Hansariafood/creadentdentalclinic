@@ -109,36 +109,36 @@ const PatientRegistration = () => {
   ]
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <motion.div {...fadeIn('down')} className="mb-8">
-        <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+    <div className="max-w-4xl mx-auto">
+      <motion.div {...fadeIn('down')} className="mb-6 sm:mb-8">
+        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Patient Registration
         </h1>
-        <p className="text-gray-600">Complete the form to register a new patient</p>
+        <p className="text-sm sm:text-base text-gray-600">Complete the form to register a new patient</p>
       </motion.div>
 
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
+      <div className="mb-8 overflow-x-auto pb-4 sm:pb-0">
+        <div className="flex items-center justify-between min-w-[600px] sm:min-w-0">
           {steps.map((step, index) => {
             const Icon = step.icon
             return (
               <div key={step.number} className="flex items-center flex-1">
                 <div className="flex flex-col items-center flex-1">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
                     currentStep >= step.number
-                      ? 'bg-primary text-white'
+                      ? 'bg-primary text-white shadow-md scale-110 sm:scale-100'
                       : 'bg-gray-200 text-gray-500'
                   }`}>
-                    <Icon size={20} />
+                    <Icon size={18} sm:size={20} />
                   </div>
-                  <p className={`text-xs mt-2 text-center ${
+                  <p className={`text-[10px] sm:text-xs mt-2 text-center whitespace-nowrap ${
                     currentStep >= step.number ? 'text-primary font-medium' : 'text-gray-500'
                   }`}>
                     {step.title}
                   </p>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={`h-1 flex-1 mx-2 transition-all ${
+                  <div className={`h-1 flex-1 mx-1 sm:mx-2 transition-all ${
                     currentStep > step.number ? 'bg-primary' : 'bg-gray-200'
                   }`} />
                 )}

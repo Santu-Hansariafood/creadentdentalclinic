@@ -17,7 +17,6 @@ const startServer = async () => {
   const httpServer = http.createServer(app);
   const PORT = process.env.PORT || 5000;
 
-  // Initialize Socket.io
   const io = socket.init(httpServer);
 
   io.on('connection', (socket) => {
@@ -28,10 +27,8 @@ const startServer = async () => {
     });
   });
 
-  // Connect to Database
   await connectDB();
   
-  // Seed Admin from .env
   await seedAdmin();
 
   const server = new ApolloServer({

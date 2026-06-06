@@ -4,7 +4,7 @@ module.exports = {
   init: (httpServer) => {
     io = require('socket.io')(httpServer, {
       cors: {
-        origin: '*', // In production, replace with your frontend URL
+        origin: '*',
         methods: ['GET', 'POST']
       }
     });

@@ -1,8 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Calendar as CalendarIcon, Plus, Filter, Search } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { doctors, appointmentSlots } from '../data/mockData'
 import AppointmentCard from '../components/AppointmentCard'
 import { fadeIn, staggerContainer } from '../utils/motion'
 import toast from 'react-hot-toast'
@@ -16,6 +15,7 @@ const Appointments = () => {
   const [showBooking, setShowBooking] = useState(false)
   const [filterStatus, setFilterStatus] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
   const limit = 10
   const [bookingData, setBookingData] = useState({
@@ -27,9 +27,25 @@ const Appointments = () => {
     reason: ''
   })
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+      setPage(1)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
   const { loading: loadingApts, error: errorApts, data: dataApts } = useQuery(GET_APPOINTMENTS, {
-    variables: { page, limit }
+    variables: { page, limit, search: debouncedSearch, status: filterStatus }
   })
+  
+  // Update status filter change handler
+  const handleStatusChange = (e) => {
+    setFilterStatus(e.target.value)
+    setPage(1)
+  }
+
   const { data: dataDoctors } = useQuery(GET_USERS_BY_ROLE, { variables: { role: 'doctor' } })
   const { data: dataPatients } = useQuery(GET_PATIENTS, { variables: { page: 1, limit: 100 } })
 
@@ -44,20 +60,16 @@ const Appointments = () => {
   const [reschedulingAppointment, setReschedulingAppointment] = useState(null)
   const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' })
 
-  if (loadingApts) return <div className="p-6 text-center">Loading appointments...</div>
+  if (loadingApts && !dataApts) return <div className="p-6 text-center">Loading appointments...</div>
   if (errorApts) return <div className="p-6 text-center text-red-500">Error: {errorApts.message}</div>
 
   const { appointments = [], totalPages = 1 } = dataApts?.getAppointments || {}
   const doctors = dataDoctors?.getUsersByRole || []
   const patients = dataPatients?.getPatients?.patients || []
 
-  const filteredAppointments = appointments.filter(apt => {
-    const matchesStatus = filterStatus === 'All' || apt.status === filterStatus
-    const matchesSearch = apt.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         apt.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         apt.type.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesStatus && matchesSearch
-  })
+  // Filtered appointments is now managed by the backend, but we can still have local sorting if needed
+  // No need for client-side filtering anymore
+  const displayAppointments = appointments;
 
   const handleBookingChange = (e) => {
     setBookingData({ ...bookingData, [e.target.name]: e.target.value })
@@ -341,27 +353,28 @@ const Appointments = () => {
 
       <motion.div {...fadeIn('up', 0.2)} className="card mb-6">
         <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder="Search appointments..."
+              placeholder="Search by patient, doctor or type..."
+              className="input-field pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-field pl-10"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Filter size={20} className="text-gray-600" />
+          <div className="relative w-full md:w-64">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <select
+              className="input-field pl-10"
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="input-field"
+              onChange={handleStatusChange}
             >
-              <option value="All">All Status</option>
+              <option value="All">All Statuses</option>
               <option value="Scheduled">Scheduled</option>
               <option value="Completed">Completed</option>
               <option value="Cancelled">Cancelled</option>
+              <option value="Pending">Pending</option>
             </select>
           </div>
         </div>
@@ -373,8 +386,8 @@ const Appointments = () => {
         animate="animate"
         className="grid grid-cols-1 md:grid-cols-2 gap-6"
       >
-        {filteredAppointments.length > 0 ? (
-          filteredAppointments.map((apt, index) => (
+        {displayAppointments.length > 0 ? (
+          displayAppointments.map((apt, index) => (
             <AppointmentCard
               key={apt.id}
               appointment={apt}

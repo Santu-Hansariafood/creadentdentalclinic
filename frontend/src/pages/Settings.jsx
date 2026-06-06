@@ -12,9 +12,9 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Settings</h1>
+    <div className="max-w-md mx-auto">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
+      <div className="card">
         <form className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -58,7 +58,11 @@ const Settings = () => {
             />
           </div>
 
-          <button type="submit" className="btn-primary w-full">
+          <button
+            type="submit"
+            className="btn-primary w-full"
+            onClick={() => console.log('Saving settings:', formData)}
+          >
             Save Changes
           </button>
         </form>

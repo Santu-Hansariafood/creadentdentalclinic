@@ -1,16 +1,29 @@
 import { gql } from '@apollo/client';
 
 export const LOGIN = gql`
-  mutation Login($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
+  mutation Login($phone: String!, $password: String!) {
+    login(phone: $phone, password: $password) {
       token
       user {
         id
         name
+        phone
         email
         role
       }
     }
+  }
+`;
+
+export const FORGOT_PASSWORD = gql`
+  mutation ForgotPassword($phone: String!) {
+    forgotPassword(phone: $phone)
+  }
+`;
+
+export const RESET_PASSWORD = gql`
+  mutation ResetPassword($phone: String!, $otp: String!, $newPassword: String!) {
+    resetPassword(phone: $phone, otp: $otp, newPassword: $newPassword)
   }
 `;
 
@@ -42,19 +55,19 @@ export const CREATE_PATIENT = gql`
 export const REGISTER = gql`
   mutation Register(
     $name: String!,
+    $phone: String!,
     $email: String!,
     $password: String!,
     $role: String!,
-    $phone: String,
     $specialization: String,
     $license: String
   ) {
     register(
       name: $name,
+      phone: $phone,
       email: $email,
       password: $password,
       role: $role,
-      phone: $phone,
       specialization: $specialization,
       license: $license
     ) {
@@ -62,6 +75,7 @@ export const REGISTER = gql`
       user {
         id
         name
+        phone
         email
         role
       }

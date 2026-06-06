@@ -1,33 +1,40 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { Calendar, Users, FileText, Clock, TrendingUp } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { appointments, patients, dashboardStats } from '../data/mockData'
 import DashboardCard from '../components/DashboardCard'
 import AppointmentCard from '../components/AppointmentCard'
 import PatientCard from '../components/PatientCard'
 import { fadeIn, staggerContainer } from '../utils/motion'
+import { useQuery } from '@apollo/client'
+import { GET_DASHBOARD_STATS, GET_APPOINTMENTS, GET_PATIENTS } from '../graphql/queries'
 
 const DoctorDashboard = () => {
   const { user } = useAuth()
-  const stats = dashboardStats.doctor
-
-  const todayAppointments = appointments.filter(apt => {
-    const aptDate = new Date(apt.date)
-    const today = new Date()
-    return apt.doctorId === user.id && 
-           apt.status === 'Scheduled' &&
-           aptDate.toDateString() === today.toDateString()
+  
+  const { data: statsData, loading: statsLoading } = useQuery(GET_DASHBOARD_STATS)
+  const { data: aptsData, loading: aptsLoading } = useQuery(GET_APPOINTMENTS, {
+    variables: { page: 1, limit: 5, status: 'Scheduled' }
+  })
+  const { data: patientsData, loading: patientsLoading } = useQuery(GET_PATIENTS, {
+    variables: { page: 1, limit: 3 }
   })
 
-  const recentPatients = patients.slice(0, 3)
+  if (statsLoading || aptsLoading || patientsLoading) {
+    return <div className="p-8 text-center">Loading dashboard...</div>
+  }
+
+  const stats = statsData?.getDashboardStats?.doctor || {}
+  const appointments = aptsData?.getAppointments?.appointments || []
+  const patients = patientsData?.getPatients?.patients || []
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <motion.div {...fadeIn('down')} className="mb-8">
-        <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+    <div className="max-w-7xl mx-auto">
+      <motion.div {...fadeIn('down')} className="mb-6 sm:mb-8">
+        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Good morning, {user.name}!
         </h1>
-        <p className="text-gray-600">Here's your schedule and patient overview for today</p>
+        <p className="text-sm sm:text-base text-gray-600">Here's your schedule and patient overview for today</p>
       </motion.div>
 
       <motion.div
@@ -39,15 +46,15 @@ const DoctorDashboard = () => {
         <DashboardCard
           icon={Calendar}
           title="Today's Appointments"
-          value={stats.todayAppointments}
-          subtitle={`${todayAppointments.length} scheduled`}
+          value={stats.todayAppointments || 0}
+          subtitle="Scheduled for today"
           color="primary"
           delay={0}
         />
         <DashboardCard
           icon={Users}
           title="Total Patients"
-          value={stats.totalPatients}
+          value={stats.totalPatients || 0}
           subtitle="Active patients"
           color="success"
           delay={0.1}
@@ -55,16 +62,16 @@ const DoctorDashboard = () => {
         <DashboardCard
           icon={FileText}
           title="Pending Reports"
-          value={stats.pendingReports}
+          value={stats.pendingReports || 0}
           subtitle="Require attention"
           color="warning"
           delay={0.2}
         />
         <DashboardCard
           icon={TrendingUp}
-          title="This Month"
-          value="92%"
-          subtitle="Patient satisfaction"
+          title="Unread Messages"
+          value={stats.unreadMessages || 0}
+          subtitle="New messages"
           color="blue"
           delay={0.3}
         />
@@ -76,13 +83,13 @@ const DoctorDashboard = () => {
             <h2 className="font-heading text-xl font-semibold text-gray-900">
               Today's Schedule
             </h2>
-            <a href="/doctor/appointments" className="text-sm text-primary hover:underline">
+            <Link to="/doctor/appointments" className="text-sm text-primary hover:underline">
               View all
-            </a>
+            </Link>
           </div>
           <div className="space-y-4">
-            {todayAppointments.length > 0 ? (
-              todayAppointments.map((apt, index) => (
+            {appointments.length > 0 ? (
+              appointments.map((apt, index) => (
                 <AppointmentCard key={apt.id} appointment={apt} delay={index * 0.1} />
               ))
             ) : (
@@ -99,38 +106,39 @@ const DoctorDashboard = () => {
             <h2 className="font-heading text-xl font-semibold text-gray-900">
               Recent Patients
             </h2>
-            <a href="/doctor/patients" className="text-sm text-primary hover:underline">
+            <Link to="/doctor/patients" className="text-sm text-primary hover:underline">
               View all
-            </a>
+            </Link>
           </div>
           <div className="space-y-4">
-            {recentPatients.map((patient, index) => (
+            {patients.map((patient, index) => (
               <PatientCard key={patient.id} patient={patient} delay={index * 0.1} />
             ))}
           </div>
         </motion.div>
       </div>
 
+
       <motion.div {...fadeIn('up', 0.4)}>
         <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
           Quick Actions
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <a href="/doctor/appointments" className="card-hover text-center p-6">
+          <Link to="/doctor/appointments" className="card-hover text-center p-6">
             <Calendar size={32} className="mx-auto mb-3 text-primary" />
             <h3 className="font-medium text-gray-900 mb-1">Schedule Appointment</h3>
             <p className="text-sm text-gray-600">Book new patient appointment</p>
-          </a>
-          <a href="/doctor/records" className="card-hover text-center p-6">
+          </Link>
+          <Link to="/doctor/records" className="card-hover text-center p-6">
             <FileText size={32} className="mx-auto mb-3 text-primary" />
             <h3 className="font-medium text-gray-900 mb-1">Medical Records</h3>
             <p className="text-sm text-gray-600">View and update records</p>
-          </a>
-          <a href="/doctor/prescriptions" className="card-hover text-center p-6">
+          </Link>
+          <Link to="/doctor/prescriptions" className="card-hover text-center p-6">
             <Clock size={32} className="mx-auto mb-3 text-primary" />
             <h3 className="font-medium text-gray-900 mb-1">Prescriptions</h3>
             <p className="text-sm text-gray-600">Create new prescription</p>
-          </a>
+          </Link>
         </div>
       </motion.div>
     </div>

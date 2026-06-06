@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { CreditCard, Search, Filter, DollarSign, Download, Calendar, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { paymentMethods } from '../data/mockData'
 import InvoiceCard from '../components/InvoiceCard'
 import PaymentModal from '../components/PaymentModal'
 import PaymentMethodCard from '../components/PaymentMethodCard'
@@ -41,6 +40,7 @@ const Billing = () => {
   if (error) return <div className="p-6 text-center text-red-500">Error: {error.message}</div>
 
   const invoices = data?.getInvoices || []
+  const paymentMethods = [] // Mocked as empty for now until model is ready
 
   const filteredInvoices = invoices.filter(inv => {
     const matchesSearch = inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -128,18 +128,18 @@ const Billing = () => {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <motion.div {...fadeIn('down')} className="mb-8 flex justify-between items-center">
+    <div className="max-w-7xl mx-auto">
+      <motion.div {...fadeIn('down')} className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
             Billing & Payments
           </h1>
-          <p className="text-gray-600">Manage invoices, payments, and financial records</p>
+          <p className="text-sm sm:text-base text-gray-600">Manage invoices, payments, and financial records</p>
         </div>
         {user.role === 'admin' && (
           <button 
             onClick={() => setShowCreateInvoice(true)}
-            className="btn-primary flex items-center gap-2"
+            className="btn-primary flex items-center gap-2 self-start sm:self-auto"
           >
             <Plus size={20} />
             Create Invoice

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -29,6 +29,8 @@ import toast from 'react-hot-toast'
 const App = () => {
   const { user, isAuthenticated } = useAuth()
 
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   useEffect(() => {
     if (isAuthenticated) {
       const socket = socketService.connect();
@@ -47,6 +49,8 @@ const App = () => {
     }
   }, [isAuthenticated]);
 
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
+
   const getDashboardRoute = () => {
     if (!user) return '/login'
     switch (user.role) {
@@ -63,10 +67,11 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {isAuthenticated && <Navbar />}
+      {isAuthenticated && <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={sidebarOpen} />}
       <div className="flex">
-        {isAuthenticated && <Sidebar />}
-        <main className={`flex-1 ${isAuthenticated ? 'ml-64 mt-16' : ''}`}>
+        {isAuthenticated && <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />}
+        <main className={`flex-1 transition-all duration-300 ${isAuthenticated ? 'lg:ml-64 mt-16' : ''}`}>
+          <div className="p-4 sm:p-6 lg:p-8">
           <Routes>
             <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to={getDashboardRoute()} />} />
             <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to={getDashboardRoute()} />} />
@@ -107,6 +112,7 @@ const App = () => {
             <Route path="/" element={<Navigate to={isAuthenticated ? getDashboardRoute() : '/login'} />} />
             <Route path="*" element={<Navigate to={isAuthenticated ? getDashboardRoute() : '/login'} />} />
           </Routes>
+          </div>
         </main>
       </div>
     </div>

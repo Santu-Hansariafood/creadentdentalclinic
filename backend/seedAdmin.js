@@ -6,19 +6,22 @@ const seedAdmin = async () => {
     const adminEmail = process.env.ADMIN_EMAIL;
     const adminPassword = process.env.ADMIN_PASSWORD;
     const adminName = process.env.ADMIN_NAME || 'Admin User';
+    const adminPhone = process.env.ADMIN_PHONE || '+1112223333';
 
     if (!adminEmail || !adminPassword) {
       console.log('Admin credentials not found in .env file');
       return;
     }
 
-    const adminExists = await User.findOne({ email: adminEmail });
+    const adminExists = await User.findOne({ $or: [{ email: adminEmail }, { phone: adminPhone }] });
 
     if (adminExists) {
       console.log('Admin user already exists');
       // Update password if needed
       adminExists.password = adminPassword;
       adminExists.name = adminName;
+      adminExists.phone = adminPhone;
+      adminExists.email = adminEmail;
       adminExists.role = 'admin';
       adminExists.verified = true;
       await adminExists.save();
@@ -27,6 +30,7 @@ const seedAdmin = async () => {
       await User.create({
         name: adminName,
         email: adminEmail,
+        phone: adminPhone,
         password: adminPassword,
         role: 'admin',
         verified: true

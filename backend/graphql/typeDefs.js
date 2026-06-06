@@ -157,38 +157,145 @@ const typeDefs = `#graphql
     currentPage: Int
   }
 
+  type PatientStats {
+    upcomingAppointments: Int
+    totalAppointments: Int
+    pendingBills: Int
+    unreadMessages: Int
+  }
+
+  type DoctorStats {
+    todayAppointments: Int
+    totalPatients: Int
+    pendingReports: Int
+    unreadMessages: Int
+  }
+
+  type AdminStats {
+    totalPatients: Int
+    todayAppointments: Int
+    pendingPayments: Int
+    monthlyRevenue: Float
+  }
+
+  type DashboardStats {
+    patient: PatientStats
+    doctor: DoctorStats
+    admin: AdminStats
+  }
+
+  type RevenueData {
+    month: String
+    revenue: Float
+  }
+
+  type AppointmentTypeData {
+    type: String
+    count: Int
+  }
+
+  type DemographicsData {
+    ageGroup: String
+    count: Int
+  }
+
+  type SuccessRateData {
+    treatment: String
+    successRate: Float
+  }
+
+  type ReportsData {
+    monthlyRevenue: [RevenueData]
+    appointmentsByType: [AppointmentTypeData]
+    patientDemographics: [DemographicsData]
+    treatmentSuccess: [SuccessRateData]
+  }
+
+  type ChatParticipant {
+    id: ID!
+    name: String!
+    role: String!
+  }
+
+  type Conversation {
+    id: ID!
+    participants: [ChatParticipant]
+    lastMessage: String
+    lastMessageTime: String
+    unreadCount: Int
+  }
+
+  type ChatMessage {
+    id: ID!
+    conversationId: ID!
+    senderId: ID!
+    senderName: String!
+    senderRole: String!
+    receiverId: ID!
+    receiverName: String!
+    receiverRole: String!
+    message: String!
+    timestamp: String!
+    read: Boolean
+  }
+
+  type Notification {
+    id: ID!
+    userId: ID!
+    type: String!
+    title: String!
+    message: String!
+    timestamp: String!
+    read: Boolean
+    priority: String
+  }
+
   type Query {
     me: User
     getUsers: [User]
     getUsersByRole(role: String!): [User]
     getUser(id: ID!): User
-    getMedicines(page: Int, limit: Int): PaginatedMedicines
+    getMedicines(page: Int, limit: Int, search: String): PaginatedMedicines
     getMedicine(id: ID!): Medicine
-    getPatients(page: Int, limit: Int): PaginatedPatients
+    getPatients(page: Int, limit: Int, search: String): PaginatedPatients
     getPatient(id: ID!): Patient
-    getAppointments(page: Int, limit: Int): PaginatedAppointments
+    getAppointments(page: Int, limit: Int, search: String, status: String): PaginatedAppointments
     getMedicalRecords: [MedicalRecord]
     getInvoices: [Invoice]
     getPrescriptions: [Prescription]
-    getPaymentLedgers(page: Int, limit: Int): PaginatedPaymentLedgers
+    getPaymentLedgers(page: Int, limit: Int, search: String): PaginatedPaymentLedgers
+    getDashboardStats: DashboardStats
+    getReportsData: ReportsData
+    getConversations: [Conversation]
+    getChatMessages(conversationId: ID!): [ChatMessage]
+    getNotifications: [Notification]
   }
 
   type Mutation {
     register(
       name: String!,
+      phone: String!,
       email: String!,
       password: String!,
       role: String!,
-      phone: String,
       specialization: String,
       license: String
     ): AuthPayload
 
-    login(email: String!, password: String!): AuthPayload
+    login(phone: String!, password: String!): AuthPayload
+
+    forgotPassword(phone: String!): Boolean
+
+    resetPassword(phone: String!, otp: String!, newPassword: String!): Boolean
 
     registerMedicine(
       name: String!,
-      category: String!
+      category: String!,
+      stock: Int!,
+      price: Float!,
+      expiryDate: String!,
+      manufacturer: String!,
+      description: String
     ): Medicine
 
     createAppointment(

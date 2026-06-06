@@ -6,10 +6,12 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['patient', 'doctor', 'admin'], default: 'patient' },
-  phone: { type: String },
+  phone: { type: String, required: true, unique: true },
   verified: { type: Boolean, default: false },
   specialization: { type: String }, // For doctors
   license: { type: String }, // For doctors
+  resetPasswordOTP: { type: String },
+  resetPasswordOTPExpires: { type: Date },
 }, { timestamps: true });
 
 userSchema.pre('save', async function(next) {
