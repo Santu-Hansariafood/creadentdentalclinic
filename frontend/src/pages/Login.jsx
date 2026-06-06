@@ -289,7 +289,7 @@ const Login = () => {
             <div className="space-y-2 text-xs text-gray-600">
               <p><strong>Patient:</strong> +1234567890 / password123</p>
               <p><strong>Doctor:</strong> +1987654321 / password123</p>
-              <p><strong>Admin:</strong> +1112223333 / password123</p>
+              <p><strong>Admin:</strong> 9064527639 / 123456</p>
             </div>
           </div>
         </div>
