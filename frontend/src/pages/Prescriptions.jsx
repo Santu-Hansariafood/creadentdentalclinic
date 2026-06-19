@@ -12,7 +12,7 @@ import {
   GET_MEDICINES,
 } from "../graphql/queries";
 import { CREATE_PRESCRIPTION } from "../graphql/mutations";
-import generatePrescriptionPDF from "../utils/generatePrescriptionPDF";
+import generatePrescriptionPDF from "../components/PrescriptionPDF";
 
 const Prescriptions = () => {
   const { user } = useAuth();

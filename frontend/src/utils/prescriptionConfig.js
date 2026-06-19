@@ -1,19 +1,19 @@
 export const CLINIC_INFO = {
-  name: 'CREADENT DENTAL CLINIC',
-  tagline: 'Excellence in Dental Care',
-  address: '123 Dental Street, Healthcare City',
-  city: 'New Delhi - 110001',
-  phone: '+91 11 1234 5678',
-  email: 'info@creadent.com',
-  website: 'www.creadent.com',
+  name: "CREADENT DENTAL CLINIC",
+  tagline: "Excellence in Dental Care",
+  address: "BD-85, Salt Lake Rd, BD Block, Sector 1",
+  city: "Bidhannagar, Kolkata, West Bengal 700064",
+  phone: "+91 6292300343",
+  email: "creadentmultispecialitydentalclinic@gmail.com",
+  website: "https://creadentdentalclinic.com/",
   validityDays: 30,
-}
+};
 
 export const BRAND = {
-  primary: '#007FAF',
+  primary: "#007FAF",
   primaryRgb: [0, 127, 175],
-  secondary: '#A7D9F4',
+  secondary: "#A7D9F4",
   secondaryRgb: [167, 217, 244],
-  accent: '#0056b3',
-  light: '#E3F2FD',
-}
+  accent: "#0056b3",
+  light: "#E3F2FD",
+};

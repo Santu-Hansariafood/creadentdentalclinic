@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   Pill,
   Calendar,
@@ -8,41 +8,43 @@ import {
   Eye,
   Clock,
   Stethoscope,
-} from 'lucide-react'
-import { formatDate } from '../utils/dateUtils'
-import { fadeIn } from '../utils/motion'
-import toast from 'react-hot-toast'
-import generatePrescriptionPDF from '../utils/generatePrescriptionPDF'
-import PrescriptionPreview from './PrescriptionPreview'
+} from "lucide-react";
+import { formatDate } from "../utils/dateUtils";
+import { fadeIn } from "../utils/motion";
+import toast from "react-hot-toast";
+import generatePrescriptionPDF from "./PrescriptionPDF";
+import PrescriptionPreview from "./PrescriptionPreview";
 
 const PrescriptionCard = ({ prescription, delay = 0 }) => {
-  const [showPreview, setShowPreview] = useState(false)
+  const [showPreview, setShowPreview] = useState(false);
 
   const rxId = prescription.id
     ? `RX-${String(prescription.id).slice(-8).toUpperCase()}`
-    : 'RX-NEW'
+    : "RX-NEW";
 
   const handleDownload = async () => {
     try {
-      await generatePrescriptionPDF(prescription)
-      toast.success('Prescription downloaded successfully!')
+      await generatePrescriptionPDF(prescription);
+      toast.success("Prescription downloaded successfully!");
     } catch (err) {
-      console.error('Error generating PDF:', err)
-      toast.error('Failed to generate prescription PDF')
+      console.error("Error generating PDF:", err);
+      toast.error(
+        err?.message
+          ? `Failed to generate PDF: ${err.message}`
+          : "Failed to generate prescription PDF",
+      );
     }
-  }
+  };
 
   return (
     <>
       <motion.div
-        {...fadeIn('up', delay)}
+        {...fadeIn("up", delay)}
         className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-lg hover:border-primary/30 transition-all duration-300"
       >
-        {/* Top accent bar */}
         <div className="h-1.5 bg-gradient-to-r from-primary via-primary/80 to-accent" />
 
         <div className="p-5">
-          {/* Header */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-primary/15 to-primary/5 rounded-xl flex items-center justify-center border border-primary/10">
@@ -50,24 +52,29 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-heading font-bold text-gray-900">{prescription.patientName}</h3>
+                  <h3 className="font-heading font-bold text-gray-900">
+                    {prescription.patientName}
+                  </h3>
                   <span
                     className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
-                      prescription.status === 'Active'
-                        ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
-                        : 'bg-blue-50 text-blue-700 ring-1 ring-blue-200'
+                      prescription.status === "Active"
+                        ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                        : "bg-blue-50 text-blue-700 ring-1 ring-blue-200"
                     }`}
                   >
                     {prescription.status}
                   </span>
                 </div>
-                <p className="text-xs font-mono text-primary/70 mt-0.5">{rxId}</p>
-                <p className="text-sm text-gray-600 mt-1 line-clamp-1">{prescription.diagnosis}</p>
+                <p className="text-xs font-mono text-primary/70 mt-0.5">
+                  {rxId}
+                </p>
+                <p className="text-sm text-gray-600 mt-1 line-clamp-1">
+                  {prescription.diagnosis}
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Meta row */}
           <div className="flex flex-wrap gap-3 mb-4">
             <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 px-2.5 py-1.5 rounded-lg">
               <Calendar size={13} className="text-primary" />
@@ -79,11 +86,12 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
             </div>
             <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 px-2.5 py-1.5 rounded-lg">
               <Clock size={13} className="text-primary" />
-              <span>{(prescription.medications || []).length} medication(s)</span>
+              <span>
+                {(prescription.medications || []).length} medication(s)
+              </span>
             </div>
           </div>
 
-          {/* Medications */}
           <div className="space-y-2 mb-4">
             {(prescription.medications || []).slice(0, 3).map((med, index) => (
               <div
@@ -94,34 +102,42 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
                   {index + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm">{med.name}</p>
+                  <p className="font-semibold text-gray-900 text-sm">
+                    {med.name}
+                  </p>
                   <p className="text-xs text-gray-500 mt-0.5">
                     {med.dosage} • {med.frequency} • {med.duration}
                   </p>
                   {med.instructions && (
-                    <p className="text-xs text-gray-400 italic mt-1 truncate">{med.instructions}</p>
+                    <p className="text-xs text-gray-400 italic mt-1 truncate">
+                      {med.instructions}
+                    </p>
                   )}
                 </div>
               </div>
             ))}
             {(prescription.medications || []).length > 3 && (
               <p className="text-xs text-primary font-medium pl-1">
-                +{(prescription.medications || []).length - 3} more medication(s)
+                +{(prescription.medications || []).length - 3} more
+                medication(s)
               </p>
             )}
           </div>
 
-          {/* Notes preview */}
           {prescription.notes && (
             <div className="mb-4 p-3 bg-amber-50/60 rounded-lg border border-amber-100">
               <div className="flex items-start gap-2">
-                <FileText size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-amber-800 line-clamp-2 italic">{prescription.notes}</p>
+                <FileText
+                  size={14}
+                  className="text-amber-600 mt-0.5 flex-shrink-0"
+                />
+                <p className="text-xs text-amber-800 line-clamp-2 italic">
+                  {prescription.notes}
+                </p>
               </div>
             </div>
           )}
 
-          {/* Actions */}
           <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
             <button
               onClick={() => setShowPreview(true)}
@@ -149,7 +165,7 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
         />
       )}
     </>
-  )
-}
+  );
+};
 
-export default PrescriptionCard
+export default PrescriptionCard;
