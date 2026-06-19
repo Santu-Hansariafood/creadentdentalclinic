@@ -12,7 +12,7 @@ const Register = () => {
     phone: '',
     password: '',
     confirmPassword: '',
-    role: 'patient'
+    role: 'patient' // Only patients can register here
   })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -45,9 +45,7 @@ const Register = () => {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-medical rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-3xl">DC</span>
-          </div>
+          <img src="/logo/logo.png" alt="Creadent Dental Clinic Logo" className="w-20 h-20 object-contain mx-auto mb-4" />
           <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
             Create Account
           </h1>

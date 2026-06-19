@@ -47,9 +47,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
               {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             <Link to={getDashboardLink()} className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-medical rounded-lg flex items-center justify-center shrink-0">
-                <span className="text-white font-bold text-xl">DC</span>
-              </div>
+              <img src="/logo/logo.png" alt="Creadent Dental Clinic Logo" className="w-10 h-10 object-contain shrink-0" />
               <span className="font-heading font-bold text-lg sm:text-xl text-primary truncate max-w-[150px] sm:max-w-none">
                 creadent dental clinic
               </span>

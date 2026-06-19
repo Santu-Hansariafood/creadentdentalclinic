@@ -14,6 +14,7 @@ const typeDefs = `#graphql
     id: ID!
     name: String!
     category: String!
+    description: String
   }
 
   type Appointment {
@@ -125,7 +126,7 @@ const typeDefs = `#graphql
   }
 
   type AuthPayload {
-    token: String!
+    token: String
     user: User!
   }
 
@@ -257,6 +258,7 @@ const typeDefs = `#graphql
     getUser(id: ID!): User
     getMedicines(page: Int, limit: Int, search: String): PaginatedMedicines
     getMedicine(id: ID!): Medicine
+    getMedicineCategories: [String]
     getPatients(page: Int, limit: Int, search: String): PaginatedPatients
     getPatient(id: ID!): Patient
     getAppointments(page: Int, limit: Int, search: String, status: String): PaginatedAppointments
@@ -291,10 +293,6 @@ const typeDefs = `#graphql
     registerMedicine(
       name: String!,
       category: String!,
-      stock: Int!,
-      price: Float!,
-      expiryDate: String!,
-      manufacturer: String!,
       description: String
     ): Medicine
 

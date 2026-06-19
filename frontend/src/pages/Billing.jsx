@@ -39,8 +39,15 @@ const Billing = () => {
   if (loading) return <div className="p-6 text-center">Loading billing...</div>
   if (error) return <div className="p-6 text-center text-red-500">Error: {error.message}</div>
 
-  const invoices = data?.getInvoices || []
+  const allInvoices = data?.getInvoices || []
+
+  // Filter invoices for patients - only show their own invoices
+  const invoices = user?.role === 'patient'
+    ? allInvoices.filter(inv => inv.patientName.toLowerCase().includes(user.name.toLowerCase()))
+    : allInvoices
+
   const paymentMethods = [] // Mocked as empty for now until model is ready
+  const userPaymentMethods = paymentMethods
 
   const filteredInvoices = invoices.filter(inv => {
     const matchesSearch = inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -56,15 +63,16 @@ const Billing = () => {
     return matchesSearch && matchesStatus && matchesDate
   })
 
-  const totalPending = invoices
+  // Calculate totals based on filtered invoices for patients
+  const totalPending = filteredInvoices
     .filter(inv => inv.balance > 0)
     .reduce((sum, inv) => sum + inv.balance, 0)
 
-  const totalPaid = invoices
+  const totalPaid = filteredInvoices
     .filter(inv => inv.status === 'Paid')
     .reduce((sum, inv) => sum + inv.total, 0)
 
-  const pendingCount = invoices.filter(inv => inv.balance > 0).length
+  const pendingCount = filteredInvoices.filter(inv => inv.balance > 0).length
 
   const handleCreateInvoice = async (e) => {
     e.preventDefault()
@@ -134,9 +142,13 @@ const Billing = () => {
           <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
             Billing & Payments
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">Manage invoices, payments, and financial records</p>
+          <p className="text-sm sm:text-base text-gray-600">
+            {user?.role === 'patient'
+              ? 'View your invoices and payment history'
+              : 'Manage invoices, payments, and financial records'}
+          </p>
         </div>
-        {user.role === 'admin' && (
+        {user?.role === 'admin' && (
           <button 
             onClick={() => setShowCreateInvoice(true)}
             className="btn-primary flex items-center gap-2 self-start sm:self-auto"
@@ -230,7 +242,7 @@ const Billing = () => {
             </div>
             <div>
               <p className="text-sm text-gray-600">Total Invoices</p>
-              <p className="text-2xl font-bold text-gray-900">{invoices.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{filteredInvoices.length}</p>
             </div>
           </div>
           <p className="text-xs text-gray-500 mt-2">Generated invoices</p>
@@ -249,26 +261,42 @@ const Billing = () => {
           >
             Invoices
           </button>
-          <button
-            onClick={() => setActiveTab('payment-methods')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'payment-methods'
-                ? 'bg-primary text-white'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            Payment Methods
-          </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'history'
-                ? 'bg-primary text-white'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            Payment History
-          </button>
+          {user?.role !== 'admin' && (
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'history'
+                  ? 'bg-primary text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Payment History
+            </button>
+          )}
+          {user?.role === 'admin' && (
+            <>
+              <button
+                onClick={() => setActiveTab('payment-methods')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === 'payment-methods'
+                    ? 'bg-primary text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Payment Methods
+              </button>
+              <button
+                onClick={() => setActiveTab('history')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === 'history'
+                    ? 'bg-primary text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Payment History
+              </button>
+            </>
+          )}
         </div>
 
         {activeTab === 'invoices' && (
@@ -300,44 +328,46 @@ const Billing = () => {
               </div>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-4 mb-4">
-              <div className="flex items-center gap-2">
-                <Calendar size={20} className="text-gray-600" />
-                <input
-                  type="date"
-                  value={dateRange.start}
-                  onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                  className="input-field"
-                  placeholder="Start date"
-                />
-                <span className="text-gray-500">to</span>
-                <input
-                  type="date"
-                  value={dateRange.end}
-                  onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                  className="input-field"
-                  placeholder="End date"
-                />
+            {user?.role === 'admin' && (
+              <div className="flex flex-col md:flex-row gap-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <Calendar size={20} className="text-gray-600" />
+                  <input
+                    type="date"
+                    value={dateRange.start}
+                    onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                    className="input-field"
+                    placeholder="Start date"
+                  />
+                  <span className="text-gray-500">to</span>
+                  <input
+                    type="date"
+                    value={dateRange.end}
+                    onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                    className="input-field"
+                    placeholder="End date"
+                  />
+                </div>
+                <div className="flex gap-2 ml-auto">
+                  <button
+                    onClick={() => handleExport('csv')}
+                    className="btn-outline flex items-center gap-2"
+                  >
+                    <Download size={18} />
+                    Export CSV
+                  </button>
+                  <button
+                    onClick={() => handleExport('pdf')}
+                    className="btn-outline flex items-center gap-2"
+                  >
+                    <Download size={18} />
+                    Export PDF
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-2 ml-auto">
-                <button
-                  onClick={() => handleExport('csv')}
-                  className="btn-outline flex items-center gap-2"
-                >
-                  <Download size={18} />
-                  Export CSV
-                </button>
-                <button
-                  onClick={() => handleExport('pdf')}
-                  className="btn-outline flex items-center gap-2"
-                >
-                  <Download size={18} />
-                  Export PDF
-                </button>
-              </div>
-            </div>
+            )}
 
-            {selectedInvoices.length > 0 && (
+            {user?.role === 'admin' && selectedInvoices.length > 0 && (
               <div className="mb-4 p-4 bg-primary/5 rounded-lg flex items-center justify-between">
                 <p className="text-sm text-gray-700">
                   {selectedInvoices.length} invoice(s) selected
@@ -347,7 +377,7 @@ const Billing = () => {
                   className="btn-primary"
                 >
                   Pay Selected (${selectedInvoices.reduce((sum, id) => {
-                    const inv = userInvoices.find(i => i.id === id)
+                    const inv = invoices.find(i => i.id === id)
                     return sum + (inv?.balance || 0)
                   }, 0).toFixed(2)})
                 </button>
@@ -384,7 +414,7 @@ const Billing = () => {
               Payment History
             </h3>
             <div className="space-y-4">
-              {userInvoices
+              {filteredInvoices
                 .filter(inv => inv.status === 'Paid')
                 .map((inv, index) => (
                   <motion.div
@@ -396,7 +426,7 @@ const Billing = () => {
                       <div>
                         <p className="font-medium text-gray-900">{inv.invoiceNumber}</p>
                         <p className="text-sm text-gray-600">
-                          {format(new Date(inv.paymentDate), 'MMM dd, yyyy - hh:mm a')}
+                          {format(new Date(inv.date), 'MMM dd, yyyy')}
                         </p>
                       </div>
                       <div className="text-right">
@@ -405,7 +435,7 @@ const Billing = () => {
                       </div>
                     </div>
                     <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>{inv.paymentMethod}</span>
+                      <span>{inv.patientName}</span>
                       <button
                         onClick={() => toast.success('Downloading receipt...')}
                         className="text-primary hover:underline flex items-center gap-1"
@@ -416,6 +446,15 @@ const Billing = () => {
                     </div>
                   </motion.div>
                 ))}
+              {filteredInvoices.filter(inv => inv.status === 'Paid').length === 0 && (
+                <div className="text-center py-12">
+                  <CreditCard size={64} className="mx-auto mb-4 text-gray-300" />
+                  <h3 className="font-heading text-xl font-semibold text-gray-900 mb-2">
+                    No payment history
+                  </h3>
+                  <p className="text-gray-600">You haven't made any payments yet</p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -431,7 +470,7 @@ const Billing = () => {
           {filteredInvoices.length > 0 ? (
             filteredInvoices.map((invoice, index) => (
               <div key={invoice.id} className="relative">
-                {invoice.balance > 0 && (
+                {user?.role === 'admin' && invoice.balance > 0 && (
                   <input
                     type="checkbox"
                     checked={selectedInvoices.includes(invoice.id)}
@@ -442,7 +481,7 @@ const Billing = () => {
                 <InvoiceCard
                   invoice={invoice}
                   delay={index * 0.05}
-                  onPay={handlePayment}
+                  onPay={user?.role !== 'doctor' ? handlePayment : undefined}
                 />
               </div>
             ))
@@ -453,8 +492,10 @@ const Billing = () => {
                 No invoices found
               </h3>
               <p className="text-gray-600">
-                {searchTerm || filterStatus !== 'All' || dateRange.start
+                {searchTerm || filterStatus !== 'All' || (user?.role === 'admin' && dateRange.start)
                   ? 'Try adjusting your search or filter'
+                  : user?.role === 'patient'
+                  ? 'No billing records available for you'
                   : 'No billing records available'}
               </p>
             </motion.div>

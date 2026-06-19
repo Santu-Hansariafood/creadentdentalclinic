@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
+import Preloader from './components/Preloader'
 import socketService from './services/socket'
 import toast from 'react-hot-toast'
 
@@ -24,7 +25,7 @@ const Reports = lazy(() => import('./pages/Reports'))
 const PatientList = lazy(() => import('./pages/PatientList'))
 const MedicineList = lazy(() => import('./pages/MedicineList'))
 const MedicineRegistration = lazy(() => import('./pages/MedicineRegistration'))
-const DoctorRegistration = lazy(() => import('./pages/DoctorRegistration'))
+const StaffRegistration = lazy(() => import('./pages/StaffRegistration'))
 const PaymentLedger = lazy(() => import('./pages/PaymentLedger'))
 const Settings = lazy(() => import('./pages/Settings'))
 
@@ -35,9 +36,18 @@ const LoadingFallback = () => (
 )
 
 const App = () => {
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, loading: authLoading } = useAuth()
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [initialLoad, setInitialLoad] = useState(true)
+
+  // All hooks must come before any conditional returns!
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInitialLoad(false)
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -58,6 +68,11 @@ const App = () => {
   }, [isAuthenticated]);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
+
+  // Now the conditional return comes after all hooks
+  if (initialLoad || authLoading) {
+    return <Preloader />
+  }
 
   const getDashboardRoute = () => {
     if (!user) return '/login'
@@ -108,7 +123,8 @@ const App = () => {
             <Route path="/admin/dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/patients" element={<ProtectedRoute role="admin"><PatientList /></ProtectedRoute>} />
             <Route path="/admin/patient-registration" element={<ProtectedRoute role="admin"><PatientRegistration /></ProtectedRoute>} />
-            <Route path="/admin/doctor-registration" element={<ProtectedRoute role="admin"><DoctorRegistration /></ProtectedRoute>} />
+            <Route path="/admin/staff-registration" element={<ProtectedRoute role="admin"><StaffRegistration /></ProtectedRoute>} />
+            <Route path="/admin/doctor-registration" element={<ProtectedRoute role="admin"><StaffRegistration /></ProtectedRoute>} />
             <Route path="/admin/medicines" element={<ProtectedRoute role="admin"><MedicineList /></ProtectedRoute>} />
             <Route path="/admin/medicine-registration" element={<ProtectedRoute role="admin"><MedicineRegistration /></ProtectedRoute>} />
             <Route path="/admin/payment-ledger" element={<ProtectedRoute role="admin"><PaymentLedger /></ProtectedRoute>} />

@@ -33,6 +33,13 @@ const resolvers = {
       };
     },
     getMedicine: async (_, { id }) => await Medicine.findById(id),
+    getMedicineCategories: async () => {
+      const medicines = await Medicine.find();
+      const categories = [...new Set(medicines.map(m => m.category))];
+      return categories.length > 0 
+        ? categories 
+        : ['Antibiotic', 'Analgesic', 'Antiseptic', 'Anesthetic', 'Anti-inflammatory', 'Other'];
+    },
     getPatients: async (_, { page = 1, limit = 10, search = '' }) => {
       const skip = (page - 1) * limit;
       const query = search ? { 
@@ -175,13 +182,26 @@ const resolvers = {
     }
   },
   Mutation: {
-    register: async (_, { name, phone, email, password, role, specialization, license }) => {
-      const userExists = await User.findOne({ $or: [{ email }, { phone }] });
-      if (userExists) {
-        throw new Error('User with this email or phone already exists');
+    register: async (_, { name, phone, email, password, role, specialization, license }, { user }) => {
+      // Check if someone is trying to register a non-patient role
+      if (role !== 'patient') {
+        // Only admin can register doctors, admins, or employees
+        if (!user || user.role !== 'admin') {
+          throw new Error('Unauthorized: Only admins can register staff members');
+        }
       }
 
-      const user = await User.create({
+      const userExists = await User.findOne({
+        $and: [
+          { $or: [{ email }, { phone }] },
+          { role }
+        ]
+      });
+      if (userExists) {
+        throw new Error(`User with this email or phone already exists as a ${role}`);
+      }
+
+      const newUser = await User.create({
         name,
         phone,
         email,
@@ -189,13 +209,20 @@ const resolvers = {
         role,
         specialization,
         license,
-        verified: true // Setting to true for simplicity now
+        verified: true
       });
 
-      if (user) {
+      if (newUser) {
+        // If self-registration (patient), return token; otherwise, just return user
+        if (role === 'patient' && !user) {
+          return {
+            token: generateToken(newUser._id),
+            user: newUser,
+          };
+        }
+        // If admin is registering staff, just return the user (no token needed)
         return {
-          token: generateToken(user._id),
-          user,
+          user: newUser,
         };
       } else {
         throw new Error('Invalid user data');
@@ -203,23 +230,67 @@ const resolvers = {
     },
 
     login: async (_, { phone, password }) => {
-      const user = await User.findOne({ phone });
+      // Find all users with matching phone (since multiple roles can have same phone)
+      const users = await User.find({ phone });
+      
+      // Prioritize roles: admin > doctor > employee > patient
+      const rolePriority = {
+        'admin': 4,
+        'doctor': 3,
+        'employee': 2,
+        'patient': 1
+      };
 
-      if (user && (await user.matchPassword(password))) {
-        return {
-          token: generateToken(user._id),
-          user,
-        };
-      } else {
-        throw new Error('Invalid phone or password');
+      // Sort users by role priority descending
+      users.sort((a, b) => rolePriority[b.role] - rolePriority[a.role]);
+      
+      // Find the first user with matching password
+      for (const user of users) {
+        if (await user.matchPassword(password)) {
+          return {
+            token: generateToken(user._id),
+            user,
+          };
+        }
       }
+
+      // If no matching user found, also try email
+      const usersByEmail = await User.find({ email: phone }); // In case they enter email instead of phone
+      usersByEmail.sort((a, b) => rolePriority[b.role] - rolePriority[a.role]);
+      
+      for (const user of usersByEmail) {
+        if (await user.matchPassword(password)) {
+          return {
+            token: generateToken(user._id),
+            user,
+          };
+        }
+      }
+
+      throw new Error('Invalid phone/email or password');
     },
 
     forgotPassword: async (_, { phone }) => {
-      const user = await User.findOne({ phone });
-      if (!user) {
+      // Find all users with matching phone
+      const users = await User.find({ phone });
+      
+      // Prioritize roles: admin > doctor > employee > patient
+      const rolePriority = {
+        'admin': 4,
+        'doctor': 3,
+        'employee': 2,
+        'patient': 1
+      };
+
+      // Sort users by role priority descending
+      users.sort((a, b) => rolePriority[b.role] - rolePriority[a.role]);
+      
+      if (users.length === 0) {
         throw new Error('User not found with this mobile number');
       }
+
+      // Use the highest priority user
+      const user = users[0];
 
       // Generate 6-digit OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -231,22 +302,37 @@ const resolvers = {
 
       // SIMULATE SENDING WHATSAPP OTP
       console.log('--------------------------------------------------');
-      console.log(`WHATSAPP OTP SENT TO ${phone}: ${otp}`);
+      console.log(`WHATSAPP OTP SENT TO ${phone} (${user.role}): ${otp}`);
       console.log('--------------------------------------------------');
 
       return true;
     },
 
     resetPassword: async (_, { phone, otp, newPassword }) => {
-      const user = await User.findOne({ 
+      // Find all users with matching phone
+      const users = await User.find({ 
         phone,
         resetPasswordOTP: otp,
         resetPasswordOTPExpires: { $gt: Date.now() }
       });
+      
+      // Prioritize roles: admin > doctor > employee > patient
+      const rolePriority = {
+        'admin': 4,
+        'doctor': 3,
+        'employee': 2,
+        'patient': 1
+      };
 
-      if (!user) {
+      // Sort users by role priority descending
+      users.sort((a, b) => rolePriority[b.role] - rolePriority[a.role]);
+
+      if (users.length === 0) {
         throw new Error('Invalid or expired OTP');
       }
+
+      // Use the highest priority user
+      const user = users[0];
 
       user.password = newPassword;
       user.resetPasswordOTP = undefined;

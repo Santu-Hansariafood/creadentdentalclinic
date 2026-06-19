@@ -10,6 +10,7 @@ const resolvers = require('./graphql/resolvers');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
 const socket = require('./socket');
+const authRoutes = require('./routes/authRoutes');
 require('dotenv').config();
 
 const startServer = async () => {
@@ -17,6 +18,17 @@ const startServer = async () => {
   const httpServer = http.createServer(app);
   const PORT = process.env.PORT || 5000;
 
+  // Enable CORS with configuration
+  app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true,
+  }));
+
+  // Parse JSON bodies with increased limit (for larger payloads)
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+  // Socket.io initialization
   const io = socket.init(httpServer);
 
   io.on('connection', (socket) => {
@@ -27,20 +39,25 @@ const startServer = async () => {
     });
   });
 
+  // Connect to database
   await connectDB();
   
+  // Seed admin user if not exists
   await seedAdmin();
 
+  // Initialize Apollo Server for GraphQL
   const server = new ApolloServer({
     typeDefs,
     resolvers,
+    introspection: true, // Enable introspection for development (can disable in production)
+    cacheControl: {
+      defaultMaxAge: 60, // Cache for 1 minute by default
+    },
   });
 
   await server.start();
 
-  app.use(cors());
-  app.use(express.json());
-
+  // GraphQL endpoint
   app.use('/graphql', expressMiddleware(server, {
     context: async ({ req }) => {
       const authHeader = req.headers.authorization || '';
@@ -60,13 +77,48 @@ const startServer = async () => {
     },
   }));
 
+  // REST API endpoints
+  app.use('/api', authRoutes);
+
+  // Health check endpoint (for load balancers)
+  app.get('/health', (req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  // Root endpoint
   app.get('/', (req, res) => {
-    res.send('Clinic Management API is running');
+    res.send({
+      message: 'Creadent Dental Clinic Management API',
+      version: '1.0.0',
+      graphql: '/graphql',
+      rest: '/api',
+    });
+  });
+
+  // 404 handler
+  app.use((req, res) => {
+    res.status(404).json({ message: 'Route not found' });
+  });
+
+  // Error handler middleware
+  app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+    res.status(statusCode).json({
+      message: err.message || 'Internal Server Error',
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    });
   });
 
   httpServer.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-    console.log(`GraphQL endpoint: http://localhost:${PORT}/graphql`);
+    console.log('=============================================');
+    console.log(`🚀 Server is running on port ${PORT}`);
+    console.log(`🎯 GraphQL endpoint: http://localhost:${PORT}/graphql`);
+    console.log(`🌐 REST API base: http://localhost:${PORT}/api`);
+    console.log('=============================================');
   });
 };
 

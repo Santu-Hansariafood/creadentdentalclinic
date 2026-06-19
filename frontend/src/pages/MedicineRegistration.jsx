@@ -1,44 +1,65 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Pill, Tag } from 'lucide-react'
-import { fadeIn } from '../utils/motion'
-import toast from 'react-hot-toast'
-import { useMutation } from '@apollo/client'
-import { REGISTER_MEDICINE } from '../graphql/mutations'
-import { GET_MEDICINES } from '../graphql/queries'
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Pill, Tag, Plus, Trash2 } from 'lucide-react';
+import { fadeIn } from '../utils/motion';
+import toast from 'react-hot-toast';
+import { useMutation, useQuery } from '@apollo/client';
+import { REGISTER_MEDICINE } from '../graphql/mutations';
+import { GET_MEDICINES, GET_MEDICINE_CATEGORIES } from '../graphql/queries';
 
 const MedicineRegistration = () => {
   const [formData, setFormData] = useState({
     name: '',
-    category: ''
-  })
+    category: '',
+    newCategory: '',
+    description: ''
+  });
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+
+  const { data: categoriesData } = useQuery(GET_MEDICINE_CATEGORIES);
+  const categories = categoriesData?.getMedicineCategories || [];
 
   const [registerMedicine, { loading }] = useMutation(REGISTER_MEDICINE, {
-    refetchQueries: [{ query: GET_MEDICINES }],
+    refetchQueries: [{ query: GET_MEDICINES }, { query: GET_MEDICINE_CATEGORIES }],
     onCompleted: () => {
-      toast.success('Medicine registered successfully!')
+      toast.success('Medicine registered successfully!');
       setFormData({
         name: '',
-        category: ''
-      })
+        category: '',
+        newCategory: '',
+        description: ''
+      });
+      setShowNewCategoryInput(false);
     },
     onError: (error) => {
-      toast.error(`Error: ${error.message}`)
+      toast.error(`Error: ${error.message}`);
     }
-  })
+  });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
+    
+    const finalCategory = showNewCategoryInput 
+      ? formData.newCategory 
+      : formData.category;
+    
+    if (!finalCategory) {
+      toast.error('Please select or enter a category');
+      return;
+    }
+
     await registerMedicine({
       variables: {
-        ...formData
+        name: formData.name,
+        category: finalCategory,
+        description: formData.description || undefined
       }
-    })
-  }
+    });
+  };
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -64,7 +85,7 @@ const MedicineRegistration = () => {
                   value={formData.name}
                   onChange={handleChange}
                   className="input-field pl-10"
-                  placeholder="e.g. Amoxicillin"
+                  placeholder="e.g., Amoxicillin"
                   required
                 />
               </div>
@@ -74,25 +95,73 @@ const MedicineRegistration = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Category *
               </label>
-              <div className="relative">
-                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                  required
+              <div className="space-y-2">
+                {!showNewCategoryInput ? (
+                  <div className="relative">
+                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <select
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      className="input-field pl-10"
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map((cat, idx) => (
+                        <option key={idx} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="text"
+                      name="newCategory"
+                      value={formData.newCategory}
+                      onChange={handleChange}
+                      className="input-field pl-10"
+                      placeholder="Enter new category"
+                      required
+                    />
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNewCategoryInput(!showNewCategoryInput);
+                    setFormData({ ...formData, category: '', newCategory: '' });
+                  }}
+                  className="flex items-center gap-2 text-sm text-primary hover:text-primary-dark transition-colors"
                 >
-                  <option value="">Select Category</option>
-                  <option value="Antibiotic">Antibiotic</option>
-                  <option value="Analgesic">Analgesic</option>
-                  <option value="Antiseptic">Antiseptic</option>
-                  <option value="Anesthetic">Anesthetic</option>
-                  <option value="Anti-inflammatory">Anti-inflammatory</option>
-                  <option value="Other">Other</option>
-                </select>
+                  {showNewCategoryInput ? (
+                    <>
+                      <Trash2 size={16} />
+                      Use existing category
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={16} />
+                      Add new category
+                    </>
+                  )}
+                </button>
               </div>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              className="input-field min-h-[100px]"
+              placeholder="Enter description..."
+              rows={4}
+            />
           </div>
 
           <div className="flex justify-end pt-4">
@@ -103,7 +172,7 @@ const MedicineRegistration = () => {
         </form>
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
-export default MedicineRegistration
+export default MedicineRegistration;

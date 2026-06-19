@@ -28,11 +28,18 @@ export const GET_MEDICINES = gql`
         id
         name
         category
+        description
       }
       totalCount
       totalPages
       currentPage
     }
+  }
+`;
+
+export const GET_MEDICINE_CATEGORIES = gql`
+  query GetMedicineCategories {
+    getMedicineCategories
   }
 `;
 

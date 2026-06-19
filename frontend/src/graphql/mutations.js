@@ -86,14 +86,17 @@ export const REGISTER = gql`
 export const REGISTER_MEDICINE = gql`
   mutation RegisterMedicine(
     $name: String!,
-    $category: String!
+    $category: String!,
+    $description: String
   ) {
     registerMedicine(
       name: $name,
-      category: $category
+      category: $category,
+      description: $description
     ) {
       id
       name
+      category
     }
   }
 `;

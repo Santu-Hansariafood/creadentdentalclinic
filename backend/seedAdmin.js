@@ -13,7 +13,12 @@ const seedAdmin = async () => {
       return;
     }
 
-    const adminExists = await User.findOne({ $or: [{ email: adminEmail }, { phone: adminPhone }] });
+    const adminExists = await User.findOne({
+      $and: [
+        { $or: [{ email: adminEmail }, { phone: adminPhone }] },
+        { role: 'admin' }
+      ]
+    });
 
     if (adminExists) {
       console.log('Admin user already exists');
