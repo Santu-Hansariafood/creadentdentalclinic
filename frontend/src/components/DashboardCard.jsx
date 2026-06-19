@@ -1,20 +1,24 @@
-import { motion } from 'framer-motion'
-import { fadeIn } from '../utils/motion'
+import { motion } from "framer-motion";
+import { fadeIn } from "../utils/motion";
 
-const DashboardCard = ({ icon: Icon, title, value, subtitle, color = 'primary', delay = 0 }) => {
+const DashboardCard = ({
+  icon: Icon,
+  title,
+  value,
+  subtitle,
+  color = "primary",
+  delay = 0,
+}) => {
   const colorClasses = {
-    primary: 'bg-primary/10 text-primary',
-    success: 'bg-success/10 text-success',
-    warning: 'bg-warning/10 text-warning',
-    danger: 'bg-danger/10 text-danger',
-    blue: 'bg-blue-100 text-blue-600'
-  }
+    primary: "bg-primary/10 text-primary",
+    success: "bg-success/10 text-success",
+    warning: "bg-warning/10 text-warning",
+    danger: "bg-danger/10 text-danger",
+    blue: "bg-blue-100 text-blue-600",
+  };
 
   return (
-    <motion.div
-      {...fadeIn('up', delay)}
-      className="stat-card"
-    >
+    <motion.div {...fadeIn("up", delay)} className="stat-card">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm text-gray-600 font-medium mb-1">{title}</p>
@@ -26,7 +30,7 @@ const DashboardCard = ({ icon: Icon, title, value, subtitle, color = 'primary', 
         </div>
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default DashboardCard
+export default DashboardCard;

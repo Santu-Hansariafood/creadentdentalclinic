@@ -1,26 +1,26 @@
-import { motion } from 'framer-motion'
-import { Calendar, Clock, User, MapPin } from 'lucide-react'
-import { fadeIn } from '../utils/motion'
-import { formatDate } from '../utils/dateUtils'
+import { motion } from "framer-motion";
+import { Calendar, Clock, User, MapPin } from "lucide-react";
+import { fadeIn } from "../utils/motion";
+import { formatDate } from "../utils/dateUtils";
 
 const AppointmentCard = ({ appointment, delay = 0, onAction }) => {
   const statusColors = {
-    Scheduled: 'border-primary bg-primary/5',
-    Completed: 'border-success bg-success/5',
-    Cancelled: 'border-gray-400 bg-gray-50',
-    Pending: 'border-warning bg-warning/5'
-  }
+    Scheduled: "border-primary bg-primary/5",
+    Completed: "border-success bg-success/5",
+    Cancelled: "border-gray-400 bg-gray-50",
+    Pending: "border-warning bg-warning/5",
+  };
 
   const statusBadges = {
-    Scheduled: 'badge-primary',
-    Completed: 'badge-success',
-    Cancelled: 'badge-error',
-    Pending: 'badge-warning'
-  }
+    Scheduled: "badge-primary",
+    Completed: "badge-success",
+    Cancelled: "badge-error",
+    Pending: "badge-warning",
+  };
 
   return (
     <motion.div
-      {...fadeIn('up', delay)}
+      {...fadeIn("up", delay)}
       className={`appointment-card ${statusColors[appointment.status]}`}
     >
       <div className="flex items-start justify-between mb-4">
@@ -38,11 +38,13 @@ const AppointmentCard = ({ appointment, delay = 0, onAction }) => {
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Calendar size={16} />
-          <span>{formatDate(appointment.date, 'EEEE, MMMM do, yyyy')}</span>
+          <span>{formatDate(appointment.date, "EEEE, MMMM do, yyyy")}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Clock size={16} />
-          <span>{appointment.time} ({appointment.duration} min)</span>
+          <span>
+            {appointment.time} ({appointment.duration} min)
+          </span>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <User size={16} />
@@ -58,16 +60,16 @@ const AppointmentCard = ({ appointment, delay = 0, onAction }) => {
         </div>
       )}
 
-      {onAction && appointment.status === 'Scheduled' && (
+      {onAction && appointment.status === "Scheduled" && (
         <div className="mt-4 flex gap-2">
           <button
-            onClick={() => onAction('reschedule', appointment)}
+            onClick={() => onAction("reschedule", appointment)}
             className="btn-outline flex-1 text-sm py-2"
           >
             Reschedule
           </button>
           <button
-            onClick={() => onAction('cancel', appointment)}
+            onClick={() => onAction("cancel", appointment)}
             className="btn-danger flex-1 text-sm py-2"
           >
             Cancel
@@ -75,7 +77,7 @@ const AppointmentCard = ({ appointment, delay = 0, onAction }) => {
         </div>
       )}
     </motion.div>
-  )
-}
+  );
+};
 
-export default AppointmentCard
+export default AppointmentCard;

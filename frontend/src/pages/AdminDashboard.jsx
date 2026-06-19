@@ -1,35 +1,59 @@
-import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
-import { Users, Calendar, DollarSign, TrendingUp, UserPlus, FileText } from 'lucide-react'
-import DashboardCard from '../components/DashboardCard'
-import { fadeIn, staggerContainer } from '../utils/motion'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { useQuery } from '@apollo/client'
-import { GET_DASHBOARD_STATS, GET_REPORTS_DATA } from '../graphql/queries'
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import {
+  Users,
+  Calendar,
+  DollarSign,
+  TrendingUp,
+  UserPlus,
+  FileText,
+} from "lucide-react";
+import DashboardCard from "../components/DashboardCard";
+import { fadeIn, staggerContainer } from "../utils/motion";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import { useQuery } from "@apollo/client";
+import { GET_DASHBOARD_STATS, GET_REPORTS_DATA } from "../graphql/queries";
 
 const AdminDashboard = () => {
-  const { data: statsData, loading: statsLoading } = useQuery(GET_DASHBOARD_STATS)
-  const { data: reportsData, loading: reportsLoading } = useQuery(GET_REPORTS_DATA)
+  const { data: statsData, loading: statsLoading } =
+    useQuery(GET_DASHBOARD_STATS);
+  const { data: reportsData, loading: reportsLoading } =
+    useQuery(GET_REPORTS_DATA);
 
-  if (statsLoading || reportsLoading) return <div className="p-8 text-center">Loading dashboard...</div>
+  if (statsLoading || reportsLoading)
+    return <div className="p-8 text-center">Loading dashboard...</div>;
 
-  const stats = statsData?.getDashboardStats?.admin || {}
+  const stats = statsData?.getDashboardStats?.admin || {};
   const reports = reportsData?.getReportsData || {
     monthlyRevenue: [],
     appointmentsByType: [],
     patientDemographics: [],
-    treatmentSuccess: []
-  }
+    treatmentSuccess: [],
+  };
 
-  const COLORS = ['#007FAF', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+  const COLORS = ["#007FAF", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
 
   return (
     <div className="max-w-7xl mx-auto">
-      <motion.div {...fadeIn('down')} className="mb-6 sm:mb-8">
+      <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
         <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Admin Dashboard
         </h1>
-        <p className="text-sm sm:text-base text-gray-600">Comprehensive overview of clinic operations and analytics</p>
+        <p className="text-sm sm:text-base text-gray-600">
+          Comprehensive overview of clinic operations and analytics
+        </p>
       </motion.div>
 
       <motion.div
@@ -73,7 +97,7 @@ const AdminDashboard = () => {
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <motion.div {...fadeIn('right', 0.2)} className="card">
+        <motion.div {...fadeIn("right", 0.2)} className="card">
           <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
             Monthly Revenue Trend
           </h2>
@@ -89,7 +113,7 @@ const AdminDashboard = () => {
           </ResponsiveContainer>
         </motion.div>
 
-        <motion.div {...fadeIn('left', 0.3)} className="card">
+        <motion.div {...fadeIn("left", 0.3)} className="card">
           <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
             Appointments by Type
           </h2>
@@ -106,7 +130,10 @@ const AdminDashboard = () => {
                 dataKey="count"
               >
                 {reports.appointmentsByType.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
                 ))}
               </Pie>
               <Tooltip />
@@ -115,21 +142,27 @@ const AdminDashboard = () => {
         </motion.div>
       </div>
 
-
-      <motion.div {...fadeIn('up', 0.4)}>
+      <motion.div {...fadeIn("up", 0.4)}>
         <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
           Quick Actions
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link to="/admin/patient-registration" className="card-hover text-center p-6">
+          <Link
+            to="/admin/patient-registration"
+            className="card-hover text-center p-6"
+          >
             <UserPlus size={32} className="mx-auto mb-3 text-primary" />
             <h3 className="font-medium text-gray-900 mb-1">Register Patient</h3>
             <p className="text-sm text-gray-600">Add new patient to system</p>
           </Link>
           <Link to="/admin/appointments" className="card-hover text-center p-6">
             <Calendar size={32} className="mx-auto mb-3 text-primary" />
-            <h3 className="font-medium text-gray-900 mb-1">Manage Appointments</h3>
-            <p className="text-sm text-gray-600">View and schedule appointments</p>
+            <h3 className="font-medium text-gray-900 mb-1">
+              Manage Appointments
+            </h3>
+            <p className="text-sm text-gray-600">
+              View and schedule appointments
+            </p>
           </Link>
           <Link to="/admin/reports" className="card-hover text-center p-6">
             <FileText size={32} className="mx-auto mb-3 text-primary" />
@@ -139,25 +172,43 @@ const AdminDashboard = () => {
         </div>
       </motion.div>
 
-      <motion.div {...fadeIn('up', 0.5)} className="mt-8">
+      <motion.div {...fadeIn("up", 0.5)} className="mt-8">
         <div className="card">
           <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
             Recent Activity
           </h2>
           <div className="space-y-3">
             {[
-              { action: 'New patient registered', user: 'Robert Johnson', time: '10 minutes ago' },
-              { action: 'Appointment scheduled', user: 'Jane Smith', time: '25 minutes ago' },
-              { action: 'Payment received', user: 'John Doe', time: '1 hour ago' },
-              { action: 'Medical record updated', user: 'Dr. Sunita Agarwalla', time: '2 hours ago' }
+              {
+                action: "New patient registered",
+                user: "Robert Johnson",
+                time: "10 minutes ago",
+              },
+              {
+                action: "Appointment scheduled",
+                user: "Jane Smith",
+                time: "25 minutes ago",
+              },
+              {
+                action: "Payment received",
+                user: "John Doe",
+                time: "1 hour ago",
+              },
+              {
+                action: "Medical record updated",
+                user: "Dr. Sunita Agarwalla",
+                time: "2 hours ago",
+              },
             ].map((activity, index) => (
               <motion.div
                 key={index}
-                {...fadeIn('up', index * 0.05)}
+                {...fadeIn("up", index * 0.05)}
                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
               >
                 <div>
-                  <p className="font-medium text-gray-900 text-sm">{activity.action}</p>
+                  <p className="font-medium text-gray-900 text-sm">
+                    {activity.action}
+                  </p>
                   <p className="text-xs text-gray-600">{activity.user}</p>
                 </div>
                 <span className="text-xs text-gray-500">{activity.time}</span>
@@ -167,7 +218,7 @@ const AdminDashboard = () => {
         </div>
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
-export default AdminDashboard
+export default AdminDashboard;

@@ -1,92 +1,102 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { User, Mail, Phone, Calendar, MapPin, Heart, AlertCircle, FileText, Shield } from 'lucide-react'
-import { fadeIn } from '../utils/motion'
-import toast from 'react-hot-toast'
-import { useMutation } from '@apollo/client'
-import { CREATE_PATIENT } from '../graphql/mutations'
-import { GET_PATIENTS } from '../graphql/queries'
+import { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  MapPin,
+  Heart,
+  AlertCircle,
+  FileText,
+  Shield,
+} from "lucide-react";
+import { fadeIn } from "../utils/motion";
+import toast from "react-hot-toast";
+import { useMutation } from "@apollo/client";
+import { CREATE_PATIENT } from "../graphql/mutations";
+import { GET_PATIENTS } from "../graphql/queries";
 
 const PatientRegistration = () => {
-  const [currentStep, setCurrentStep] = useState(1)
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    dateOfBirth: '',
-    gender: '',
-    address: '',
-    bloodGroup: '',
-    emergencyContactName: '',
-    emergencyContactRelation: '',
-    emergencyContactPhone: '',
-    allergies: '',
-    chronicConditions: '',
-    medications: '',
-    previousSurgeries: '',
-    familyHistory: '',
-    bloodPressure: '',
-    height: '',
-    weight: '',
-    lastVisit: '',
-    previousTreatments: '',
-    currentIssues: '',
-    insuranceProvider: '',
-    policyNumber: '',
-    expiryDate: ''
-  })
+    name: "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
+    gender: "",
+    address: "",
+    bloodGroup: "",
+    emergencyContactName: "",
+    emergencyContactRelation: "",
+    emergencyContactPhone: "",
+    allergies: "",
+    chronicConditions: "",
+    medications: "",
+    previousSurgeries: "",
+    familyHistory: "",
+    bloodPressure: "",
+    height: "",
+    weight: "",
+    lastVisit: "",
+    previousTreatments: "",
+    currentIssues: "",
+    insuranceProvider: "",
+    policyNumber: "",
+    expiryDate: "",
+  });
 
   const [createPatient, { loading }] = useMutation(CREATE_PATIENT, {
     refetchQueries: [{ query: GET_PATIENTS }],
     onCompleted: () => {
-      toast.success('Patient registered successfully!')
-      setCurrentStep(1)
+      toast.success("Patient registered successfully!");
+      setCurrentStep(1);
       setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        dateOfBirth: '',
-        gender: '',
-        address: '',
-        bloodGroup: '',
-        emergencyContactName: '',
-        emergencyContactRelation: '',
-        emergencyContactPhone: '',
-        allergies: '',
-        chronicConditions: '',
-        medications: '',
-        previousSurgeries: '',
-        familyHistory: '',
-        bloodPressure: '',
-        height: '',
-        weight: '',
-        lastVisit: '',
-        previousTreatments: '',
-        currentIssues: '',
-        insuranceProvider: '',
-        policyNumber: '',
-        expiryDate: ''
-      })
+        name: "",
+        email: "",
+        phone: "",
+        dateOfBirth: "",
+        gender: "",
+        address: "",
+        bloodGroup: "",
+        emergencyContactName: "",
+        emergencyContactRelation: "",
+        emergencyContactPhone: "",
+        allergies: "",
+        chronicConditions: "",
+        medications: "",
+        previousSurgeries: "",
+        familyHistory: "",
+        bloodPressure: "",
+        height: "",
+        weight: "",
+        lastVisit: "",
+        previousTreatments: "",
+        currentIssues: "",
+        insuranceProvider: "",
+        policyNumber: "",
+        expiryDate: "",
+      });
     },
     onError: (error) => {
-      toast.error(`Error: ${error.message}`)
-    }
-  })
+      toast.error(`Error: ${error.message}`);
+    },
+  });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleNext = () => {
-    setCurrentStep(currentStep + 1)
-  }
+    setCurrentStep(currentStep + 1);
+  };
 
   const handlePrevious = () => {
-    setCurrentStep(currentStep - 1)
-  }
+    setCurrentStep(currentStep - 1);
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     await createPatient({
       variables: {
         name: formData.name,
@@ -95,60 +105,70 @@ const PatientRegistration = () => {
         dateOfBirth: formData.dateOfBirth,
         gender: formData.gender,
         address: formData.address,
-        bloodGroup: formData.bloodGroup
-      }
-    })
-  }
+        bloodGroup: formData.bloodGroup,
+      },
+    });
+  };
 
   const steps = [
-    { number: 1, title: 'Personal Information', icon: User },
-    { number: 2, title: 'Emergency Contact', icon: Phone },
-    { number: 3, title: 'Medical History', icon: Heart },
-    { number: 4, title: 'Dental History', icon: FileText },
-    { number: 5, title: 'Insurance Details', icon: Shield }
-  ]
+    { number: 1, title: "Personal Information", icon: User },
+    { number: 2, title: "Emergency Contact", icon: Phone },
+    { number: 3, title: "Medical History", icon: Heart },
+    { number: 4, title: "Dental History", icon: FileText },
+    { number: 5, title: "Insurance Details", icon: Shield },
+  ];
 
   return (
     <div className="max-w-4xl mx-auto">
-      <motion.div {...fadeIn('down')} className="mb-6 sm:mb-8">
+      <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
         <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Patient Registration
         </h1>
-        <p className="text-sm sm:text-base text-gray-600">Complete the form to register a new patient</p>
+        <p className="text-sm sm:text-base text-gray-600">
+          Complete the form to register a new patient
+        </p>
       </motion.div>
 
       <div className="mb-8 overflow-x-auto pb-4 sm:pb-0">
         <div className="flex items-center justify-between min-w-[600px] sm:min-w-0">
           {steps.map((step, index) => {
-            const Icon = step.icon
+            const Icon = step.icon;
             return (
               <div key={step.number} className="flex items-center flex-1">
                 <div className="flex flex-col items-center flex-1">
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
-                    currentStep >= step.number
-                      ? 'bg-primary text-white shadow-md scale-110 sm:scale-100'
-                      : 'bg-gray-200 text-gray-500'
-                  }`}>
+                  <div
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
+                      currentStep >= step.number
+                        ? "bg-primary text-white shadow-md scale-110 sm:scale-100"
+                        : "bg-gray-200 text-gray-500"
+                    }`}
+                  >
                     <Icon size={18} sm:size={20} />
                   </div>
-                  <p className={`text-[10px] sm:text-xs mt-2 text-center whitespace-nowrap ${
-                    currentStep >= step.number ? 'text-primary font-medium' : 'text-gray-500'
-                  }`}>
+                  <p
+                    className={`text-[10px] sm:text-xs mt-2 text-center whitespace-nowrap ${
+                      currentStep >= step.number
+                        ? "text-primary font-medium"
+                        : "text-gray-500"
+                    }`}
+                  >
                     {step.title}
                   </p>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={`h-1 flex-1 mx-1 sm:mx-2 transition-all ${
-                    currentStep > step.number ? 'bg-primary' : 'bg-gray-200'
-                  }`} />
+                  <div
+                    className={`h-1 flex-1 mx-1 sm:mx-2 transition-all ${
+                      currentStep > step.number ? "bg-primary" : "bg-gray-200"
+                    }`}
+                  />
                 )}
               </div>
-            )
+            );
           })}
         </div>
       </div>
 
-      <motion.div {...fadeIn('up', 0.2)} className="card">
+      <motion.div {...fadeIn("up", 0.2)} className="card">
         <form onSubmit={handleSubmit}>
           {currentStep === 1 && (
             <div className="space-y-4">
@@ -384,7 +404,9 @@ const PatientRegistration = () => {
                 />
               </div>
               <div className="border-t border-gray-100 pt-4">
-                <h3 className="font-medium text-gray-900 mb-3">Vital Signs (Baseline)</h3>
+                <h3 className="font-medium text-gray-900 mb-3">
+                  Vital Signs (Baseline)
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -522,13 +544,17 @@ const PatientRegistration = () => {
               </div>
               <div className="p-4 bg-blue-50 rounded-lg mt-4">
                 <div className="flex gap-3">
-                  <AlertCircle size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                  <AlertCircle
+                    size={20}
+                    className="text-blue-600 flex-shrink-0 mt-0.5"
+                  />
                   <div>
                     <p className="text-sm font-medium text-blue-900 mb-1">
                       Insurance Verification
                     </p>
                     <p className="text-xs text-blue-700">
-                      Please ensure all insurance information is accurate. We will verify coverage before your first appointment.
+                      Please ensure all insurance information is accurate. We
+                      will verify coverage before your first appointment.
                     </p>
                   </div>
                 </div>
@@ -555,10 +581,7 @@ const PatientRegistration = () => {
                 Next
               </button>
             ) : (
-              <button
-                type="submit"
-                className="btn-primary ml-auto"
-              >
+              <button type="submit" className="btn-primary ml-auto">
                 Complete Registration
               </button>
             )}
@@ -566,7 +589,7 @@ const PatientRegistration = () => {
         </form>
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
-export default PatientRegistration
+export default PatientRegistration;

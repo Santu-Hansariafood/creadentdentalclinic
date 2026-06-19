@@ -1,69 +1,79 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { User, Mail, Phone, Lock, Briefcase, Award, ShieldCheck } from 'lucide-react'
-import { fadeIn } from '../utils/motion'
-import toast from 'react-hot-toast'
-import { useMutation } from '@apollo/client'
-import { REGISTER } from '../graphql/mutations'
+import { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  User,
+  Mail,
+  Phone,
+  Lock,
+  Briefcase,
+  Award,
+  ShieldCheck,
+} from "lucide-react";
+import { fadeIn } from "../utils/motion";
+import toast from "react-hot-toast";
+import { useMutation } from "@apollo/client";
+import { REGISTER } from "../graphql/mutations";
 
 const DoctorRegistration = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    phone: '',
-    specialization: '',
-    license: '',
-    role: 'doctor'
-  })
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
+    specialization: "",
+    license: "",
+    role: "doctor",
+  });
 
   const [registerDoctor, { loading }] = useMutation(REGISTER, {
     onCompleted: () => {
-      toast.success('Doctor registered successfully!')
+      toast.success("Doctor registered successfully!");
       setFormData({
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        phone: '',
-        specialization: '',
-        license: '',
-        role: 'doctor'
-      })
+        name: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        phone: "",
+        specialization: "",
+        license: "",
+        role: "doctor",
+      });
     },
     onError: (error) => {
-      toast.error(`Error: ${error.message}`)
-    }
-  })
+      toast.error(`Error: ${error.message}`);
+    },
+  });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match')
-      return
+      toast.error("Passwords do not match");
+      return;
     }
 
-    const { confirmPassword, ...registerData } = formData
+    const { confirmPassword, ...registerData } = formData;
     await registerDoctor({
-      variables: registerData
-    })
-  }
+      variables: registerData,
+    });
+  };
 
   return (
     <div className="max-w-4xl mx-auto">
-      <motion.div {...fadeIn('down')} className="mb-6 sm:mb-8">
+      <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
         <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Doctor Registration
         </h1>
-        <p className="text-sm sm:text-base text-gray-600">Add a new doctor to the clinic system</p>
+        <p className="text-sm sm:text-base text-gray-600">
+          Add a new doctor to the clinic system
+        </p>
       </motion.div>
 
-      <motion.div {...fadeIn('up', 0.2)} className="card">
+      <motion.div {...fadeIn("up", 0.2)} className="card">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -71,7 +81,10 @@ const DoctorRegistration = () => {
                 Full Name *
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <User
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
                 <input
                   type="text"
                   name="name"
@@ -89,7 +102,10 @@ const DoctorRegistration = () => {
                 Email Address *
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Mail
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
                 <input
                   type="email"
                   name="email"
@@ -107,7 +123,10 @@ const DoctorRegistration = () => {
                 Phone Number *
               </label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Phone
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
                 <input
                   type="tel"
                   name="phone"
@@ -125,7 +144,10 @@ const DoctorRegistration = () => {
                 Specialization *
               </label>
               <div className="relative">
-                <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Briefcase
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
                 <input
                   type="text"
                   name="specialization"
@@ -143,7 +165,10 @@ const DoctorRegistration = () => {
                 License Number *
               </label>
               <div className="relative">
-                <Award className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Award
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
                 <input
                   type="text"
                   name="license"
@@ -162,7 +187,10 @@ const DoctorRegistration = () => {
                   Password *
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <Lock
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={18}
+                  />
                   <input
                     type="password"
                     name="password"
@@ -180,7 +208,10 @@ const DoctorRegistration = () => {
                   Confirm Password *
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <Lock
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={18}
+                  />
                   <input
                     type="password"
                     name="confirmPassword"
@@ -196,19 +227,19 @@ const DoctorRegistration = () => {
           </div>
 
           <div className="flex justify-end pt-4">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn-primary px-8 flex items-center gap-2"
               disabled={loading}
             >
               <ShieldCheck size={20} />
-              {loading ? 'Registering...' : 'Register Doctor'}
+              {loading ? "Registering..." : "Register Doctor"}
             </button>
           </div>
         </form>
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
-export default DoctorRegistration
+export default DoctorRegistration;

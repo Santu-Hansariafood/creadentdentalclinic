@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+import { gql } from "@apollo/client";
 
 export const LOGIN = gql`
   mutation Login($phone: String!, $password: String!) {
@@ -22,28 +22,32 @@ export const FORGOT_PASSWORD = gql`
 `;
 
 export const RESET_PASSWORD = gql`
-  mutation ResetPassword($phone: String!, $otp: String!, $newPassword: String!) {
+  mutation ResetPassword(
+    $phone: String!
+    $otp: String!
+    $newPassword: String!
+  ) {
     resetPassword(phone: $phone, otp: $otp, newPassword: $newPassword)
   }
 `;
 
 export const CREATE_PATIENT = gql`
   mutation CreatePatient(
-    $name: String!,
-    $email: String!,
-    $phone: String!,
-    $dateOfBirth: String!,
-    $gender: String!,
-    $address: String,
+    $name: String!
+    $email: String!
+    $phone: String!
+    $dateOfBirth: String!
+    $gender: String!
+    $address: String
     $bloodGroup: String
   ) {
     createPatient(
-      name: $name,
-      email: $email,
-      phone: $phone,
-      dateOfBirth: $dateOfBirth,
-      gender: $gender,
-      address: $address,
+      name: $name
+      email: $email
+      phone: $phone
+      dateOfBirth: $dateOfBirth
+      gender: $gender
+      address: $address
       bloodGroup: $bloodGroup
     ) {
       id
@@ -54,21 +58,21 @@ export const CREATE_PATIENT = gql`
 
 export const REGISTER = gql`
   mutation Register(
-    $name: String!,
-    $phone: String!,
-    $email: String!,
-    $password: String!,
-    $role: String!,
-    $specialization: String,
+    $name: String!
+    $phone: String!
+    $email: String!
+    $password: String!
+    $role: String!
+    $specialization: String
     $license: String
   ) {
     register(
-      name: $name,
-      phone: $phone,
-      email: $email,
-      password: $password,
-      role: $role,
-      specialization: $specialization,
+      name: $name
+      phone: $phone
+      email: $email
+      password: $password
+      role: $role
+      specialization: $specialization
       license: $license
     ) {
       token
@@ -85,13 +89,13 @@ export const REGISTER = gql`
 
 export const REGISTER_MEDICINE = gql`
   mutation RegisterMedicine(
-    $name: String!,
-    $category: String!,
+    $name: String!
+    $category: String!
     $description: String
   ) {
     registerMedicine(
-      name: $name,
-      category: $category,
+      name: $name
+      category: $category
       description: $description
     ) {
       id
@@ -103,23 +107,23 @@ export const REGISTER_MEDICINE = gql`
 
 export const CREATE_APPOINTMENT = gql`
   mutation CreateAppointment(
-    $patientId: ID!,
-    $patientName: String!,
-    $doctorId: ID!,
-    $doctorName: String!,
-    $date: String!,
-    $time: String!,
-    $type: String!,
+    $patientId: ID!
+    $patientName: String!
+    $doctorId: ID!
+    $doctorName: String!
+    $date: String!
+    $time: String!
+    $type: String!
     $reason: String
   ) {
     createAppointment(
-      patientId: $patientId,
-      patientName: $patientName,
-      doctorId: $doctorId,
-      doctorName: $doctorName,
-      date: $date,
-      time: $time,
-      type: $type,
+      patientId: $patientId
+      patientName: $patientName
+      doctorId: $doctorId
+      doctorName: $doctorName
+      date: $date
+      time: $time
+      type: $type
       reason: $reason
     ) {
       id
@@ -130,17 +134,17 @@ export const CREATE_APPOINTMENT = gql`
 
 export const UPDATE_APPOINTMENT = gql`
   mutation UpdateAppointment(
-    $id: ID!,
-    $date: String,
-    $time: String,
-    $status: String,
+    $id: ID!
+    $date: String
+    $time: String
+    $status: String
     $notes: String
   ) {
     updateAppointment(
-      id: $id,
-      date: $date,
-      time: $time,
-      status: $status,
+      id: $id
+      date: $date
+      time: $time
+      status: $status
       notes: $notes
     ) {
       id
@@ -153,21 +157,21 @@ export const UPDATE_APPOINTMENT = gql`
 
 export const CREATE_PRESCRIPTION = gql`
   mutation CreatePrescription(
-    $patientId: ID!,
-    $patientName: String!,
-    $doctorId: ID!,
-    $doctorName: String!,
-    $diagnosis: String,
-    $medications: [MedicationInput],
+    $patientId: ID!
+    $patientName: String!
+    $doctorId: ID!
+    $doctorName: String!
+    $diagnosis: String
+    $medications: [MedicationInput]
     $notes: String
   ) {
     createPrescription(
-      patientId: $patientId,
-      patientName: $patientName,
-      doctorId: $doctorId,
-      doctorName: $doctorName,
-      diagnosis: $diagnosis,
-      medications: $medications,
+      patientId: $patientId
+      patientName: $patientName
+      doctorId: $doctorId
+      doctorName: $doctorName
+      diagnosis: $diagnosis
+      medications: $medications
       notes: $notes
     ) {
       id
@@ -178,23 +182,23 @@ export const CREATE_PRESCRIPTION = gql`
 
 export const CREATE_MEDICAL_RECORD = gql`
   mutation CreateMedicalRecord(
-    $patientId: ID!,
-    $patientName: String!,
-    $doctorId: ID!,
-    $doctorName: String!,
-    $date: String!,
-    $diagnosis: String,
-    $treatment: String,
+    $patientId: ID!
+    $patientName: String!
+    $doctorId: ID!
+    $doctorName: String!
+    $date: String!
+    $diagnosis: String
+    $treatment: String
     $prescriptions: [String]
   ) {
     createMedicalRecord(
-      patientId: $patientId,
-      patientName: $patientName,
-      doctorId: $doctorId,
-      doctorName: $doctorName,
-      date: $date,
-      diagnosis: $diagnosis,
-      treatment: $treatment,
+      patientId: $patientId
+      patientName: $patientName
+      doctorId: $doctorId
+      doctorName: $doctorName
+      date: $date
+      diagnosis: $diagnosis
+      treatment: $treatment
       prescriptions: $prescriptions
     ) {
       id
@@ -204,21 +208,21 @@ export const CREATE_MEDICAL_RECORD = gql`
 
 export const CREATE_INVOICE = gql`
   mutation CreateInvoice(
-    $invoiceNumber: String!,
-    $patientId: ID!,
-    $patientName: String!,
-    $date: String!,
-    $subtotal: Float!,
-    $total: Float!,
+    $invoiceNumber: String!
+    $patientId: ID!
+    $patientName: String!
+    $date: String!
+    $subtotal: Float!
+    $total: Float!
     $balance: Float!
   ) {
     createInvoice(
-      invoiceNumber: $invoiceNumber,
-      patientId: $patientId,
-      patientName: $patientName,
-      date: $date,
-      subtotal: $subtotal,
-      total: $total,
+      invoiceNumber: $invoiceNumber
+      patientId: $patientId
+      patientName: $patientName
+      date: $date
+      subtotal: $subtotal
+      total: $total
       balance: $balance
     ) {
       id

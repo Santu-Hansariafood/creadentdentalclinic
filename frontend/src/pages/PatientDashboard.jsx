@@ -1,39 +1,57 @@
-import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
-import { Calendar, FileText, Pill, CreditCard, MessageSquare, Clock } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import DashboardCard from '../components/DashboardCard'
-import AppointmentCard from '../components/AppointmentCard'
-import { fadeIn, staggerContainer } from '../utils/motion'
-import { useQuery } from '@apollo/client'
-import { GET_DASHBOARD_STATS, GET_APPOINTMENTS, GET_PRESCRIPTIONS, GET_MEDICAL_RECORDS } from '../graphql/queries'
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import {
+  Calendar,
+  FileText,
+  Pill,
+  CreditCard,
+  MessageSquare,
+  Clock,
+} from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import DashboardCard from "../components/DashboardCard";
+import AppointmentCard from "../components/AppointmentCard";
+import { fadeIn, staggerContainer } from "../utils/motion";
+import { useQuery } from "@apollo/client";
+import {
+  GET_DASHBOARD_STATS,
+  GET_APPOINTMENTS,
+  GET_PRESCRIPTIONS,
+  GET_MEDICAL_RECORDS,
+} from "../graphql/queries";
 
 const PatientDashboard = () => {
-  const { user } = useAuth()
-  
-  const { data: statsData, loading: statsLoading } = useQuery(GET_DASHBOARD_STATS)
+  const { user } = useAuth();
+
+  const { data: statsData, loading: statsLoading } =
+    useQuery(GET_DASHBOARD_STATS);
   const { data: aptsData, loading: aptsLoading } = useQuery(GET_APPOINTMENTS, {
-    variables: { page: 1, limit: 2, status: 'Scheduled' }
-  })
-  const { data: presData, loading: presLoading } = useQuery(GET_PRESCRIPTIONS)
-  const { data: recordsData, loading: recordsLoading } = useQuery(GET_MEDICAL_RECORDS)
+    variables: { page: 1, limit: 2, status: "Scheduled" },
+  });
+  const { data: presData, loading: presLoading } = useQuery(GET_PRESCRIPTIONS);
+  const { data: recordsData, loading: recordsLoading } =
+    useQuery(GET_MEDICAL_RECORDS);
 
   if (statsLoading || aptsLoading || presLoading || recordsLoading) {
-    return <div className="p-8 text-center">Loading dashboard...</div>
+    return <div className="p-8 text-center">Loading dashboard...</div>;
   }
 
-  const stats = statsData?.getDashboardStats?.patient || {}
-  const appointments = aptsData?.getAppointments?.appointments || []
-  const activePrescriptions = (presData?.getPrescriptions || []).filter(p => p.status === 'Active').slice(0, 2)
-  const recentRecords = (recordsData?.getMedicalRecords || []).slice(0, 2)
+  const stats = statsData?.getDashboardStats?.patient || {};
+  const appointments = aptsData?.getAppointments?.appointments || [];
+  const activePrescriptions = (presData?.getPrescriptions || [])
+    .filter((p) => p.status === "Active")
+    .slice(0, 2);
+  const recentRecords = (recordsData?.getMedicalRecords || []).slice(0, 2);
 
   return (
     <div className="max-w-7xl mx-auto">
-      <motion.div {...fadeIn('down')} className="mb-6 sm:mb-8">
+      <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
         <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Welcome back, {user.name}!
         </h1>
-        <p className="text-sm sm:text-base text-gray-600">Here's an overview of your dental health</p>
+        <p className="text-sm sm:text-base text-gray-600">
+          Here's an overview of your dental health
+        </p>
       </motion.div>
 
       <motion.div
@@ -77,25 +95,35 @@ const PatientDashboard = () => {
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <motion.div {...fadeIn('right', 0.2)}>
+        <motion.div {...fadeIn("right", 0.2)}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-heading text-xl font-semibold text-gray-900">
               Upcoming Appointments
             </h2>
-            <Link to="/patient/appointments" className="text-sm text-primary hover:underline">
+            <Link
+              to="/patient/appointments"
+              className="text-sm text-primary hover:underline"
+            >
               View all
             </Link>
           </div>
           <div className="space-y-4">
             {appointments.length > 0 ? (
               appointments.map((apt, index) => (
-                <AppointmentCard key={apt.id} appointment={apt} delay={index * 0.1} />
+                <AppointmentCard
+                  key={apt.id}
+                  appointment={apt}
+                  delay={index * 0.1}
+                />
               ))
             ) : (
               <div className="card text-center py-8">
                 <Calendar size={48} className="mx-auto mb-4 text-gray-300" />
                 <p className="text-gray-500">No upcoming appointments</p>
-                <Link to="/patient/appointments" className="btn-primary mt-4 inline-block">
+                <Link
+                  to="/patient/appointments"
+                  className="btn-primary mt-4 inline-block"
+                >
                   Book Appointment
                 </Link>
               </div>
@@ -103,12 +131,15 @@ const PatientDashboard = () => {
           </div>
         </motion.div>
 
-        <motion.div {...fadeIn('left', 0.3)}>
+        <motion.div {...fadeIn("left", 0.3)}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-heading text-xl font-semibold text-gray-900">
               Active Prescriptions
             </h2>
-            <Link to="/patient/prescriptions" className="text-sm text-primary hover:underline">
+            <Link
+              to="/patient/prescriptions"
+              className="text-sm text-primary hover:underline"
+            >
               View all
             </Link>
           </div>
@@ -117,7 +148,7 @@ const PatientDashboard = () => {
               activePrescriptions.map((pres, index) => (
                 <motion.div
                   key={pres.id}
-                  {...fadeIn('up', index * 0.1)}
+                  {...fadeIn("up", index * 0.1)}
                   className="card"
                 >
                   <div className="flex items-start gap-3">
@@ -129,7 +160,8 @@ const PatientDashboard = () => {
                         {pres.medications[0].name}
                       </h3>
                       <p className="text-sm text-gray-600 mb-2">
-                        {pres.medications[0].dosage} - {pres.medications[0].frequency}
+                        {pres.medications[0].dosage} -{" "}
+                        {pres.medications[0].frequency}
                       </p>
                       <span className="badge badge-success">Active</span>
                     </div>
@@ -146,12 +178,15 @@ const PatientDashboard = () => {
         </motion.div>
       </div>
 
-      <motion.div {...fadeIn('up', 0.4)}>
+      <motion.div {...fadeIn("up", 0.4)}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-heading text-xl font-semibold text-gray-900">
             Recent Medical Records
           </h2>
-          <Link to="/patient/records" className="text-sm text-primary hover:underline">
+          <Link
+            to="/patient/records"
+            className="text-sm text-primary hover:underline"
+          >
             View all
           </Link>
         </div>
@@ -160,7 +195,7 @@ const PatientDashboard = () => {
             recentRecords.map((record, index) => (
               <motion.div
                 key={record.id}
-                {...fadeIn('up', index * 0.1)}
+                {...fadeIn("up", index * 0.1)}
                 className="card"
               >
                 <div className="flex items-start gap-3">
@@ -190,8 +225,7 @@ const PatientDashboard = () => {
         </div>
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
-
-export default PatientDashboard
+export default PatientDashboard;

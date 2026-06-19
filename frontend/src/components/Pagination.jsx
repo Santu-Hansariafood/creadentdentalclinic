@@ -1,11 +1,11 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   if (totalPages <= 1) return null;
 
   const getPageNumbers = () => {
     const pages = [];
-    const showMax = 5; // Maximum number of page buttons to show
+    const showMax = 5;
 
     if (totalPages <= showMax) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
@@ -19,7 +19,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 
       if (start > 1) {
         pages.push(1);
-        if (start > 2) pages.push('...');
+        if (start > 2) pages.push("...");
       }
 
       for (let i = start; i <= end; i++) {
@@ -27,7 +27,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       }
 
       if (end < totalPages) {
-        if (end < totalPages - 1) pages.push('...');
+        if (end < totalPages - 1) pages.push("...");
         pages.push(totalPages);
       }
     }
@@ -45,18 +45,18 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       >
         <ChevronLeft size={20} />
       </button>
-      
+
       {pageNumbers.map((page, index) => (
         <button
           key={index}
-          onClick={() => typeof page === 'number' ? onPageChange(page) : null}
-          disabled={typeof page !== 'number'}
+          onClick={() => (typeof page === "number" ? onPageChange(page) : null)}
+          disabled={typeof page !== "number"}
           className={`w-10 h-10 rounded-lg border transition-colors ${
             currentPage === page
-              ? 'bg-primary text-white border-primary'
-              : page === '...'
-              ? 'border-transparent cursor-default'
-              : 'border-gray-200 hover:bg-gray-50'
+              ? "bg-primary text-white border-primary"
+              : page === "..."
+                ? "border-transparent cursor-default"
+                : "border-gray-200 hover:bg-gray-50"
           }`}
         >
           {page}

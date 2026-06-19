@@ -1,9 +1,6 @@
-const User = require('../models/User');
-const generateToken = require('../utils/generateToken');
+const User = require("../models/User");
+const generateToken = require("../utils/generateToken");
 
-// @desc    Login user
-// @route   POST /api/login
-// @access  Public
 const login = async (req, res) => {
   const { phone, password } = req.body;
 
@@ -21,20 +18,20 @@ const login = async (req, res) => {
       },
     });
   } else {
-    res.status(401).json({ message: 'Invalid phone or password' });
+    res.status(401).json({ message: "Invalid phone or password" });
   }
 };
 
-// @desc    Register user
-// @route   POST /api/register
-// @access  Public
 const register = async (req, res) => {
-  const { name, phone, email, password, role, specialization, license } = req.body;
+  const { name, phone, email, password, role, specialization, license } =
+    req.body;
 
   const userExists = await User.findOne({ $or: [{ email }, { phone }] });
 
   if (userExists) {
-    res.status(400).json({ message: 'User with this email or phone already exists' });
+    res
+      .status(400)
+      .json({ message: "User with this email or phone already exists" });
     return;
   }
 
@@ -61,40 +58,28 @@ const register = async (req, res) => {
       },
     });
   } else {
-    res.status(400).json({ message: 'Invalid user data' });
+    res.status(400).json({ message: "Invalid user data" });
   }
 };
 
-// @desc    Forgot password
-// @route   POST /api/forgot-password
-// @access  Public
 const forgotPassword = async (req, res) => {
   const { phone } = req.body;
 
   const user = await User.findOne({ phone });
   if (!user) {
-    res.status(404).json({ message: 'User not found with this mobile number' });
+    res.status(404).json({ message: "User not found with this mobile number" });
     return;
   }
 
-  // Generate 6-digit OTP
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  // Store OTP and expiry (10 minutes)
   user.resetPasswordOTP = otp;
   user.resetPasswordOTPExpires = Date.now() + 10 * 60 * 1000;
   await user.save();
 
-  console.log('====================================================');
-  console.log(`WHATSAPP OTP SENT TO ${phone}: ${otp}`);
-  console.log('====================================================');
-
   res.json({ success: true });
 };
 
-// @desc    Reset password
-// @route   POST /api/reset-password
-// @access  Public
 const resetPassword = async (req, res) => {
   const { phone, otp, newPassword } = req.body;
 
@@ -105,7 +90,7 @@ const resetPassword = async (req, res) => {
   });
 
   if (!user) {
-    res.status(400).json({ message: 'Invalid or expired OTP' });
+    res.status(400).json({ message: "Invalid or expired OTP" });
     return;
   }
 
@@ -117,9 +102,6 @@ const resetPassword = async (req, res) => {
   res.json({ success: true });
 };
 
-// @desc    Get current user
-// @route   GET /api/me
-// @access  Private
 const getMe = async (req, res) => {
   if (req.user) {
     res.json({
@@ -130,7 +112,7 @@ const getMe = async (req, res) => {
       role: req.user.role,
     });
   } else {
-    res.status(404).json({ message: 'User not found' });
+    res.status(404).json({ message: "User not found" });
   }
 };
 

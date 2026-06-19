@@ -165,13 +165,19 @@ const Prescriptions = () => {
       </motion.div>
 
       {showCreateForm && (
-        <motion.div {...fadeIn("up", 0.1)} className="card mb-8 overflow-hidden">
+        <motion.div
+          {...fadeIn("up", 0.1)}
+          className="card mb-8 overflow-hidden"
+        >
           <div className="bg-gradient-to-r from-primary to-accent px-6 py-4 -mx-4 -mt-4 mb-6 sm:-mx-6 sm:-mt-6 rounded-t-lg">
             <h2 className="font-heading text-xl font-bold text-white flex items-center gap-2">
               <Pill size={22} />
               Create New Prescription
             </h2>
-            <p className="text-white/80 text-sm mt-1">Fill in patient details and medications to generate a professional Rx</p>
+            <p className="text-white/80 text-sm mt-1">
+              Fill in patient details and medications to generate a professional
+              Rx
+            </p>
           </div>
           <form onSubmit={handleCreatePrescription} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

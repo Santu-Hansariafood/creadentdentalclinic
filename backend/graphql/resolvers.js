@@ -1,20 +1,22 @@
-const User = require('../models/User');
-const Medicine = require('../models/Medicine');
-const Patient = require('../models/Patient');
-const Appointment = require('../models/Appointment');
-const MedicalRecord = require('../models/MedicalRecord');
-const Invoice = require('../models/Invoice');
-const Prescription = require('../models/Prescription');
-const PaymentLedger = require('../models/PaymentLedger');
-const Conversation = require('../models/Conversation');
-const ChatMessage = require('../models/ChatMessage');
-const Notification = require('../models/Notification');
-const generateToken = require('../utils/generateToken');
+const User = require("../models/User");
+const Medicine = require("../models/Medicine");
+const Patient = require("../models/Patient");
+const Appointment = require("../models/Appointment");
+const MedicalRecord = require("../models/MedicalRecord");
+const Invoice = require("../models/Invoice");
+const Prescription = require("../models/Prescription");
+const PaymentLedger = require("../models/PaymentLedger");
+const Conversation = require("../models/Conversation");
+const ChatMessage = require("../models/ChatMessage");
+const Notification = require("../models/Notification");
+const generateToken = require("../utils/generateToken");
 
 const toIsoDateString = (value) => {
   if (!value) return new Date().toISOString();
   const date = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+  return Number.isNaN(date.getTime())
+    ? new Date().toISOString()
+    : date.toISOString();
 };
 
 const resolvers = {
@@ -24,15 +26,15 @@ const resolvers = {
   },
   Query: {
     me: async (_, __, { user }) => {
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error("Not authenticated");
       return user;
     },
     getUsers: async () => await User.find(),
     getUsersByRole: async (_, { role }) => await User.find({ role }),
     getUser: async (_, { id }) => await User.findById(id),
-    getMedicines: async (_, { page = 1, limit = 10, search = '' }) => {
+    getMedicines: async (_, { page = 1, limit = 10, search = "" }) => {
       const skip = (page - 1) * limit;
-      const query = search ? { name: { $regex: search, $options: 'i' } } : {};
+      const query = search ? { name: { $regex: search, $options: "i" } } : {};
       const medicines = await Medicine.find(query).skip(skip).limit(limit);
       const totalCount = await Medicine.countDocuments(query);
       return {
@@ -45,20 +47,29 @@ const resolvers = {
     getMedicine: async (_, { id }) => await Medicine.findById(id),
     getMedicineCategories: async () => {
       const medicines = await Medicine.find();
-      const categories = [...new Set(medicines.map(m => m.category))];
-      return categories.length > 0 
-        ? categories 
-        : ['Antibiotic', 'Analgesic', 'Antiseptic', 'Anesthetic', 'Anti-inflammatory', 'Other'];
+      const categories = [...new Set(medicines.map((m) => m.category))];
+      return categories.length > 0
+        ? categories
+        : [
+            "Antibiotic",
+            "Analgesic",
+            "Antiseptic",
+            "Anesthetic",
+            "Anti-inflammatory",
+            "Other",
+          ];
     },
-    getPatients: async (_, { page = 1, limit = 10, search = '' }) => {
+    getPatients: async (_, { page = 1, limit = 10, search = "" }) => {
       const skip = (page - 1) * limit;
-      const query = search ? { 
-        $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-          { phone: { $regex: search, $options: 'i' } }
-        ]
-      } : {};
+      const query = search
+        ? {
+            $or: [
+              { name: { $regex: search, $options: "i" } },
+              { email: { $regex: search, $options: "i" } },
+              { phone: { $regex: search, $options: "i" } },
+            ],
+          }
+        : {};
       const patients = await Patient.find(query).skip(skip).limit(limit);
       const totalCount = await Patient.countDocuments(query);
       return {
@@ -69,20 +80,26 @@ const resolvers = {
       };
     },
     getPatient: async (_, { id }) => await Patient.findById(id),
-    getAppointments: async (_, { page = 1, limit = 10, search = '', status = 'All' }) => {
+    getAppointments: async (
+      _,
+      { page = 1, limit = 10, search = "", status = "All" },
+    ) => {
       const skip = (page - 1) * limit;
       const query = {};
-      if (status && status !== 'All') {
+      if (status && status !== "All") {
         query.status = status;
       }
       if (search) {
         query.$or = [
-          { patientName: { $regex: search, $options: 'i' } },
-          { doctorName: { $regex: search, $options: 'i' } },
-          { type: { $regex: search, $options: 'i' } }
+          { patientName: { $regex: search, $options: "i" } },
+          { doctorName: { $regex: search, $options: "i" } },
+          { type: { $regex: search, $options: "i" } },
         ];
       }
-      const appointments = await Appointment.find(query).sort({ date: 1, time: 1 }).skip(skip).limit(limit);
+      const appointments = await Appointment.find(query)
+        .sort({ date: 1, time: 1 })
+        .skip(skip)
+        .limit(limit);
       const totalCount = await Appointment.countDocuments(query);
       return {
         appointments,
@@ -91,12 +108,16 @@ const resolvers = {
         currentPage: page,
       };
     },
-    getMedicalRecords: async () => await MedicalRecord.find().sort({ date: -1 }),
+    getMedicalRecords: async () =>
+      await MedicalRecord.find().sort({ date: -1 }),
     getInvoices: async () => await Invoice.find().sort({ date: -1 }),
     getPrescriptions: async () => await Prescription.find().sort({ date: -1 }),
-    getPaymentLedgers: async (_, { page = 1, limit = 10, search = '' }) => {
+    getPaymentLedgers: async (_, { page = 1, limit = 10, search = "" }) => {
       const skip = (page - 1) * limit;
-      const paymentLedgers = await PaymentLedger.find().sort({ slNo: 1 }).skip(skip).limit(limit);
+      const paymentLedgers = await PaymentLedger.find()
+        .sort({ slNo: 1 })
+        .skip(skip)
+        .limit(limit);
       const totalCount = await PaymentLedger.countDocuments();
       return {
         paymentLedgers,
@@ -106,109 +127,137 @@ const resolvers = {
       };
     },
     getDashboardStats: async (_, __, { user }) => {
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error("Not authenticated");
 
       const totalPatients = await Patient.countDocuments();
-      const today = new Date().toISOString().split('T')[0];
-      const todayAppointments = await Appointment.countDocuments({ date: today });
-      
+      const today = new Date().toISOString().split("T")[0];
+      const todayAppointments = await Appointment.countDocuments({
+        date: today,
+      });
+
       const invoices = await Invoice.find();
-      const pendingPayments = invoices.filter(inv => inv.balance > 0).length;
+      const pendingPayments = invoices.filter((inv) => inv.balance > 0).length;
       const monthlyRevenue = invoices.reduce((sum, inv) => sum + inv.total, 0);
 
-      const unreadMessages = await ChatMessage.countDocuments({ receiverId: user._id, read: false });
-      const upcomingAppointments = await Appointment.countDocuments({ patientId: user._id, date: { $gte: today }, status: 'Scheduled' });
-      const pendingBills = await Invoice.countDocuments({ patientId: user._id, balance: { $gt: 0 } });
+      const unreadMessages = await ChatMessage.countDocuments({
+        receiverId: user._id,
+        read: false,
+      });
+      const upcomingAppointments = await Appointment.countDocuments({
+        patientId: user._id,
+        date: { $gte: today },
+        status: "Scheduled",
+      });
+      const pendingBills = await Invoice.countDocuments({
+        patientId: user._id,
+        balance: { $gt: 0 },
+      });
 
-      const doctorApts = await Appointment.countDocuments({ doctorId: user._id, date: today });
-      const doctorPatients = await Appointment.distinct('patientId', { doctorId: user._id }).length;
-      const pendingReports = await MedicalRecord.countDocuments({ doctorId: user._id, diagnosis: { $exists: false } });
+      const doctorApts = await Appointment.countDocuments({
+        doctorId: user._id,
+        date: today,
+      });
+      const doctorPatients = await Appointment.distinct("patientId", {
+        doctorId: user._id,
+      }).length;
+      const pendingReports = await MedicalRecord.countDocuments({
+        doctorId: user._id,
+        diagnosis: { $exists: false },
+      });
 
       return {
         patient: {
           upcomingAppointments,
-          totalAppointments: await Appointment.countDocuments({ patientId: user._id }),
+          totalAppointments: await Appointment.countDocuments({
+            patientId: user._id,
+          }),
           pendingBills,
-          unreadMessages
+          unreadMessages,
         },
         doctor: {
           todayAppointments: doctorApts,
           totalPatients: doctorPatients,
           pendingReports,
-          unreadMessages
+          unreadMessages,
         },
         admin: {
           totalPatients,
           todayAppointments,
           pendingPayments,
-          monthlyRevenue
-        }
+          monthlyRevenue,
+        },
       };
     },
     getReportsData: async () => {
-      // Mocked for now but coming from backend
       return {
         monthlyRevenue: [
-          { month: 'Jan', revenue: 38000 },
-          { month: 'Feb', revenue: 42000 },
-          { month: 'Mar', revenue: 39500 },
-          { month: 'Apr', revenue: 45000 },
-          { month: 'May', revenue: 48000 },
-          { month: 'Jun', revenue: 45600 }
+          { month: "Jan", revenue: 38000 },
+          { month: "Feb", revenue: 42000 },
+          { month: "Mar", revenue: 39500 },
+          { month: "Apr", revenue: 45000 },
+          { month: "May", revenue: 48000 },
+          { month: "Jun", revenue: 45600 },
         ],
         appointmentsByType: [
-          { type: 'Check-up', count: 45 },
-          { type: 'Treatment', count: 32 },
-          { type: 'Consultation', count: 28 },
-          { type: 'Emergency', count: 15 },
-          { type: 'Follow-up', count: 20 }
+          { type: "Check-up", count: 45 },
+          { type: "Treatment", count: 32 },
+          { type: "Consultation", count: 28 },
+          { type: "Emergency", count: 15 },
+          { type: "Follow-up", count: 20 },
         ],
         patientDemographics: [
-          { ageGroup: '0-18', count: 25 },
-          { ageGroup: '19-35', count: 48 },
-          { ageGroup: '36-50', count: 52 },
-          { ageGroup: '51-65', count: 31 },
-          { ageGroup: '65+', count: 20 }
+          { ageGroup: "0-18", count: 25 },
+          { ageGroup: "19-35", count: 48 },
+          { ageGroup: "36-50", count: 52 },
+          { ageGroup: "51-65", count: 31 },
+          { ageGroup: "65+", count: 20 },
         ],
         treatmentSuccess: [
-          { treatment: 'Root Canal', successRate: 95 },
-          { treatment: 'Filling', successRate: 98 },
-          { treatment: 'Extraction', successRate: 99 },
-          { treatment: 'Crown', successRate: 96 },
-          { treatment: 'Gum Treatment', successRate: 92 }
-        ]
+          { treatment: "Root Canal", successRate: 95 },
+          { treatment: "Filling", successRate: 98 },
+          { treatment: "Extraction", successRate: 99 },
+          { treatment: "Crown", successRate: 96 },
+          { treatment: "Gum Treatment", successRate: 92 },
+        ],
       };
     },
     getConversations: async (_, __, { user }) => {
-      if (!user) throw new Error('Not authenticated');
-      return await Conversation.find({ 'participants.id': user._id }).sort({ lastMessageTime: -1 });
+      if (!user) throw new Error("Not authenticated");
+      return await Conversation.find({ "participants.id": user._id }).sort({
+        lastMessageTime: -1,
+      });
     },
     getChatMessages: async (_, { conversationId }) => {
       return await ChatMessage.find({ conversationId }).sort({ timestamp: 1 });
     },
     getNotifications: async (_, __, { user }) => {
-      if (!user) throw new Error('Not authenticated');
-      return await Notification.find({ userId: user._id }).sort({ timestamp: -1 });
-    }
+      if (!user) throw new Error("Not authenticated");
+      return await Notification.find({ userId: user._id }).sort({
+        timestamp: -1,
+      });
+    },
   },
   Mutation: {
-    register: async (_, { name, phone, email, password, role, specialization, license }, { user }) => {
-      // Check if someone is trying to register a non-patient role
-      if (role !== 'patient') {
-        // Only admin can register doctors, admins, or employees
-        if (!user || user.role !== 'admin') {
-          throw new Error('Unauthorized: Only admins can register staff members');
+    register: async (
+      _,
+      { name, phone, email, password, role, specialization, license },
+      { user },
+    ) => {
+      if (role !== "patient") {
+        if (!user || user.role !== "admin") {
+          throw new Error(
+            "Unauthorized: Only admins can register staff members",
+          );
         }
       }
 
       const userExists = await User.findOne({
-        $and: [
-          { $or: [{ email }, { phone }] },
-          { role }
-        ]
+        $and: [{ $or: [{ email }, { phone }] }, { role }],
       });
       if (userExists) {
-        throw new Error(`User with this email or phone already exists as a ${role}`);
+        throw new Error(
+          `User with this email or phone already exists as a ${role}`,
+        );
       }
 
       const newUser = await User.create({
@@ -219,42 +268,36 @@ const resolvers = {
         role,
         specialization,
         license,
-        verified: true
+        verified: true,
       });
 
       if (newUser) {
-        // If self-registration (patient), return token; otherwise, just return user
-        if (role === 'patient' && !user) {
+        if (role === "patient" && !user) {
           return {
             token: generateToken(newUser._id),
             user: newUser,
           };
         }
-        // If admin is registering staff, just return the user (no token needed)
         return {
           user: newUser,
         };
       } else {
-        throw new Error('Invalid user data');
+        throw new Error("Invalid user data");
       }
     },
 
     login: async (_, { phone, password }) => {
-      // Find all users with matching phone (since multiple roles can have same phone)
       const users = await User.find({ phone });
-      
-      // Prioritize roles: admin > doctor > employee > patient
+
       const rolePriority = {
-        'admin': 4,
-        'doctor': 3,
-        'employee': 2,
-        'patient': 1
+        admin: 4,
+        doctor: 3,
+        employee: 2,
+        patient: 1,
       };
 
-      // Sort users by role priority descending
       users.sort((a, b) => rolePriority[b.role] - rolePriority[a.role]);
-      
-      // Find the first user with matching password
+
       for (const user of users) {
         if (await user.matchPassword(password)) {
           return {
@@ -264,10 +307,9 @@ const resolvers = {
         }
       }
 
-      // If no matching user found, also try email
-      const usersByEmail = await User.find({ email: phone }); // In case they enter email instead of phone
+      const usersByEmail = await User.find({ email: phone });
       usersByEmail.sort((a, b) => rolePriority[b.role] - rolePriority[a.role]);
-      
+
       for (const user of usersByEmail) {
         if (await user.matchPassword(password)) {
           return {
@@ -277,71 +319,55 @@ const resolvers = {
         }
       }
 
-      throw new Error('Invalid phone/email or password');
+      throw new Error("Invalid phone/email or password");
     },
 
     forgotPassword: async (_, { phone }) => {
-      // Find all users with matching phone
       const users = await User.find({ phone });
-      
-      // Prioritize roles: admin > doctor > employee > patient
+
       const rolePriority = {
-        'admin': 4,
-        'doctor': 3,
-        'employee': 2,
-        'patient': 1
+        admin: 4,
+        doctor: 3,
+        employee: 2,
+        patient: 1,
       };
 
-      // Sort users by role priority descending
       users.sort((a, b) => rolePriority[b.role] - rolePriority[a.role]);
-      
+
       if (users.length === 0) {
-        throw new Error('User not found with this mobile number');
+        throw new Error("User not found with this mobile number");
       }
 
-      // Use the highest priority user
       const user = users[0];
 
-      // Generate 6-digit OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      
-      // Store OTP and expiry (10 minutes)
+
       user.resetPasswordOTP = otp;
       user.resetPasswordOTPExpires = Date.now() + 10 * 60 * 1000;
       await user.save();
-
-      // SIMULATE SENDING WHATSAPP OTP
-      console.log('--------------------------------------------------');
-      console.log(`WHATSAPP OTP SENT TO ${phone} (${user.role}): ${otp}`);
-      console.log('--------------------------------------------------');
-
       return true;
     },
 
     resetPassword: async (_, { phone, otp, newPassword }) => {
-      // Find all users with matching phone
-      const users = await User.find({ 
+      const users = await User.find({
         phone,
         resetPasswordOTP: otp,
-        resetPasswordOTPExpires: { $gt: Date.now() }
+        resetPasswordOTPExpires: { $gt: Date.now() },
       });
-      
-      // Prioritize roles: admin > doctor > employee > patient
+
       const rolePriority = {
-        'admin': 4,
-        'doctor': 3,
-        'employee': 2,
-        'patient': 1
+        admin: 4,
+        doctor: 3,
+        employee: 2,
+        patient: 1,
       };
 
-      // Sort users by role priority descending
       users.sort((a, b) => rolePriority[b.role] - rolePriority[a.role]);
 
       if (users.length === 0) {
-        throw new Error('Invalid or expired OTP');
+        throw new Error("Invalid or expired OTP");
       }
 
-      // Use the highest priority user
       const user = users[0];
 
       user.password = newPassword;
@@ -359,35 +385,35 @@ const resolvers = {
     createAppointment: async (_, args, { io }) => {
       const appointment = new Appointment(args);
       const savedAppointment = await appointment.save();
-      
-      // Emit notification via socket
+
       if (io) {
-        io.emit('notification', {
-          type: 'NEW_APPOINTMENT',
+        io.emit("notification", {
+          type: "NEW_APPOINTMENT",
           message: `New appointment booked for ${savedAppointment.patientName} on ${savedAppointment.date}`,
-          appointment: savedAppointment
+          appointment: savedAppointment,
         });
       }
-      
+
       return savedAppointment;
     },
     updateAppointment: async (_, { id, ...args }, { io }) => {
-      const updatedAppointment = await Appointment.findByIdAndUpdate(id, args, { new: true });
-      
-      // Emit notification via socket if status is changed or date/time is changed (rescheduled)
+      const updatedAppointment = await Appointment.findByIdAndUpdate(id, args, {
+        new: true,
+      });
+
       if (io && updatedAppointment) {
         let message = `Appointment for ${updatedAppointment.patientName} has been updated`;
-        let type = 'APPOINTMENT_UPDATED';
+        let type = "APPOINTMENT_UPDATED";
 
         if (args.date || args.time) {
           message = `Appointment for ${updatedAppointment.patientName} has been rescheduled to ${updatedAppointment.date} at ${updatedAppointment.time}`;
-          type = 'APPOINTMENT_RESCHEDULED';
+          type = "APPOINTMENT_RESCHEDULED";
         }
 
-        io.emit('notification', {
+        io.emit("notification", {
           type,
           message,
-          appointment: updatedAppointment
+          appointment: updatedAppointment,
         });
       }
 

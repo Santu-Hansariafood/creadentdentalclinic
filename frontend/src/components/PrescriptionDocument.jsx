@@ -163,7 +163,9 @@ const PrescriptionDocument = ({ prescription }) => {
       </div>
 
       <p className="text-xs text-gray-500 text-center border-t border-gray-300 pt-3">
-      This Prescription Has Been Generated Electronically Through The Creadent Dental Clinic Management System and is maintained in the patient's digital dental records.
+        This Prescription Has Been Generated Electronically Through The Creadent
+        Dental Clinic Management System and is maintained in the patient's
+        digital dental records.
       </p>
     </div>
   );

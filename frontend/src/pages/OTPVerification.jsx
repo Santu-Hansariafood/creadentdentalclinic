@@ -1,74 +1,71 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Shield, ArrowLeft } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import { fadeIn } from '../utils/motion'
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Shield, ArrowLeft } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { fadeIn } from "../utils/motion";
 
 const OTPVerification = () => {
-  const [otp, setOtp] = useState(['', '', '', '', '', ''])
-  const [loading, setLoading] = useState(false)
-  const [timer, setTimer] = useState(60)
-  const { verifyOTP, resendOTP, pendingUser } = useAuth()
-  const navigate = useNavigate()
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [loading, setLoading] = useState(false);
+  const [timer, setTimer] = useState(60);
+  const { verifyOTP, resendOTP, pendingUser } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!pendingUser) {
-      navigate('/login')
-      return
+      navigate("/login");
+      return;
     }
 
     const interval = setInterval(() => {
-      setTimer((prev) => (prev > 0 ? prev - 1 : 0))
-    }, 1000)
+      setTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
 
-    return () => clearInterval(interval)
-  }, [pendingUser, navigate])
+    return () => clearInterval(interval);
+  }, [pendingUser, navigate]);
 
   const handleChange = (index, value) => {
-    if (value.length > 1) return
-    const newOtp = [...otp]
-    newOtp[index] = value
-    setOtp(newOtp)
+    if (value.length > 1) return;
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
 
     if (value && index < 5) {
-      document.getElementById(`otp-${index + 1}`)?.focus()
+      document.getElementById(`otp-${index + 1}`)?.focus();
     }
-  }
+  };
 
   const handleKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      document.getElementById(`otp-${index - 1}`)?.focus()
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      document.getElementById(`otp-${index - 1}`)?.focus();
     }
-  }
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    const otpValue = otp.join('')
-    if (otpValue.length !== 6) return
+    e.preventDefault();
+    const otpValue = otp.join("");
+    if (otpValue.length !== 6) return;
 
-    setLoading(true)
-    const result = verifyOTP(otpValue)
-    setLoading(false)
+    setLoading(true);
+    const result = verifyOTP(otpValue);
+    setLoading(false);
 
     if (result.success) {
-      navigate('/')
+      navigate("/");
     }
-  }
+  };
 
   const handleResend = () => {
-    resendOTP()
-    setTimer(60)
-  }
+    resendOTP();
+    setTimer(60);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 p-4">
-      <motion.div
-        {...fadeIn('up')}
-        className="w-full max-w-md"
-      >
+      <motion.div {...fadeIn("up")} className="w-full max-w-md">
         <button
-          onClick={() => navigate('/login')}
+          onClick={() => navigate("/login")}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8 transition-colors"
         >
           <ArrowLeft size={20} />
@@ -82,12 +79,8 @@ const OTPVerification = () => {
           <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
             Verify Your Account
           </h1>
-          <p className="text-gray-600">
-            We've sent a verification code to
-          </p>
-          <p className="text-primary font-medium mt-1">
-            {pendingUser?.email}
-          </p>
+          <p className="text-gray-600">We've sent a verification code to</p>
+          <p className="text-primary font-medium mt-1">{pendingUser?.email}</p>
         </div>
 
         <div className="card">
@@ -114,17 +107,17 @@ const OTPVerification = () => {
 
             <button
               type="submit"
-              disabled={loading || otp.join('').length !== 6}
+              disabled={loading || otp.join("").length !== 6}
               className="btn-primary w-full"
             >
-              {loading ? 'Verifying...' : 'Verify Account'}
+              {loading ? "Verifying..." : "Verify Account"}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             {timer > 0 ? (
               <p className="text-sm text-gray-600">
-                Resend code in{' '}
+                Resend code in{" "}
                 <span className="font-medium text-primary">{timer}s</span>
               </p>
             ) : (
@@ -139,13 +132,14 @@ const OTPVerification = () => {
 
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <p className="text-xs text-blue-900 text-center">
-              <strong>Demo OTP:</strong> Use <span className="font-mono font-bold">123456</span> to verify
+              <strong>Demo OTP:</strong> Use{" "}
+              <span className="font-mono font-bold">123456</span> to verify
             </p>
           </div>
         </div>
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
-export default OTPVerification
+export default OTPVerification;

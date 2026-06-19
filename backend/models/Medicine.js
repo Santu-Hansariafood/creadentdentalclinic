@@ -1,9 +1,12 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const medicineSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  category: { type: String, required: true },
-  description: { type: String }
-}, { timestamps: true });
+const medicineSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    category: { type: String, required: true },
+    description: { type: String },
+  },
+  { timestamps: true },
+);
 
-module.exports = mongoose.model('Medicine', medicineSchema);
+module.exports = mongoose.model("Medicine", medicineSchema);

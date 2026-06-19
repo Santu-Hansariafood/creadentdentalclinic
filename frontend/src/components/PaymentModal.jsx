@@ -1,99 +1,105 @@
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, CreditCard, Lock, CheckCircle } from 'lucide-react'
-import { loadStripe } from '@stripe/stripe-js'
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
-import toast from 'react-hot-toast'
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, CreditCard, Lock, CheckCircle } from "lucide-react";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  Elements,
+  CardElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
+import toast from "react-hot-toast";
 
-const stripePromise = loadStripe('pk_test_YOUR_PUBLISHABLE_KEY')
+const stripePromise = loadStripe("pk_test_YOUR_PUBLISHABLE_KEY");
 
 const PaymentForm = ({ invoice, onSuccess, onClose }) => {
-  const stripe = useStripe()
-  const elements = useElements()
-  const [processing, setProcessing] = useState(false)
-  const [succeeded, setSucceeded] = useState(false)
-  const [saveCard, setSaveCard] = useState(false)
+  const stripe = useStripe();
+  const elements = useElements();
+  const [processing, setProcessing] = useState(false);
+  const [succeeded, setSucceeded] = useState(false);
+  const [saveCard, setSaveCard] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!stripe || !elements) {
-      return
+      return;
     }
 
-    setProcessing(true)
+    setProcessing(true);
 
-    const cardElement = elements.getElement(CardElement)
+    const cardElement = elements.getElement(CardElement);
 
     try {
       const { error, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
+        type: "card",
         card: cardElement,
-      })
+      });
 
       if (error) {
-        toast.error(error.message)
-        setProcessing(false)
-        return
+        toast.error(error.message);
+        setProcessing(false);
+        return;
       }
 
-      const response = await fetch('/api/create-payment-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: Math.round(invoice.balance * 100),
           paymentMethodId: paymentMethod.id,
           invoiceId: invoice.id,
-          saveCard
-        })
-      })
+          saveCard,
+        }),
+      });
 
-      const { clientSecret, error: backendError } = await response.json()
+      const { clientSecret, error: backendError } = await response.json();
 
       if (backendError) {
-        toast.error(backendError)
-        setProcessing(false)
-        return
+        toast.error(backendError);
+        setProcessing(false);
+        return;
       }
 
-      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret)
+      const { error: confirmError, paymentIntent } =
+        await stripe.confirmCardPayment(clientSecret);
 
       if (confirmError) {
-        toast.error(confirmError.message)
-        setProcessing(false)
-        return
+        toast.error(confirmError.message);
+        setProcessing(false);
+        return;
       }
 
-      if (paymentIntent.status === 'succeeded') {
-        setSucceeded(true)
+      if (paymentIntent.status === "succeeded") {
+        setSucceeded(true);
         setTimeout(() => {
-          onSuccess(paymentIntent)
-        }, 2000)
+          onSuccess(paymentIntent);
+        }, 2000);
       }
     } catch (err) {
-      console.error('Payment error:', err)
-      toast.error('Payment failed. Please try again.')
-      setProcessing(false)
+      console.error("Payment error:", err);
+      toast.error("Payment failed. Please try again.");
+      setProcessing(false);
     }
-  }
+  };
 
   const CARD_ELEMENT_OPTIONS = {
     style: {
       base: {
-        color: '#1f2937',
+        color: "#1f2937",
         fontFamily: '"Inter", sans-serif',
-        fontSmoothing: 'antialiased',
-        fontSize: '16px',
-        '::placeholder': {
-          color: '#9ca3af'
-        }
+        fontSmoothing: "antialiased",
+        fontSize: "16px",
+        "::placeholder": {
+          color: "#9ca3af",
+        },
       },
       invalid: {
-        color: '#ef4444',
-        iconColor: '#ef4444'
-      }
-    }
-  }
+        color: "#ef4444",
+        iconColor: "#ef4444",
+      },
+    },
+  };
 
   if (succeeded) {
     return (
@@ -105,7 +111,7 @@ const PaymentForm = ({ invoice, onSuccess, onClose }) => {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: 'spring' }}
+          transition={{ delay: 0.2, type: "spring" }}
         >
           <CheckCircle size={64} className="mx-auto text-success mb-4" />
         </motion.div>
@@ -119,7 +125,7 @@ const PaymentForm = ({ invoice, onSuccess, onClose }) => {
           Receipt has been sent to your email.
         </p>
       </motion.div>
-    )
+    );
   }
 
   return (
@@ -131,11 +137,15 @@ const PaymentForm = ({ invoice, onSuccess, onClose }) => {
         <div className="p-4 bg-gray-50 rounded-lg mb-4">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm text-gray-600">Invoice:</span>
-            <span className="font-medium text-gray-900">{invoice.invoiceNumber}</span>
+            <span className="font-medium text-gray-900">
+              {invoice.invoiceNumber}
+            </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">Amount Due:</span>
-            <span className="text-2xl font-bold text-gray-900">${invoice.balance.toFixed(2)}</span>
+            <span className="text-2xl font-bold text-gray-900">
+              ${invoice.balance.toFixed(2)}
+            </span>
           </div>
         </div>
       </div>
@@ -194,15 +204,19 @@ const PaymentForm = ({ invoice, onSuccess, onClose }) => {
       </div>
 
       <div className="flex items-center justify-center gap-4 pt-4 border-t border-gray-200">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" className="h-6" />
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg"
+          alt="Stripe"
+          className="h-6"
+        />
         <div className="flex gap-2">
           <CreditCard size={24} className="text-gray-400" />
           <span className="text-xs text-gray-500">Secured by Stripe</span>
         </div>
       </div>
     </form>
-  )
-}
+  );
+};
 
 const PaymentModal = ({ invoice, onClose, onSuccess }) => {
   return (
@@ -245,7 +259,7 @@ const PaymentModal = ({ invoice, onClose, onSuccess }) => {
         </motion.div>
       </motion.div>
     </AnimatePresence>
-  )
-}
+  );
+};
 
-export default PaymentModal
+export default PaymentModal;

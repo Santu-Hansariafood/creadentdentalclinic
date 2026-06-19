@@ -1,55 +1,58 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { User, Mail, Lock, Phone, Eye, EyeOff } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import { fadeIn } from '../utils/motion'
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { User, Mail, Lock, Phone, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { fadeIn } from "../utils/motion";
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
-    role: 'patient' // Only patients can register here
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const { register } = useAuth()
-  const navigate = useNavigate()
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+    role: "patient",
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match')
-      return
+      toast.error("Passwords do not match");
+      return;
     }
-    setLoading(true)
-    const result = await register(formData)
-    setLoading(false)
-    
+    setLoading(true);
+    const result = await register(formData);
+    setLoading(false);
+
     if (result.success) {
-      navigate('/')
+      navigate("/");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 p-4">
-      <motion.div
-        {...fadeIn('up')}
-        className="w-full max-w-md"
-      >
+      <motion.div {...fadeIn("up")} className="w-full max-w-md">
         <div className="text-center mb-8">
-          <img src="/logo/logo.png" alt="Creadent Dental Clinic Logo" className="w-20 h-20 object-contain mx-auto mb-4" />
+          <img
+            src="/logo/logo.png"
+            alt="Creadent Dental Clinic Logo"
+            className="w-20 h-20 object-contain mx-auto mb-4"
+          />
           <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
             Create Account
           </h1>
-          <p className="text-gray-600">Join our creadent dental clinic management system</p>
+          <p className="text-gray-600">
+            Join our creadent dental clinic management system
+          </p>
         </div>
 
         <div className="card">
@@ -59,7 +62,10 @@ const Register = () => {
                 Full Name
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <User
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
                   type="text"
                   name="name"
@@ -77,7 +83,10 @@ const Register = () => {
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Mail
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
                   type="email"
                   name="email"
@@ -95,7 +104,10 @@ const Register = () => {
                 Phone Number
               </label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Phone
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
                   type="tel"
                   name="phone"
@@ -113,9 +125,12 @@ const Register = () => {
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Lock
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
@@ -138,9 +153,12 @@ const Register = () => {
                 Confirm Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Lock
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
@@ -152,12 +170,20 @@ const Register = () => {
             </div>
 
             <div className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1 rounded border-gray-300" required />
+              <input
+                type="checkbox"
+                className="mt-1 rounded border-gray-300"
+                required
+              />
               <span className="text-sm text-gray-600">
-                I agree to the{' '}
-                <Link to="#" className="text-primary hover:underline">Terms of Service</Link>
-                {' '}and{' '}
-                <Link to="#" className="text-primary hover:underline">Privacy Policy</Link>
+                I agree to the{" "}
+                <Link to="#" className="text-primary hover:underline">
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link to="#" className="text-primary hover:underline">
+                  Privacy Policy
+                </Link>
               </span>
             </div>
 
@@ -166,14 +192,17 @@ const Register = () => {
               disabled={loading}
               className="btn-primary w-full"
             >
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? "Creating account..." : "Create Account"}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link to="/login" className="text-primary font-medium hover:underline">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="text-primary font-medium hover:underline"
+              >
                 Sign in
               </Link>
             </p>
@@ -181,7 +210,7 @@ const Register = () => {
         </div>
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
-export default Register
+export default Register;

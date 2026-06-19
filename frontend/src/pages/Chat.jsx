@@ -1,73 +1,78 @@
-import { useState, useRef, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Send, Paperclip, Search, User } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import ChatMessage from '../components/ChatMessage'
-import { fadeIn } from '../utils/motion'
-import toast from 'react-hot-toast'
-import { useQuery } from '@apollo/client'
-import { GET_CONVERSATIONS, GET_CHAT_MESSAGES } from '../graphql/queries'
+import { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Send, Paperclip, Search, User } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import ChatMessage from "../components/ChatMessage";
+import { fadeIn } from "../utils/motion";
+import toast from "react-hot-toast";
+import { useQuery } from "@apollo/client";
+import { GET_CONVERSATIONS, GET_CHAT_MESSAGES } from "../graphql/queries";
 
 const Chat = () => {
-  const { user } = useAuth()
-  const [selectedConversation, setSelectedConversation] = useState(null)
-  const [message, setMessage] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const messagesEndRef = useRef(null)
+  const { user } = useAuth();
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [message, setMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const messagesEndRef = useRef(null);
 
-  const { data: convData, loading: convLoading } = useQuery(GET_CONVERSATIONS)
+  const { data: convData, loading: convLoading } = useQuery(GET_CONVERSATIONS);
   const { data: msgData, loading: msgLoading } = useQuery(GET_CHAT_MESSAGES, {
     variables: { conversationId: selectedConversation?.id },
-    skip: !selectedConversation
-  })
+    skip: !selectedConversation,
+  });
 
-  const userConversations = convData?.getConversations || []
+  const userConversations = convData?.getConversations || [];
 
-  const filteredConversations = userConversations.filter(conv =>
-    conv.participants.some(p => 
-      p.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  )
+  const filteredConversations = userConversations.filter((conv) =>
+    conv.participants.some((p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    ),
+  );
 
-  const conversationMessages = msgData?.getChatMessages || []
+  const conversationMessages = msgData?.getChatMessages || [];
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [conversationMessages])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [conversationMessages]);
 
   const handleSendMessage = (e) => {
-    e.preventDefault()
-    if (!message.trim()) return
-    toast.success('Message sent!')
-    setMessage('')
-  }
+    e.preventDefault();
+    if (!message.trim()) return;
+    toast.success("Message sent!");
+    setMessage("");
+  };
 
   const handleFileAttach = () => {
-    toast.success('File attachment feature')
-  }
+    toast.success("File attachment feature");
+  };
 
   const getOtherParticipant = (conversation) => {
-    return conversation.participants.find(p => p.id !== user.id)
-  }
+    return conversation.participants.find((p) => p.id !== user.id);
+  };
 
   return (
     <div className="max-w-7xl mx-auto">
-      <motion.div {...fadeIn('down')} className="mb-4 sm:mb-6">
+      <motion.div {...fadeIn("down")} className="mb-4 sm:mb-6">
         <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Messages
         </h1>
-        <p className="text-sm sm:text-base text-gray-600">Communicate with your healthcare team</p>
+        <p className="text-sm sm:text-base text-gray-600">
+          Communicate with your healthcare team
+        </p>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
-        <motion.div 
-          {...fadeIn('right', 0.1)} 
-          className={`lg:col-span-1 ${selectedConversation ? 'hidden lg:block' : 'block'}`}
+        <motion.div
+          {...fadeIn("right", 0.1)}
+          className={`lg:col-span-1 ${selectedConversation ? "hidden lg:block" : "block"}`}
         >
           <div className="card">
             <div className="mb-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
                   type="text"
                   placeholder="Search conversations..."
@@ -80,16 +85,16 @@ const Chat = () => {
 
             <div className="space-y-2 max-h-[50vh] lg:max-h-[600px] overflow-y-auto pr-1">
               {filteredConversations.map((conv, index) => {
-                const otherParticipant = getOtherParticipant(conv)
+                const otherParticipant = getOtherParticipant(conv);
                 return (
                   <motion.div
                     key={conv.id}
-                    {...fadeIn('up', index * 0.05)}
+                    {...fadeIn("up", index * 0.05)}
                     onClick={() => setSelectedConversation(conv)}
                     className={`p-3 sm:p-4 rounded-lg cursor-pointer transition-all border-2 ${
                       selectedConversation?.id === conv.id
-                        ? 'bg-primary/10 border-primary'
-                        : 'bg-gray-50 hover:bg-gray-100 border-transparent'
+                        ? "bg-primary/10 border-primary"
+                        : "bg-gray-50 hover:bg-gray-100 border-transparent"
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -102,37 +107,44 @@ const Chat = () => {
                             {otherParticipant?.name}
                           </h3>
                           {conv.unreadCount > 0 && (
-                            <span className="badge badge-primary">{conv.unreadCount}</span>
+                            <span className="badge badge-primary">
+                              {conv.unreadCount}
+                            </span>
                           )}
                         </div>
-                        <p className="text-xs sm:text-sm text-gray-600 truncate">{conv.lastMessage}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 truncate">
+                          {conv.lastMessage}
+                        </p>
                         <p className="text-[10px] sm:text-xs text-gray-400 mt-1">
-                          {new Date(conv.lastMessageTime).toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
+                          {new Date(conv.lastMessageTime).toLocaleTimeString(
+                            "en-US",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )}
                         </p>
                       </div>
                     </div>
                   </motion.div>
-                )
+                );
               })}
             </div>
           </div>
         </motion.div>
 
-        <motion.div 
-          {...fadeIn('left', 0.2)} 
-          className={`lg:col-span-2 ${selectedConversation ? 'block' : 'hidden lg:block'}`}
+        <motion.div
+          {...fadeIn("left", 0.2)}
+          className={`lg:col-span-2 ${selectedConversation ? "block" : "hidden lg:block"}`}
         >
           {selectedConversation ? (
             <div className="card flex flex-col h-[75vh] lg:h-[700px] p-0 overflow-hidden">
               <div className="flex items-center gap-3 p-4 border-b border-gray-200">
-                <button 
+                <button
                   onClick={() => setSelectedConversation(null)}
                   className="lg:hidden p-2 -ml-2 rounded-full hover:bg-gray-100"
                 >
-                  <Search size={20} className="rotate-180" /> {/* Should use an arrow back icon but Search rotate is a hack, let's just use X or something */}
+                  <Search size={20} className="rotate-180" />{" "}
                 </button>
                 <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
                   <User size={20} className="text-primary" />
@@ -159,7 +171,10 @@ const Chat = () => {
                 <div ref={messagesEndRef} />
               </div>
 
-              <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200 bg-white">
+              <form
+                onSubmit={handleSendMessage}
+                className="p-4 border-t border-gray-200 bg-white"
+              >
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -201,7 +216,7 @@ const Chat = () => {
         </motion.div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Chat
+export default Chat;

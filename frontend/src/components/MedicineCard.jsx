@@ -1,11 +1,11 @@
-import { motion } from 'framer-motion'
-import { Pill, Tag } from 'lucide-react'
-import { fadeIn } from '../utils/motion'
+import { motion } from "framer-motion";
+import { Pill, Tag } from "lucide-react";
+import { fadeIn } from "../utils/motion";
 
 const MedicineCard = ({ medicine, delay = 0 }) => {
   return (
     <motion.div
-      {...fadeIn('up', delay)}
+      {...fadeIn("up", delay)}
       className="card-hover relative overflow-hidden"
     >
       <div className="flex items-start gap-4 mb-4">
@@ -29,7 +29,7 @@ const MedicineCard = ({ medicine, delay = 0 }) => {
         </button>
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default MedicineCard
+export default MedicineCard;

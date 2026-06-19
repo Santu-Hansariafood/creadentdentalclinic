@@ -1,38 +1,38 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Bell, User, LogOut, Menu, X, MessageSquare } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import { useQuery } from '@apollo/client'
-import { GET_NOTIFICATIONS } from '../graphql/queries'
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Bell, User, LogOut, Menu, X, MessageSquare } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { useQuery } from "@apollo/client";
+import { GET_NOTIFICATIONS } from "../graphql/queries";
 
 const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-  const [showNotifications, setShowNotifications] = useState(false)
-  const [showProfile, setShowProfile] = useState(false)
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
-  const { data: notifData } = useQuery(GET_NOTIFICATIONS)
-  const notifications = notifData?.getNotifications || []
-  const unreadNotifications = notifications.filter(n => !n.read)
+  const { data: notifData } = useQuery(GET_NOTIFICATIONS);
+  const notifications = notifData?.getNotifications || [];
+  const unreadNotifications = notifications.filter((n) => !n.read);
 
   const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+    logout();
+    navigate("/login");
+  };
 
   const getDashboardLink = () => {
     switch (user?.role) {
-      case 'patient':
-        return '/patient/dashboard'
-      case 'doctor':
-        return '/doctor/dashboard'
-      case 'admin':
-        return '/admin/dashboard'
+      case "patient":
+        return "/patient/dashboard";
+      case "doctor":
+        return "/doctor/dashboard";
+      case "admin":
+        return "/admin/dashboard";
       default:
-        return '/'
+        return "/";
     }
-  }
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 shadow-sm">
@@ -47,10 +47,11 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
               {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             <Link to={getDashboardLink()} className="flex items-center gap-3">
-              <img src="/logo/logo.png" alt="Creadent Dental Clinic Logo" className="w-10 h-10 object-contain shrink-0" />
-              <span className="font-heading font-bold text-lg sm:text-xl text-primary truncate max-w-[150px] sm:max-w-none">
-                creadent dental clinic
-              </span>
+              <img
+                src="/logo/logo.png"
+                alt="Creadent Dental Clinic Logo"
+                className="w-10 h-10 object-contain shrink-0"
+              />
             </Link>
           </div>
 
@@ -80,17 +81,23 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                   className="absolute right-[-80px] sm:right-0 mt-2 w-[280px] sm:w-80 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden"
                 >
                   <div className="p-4 border-b border-gray-200">
-                    <h3 className="font-heading font-semibold text-gray-900">Notifications</h3>
+                    <h3 className="font-heading font-semibold text-gray-900">
+                      Notifications
+                    </h3>
                   </div>
                   <div className="max-h-[60vh] overflow-y-auto">
                     {unreadNotifications.length > 0 ? (
-                      unreadNotifications.map(notification => (
+                      unreadNotifications.map((notification) => (
                         <div
                           key={notification.id}
                           className="p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors"
                         >
-                          <p className="font-medium text-sm text-gray-900">{notification.title}</p>
-                          <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
+                          <p className="font-medium text-sm text-gray-900">
+                            {notification.title}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            {notification.message}
+                          </p>
                           <p className="text-xs text-gray-400 mt-2">
                             {new Date(notification.timestamp).toLocaleString()}
                           </p>
@@ -127,8 +134,12 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                   className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden"
                 >
                   <div className="p-4 border-b border-gray-200">
-                    <p className="font-heading font-semibold text-gray-900 truncate">{user?.name}</p>
-                    <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+                    <p className="font-heading font-semibold text-gray-900 truncate">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs text-gray-500 capitalize">
+                      {user?.role}
+                    </p>
                   </div>
                   <div className="p-2">
                     <Link
@@ -154,7 +165,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
         </div>
       </div>
     </nav>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;
