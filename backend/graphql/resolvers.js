@@ -11,7 +11,17 @@ const ChatMessage = require('../models/ChatMessage');
 const Notification = require('../models/Notification');
 const generateToken = require('../utils/generateToken');
 
+const toIsoDateString = (value) => {
+  if (!value) return new Date().toISOString();
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+};
+
 const resolvers = {
+  Prescription: {
+    id: (parent) => (parent.id || parent._id)?.toString(),
+    date: (parent) => toIsoDateString(parent.date),
+  },
   Query: {
     me: async (_, __, { user }) => {
       if (!user) throw new Error('Not authenticated');
@@ -392,7 +402,10 @@ const resolvers = {
       return await invoice.save();
     },
     createPrescription: async (_, args) => {
-      const prescription = new Prescription(args);
+      const prescription = new Prescription({
+        ...args,
+        date: args.date ? new Date(args.date) : new Date(),
+      });
       return await prescription.save();
     },
     updateMedicineStock: async (_, { id, stock }) => {

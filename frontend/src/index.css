@@ -350,6 +350,33 @@
   }
 }
 
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #prescription-document,
+  #prescription-document * {
+    visibility: visible;
+  }
+
+  #prescription-document {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .print-modal-overlay {
+    position: static !important;
+    background: none !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

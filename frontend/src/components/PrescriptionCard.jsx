@@ -1,181 +1,31 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Pill, Calendar, User, FileText, Download } from 'lucide-react'
+import {
+  Pill,
+  Calendar,
+  FileText,
+  Download,
+  Eye,
+  Clock,
+  Stethoscope,
+} from 'lucide-react'
+import { formatDate } from '../utils/dateUtils'
 import { fadeIn } from '../utils/motion'
 import toast from 'react-hot-toast'
-import { jsPDF } from 'jspdf'
+import generatePrescriptionPDF from '../utils/generatePrescriptionPDF'
+import PrescriptionPreview from './PrescriptionPreview'
 
 const PrescriptionCard = ({ prescription, delay = 0 }) => {
+  const [showPreview, setShowPreview] = useState(false)
+
+  const rxId = prescription.id
+    ? `RX-${String(prescription.id).slice(-8).toUpperCase()}`
+    : 'RX-NEW'
+
   const handleDownload = async () => {
     try {
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      })
-
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const margin = 15
-      let yPos = margin
-
-      // Load logo - we'll use a placeholder if not available, but use /logo/logo.png
-      const logoUrl = '/logo/logo.png'
-      
-      try {
-        // Try to add logo if available
-        const img = new Image()
-        img.crossOrigin = 'anonymous'
-        
-        await new Promise((resolve, reject) => {
-          img.onload = resolve
-          img.onerror = reject
-          img.src = logoUrl
-        })
-        
-        // Add logo at top center
-        const logoWidth = 30
-        const logoHeight = 30
-        const logoX = (pageWidth - logoWidth) / 2
-        pdf.addImage(img, 'PNG', logoX, yPos, logoWidth, logoHeight)
-        yPos += logoHeight + 5
-      } catch (err) {
-        // If logo fails, continue without it
-        console.log('Logo not available, skipping')
-      }
-
-      // Clinic Header
-      pdf.setFontSize(20)
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('Creadent Dental Clinic', pageWidth / 2, yPos, { align: 'center' })
-      yPos += 8
-      
-      pdf.setFontSize(10)
-      pdf.setFont('helvetica', 'normal')
-      pdf.text('123 Dental Street, Healthcare City', pageWidth / 2, yPos, { align: 'center' })
-      yPos += 5
-      pdf.text('Phone: +1 (555) 123-4567 | Email: info@creadent.com', pageWidth / 2, yPos, { align: 'center' })
-      yPos += 5
-      pdf.text('Website: www.creadent.com', pageWidth / 2, yPos, { align: 'center' })
-      yPos += 10
-
-      // Line separator
-      pdf.setDrawColor(200, 200, 200)
-      pdf.setLineWidth(0.5)
-      pdf.line(margin, yPos, pageWidth - margin, yPos)
-      yPos += 10
-
-      // Prescription Info
-      pdf.setFontSize(14)
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('PRESCRIPTION', pageWidth / 2, yPos, { align: 'center' })
-      yPos += 10
-
-      // Date and Prescription Number
-      pdf.setFontSize(11)
-      const prescriptionDate = new Date(prescription.date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-      pdf.text(`Prescription No: ${prescription.id}`, margin, yPos)
-      pdf.text(`Date: ${prescriptionDate}`, pageWidth - margin - 60, yPos, { align: 'right' })
-      yPos += 10
-
-      // Patient and Doctor Info
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('Patient Details:', margin, yPos)
-      yPos += 7
-      pdf.setFont('helvetica', 'normal')
-      pdf.text(`Name: ${prescription.patientName}`, margin + 5, yPos)
-      yPos += 8
-
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('Doctor:', margin, yPos)
-      yPos += 7
-      pdf.setFont('helvetica', 'normal')
-      pdf.text(`Dr. ${prescription.doctorName}`, margin + 5, yPos)
-      yPos += 10
-
-      // Diagnosis
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('Diagnosis:', margin, yPos)
-      yPos += 7
-      pdf.setFont('helvetica', 'normal')
-      pdf.text(prescription.diagnosis, margin + 5, yPos)
-      yPos += 10
-
-      // Medications Section
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('Medications:', margin, yPos)
-      yPos += 10
-
-      pdf.setFont('helvetica', 'normal')
-      prescription.medications.forEach((med, index) => {
-        // Check if we need a new page
-        if (yPos > 270) {
-          pdf.addPage()
-          yPos = margin
-        }
-        
-        pdf.setFont('helvetica', 'bold')
-        pdf.text(`${index + 1}. ${med.name}`, margin, yPos)
-        yPos += 6
-        
-        pdf.setFont('helvetica', 'normal')
-        pdf.text(`   Dosage: ${med.dosage}`, margin, yPos)
-        yPos += 6
-        pdf.text(`   Frequency: ${med.frequency}`, margin, yPos)
-        yPos += 6
-        pdf.text(`   Duration: ${med.duration}`, margin, yPos)
-        yPos += 6
-        if (med.instructions) {
-          pdf.text(`   Instructions: ${med.instructions}`, margin, yPos)
-          yPos += 6
-        }
-        yPos += 4
-      })
-
-      // Doctor's Notes (if any)
-      if (prescription.notes) {
-        // Check page
-        if (yPos > 260) {
-          pdf.addPage()
-          yPos = margin
-        }
-        
-        pdf.setFont('helvetica', 'bold')
-        pdf.text('Additional Notes:', margin, yPos)
-        yPos += 7
-        pdf.setFont('helvetica', 'normal')
-        pdf.text(prescription.notes, margin + 5, yPos)
-        yPos += 10
-      }
-
-      // Signature area
-      // Check page
-      if (yPos > 240) {
-        pdf.addPage()
-        yPos = margin
-      }
-      
-      yPos = 270
-      pdf.setDrawColor(100, 100, 100)
-      pdf.setLineWidth(0.3)
-      pdf.line(pageWidth - 100, yPos, pageWidth - margin, yPos)
-      yPos += 5
-      pdf.setFontSize(10)
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('Doctor\'s Signature', pageWidth - 60, yPos, { align: 'center' })
-
-      // Footer
-      pdf.setFontSize(8)
-      pdf.setFont('helvetica', 'italic')
-      pdf.setTextColor(128, 128, 128)
-      pdf.text('This prescription is valid for 30 days from the date of issue.', pageWidth / 2, 290, { align: 'center' })
-      pdf.text('Please keep this prescription for your records.', pageWidth / 2, 295, { align: 'center' })
-
-      // Download the PDF
-      pdf.save(`Prescription-${prescription.id}.pdf`)
-      toast.success('Prescription PDF downloaded successfully!')
+      await generatePrescriptionPDF(prescription)
+      toast.success('Prescription downloaded successfully!')
     } catch (err) {
       console.error('Error generating PDF:', err)
       toast.error('Failed to generate prescription PDF')
@@ -183,88 +33,122 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
   }
 
   return (
-    <motion.div
-      {...fadeIn('up', delay)}
-      className="card-hover"
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-            <Pill size={24} className="text-primary" />
-          </div>
-          <div>
-            <h3 className="font-heading font-semibold text-gray-900">
-              Prescription #{prescription.id}
-            </h3>
-            <p className="text-sm text-gray-600">{prescription.diagnosis}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className={`badge ${
-            prescription.status === 'Active' ? 'badge-success' : 'badge-info'
-          }`}>
-            {prescription.status}
-          </span>
-          <button
-            onClick={handleDownload}
-            className="p-2 text-gray-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
-            title="Download Prescription"
-          >
-            <Download size={18} />
-          </button>
-        </div>
-      </div>
+    <>
+      <motion.div
+        {...fadeIn('up', delay)}
+        className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-lg hover:border-primary/30 transition-all duration-300"
+      >
+        {/* Top accent bar */}
+        <div className="h-1.5 bg-gradient-to-r from-primary via-primary/80 to-accent" />
 
-      <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Calendar size={16} />
-          <span>Prescribed: {new Date(prescription.date).toLocaleDateString()}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <User size={16} />
-          <span>Dr. {prescription.doctorName}</span>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        {prescription.medications.map((med, index) => (
-          <div key={index} className="p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <p className="font-medium text-gray-900">{med.name}</p>
-                <p className="text-sm text-gray-600">{med.dosage}</p>
+        <div className="p-5">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary/15 to-primary/5 rounded-xl flex items-center justify-center border border-primary/10">
+                <Pill size={22} className="text-primary" />
               </div>
-              <span className="text-xs text-gray-500">Qty: {med.quantity || 1}</span>
-            </div>
-            <div className="text-xs text-gray-600 space-y-1">
-              <p><span className="font-medium">Frequency:</span> {med.frequency}</p>
-              <p><span className="font-medium">Duration:</span> {med.duration}</p>
-              <p className="text-gray-500 italic">{med.instructions}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {prescription.notes && (
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-          <div className="flex items-start gap-2">
-            <FileText size={16} className="text-blue-600 mt-0.5" />
-            <div>
-              <p className="text-xs font-medium text-blue-900 mb-1">Doctor's Notes</p>
-              <p className="text-xs text-blue-700">{prescription.notes}</p>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-heading font-bold text-gray-900">{prescription.patientName}</h3>
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      prescription.status === 'Active'
+                        ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+                        : 'bg-blue-50 text-blue-700 ring-1 ring-blue-200'
+                    }`}
+                  >
+                    {prescription.status}
+                  </span>
+                </div>
+                <p className="text-xs font-mono text-primary/70 mt-0.5">{rxId}</p>
+                <p className="text-sm text-gray-600 mt-1 line-clamp-1">{prescription.diagnosis}</p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
 
-      {prescription.refillsRemaining > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <p className="text-sm text-gray-600">
-            <span className="font-medium">Refills Remaining:</span> {prescription.refillsRemaining}
-          </p>
+          {/* Meta row */}
+          <div className="flex flex-wrap gap-3 mb-4">
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 px-2.5 py-1.5 rounded-lg">
+              <Calendar size={13} className="text-primary" />
+              <span>{formatDate(prescription.date)}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 px-2.5 py-1.5 rounded-lg">
+              <Stethoscope size={13} className="text-primary" />
+              <span>Dr. {prescription.doctorName}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 px-2.5 py-1.5 rounded-lg">
+              <Clock size={13} className="text-primary" />
+              <span>{(prescription.medications || []).length} medication(s)</span>
+            </div>
+          </div>
+
+          {/* Medications */}
+          <div className="space-y-2 mb-4">
+            {(prescription.medications || []).slice(0, 3).map((med, index) => (
+              <div
+                key={index}
+                className="flex items-start gap-3 p-3 rounded-lg bg-gradient-to-r from-gray-50 to-white border border-gray-100"
+              >
+                <span className="flex-shrink-0 w-6 h-6 rounded-md bg-primary text-white text-xs font-bold flex items-center justify-center">
+                  {index + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 text-sm">{med.name}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {med.dosage} • {med.frequency} • {med.duration}
+                  </p>
+                  {med.instructions && (
+                    <p className="text-xs text-gray-400 italic mt-1 truncate">{med.instructions}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+            {(prescription.medications || []).length > 3 && (
+              <p className="text-xs text-primary font-medium pl-1">
+                +{(prescription.medications || []).length - 3} more medication(s)
+              </p>
+            )}
+          </div>
+
+          {/* Notes preview */}
+          {prescription.notes && (
+            <div className="mb-4 p-3 bg-amber-50/60 rounded-lg border border-amber-100">
+              <div className="flex items-start gap-2">
+                <FileText size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-amber-800 line-clamp-2 italic">{prescription.notes}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+            <button
+              onClick={() => setShowPreview(true)}
+              className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 border border-primary/20 transition-colors"
+            >
+              <Eye size={16} />
+              Preview
+            </button>
+            <button
+              onClick={handleDownload}
+              className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              <Download size={16} />
+              Download
+            </button>
+          </div>
         </div>
+      </motion.div>
+
+      {showPreview && (
+        <PrescriptionPreview
+          prescription={prescription}
+          onClose={() => setShowPreview(false)}
+          onDownload={handleDownload}
+        />
       )}
-    </motion.div>
+    </>
   )
 }
 
