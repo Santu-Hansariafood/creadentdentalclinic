@@ -14,7 +14,14 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
-**/.env*
+**/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+# Allow example env files
+!**/.env.example
+!**/.env.production.example
 
 # Logs
 *.log

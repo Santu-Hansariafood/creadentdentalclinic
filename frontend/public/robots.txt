@@ -6,4 +6,4 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://yourdomain.com/sitemap.xml
+Sitemap: https://creadentsmiles.com/sitemap.xml
