@@ -242,25 +242,25 @@ export const UPDATE_MEDICINE_STOCK = gql`
 
 export const UPDATE_PATIENT = gql`
   mutation UpdatePatient(
-    $id: ID!
-    $name: String
-    $email: String
-    $phone: String
-    $dateOfBirth: String
-    $gender: String
-    $address: String
-    $bloodGroup: String
+    $id: ID!,
+    $name: String,
+    $email: String,
+    $phone: String,
+    $dateOfBirth: String,
+    $gender: String,
+    $address: String,
+    $bloodGroup: String,
     $status: String
   ) {
     updatePatient(
-      id: $id
-      name: $name
-      email: $email
-      phone: $phone
-      dateOfBirth: $dateOfBirth
-      gender: $gender
-      address: $address
-      bloodGroup: $bloodGroup
+      id: $id,
+      name: $name,
+      email: $email,
+      phone: $phone,
+      dateOfBirth: $dateOfBirth,
+      gender: $gender,
+      address: $address,
+      bloodGroup: $bloodGroup,
       status: $status
     ) {
       id
@@ -268,5 +268,11 @@ export const UPDATE_PATIENT = gql`
       email
       phone
     }
+  }
+`;
+
+export const DELETE_PATIENT = gql`
+  mutation DeletePatient($id: ID!) {
+    deletePatient(id: $id)
   }
 `;

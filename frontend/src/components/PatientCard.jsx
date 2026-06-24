@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
-import { User, Phone, Mail, Calendar, Edit3 } from "lucide-react";
+import { User, Phone, Mail, Calendar, Edit3, Trash2 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 
-const PatientCard = ({ patient, delay = 0, onSelect, onEdit }) => {
+const PatientCard = ({ patient, delay = 0, onSelect, onEdit, onDelete }) => {
   return (
     <motion.div
       {...fadeIn("up", delay)}
@@ -17,17 +17,30 @@ const PatientCard = ({ patient, delay = 0, onSelect, onEdit }) => {
             <h3 className="font-heading font-semibold text-gray-900 mb-1">
               {patient.name}
             </h3>
-            {onEdit && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(patient);
-                }}
-                className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-              >
-                <Edit3 size={16} />
-              </button>
-            )}
+            <div className="flex gap-1">
+              {onEdit && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(patient);
+                  }}
+                  className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                >
+                  <Edit3 size={16} />
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(patient);
+                  }}
+                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+            </div>
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-sm text-gray-600">

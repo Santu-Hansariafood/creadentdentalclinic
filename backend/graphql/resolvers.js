@@ -19,10 +19,22 @@ const toIsoDateString = (value) => {
     : date.toISOString();
 };
 
+const toDateOnlyString = (value) => {
+  if (!value) return "";
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime())
+    ? ""
+    : date.toISOString().split("T")[0];
+};
+
 const resolvers = {
   Prescription: {
     id: (parent) => (parent.id || parent._id)?.toString(),
     date: (parent) => toIsoDateString(parent.date),
+  },
+  Patient: {
+    id: (parent) => (parent.id || parent._id)?.toString(),
+    dateOfBirth: (parent) => toDateOnlyString(parent.dateOfBirth),
   },
   Query: {
     me: async (_, __, { user }) => {
@@ -494,6 +506,13 @@ const resolvers = {
     createPatient: async (_, args) => {
       const patient = new Patient(args);
       return await patient.save();
+    },
+    updatePatient: async (_, { id, ...args }) => {
+      return await Patient.findByIdAndUpdate(id, args, { new: true });
+    },
+    deletePatient: async (_, { id }) => {
+      await Patient.findByIdAndDelete(id);
+      return true;
     },
     addPaymentLedger: async (_, args) => {
       const ledger = new PaymentLedger(args);

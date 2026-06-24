@@ -358,6 +358,20 @@ const typeDefs = `#graphql
       bloodGroup: String
     ): Patient
 
+    updatePatient(
+      id: ID!,
+      name: String,
+      email: String,
+      phone: String,
+      dateOfBirth: String,
+      gender: String,
+      address: String,
+      bloodGroup: String,
+      status: String
+    ): Patient
+    
+    deletePatient(id: ID!): Boolean
+
     addPaymentLedger(
       slNo: Int!,
       lorryNo: String!,

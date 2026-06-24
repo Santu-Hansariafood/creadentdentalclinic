@@ -2,11 +2,13 @@ import { motion } from "framer-motion";
 import { fadeIn } from "../utils/motion";
 import PatientCard from "../components/PatientCard";
 import PatientRegistration from "./PatientRegistration";
-import { useQuery } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { GET_PATIENTS } from "../graphql/queries";
+import { DELETE_PATIENT } from "../graphql/mutations";
 import Pagination from "../components/Pagination";
 import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
+import toast from "react-hot-toast";
 
 const PatientList = () => {
   const [page, setPage] = useState(1);
@@ -23,9 +25,25 @@ const PatientList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { loading, error, data } = useQuery(GET_PATIENTS, {
+  const { loading, error, data, refetch } = useQuery(GET_PATIENTS, {
     variables: { page, limit, search: debouncedSearch },
   });
+
+  const [deletePatient] = useMutation(DELETE_PATIENT, {
+    onCompleted: () => {
+      toast.success("Patient deleted successfully!");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`Error deleting patient: ${error.message}`);
+    },
+  });
+
+  const handleDelete = (patient) => {
+    if (window.confirm(`Are you sure you want to delete ${patient.name}?`)) {
+      deletePatient({ variables: { id: patient.id } });
+    }
+  };
 
   if (loading && !data)
     return <div className="p-6 text-center">Loading patients...</div>;
@@ -76,6 +94,7 @@ const PatientList = () => {
                 patient={patient}
                 delay={index * 0.1}
                 onEdit={(pat) => setSelectedPatient(pat)}
+                onDelete={handleDelete}
               />
             ))}
           </div>
