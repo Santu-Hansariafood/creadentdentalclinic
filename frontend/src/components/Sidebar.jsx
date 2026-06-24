@@ -102,6 +102,21 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
+        <div className="p-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <img
+                src="/logo/logo.png"
+                alt="Creadent Dental Clinic Logo"
+                className="w-8 h-8 object-contain"
+              />
+            </div>
+            <div>
+              <h2 className="font-heading font-bold text-lg text-gray-900">Creadent</h2>
+              <p className="text-xs text-gray-500 -mt-1">Dental Clinic</p>
+            </div>
+          </div>
+        </div>
         <nav className="p-4 space-y-1">
           {links.map((link, index) => {
             const Icon = link.icon;

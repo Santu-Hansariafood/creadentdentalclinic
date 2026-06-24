@@ -47,11 +47,17 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
               {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             <Link to={getDashboardLink()} className="flex items-center gap-3">
-              <img
-                src="/logo/logo.png"
-                alt="Creadent Dental Clinic Logo"
-                className="w-10 h-10 object-contain shrink-0"
-              />
+              <div className="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <img
+                  src="/logo/logo.png"
+                  alt="Creadent Dental Clinic Logo"
+                  className="w-8 h-8 object-contain"
+                />
+              </div>
+              <div className="hidden sm:block">
+                <h2 className="font-heading font-bold text-lg text-gray-900">Creadent</h2>
+                <p className="text-xs text-gray-500 -mt-1">Dental Clinic</p>
+              </div>
             </Link>
           </div>
 
