@@ -14,6 +14,11 @@ import { fadeIn } from "../utils/motion";
 import toast from "react-hot-toast";
 import { useMutation } from "@apollo/client";
 import { REGISTER } from "../graphql/mutations";
+import {
+  validateMobileNumber,
+  formatName,
+  toCamelCase,
+} from "../utils/validation";
 
 const StaffRegistration = () => {
   const [formData, setFormData] = useState({
@@ -47,7 +52,20 @@ const StaffRegistration = () => {
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    let value = e.target.value;
+    const name = e.target.name;
+
+    // Format name fields
+    if (name === "name" || name === "specialization") {
+      value = formatName(value);
+    }
+
+    // Only allow digits for phone
+    if (name === "phone") {
+      value = value.replace(/\D/g, "").slice(0, 10);
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
@@ -57,8 +75,21 @@ const StaffRegistration = () => {
       return;
     }
 
+    if (!validateMobileNumber(formData.phone)) {
+      toast.error("Phone number must be exactly 10 digits");
+      return;
+    }
+
     const { confirmPassword, ...registerData } = formData;
-    const finalData = { ...registerData };
+    const formattedData = {
+      ...registerData,
+      name: formatName(registerData.name),
+      specialization: registerData.specialization
+        ? formatName(registerData.specialization)
+        : undefined,
+    };
+
+    const finalData = toCamelCase(formattedData);
     if (finalData.role !== "doctor") {
       delete finalData.specialization;
       delete finalData.license;

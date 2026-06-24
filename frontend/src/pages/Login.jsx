@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -15,6 +15,9 @@ import { fadeIn } from "../utils/motion";
 import { useMutation } from "@apollo/client";
 import { FORGOT_PASSWORD, RESET_PASSWORD } from "../graphql/mutations";
 import toast from "react-hot-toast";
+import { preloadRoute } from "../utils/preload";
+import { validateMobileNumber } from "../utils/validation";
+import SEO from "../components/SEO";
 
 const Login = () => {
   const [phone, setPhone] = useState("");
@@ -33,8 +36,27 @@ const Login = () => {
   const [forgotPasswordMutation] = useMutation(FORGOT_PASSWORD);
   const [resetPasswordMutation] = useMutation(RESET_PASSWORD);
 
+  // Preload common next routes
+  useEffect(() => {
+    preloadRoute("/register");
+    preloadRoute("/patient/dashboard");
+    preloadRoute("/doctor/dashboard");
+    preloadRoute("/admin/dashboard");
+  }, []);
+
+  const handlePhoneChange = (e) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setPhone(value);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateMobileNumber(phone)) {
+      toast.error("Phone number must be exactly 10 digits");
+      return;
+    }
+
     setLoading(true);
     const result = await login(phone, password);
     setLoading(false);
@@ -94,7 +116,12 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 p-4">
+    <>
+      <SEO 
+        title="Login to Creadent Dental Clinic | Book Appointment" 
+        description="Login to Creadent Dental Clinic to book appointments, view records, and manage your dental care." 
+      />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 p-4">
       <motion.div {...fadeIn("up")} className="w-full max-w-md">
         <div className="text-center mb-8">
           <img
@@ -167,9 +194,10 @@ const Login = () => {
                     <input
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={handlePhoneChange}
                       className="input-field pl-10"
-                      placeholder="+1234567890"
+                      placeholder="1234567890"
+                      maxLength={10}
                       required
                     />
                   </div>
@@ -250,9 +278,10 @@ const Login = () => {
                     <input
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={handlePhoneChange}
                       className="input-field pl-10"
-                      placeholder="+1234567890"
+                      placeholder="1234567890"
+                      maxLength={10}
                       required
                     />
                   </div>
@@ -396,12 +425,12 @@ const Login = () => {
                   </Link>
                 </p>
               </div>
-              
             </>
           )}
         </div>
       </motion.div>
     </div>
+    </>
   );
 };
 

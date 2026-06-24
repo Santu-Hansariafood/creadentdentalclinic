@@ -189,36 +189,90 @@ const resolvers = {
       };
     },
     getReportsData: async () => {
+      // Monthly revenue
+      const invoices = await Invoice.find();
+      const monthlyRevenueMap = {};
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      
+      invoices.forEach(invoice => {
+        const date = new Date(invoice.date);
+        const monthKey = months[date.getMonth()];
+        if (!monthlyRevenueMap[monthKey]) {
+          monthlyRevenueMap[monthKey] = 0;
+        }
+        monthlyRevenueMap[monthKey] += invoice.total;
+      });
+
+      const monthlyRevenue = months.map(month => ({
+        month,
+        revenue: monthlyRevenueMap[month] || 0
+      }));
+
+      // Appointments by type
+      const appointments = await Appointment.find();
+      const typeCount = {};
+      appointments.forEach(apt => {
+        if (!typeCount[apt.type]) {
+          typeCount[apt.type] = 0;
+        }
+        typeCount[apt.type]++;
+      });
+      
+      const appointmentsByType = Object.keys(typeCount).map(type => ({
+        type,
+        count: typeCount[type]
+      }));
+
+      // Patient demographics by age group
+      const patients = await Patient.find();
+      const ageGroups = { "0-18": 0, "19-35": 0, "36-50": 0, "51-65": 0, "65+": 0 };
+      
+      patients.forEach(patient => {
+        const dob = new Date(patient.dateOfBirth);
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+          age--;
+        }
+        
+        if (age <= 18) ageGroups["0-18"]++;
+        else if (age <= 35) ageGroups["19-35"]++;
+        else if (age <= 50) ageGroups["36-50"]++;
+        else if (age <= 65) ageGroups["51-65"]++;
+        else ageGroups["65+"]++;
+      });
+
+      const patientDemographics = Object.keys(ageGroups).map(ageGroup => ({
+        ageGroup,
+        count: ageGroups[ageGroup]
+      }));
+
+      // Treatment success (using medical records)
+      const medicalRecords = await MedicalRecord.find();
+      const treatmentCounts = {};
+      
+      medicalRecords.forEach(record => {
+        if (record.diagnosis) {
+          const treatment = record.diagnosis || "General Treatment";
+          if (!treatmentCounts[treatment]) {
+            treatmentCounts[treatment] = { total: 0, successful: 0 };
+          }
+          treatmentCounts[treatment].total++;
+          treatmentCounts[treatment].successful++; // We'll mark all as successful for now
+        }
+      });
+
+      const treatmentSuccess = Object.keys(treatmentCounts).map(treatment => ({
+        treatment,
+        successRate: Math.round((treatmentCounts[treatment].successful / treatmentCounts[treatment].total) * 100) || 0
+      }));
+
       return {
-        monthlyRevenue: [
-          { month: "Jan", revenue: 38000 },
-          { month: "Feb", revenue: 42000 },
-          { month: "Mar", revenue: 39500 },
-          { month: "Apr", revenue: 45000 },
-          { month: "May", revenue: 48000 },
-          { month: "Jun", revenue: 45600 },
-        ],
-        appointmentsByType: [
-          { type: "Check-up", count: 45 },
-          { type: "Treatment", count: 32 },
-          { type: "Consultation", count: 28 },
-          { type: "Emergency", count: 15 },
-          { type: "Follow-up", count: 20 },
-        ],
-        patientDemographics: [
-          { ageGroup: "0-18", count: 25 },
-          { ageGroup: "19-35", count: 48 },
-          { ageGroup: "36-50", count: 52 },
-          { ageGroup: "51-65", count: 31 },
-          { ageGroup: "65+", count: 20 },
-        ],
-        treatmentSuccess: [
-          { treatment: "Root Canal", successRate: 95 },
-          { treatment: "Filling", successRate: 98 },
-          { treatment: "Extraction", successRate: 99 },
-          { treatment: "Crown", successRate: 96 },
-          { treatment: "Gum Treatment", successRate: 92 },
-        ],
+        monthlyRevenue,
+        appointmentsByType,
+        patientDemographics,
+        treatmentSuccess
       };
     },
     getConversations: async (_, __, { user }) => {

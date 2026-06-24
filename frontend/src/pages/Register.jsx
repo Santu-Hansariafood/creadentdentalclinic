@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import { User, Mail, Lock, Phone, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { fadeIn } from "../utils/motion";
+import { validateMobileNumber, formatName, toCamelCase } from "../utils/validation";
+import toast from "react-hot-toast";
+import SEO from "../components/SEO";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -20,17 +23,44 @@ const Register = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    let value = e.target.value;
+    const name = e.target.name;
+
+    // Format name
+    if (name === "name") {
+      value = formatName(value);
+    }
+
+    // Only allow digits for phone
+    if (name === "phone") {
+      value = value.replace(/\D/g, "").slice(0, 10);
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
+
+    if (!validateMobileNumber(formData.phone)) {
+      toast.error("Phone number must be exactly 10 digits");
+      return;
+    }
+
+    // Format data before submission
+    const { confirmPassword, ...submitData } = formData;
+    const camelCaseData = toCamelCase({
+      ...submitData,
+      name: formatName(submitData.name),
+    });
+
     setLoading(true);
-    const result = await register(formData);
+    const result = await register(camelCaseData);
     setLoading(false);
 
     if (result.success) {
@@ -39,7 +69,12 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 p-4">
+    <>
+      <SEO 
+        title="Register at Creadent Dental Clinic | Patient Sign Up" 
+        description="Create an account at Creadent Dental Clinic to book appointments, access dental records, and receive personalized care." 
+      />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 p-4">
       <motion.div {...fadeIn("up")} className="w-full max-w-md">
         <div className="text-center mb-8">
           <img
@@ -210,6 +245,7 @@ const Register = () => {
         </div>
       </motion.div>
     </div>
+    </>
   );
 };
 

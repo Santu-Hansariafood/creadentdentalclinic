@@ -16,6 +16,11 @@ import toast from "react-hot-toast";
 import { useMutation } from "@apollo/client";
 import { CREATE_PATIENT } from "../graphql/mutations";
 import { GET_PATIENTS } from "../graphql/queries";
+import {
+  validateMobileNumber,
+  formatName,
+  toCamelCase,
+} from "../utils/validation";
 
 const PatientRegistration = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -84,10 +89,34 @@ const PatientRegistration = () => {
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    let value = e.target.value;
+    const name = e.target.name;
+
+    // Format name fields
+    if (
+      name === "name" ||
+      name === "emergencyContactName" ||
+      name === "emergencyContactRelation"
+    ) {
+      value = formatName(value);
+    }
+
+    // Only allow digits for phone fields
+    if (name === "phone" || name === "emergencyContactPhone") {
+      value = value.replace(/\D/g, "").slice(0, 10);
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleNext = () => {
+    // Validate step 1 fields before proceeding
+    if (currentStep === 1) {
+      if (!validateMobileNumber(formData.phone)) {
+        toast.error("Phone number must be exactly 10 digits");
+        return;
+      }
+    }
     setCurrentStep(currentStep + 1);
   };
 
@@ -97,15 +126,37 @@ const PatientRegistration = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate all required fields
+    if (!validateMobileNumber(formData.phone)) {
+      toast.error("Phone number must be exactly 10 digits");
+      return;
+    }
+
+    if (!validateMobileNumber(formData.emergencyContactPhone)) {
+      toast.error("Emergency contact phone must be exactly 10 digits");
+      return;
+    }
+
+    // Format data before submission
+    const formattedData = {
+      ...formData,
+      name: formatName(formData.name),
+      emergencyContactName: formatName(formData.emergencyContactName),
+      emergencyContactRelation: formatName(formData.emergencyContactRelation),
+    };
+
+    const camelCaseData = toCamelCase(formattedData);
+
     await createPatient({
       variables: {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        dateOfBirth: formData.dateOfBirth,
-        gender: formData.gender,
-        address: formData.address,
-        bloodGroup: formData.bloodGroup,
+        name: camelCaseData.name,
+        email: camelCaseData.email,
+        phone: camelCaseData.phone,
+        dateOfBirth: camelCaseData.dateOfBirth,
+        gender: camelCaseData.gender,
+        address: camelCaseData.address,
+        bloodGroup: camelCaseData.bloodGroup,
       },
     });
   };

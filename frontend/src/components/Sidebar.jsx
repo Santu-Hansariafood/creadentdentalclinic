@@ -16,6 +16,7 @@ import {
   Settings,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { preloadRoute } from "../utils/preload";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const { user } = useAuth();
@@ -112,6 +113,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 to={link.to}
                 className="relative"
                 onClick={() => setIsOpen(false)}
+                onMouseEnter={() => preloadRoute(link.to)}
+                onFocus={() => preloadRoute(link.to)}
               >
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}

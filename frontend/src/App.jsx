@@ -7,6 +7,7 @@ import Sidebar from "./components/Sidebar";
 import Preloader from "./components/Preloader";
 import socketService from "./services/socket";
 import toast from "react-hot-toast";
+import { preloadLikelyRoutes, preloadRoute } from "./utils/preload";
 
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
@@ -64,6 +65,15 @@ const App = () => {
       };
     }
   }, [isAuthenticated]);
+
+  // Smart preloading based on auth state and user role
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      preloadLikelyRoutes(user.role, window.location.pathname);
+    } else {
+      preloadRoute("/login");
+    }
+  }, [isAuthenticated, user]);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 

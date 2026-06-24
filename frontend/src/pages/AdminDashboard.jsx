@@ -25,6 +25,7 @@ import {
 } from "recharts";
 import { useQuery } from "@apollo/client";
 import { GET_DASHBOARD_STATS, GET_REPORTS_DATA } from "../graphql/queries";
+import SEO from "../components/SEO";
 
 const AdminDashboard = () => {
   const { data: statsData, loading: statsLoading } =
@@ -46,7 +47,12 @@ const AdminDashboard = () => {
   const COLORS = ["#007FAF", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <>
+      <SEO 
+        title="Admin Dashboard | Creadent Dental Clinic" 
+        description="Admin dashboard for Creadent Dental Clinic - manage patients, appointments, billing, and reports." 
+      />
+      <div className="max-w-7xl mx-auto">
       <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
         <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Admin Dashboard
@@ -218,6 +224,7 @@ const AdminDashboard = () => {
         </div>
       </motion.div>
     </div>
+    </>
   );
 };
 
