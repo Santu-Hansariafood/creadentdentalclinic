@@ -16,15 +16,14 @@ import { useMutation } from "@apollo/client";
 import { FORGOT_PASSWORD, RESET_PASSWORD } from "../graphql/mutations";
 import toast from "react-hot-toast";
 import { preloadRoute } from "../utils/preload";
-import { validateMobileNumber } from "../utils/validation";
 import SEO from "../components/SEO";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema } from "../utils/schemas";
 
 const Login = () => {
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
   const [role, setRole] = useState("patient");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [view, setView] = useState("login");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -36,6 +35,22 @@ const Login = () => {
   const [forgotPasswordMutation] = useMutation(FORGOT_PASSWORD);
   const [resetPasswordMutation] = useMutation(RESET_PASSWORD);
 
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      phone: "",
+      password: "",
+    },
+  });
+
+  const watchPhone = watch("phone");
+
   // Preload common next routes
   useEffect(() => {
     preloadRoute("/register");
@@ -44,23 +59,18 @@ const Login = () => {
     preloadRoute("/admin/dashboard");
   }, []);
 
-  const handlePhoneChange = (e) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
-    setPhone(value);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!validateMobileNumber(phone)) {
-      toast.error("Phone number must be exactly 10 digits");
-      return;
+  // Format phone number as user types
+  useEffect(() => {
+    if (watchPhone) {
+      const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
+      if (formatted !== watchPhone) {
+        setValue("phone", formatted);
+      }
     }
+  }, [watchPhone, setValue]);
 
-    setLoading(true);
-    const result = await login(phone, password);
-    setLoading(false);
-
+  const onSubmit = async (data) => {
+    const result = await login(data.phone, data.password);
     if (result.success) {
       navigate("/");
     }
@@ -68,17 +78,14 @@ const Login = () => {
 
   const handleForgotSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     try {
-      const { data } = await forgotPasswordMutation({ variables: { phone } });
+      const { data } = await forgotPasswordMutation({ variables: { phone: watchPhone } });
       if (data.forgotPassword) {
         toast.success("6-digit OTP sent to your WhatsApp!");
         setView("reset");
       }
     } catch (error) {
       toast.error(error.message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -95,23 +102,20 @@ const Login = () => {
       return;
     }
 
-    setLoading(true);
     try {
       const { data } = await resetPasswordMutation({
-        variables: { phone, otp, newPassword },
+        variables: { phone: watchPhone, otp, newPassword },
       });
       if (data.resetPassword) {
         toast.success("Password reset successfully!");
         setView("login");
-        setPassword("");
+        setValue("password", "");
         setNewPassword("");
         setConfirmNewPassword("");
         setOtp("");
       }
     } catch (error) {
       toast.error(error.message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -133,15 +137,15 @@ const Login = () => {
             {view === "login"
               ? "Welcome Back"
               : view === "forgot"
-                ? "Forgot Password"
-                : "Reset Password"}
+              ? "Forgot Password"
+              : "Reset Password"}
           </h1>
           <p className="text-gray-600">
             {view === "login"
               ? "Sign in to access your Creadent Dental Clinic account"
               : view === "forgot"
-                ? "Enter your registered mobile number to receive an OTP"
-                : "Enter the 6-digit OTP sent to your WhatsApp"}
+              ? "Enter your registered mobile number to receive an OTP"
+              : "Enter the 6-digit OTP sent to your WhatsApp"}
           </p>
         </div>
 
@@ -153,7 +157,7 @@ const Login = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                onSubmit={handleSubmit}
+                onSubmit={handleSubmit(onSubmit)}
                 className="space-y-4"
               >
                 <div>
@@ -193,14 +197,15 @@ const Login = () => {
                     />
                     <input
                       type="tel"
-                      value={phone}
-                      onChange={handlePhoneChange}
-                      className="input-field pl-10"
+                      {...register("phone")}
+                      className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
                       placeholder="1234567890"
                       maxLength={10}
-                      required
                     />
                   </div>
+                  {errors.phone && (
+                    <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
+                  )}
                 </div>
 
                 <div>
@@ -214,11 +219,9 @@ const Login = () => {
                     />
                     <input
                       type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="input-field pl-10 pr-10"
+                      {...register("password")}
+                      className={`input-field pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
                       placeholder="••••••••"
-                      required
                     />
                     <button
                       type="button"
@@ -228,6 +231,9 @@ const Login = () => {
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
+                  {errors.password && (
+                    <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -249,10 +255,10 @@ const Login = () => {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={isSubmitting}
                   className="btn-primary w-full"
                 >
-                  {loading ? "Signing in..." : "Sign In"}
+                  {isSubmitting ? "Signing in..." : "Sign In"}
                 </button>
               </motion.form>
             )}
@@ -277,8 +283,8 @@ const Login = () => {
                     />
                     <input
                       type="tel"
-                      value={phone}
-                      onChange={handlePhoneChange}
+                      value={watchPhone}
+                      onChange={(e) => setValue("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
                       className="input-field pl-10"
                       placeholder="1234567890"
                       maxLength={10}
@@ -289,10 +295,9 @@ const Login = () => {
 
                 <button
                   type="submit"
-                  disabled={loading}
                   className="btn-primary w-full"
                 >
-                  {loading ? "Sending OTP..." : "Send WhatsApp OTP"}
+                  Sending OTP...
                 </button>
 
                 <button
@@ -380,10 +385,9 @@ const Login = () => {
 
                 <button
                   type="submit"
-                  disabled={loading}
                   className="btn-primary w-full"
                 >
-                  {loading ? "Resetting..." : "Reset Password"}
+                  Resetting...
                 </button>
 
                 <div className="flex flex-col gap-2">
@@ -394,7 +398,6 @@ const Login = () => {
                       const fakeEvent = { preventDefault: () => {} };
                       handleForgotSubmit(fakeEvent);
                     }}
-                    disabled={loading}
                     className="text-sm text-primary hover:underline"
                   >
                     Resend OTP

@@ -1,67 +1,72 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { User, Mail, Lock, Phone, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { fadeIn } from "../utils/motion";
-import { validateMobileNumber, formatName, toCamelCase } from "../utils/validation";
+import { formatName, toCamelCase } from "../utils/validation";
 import toast from "react-hot-toast";
 import SEO from "../components/SEO";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema } from "../utils/schemas";
 
 const Register = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirmPassword: "",
-    role: "patient",
-  });
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { register: registerUser } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    let value = e.target.value;
-    const name = e.target.name;
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+      role: "patient",
+      specialization: "",
+      license: "",
+    },
+  });
 
-    // Format name
-    if (name === "name") {
-      value = formatName(value);
+  const watchName = watch("name");
+  const watchPhone = watch("phone");
+
+  // Format name and phone as user types
+  useEffect(() => {
+    if (watchName) {
+      const formatted = formatName(watchName);
+      if (formatted !== watchName) {
+        setValue("name", formatted);
+      }
     }
+  }, [watchName, setValue]);
 
-    // Only allow digits for phone
-    if (name === "phone") {
-      value = value.replace(/\D/g, "").slice(0, 10);
+  useEffect(() => {
+    if (watchPhone) {
+      const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
+      if (formatted !== watchPhone) {
+        setValue("phone", formatted);
+      }
     }
+  }, [watchPhone, setValue]);
 
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    if (!validateMobileNumber(formData.phone)) {
-      toast.error("Phone number must be exactly 10 digits");
-      return;
-    }
-
+  const onSubmit = async (data) => {
     // Format data before submission
-    const { confirmPassword, ...submitData } = formData;
+    const { confirmPassword, ...submitData } = data;
     const camelCaseData = toCamelCase({
       ...submitData,
       name: formatName(submitData.name),
     });
 
-    setLoading(true);
-    const result = await register(camelCaseData);
-    setLoading(false);
+    const result = await registerUser(camelCaseData);
 
     if (result.success) {
       navigate("/");
@@ -91,7 +96,7 @@ const Register = () => {
         </div>
 
         <div className="card">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Full Name
@@ -103,14 +108,14 @@ const Register = () => {
                 />
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="input-field pl-10"
+                  {...register("name")}
+                  className={`input-field pl-10 ${errors.name ? "border-red-500" : ""}`}
                   placeholder="John Doe"
-                  required
                 />
               </div>
+              {errors.name && (
+                <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+              )}
             </div>
 
             <div>
@@ -124,14 +129,14 @@ const Register = () => {
                 />
                 <input
                   type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="input-field pl-10"
+                  {...register("email")}
+                  className={`input-field pl-10 ${errors.email ? "border-red-500" : ""}`}
                   placeholder="your@email.com"
-                  required
                 />
               </div>
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+              )}
             </div>
 
             <div>
@@ -145,14 +150,15 @@ const Register = () => {
                 />
                 <input
                   type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                  placeholder="+1234567890"
-                  required
+                  {...register("phone")}
+                  className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
+                  placeholder="1234567890"
+                  maxLength={10}
                 />
               </div>
+              {errors.phone && (
+                <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
+              )}
             </div>
 
             <div>
@@ -166,12 +172,9 @@ const Register = () => {
                 />
                 <input
                   type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="input-field pl-10 pr-10"
+                  {...register("password")}
+                  className={`input-field pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
                   placeholder="••••••••"
-                  required
                 />
                 <button
                   type="button"
@@ -181,6 +184,9 @@ const Register = () => {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+              )}
             </div>
 
             <div>
@@ -194,14 +200,14 @@ const Register = () => {
                 />
                 <input
                   type={showPassword ? "text" : "password"}
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="input-field pl-10"
+                  {...register("confirmPassword")}
+                  className={`input-field pl-10 ${errors.confirmPassword ? "border-red-500" : ""}`}
                   placeholder="••••••••"
-                  required
                 />
               </div>
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>
+              )}
             </div>
 
             <div className="flex items-start gap-2">
@@ -224,10 +230,10 @@ const Register = () => {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isSubmitting}
               className="btn-primary w-full"
             >
-              {loading ? "Creating account..." : "Create Account"}
+              {isSubmitting ? "Creating account..." : "Create Account"}
             </button>
           </form>
 

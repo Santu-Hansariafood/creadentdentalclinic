@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   User,
@@ -9,78 +9,90 @@ import {
   Award,
   ShieldCheck,
   UserPlus,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import toast from "react-hot-toast";
 import { useMutation } from "@apollo/client";
 import { REGISTER } from "../graphql/mutations";
 import {
-  validateMobileNumber,
   formatName,
   toCamelCase,
 } from "../utils/validation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema } from "../utils/schemas";
 
 const StaffRegistration = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    phone: "",
-    specialization: "",
-    license: "",
-    role: "doctor",
+  const [showPassword, setShowPassword] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+      role: "doctor",
+      specialization: "",
+      license: "",
+    },
   });
 
-  const [registerStaff, { loading }] = useMutation(REGISTER, {
+  const watchName = watch("name");
+  const watchPhone = watch("phone");
+  const watchSpecialization = watch("specialization");
+  const watchRole = watch("role");
+
+  // Format name and phone as user types
+  useEffect(() => {
+    if (watchName) {
+      const formatted = formatName(watchName);
+      if (formatted !== watchName) {
+        setValue("name", formatted);
+      }
+    }
+  }, [watchName, setValue]);
+
+  useEffect(() => {
+    if (watchSpecialization) {
+      const formatted = formatName(watchSpecialization);
+      if (formatted !== watchSpecialization) {
+        setValue("specialization", formatted);
+      }
+    }
+  }, [watchSpecialization, setValue]);
+
+  useEffect(() => {
+    if (watchPhone) {
+      const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
+      if (formatted !== watchPhone) {
+        setValue("phone", formatted);
+      }
+    }
+  }, [watchPhone, setValue]);
+
+  const [registerStaff] = useMutation(REGISTER, {
     onCompleted: () => {
       toast.success("Staff registered successfully!");
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        phone: "",
-        specialization: "",
-        license: "",
-        role: "doctor",
-      });
+      reset();
     },
     onError: (error) => {
       toast.error(`Error: ${error.message}`);
     },
   });
 
-  const handleChange = (e) => {
-    let value = e.target.value;
-    const name = e.target.name;
-
-    // Format name fields
-    if (name === "name" || name === "specialization") {
-      value = formatName(value);
-    }
-
-    // Only allow digits for phone
-    if (name === "phone") {
-      value = value.replace(/\D/g, "").slice(0, 10);
-    }
-
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    if (!validateMobileNumber(formData.phone)) {
-      toast.error("Phone number must be exactly 10 digits");
-      return;
-    }
-
-    const { confirmPassword, ...registerData } = formData;
+  const onSubmit = async (data) => {
+    const { confirmPassword, ...registerData } = data;
     const formattedData = {
       ...registerData,
       name: formatName(registerData.name),
@@ -112,7 +124,7 @@ const StaffRegistration = () => {
       </motion.div>
 
       <motion.div {...fadeIn("up", 0.2)} className="card">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Staff Role
@@ -126,9 +138,9 @@ const StaffRegistration = () => {
                 <button
                   key={role.id}
                   type="button"
-                  onClick={() => setFormData({ ...formData, role: role.id })}
+                  onClick={() => setValue("role", role.id)}
                   className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
-                    formData.role === role.id
+                    watchRole === role.id
                       ? "border-primary bg-primary/5 text-primary"
                       : "border-gray-200 hover:border-primary/50 text-gray-600"
                   }`}
@@ -152,14 +164,14 @@ const StaffRegistration = () => {
                 />
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="input-field pl-10"
+                  {...register("name")}
+                  className={`input-field pl-10 ${errors.name ? "border-red-500" : ""}`}
                   placeholder="John Doe"
-                  required
                 />
               </div>
+              {errors.name && (
+                <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+              )}
             </div>
 
             <div>
@@ -173,14 +185,14 @@ const StaffRegistration = () => {
                 />
                 <input
                   type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="input-field pl-10"
+                  {...register("email")}
+                  className={`input-field pl-10 ${errors.email ? "border-red-500" : ""}`}
                   placeholder="staff@clinic.com"
-                  required
                 />
               </div>
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+              )}
             </div>
 
             <div>
@@ -194,17 +206,18 @@ const StaffRegistration = () => {
                 />
                 <input
                   type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="input-field pl-10"
+                  {...register("phone")}
+                  className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
                   placeholder="+1 (555) 000-0000"
-                  required
+                  maxLength={10}
                 />
               </div>
+              {errors.phone && (
+                <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
+              )}
             </div>
 
-            {formData.role === "doctor" && (
+            {watchRole === "doctor" && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -217,14 +230,14 @@ const StaffRegistration = () => {
                     />
                     <input
                       type="text"
-                      name="specialization"
-                      value={formData.specialization}
-                      onChange={handleChange}
-                      className="input-field pl-10"
+                      {...register("specialization")}
+                      className={`input-field pl-10 ${errors.specialization ? "border-red-500" : ""}`}
                       placeholder="e.g. Orthodontist"
-                      required
                     />
                   </div>
+                  {errors.specialization && (
+                    <p className="text-red-500 text-xs mt-1">{errors.specialization.message}</p>
+                  )}
                 </div>
 
                 <div>
@@ -238,14 +251,14 @@ const StaffRegistration = () => {
                     />
                     <input
                       type="text"
-                      name="license"
-                      value={formData.license}
-                      onChange={handleChange}
-                      className="input-field pl-10"
+                      {...register("license")}
+                      className={`input-field pl-10 ${errors.license ? "border-red-500" : ""}`}
                       placeholder="e.g. LIC-123456"
-                      required
                     />
                   </div>
+                  {errors.license && (
+                    <p className="text-red-500 text-xs mt-1">{errors.license.message}</p>
+                  )}
                 </div>
               </>
             )}
@@ -262,15 +275,22 @@ const StaffRegistration = () => {
                   size={18}
                 />
                 <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="input-field pl-10"
+                  type={showPassword ? "text" : "password"}
+                  {...register("password")}
+                  className={`input-field pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
                   placeholder="••••••••"
-                  required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+              )}
             </div>
 
             <div>
@@ -283,15 +303,15 @@ const StaffRegistration = () => {
                   size={18}
                 />
                 <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="input-field pl-10"
+                  type={showPassword ? "text" : "password"}
+                  {...register("confirmPassword")}
+                  className={`input-field pl-10 ${errors.confirmPassword ? "border-red-500" : ""}`}
                   placeholder="••••••••"
-                  required
                 />
               </div>
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>
+              )}
             </div>
           </div>
 
@@ -299,10 +319,10 @@ const StaffRegistration = () => {
             <button
               type="submit"
               className="btn-primary px-8 flex items-center gap-2"
-              disabled={loading}
+              disabled={isSubmitting}
             >
               <UserPlus size={20} />
-              {loading ? "Registering..." : "Register Staff"}
+              {isSubmitting ? "Registering..." : "Register Staff"}
             </button>
           </div>
         </form>
