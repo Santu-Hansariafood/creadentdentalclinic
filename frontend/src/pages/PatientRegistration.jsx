@@ -79,9 +79,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null }) => {
         name: initialPatient.name || "",
         email: initialPatient.email || "",
         phone: initialPatient.phone || "",
-        dateOfBirth: initialPatient.dateOfBirth 
-          ? new Date(initialPatient.dateOfBirth).toISOString().split('T')[0] 
-          : "",
+        dateOfBirth: initialPatient.dateOfBirth || "",
         gender: initialPatient.gender || "",
         address: initialPatient.address || "",
         bloodGroup: initialPatient.bloodGroup || "",
