@@ -7,6 +7,7 @@ import {
   TrendingUp,
   UserPlus,
   FileText,
+  Loader,
 } from "lucide-react";
 import DashboardCard from "../components/DashboardCard";
 import { fadeIn, staggerContainer } from "../utils/motion";
@@ -26,6 +27,8 @@ import {
 import { useQuery } from "@apollo/client";
 import { GET_DASHBOARD_STATS, GET_REPORTS_DATA } from "../graphql/queries";
 import SEO from "../components/SEO";
+import { Suspense } from "react";
+import Preloader from "../components/Preloader";
 
 const AdminDashboard = () => {
   const { data: statsData, loading: statsLoading } =
@@ -47,7 +50,7 @@ const AdminDashboard = () => {
   const COLORS = ["#007FAF", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
 
   return (
-    <>
+    <Suspense fallback={<Preloader/>}>
       <SEO 
         title="Admin Dashboard | Creadent Dental Clinic" 
         description="Admin dashboard for Creadent Dental Clinic - manage patients, appointments, billing, and reports." 
