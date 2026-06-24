@@ -33,18 +33,6 @@ const Login = () => {
   const [forgotPasswordMutation] = useMutation(FORGOT_PASSWORD);
   const [resetPasswordMutation] = useMutation(RESET_PASSWORD);
 
-  const demoCredentials = {
-    patient: { phone: "+1234567890", password: "password123" },
-    doctor: { phone: "+1987654321", password: "password123" },
-    admin: { phone: "9064527639", password: "123456" },
-  };
-
-  const handleRoleSelect = (selectedRole) => {
-    setRole(selectedRole);
-    setPhone(demoCredentials[selectedRole].phone);
-    setPassword(demoCredentials[selectedRole].password);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -154,7 +142,7 @@ const Login = () => {
                       <button
                         key={r.id}
                         type="button"
-                        onClick={() => handleRoleSelect(r.id)}
+                        onClick={() => setRole(r.id)}
                         className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
                           role === r.id
                             ? "border-primary bg-primary/10 text-primary"
