@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { fadeIn } from "../utils/motion";
 import PatientCard from "../components/PatientCard";
+import PatientRegistration from "./PatientRegistration";
 import { useQuery } from "@apollo/client";
 import { GET_PATIENTS } from "../graphql/queries";
 import Pagination from "../components/Pagination";
@@ -11,6 +12,7 @@ const PatientList = () => {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState(null);
   const limit = 10;
 
   useEffect(() => {
@@ -73,6 +75,7 @@ const PatientList = () => {
                 key={patient.id}
                 patient={patient}
                 delay={index * 0.1}
+                onEdit={(pat) => setSelectedPatient(pat)}
               />
             ))}
           </div>
@@ -91,6 +94,14 @@ const PatientList = () => {
             onPageChange={setPage}
           />
         </>
+      )}
+      
+      {/* Edit Patient Modal */}
+      {selectedPatient && (
+        <PatientRegistration
+          initialPatient={selectedPatient}
+          onClose={() => setSelectedPatient(null)}
+        />
       )}
     </div>
   );

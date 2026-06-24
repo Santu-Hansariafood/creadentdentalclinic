@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
   Mail,
@@ -10,21 +10,19 @@ import {
   AlertCircle,
   FileText,
   Shield,
+  X,
 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import toast from "react-hot-toast";
 import { useMutation } from "@apollo/client";
-import { CREATE_PATIENT } from "../graphql/mutations";
+import { CREATE_PATIENT, UPDATE_PATIENT } from "../graphql/mutations";
 import { GET_PATIENTS } from "../graphql/queries";
-import {
-  validateMobileNumber,
-  formatName,
-  toCamelCase,
-} from "../utils/validation";
+import { validateMobileNumber, formatName, toCamelCase } from "../utils/validation";
 
-const PatientRegistration = () => {
+const PatientRegistration = ({ initialPatient = null, onClose = null }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
+    id: null,
     name: "",
     email: "",
     phone: "",
@@ -32,6 +30,7 @@ const PatientRegistration = () => {
     gender: "",
     address: "",
     bloodGroup: "",
+    status: "Active",
     emergencyContactName: "",
     emergencyContactRelation: "",
     emergencyContactPhone: "",
@@ -51,19 +50,21 @@ const PatientRegistration = () => {
     expiryDate: "",
   });
 
-  const [createPatient, { loading }] = useMutation(CREATE_PATIENT, {
-    refetchQueries: [{ query: GET_PATIENTS }],
-    onCompleted: () => {
-      toast.success("Patient registered successfully!");
-      setCurrentStep(1);
+  // Populate form when initialPatient changes
+  useEffect(() => {
+    if (initialPatient) {
       setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        dateOfBirth: "",
-        gender: "",
-        address: "",
-        bloodGroup: "",
+        id: initialPatient.id,
+        name: initialPatient.name || "",
+        email: initialPatient.email || "",
+        phone: initialPatient.phone || "",
+        dateOfBirth: initialPatient.dateOfBirth 
+          ? new Date(initialPatient.dateOfBirth).toISOString().split('T')[0] 
+          : "",
+        gender: initialPatient.gender || "",
+        address: initialPatient.address || "",
+        bloodGroup: initialPatient.bloodGroup || "",
+        status: initialPatient.status || "Active",
         emergencyContactName: "",
         emergencyContactRelation: "",
         emergencyContactPhone: "",
@@ -82,6 +83,54 @@ const PatientRegistration = () => {
         policyNumber: "",
         expiryDate: "",
       });
+    }
+  }, [initialPatient]);
+
+  const [createPatient, { loading: creating }] = useMutation(CREATE_PATIENT, {
+    refetchQueries: [{ query: GET_PATIENTS }],
+    onCompleted: () => {
+      toast.success("Patient registered successfully!");
+      if (onClose) onClose();
+      setCurrentStep(1);
+      setFormData({
+        id: null,
+        name: "",
+        email: "",
+        phone: "",
+        dateOfBirth: "",
+        gender: "",
+        address: "",
+        bloodGroup: "",
+        status: "Active",
+        emergencyContactName: "",
+        emergencyContactRelation: "",
+        emergencyContactPhone: "",
+        allergies: "",
+        chronicConditions: "",
+        medications: "",
+        previousSurgeries: "",
+        familyHistory: "",
+        bloodPressure: "",
+        height: "",
+        weight: "",
+        lastVisit: "",
+        previousTreatments: "",
+        currentIssues: "",
+        insuranceProvider: "",
+        policyNumber: "",
+        expiryDate: "",
+      });
+    },
+    onError: (error) => {
+      toast.error(`Error: ${error.message}`);
+    },
+  });
+
+  const [updatePatient, { loading: updating }] = useMutation(UPDATE_PATIENT, {
+    refetchQueries: [{ query: GET_PATIENTS }],
+    onCompleted: () => {
+      toast.success("Patient updated successfully!");
+      if (onClose) onClose();
     },
     onError: (error) => {
       toast.error(`Error: ${error.message}`);
@@ -133,7 +182,7 @@ const PatientRegistration = () => {
       return;
     }
 
-    if (!validateMobileNumber(formData.emergencyContactPhone)) {
+    if (formData.emergencyContactPhone && !validateMobileNumber(formData.emergencyContactPhone)) {
       toast.error("Emergency contact phone must be exactly 10 digits");
       return;
     }
@@ -148,17 +197,33 @@ const PatientRegistration = () => {
 
     const camelCaseData = toCamelCase(formattedData);
 
-    await createPatient({
-      variables: {
-        name: camelCaseData.name,
-        email: camelCaseData.email,
-        phone: camelCaseData.phone,
-        dateOfBirth: camelCaseData.dateOfBirth,
-        gender: camelCaseData.gender,
-        address: camelCaseData.address,
-        bloodGroup: camelCaseData.bloodGroup,
-      },
-    });
+    if (formData.id) {
+      await updatePatient({
+        variables: {
+          id: camelCaseData.id,
+          name: camelCaseData.name,
+          email: camelCaseData.email,
+          phone: camelCaseData.phone,
+          dateOfBirth: camelCaseData.dateOfBirth,
+          gender: camelCaseData.gender,
+          address: camelCaseData.address,
+          bloodGroup: camelCaseData.bloodGroup,
+          status: camelCaseData.status,
+        },
+      });
+    } else {
+      await createPatient({
+        variables: {
+          name: camelCaseData.name,
+          email: camelCaseData.email,
+          phone: camelCaseData.phone,
+          dateOfBirth: camelCaseData.dateOfBirth,
+          gender: camelCaseData.gender,
+          address: camelCaseData.address,
+          bloodGroup: camelCaseData.bloodGroup,
+        },
+      });
+    }
   };
 
   const steps = [
@@ -170,15 +235,46 @@ const PatientRegistration = () => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
-        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-          Patient Registration
-        </h1>
-        <p className="text-sm sm:text-base text-gray-600">
-          Complete the form to register a new patient
-        </p>
-      </motion.div>
+    <div className={onClose ? "" : "max-w-4xl mx-auto"}>
+      {onClose ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <motion.div 
+            {...fadeIn("up", 0.1)} 
+            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white">
+              <div>
+                <h2 className="font-heading text-xl sm:text-2xl font-bold text-gray-900">
+                  {initialPatient ? "Edit Patient" : "Patient Registration"}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {initialPatient 
+                    ? "Update patient information" 
+                    : "Complete the form to register a new patient"}
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+      ) : (
+        <>
+          <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
+            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+              {initialPatient ? "Edit Patient" : "Patient Registration"}
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600">
+              {initialPatient 
+                ? "Update patient information" 
+                : "Complete the form to register a new patient"}
+            </p>
+          </motion.div>
+        </>
+      )}
 
       <div className="mb-8 overflow-x-auto pb-4 sm:pb-0">
         <div className="flex items-center justify-between min-w-[600px] sm:min-w-0">
@@ -639,6 +735,11 @@ const PatientRegistration = () => {
           </div>
         </form>
       </motion.div>
+      {onClose ? (
+            </div>
+          </motion.div>
+        </div>
+      ) : null}
     </div>
   );
 };

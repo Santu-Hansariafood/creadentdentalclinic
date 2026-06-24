@@ -13,6 +13,7 @@
     "@apollo/client": "^3.14.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@hookform/resolvers": "^5.4.0",
     "@mui/material": "^9.0.0",
     "@stripe/react-stripe-js": "^6.2.0",
     "@stripe/stripe-js": "^9.3.1",
@@ -30,7 +31,7 @@
     "react-countup": "^6.5.3",
     "react-dom": "^19.2.5",
     "react-helmet-async": "^3.0.0",
-    "react-hook-form": "^7.73.1",
+    "react-hook-form": "^7.80.0",
     "react-hot-toast": "^2.6.0",
     "react-icons": "^5.6.0",
     "react-router-dom": "^7.14.2",
@@ -38,7 +39,8 @@
     "recharts": "^3.8.1",
     "socket.io-client": "^4.8.3",
     "styled-components": "^6.4.1",
-    "yup": "^1.7.1"
+    "yup": "^1.7.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

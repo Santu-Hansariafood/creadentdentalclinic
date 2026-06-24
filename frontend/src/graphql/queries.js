@@ -149,11 +149,31 @@ export const GET_PATIENTS = gql`
         name
         email
         phone
+        dateOfBirth
+        gender
+        address
+        bloodGroup
         status
       }
       totalCount
       totalPages
       currentPage
+    }
+  }
+`;
+
+export const GET_PATIENT = gql`
+  query GetPatient($id: ID!) {
+    getPatient(id: $id) {
+      id
+      name
+      email
+      phone
+      dateOfBirth
+      gender
+      address
+      bloodGroup
+      status
     }
   }
 `;
