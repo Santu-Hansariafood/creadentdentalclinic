@@ -408,15 +408,7 @@ const Login = () => {
                   </Link>
                 </p>
               </div>
-
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <p className="text-xs text-gray-500 text-center mb-3">
-                  Quick Demo:
-                </p>
-                <div className="space-y-1 text-xs text-gray-600">
-                  <p>Select a role above to auto-fill demo credentials</p>
-                </div>
-              </div>
+              
             </>
           )}
         </div>

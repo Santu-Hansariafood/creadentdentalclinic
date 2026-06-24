@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: {
       port: 25000,
+      allowedHosts: ['api.creadentsmiles.com'],
       proxy: {
         '/api': {
           target: env.VITE_API_URL || 'http://localhost:25001',
@@ -25,6 +26,9 @@ export default defineConfig(({ mode }) => {
           ws: true,
         }
       }
+    },
+    preview: {
+      allowedHosts: ['api.creadentsmiles.com']
     },
     build: {
       rollupOptions: {
