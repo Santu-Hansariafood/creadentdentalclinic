@@ -1,5 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
@@ -8,6 +8,8 @@ import Preloader from "./components/Preloader";
 import socketService from "./services/socket";
 import toast from "react-hot-toast";
 import { preloadLikelyRoutes, preloadRoute } from "./utils/preload";
+import { useQuery } from "@apollo/client";
+import { GET_MY_PATIENT } from "./graphql/queries";
 
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
@@ -35,8 +37,30 @@ const LoadingFallback = () => (
   </div>
 );
 
+const PatientRegistrationCheck = ({ children }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const { data: myPatientData, loading: patientLoading } = useQuery(GET_MY_PATIENT, {
+    skip: !user || user.role !== "patient",
+  });
+
+  useEffect(() => {
+    if (user && user.role === "patient" && !patientLoading && !myPatientData?.getMyPatient) {
+      navigate("/patient/complete-registration");
+    }
+  }, [user, myPatientData, patientLoading, navigate]);
+
+  if (user && user.role === "patient" && patientLoading) {
+    return <LoadingFallback />;
+  }
+
+  return children;
+};
+
 const App = () => {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
@@ -133,10 +157,21 @@ const App = () => {
                 <Route path="/verify-otp" element={<OTPVerification />} />
 
                 <Route
+                  path="/patient/complete-registration"
+                  element={
+                    <ProtectedRoute role="patient">
+                      <PatientRegistration isSelfRegistration={true} />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
                   path="/patient/dashboard"
                   element={
                     <ProtectedRoute role="patient">
-                      <PatientDashboard />
+                      <PatientRegistrationCheck>
+                        <PatientDashboard />
+                      </PatientRegistrationCheck>
                     </ProtectedRoute>
                   }
                 />
@@ -144,7 +179,9 @@ const App = () => {
                   path="/patient/appointments"
                   element={
                     <ProtectedRoute role="patient">
-                      <Appointments />
+                      <PatientRegistrationCheck>
+                        <Appointments />
+                      </PatientRegistrationCheck>
                     </ProtectedRoute>
                   }
                 />
@@ -152,7 +189,9 @@ const App = () => {
                   path="/patient/records"
                   element={
                     <ProtectedRoute role="patient">
-                      <MedicalRecords />
+                      <PatientRegistrationCheck>
+                        <MedicalRecords />
+                      </PatientRegistrationCheck>
                     </ProtectedRoute>
                   }
                 />
@@ -160,7 +199,9 @@ const App = () => {
                   path="/patient/prescriptions"
                   element={
                     <ProtectedRoute role="patient">
-                      <Prescriptions />
+                      <PatientRegistrationCheck>
+                        <Prescriptions />
+                      </PatientRegistrationCheck>
                     </ProtectedRoute>
                   }
                 />
@@ -168,7 +209,9 @@ const App = () => {
                   path="/patient/chat"
                   element={
                     <ProtectedRoute role="patient">
-                      <Chat />
+                      <PatientRegistrationCheck>
+                        <Chat />
+                      </PatientRegistrationCheck>
                     </ProtectedRoute>
                   }
                 />
@@ -176,7 +219,9 @@ const App = () => {
                   path="/patient/billing"
                   element={
                     <ProtectedRoute role="patient">
-                      <Billing />
+                      <PatientRegistrationCheck>
+                        <Billing />
+                      </PatientRegistrationCheck>
                     </ProtectedRoute>
                   }
                 />
@@ -184,7 +229,9 @@ const App = () => {
                   path="/patient/settings"
                   element={
                     <ProtectedRoute role="patient">
-                      <Settings />
+                      <PatientRegistrationCheck>
+                        <Settings />
+                      </PatientRegistrationCheck>
                     </ProtectedRoute>
                   }
                 />

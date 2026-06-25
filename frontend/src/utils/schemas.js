@@ -21,7 +21,7 @@ export const registerSchema = z.object({
 
 export const patientRegistrationSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email'),
+  email: z.string().email('Invalid email').optional().or(z.literal('')),
   phone: z.string().regex(/^\d{10}$/, 'Phone number must be 10 digits'),
   dateOfBirth: z.string().min(1, 'Date of birth is required'),
   gender: z.string().min(1, 'Gender is required'),

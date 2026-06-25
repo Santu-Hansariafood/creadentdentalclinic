@@ -33,6 +33,15 @@ const resolvers = {
   Patient: {
     id: (parent) => (parent.id || parent._id)?.toString(),
     dateOfBirth: (parent) => toDateOnlyString(parent.dateOfBirth),
+    userId: (parent) => parent.userId?.toString(),
+    dentalHistory: (parent) => parent.dentalHistory ? {
+      ...parent.dentalHistory,
+      lastVisit: toDateOnlyString(parent.dentalHistory.lastVisit)
+    } : null,
+    insurance: (parent) => parent.insurance ? {
+      ...parent.insurance,
+      expiryDate: toDateOnlyString(parent.insurance.expiryDate)
+    } : null,
   },
   Query: {
     me: async (_, __, { user }) => {
@@ -90,6 +99,14 @@ const resolvers = {
       };
     },
     getPatient: async (_, { id }) => await Patient.findById(id),
+    getMyPatient: async (_, __, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      return await Patient.findOne({ userId: user._id });
+    },
+    checkPatientExists: async (_, { phone }) => {
+      const patient = await Patient.findOne({ phone });
+      return !!patient;
+    },
     getAppointments: async (
       _,
       { page = 1, limit = 10, search = "", status = "All" },
@@ -593,11 +610,56 @@ const resolvers = {
       return await Medicine.findByIdAndUpdate(id, { stock }, { new: true });
     },
     createPatient: async (_, args) => {
-      const patient = new Patient(args);
+      // Check if phone number already exists
+      const existingPatient = await Patient.findOne({ phone: args.phone });
+      if (existingPatient) {
+        throw new Error("A patient with this phone number already exists");
+      }
+
+      // Prepare the data with proper date conversions
+      const patientData = {
+        ...args,
+        dateOfBirth: args.dateOfBirth ? new Date(args.dateOfBirth) : undefined,
+        dentalHistory: args.dentalHistory ? {
+          ...args.dentalHistory,
+          lastVisit: args.dentalHistory.lastVisit ? new Date(args.dentalHistory.lastVisit) : undefined
+        } : undefined,
+        insurance: args.insurance ? {
+          ...args.insurance,
+          expiryDate: args.insurance.expiryDate ? new Date(args.insurance.expiryDate) : undefined
+        } : undefined
+      };
+      
+      const patient = new Patient(patientData);
       return await patient.save();
     },
     updatePatient: async (_, { id, ...args }) => {
-      return await Patient.findByIdAndUpdate(id, args, { new: true });
+      // Check if phone number is being changed and already exists
+      if (args.phone) {
+        const existingPatient = await Patient.findOne({ 
+          phone: args.phone,
+          _id: { $ne: id }
+        });
+        if (existingPatient) {
+          throw new Error("A patient with this phone number already exists");
+        }
+      }
+
+      // Prepare the data with proper date conversions
+      const updateData = {
+        ...args,
+        dateOfBirth: args.dateOfBirth ? new Date(args.dateOfBirth) : undefined,
+        dentalHistory: args.dentalHistory ? {
+          ...args.dentalHistory,
+          lastVisit: args.dentalHistory.lastVisit ? new Date(args.dentalHistory.lastVisit) : undefined
+        } : undefined,
+        insurance: args.insurance ? {
+          ...args.insurance,
+          expiryDate: args.insurance.expiryDate ? new Date(args.insurance.expiryDate) : undefined
+        } : undefined
+      };
+      
+      return await Patient.findByIdAndUpdate(id, updateData, { new: true });
     },
     deletePatient: async (_, { id }) => {
       await Patient.findByIdAndDelete(id);

@@ -40,6 +40,13 @@ export const CREATE_PATIENT = gql`
     $gender: String!
     $address: String
     $bloodGroup: String
+    $userId: ID
+    $emergencyContact: EmergencyContactInput
+    $medicalHistory: MedicalHistoryInput
+    $vitalSigns: VitalSignsInput
+    $dentalHistory: DentalHistoryInput
+    $insurance: InsuranceInput
+    $status: String
   ) {
     createPatient(
       name: $name
@@ -49,6 +56,13 @@ export const CREATE_PATIENT = gql`
       gender: $gender
       address: $address
       bloodGroup: $bloodGroup
+      userId: $userId
+      emergencyContact: $emergencyContact
+      medicalHistory: $medicalHistory
+      vitalSigns: $vitalSigns
+      dentalHistory: $dentalHistory
+      insurance: $insurance
+      status: $status
     ) {
       id
       name
@@ -250,7 +264,12 @@ export const UPDATE_PATIENT = gql`
     $gender: String,
     $address: String,
     $bloodGroup: String,
-    $status: String
+    $status: String,
+    $emergencyContact: EmergencyContactInput,
+    $medicalHistory: MedicalHistoryInput,
+    $vitalSigns: VitalSignsInput,
+    $dentalHistory: DentalHistoryInput,
+    $insurance: InsuranceInput
   ) {
     updatePatient(
       id: $id,
@@ -261,7 +280,12 @@ export const UPDATE_PATIENT = gql`
       gender: $gender,
       address: $address,
       bloodGroup: $bloodGroup,
-      status: $status
+      status: $status,
+      emergencyContact: $emergencyContact,
+      medicalHistory: $medicalHistory,
+      vitalSigns: $vitalSigns,
+      dentalHistory: $dentalHistory,
+      insurance: $insurance
     ) {
       id
       name

@@ -75,14 +75,84 @@ const typeDefs = `#graphql
 
   type Patient {
     id: ID!
+    userId: ID
     name: String!
-    email: String!
+    email: String
     phone: String!
     dateOfBirth: String!
     gender: String!
     address: String
     bloodGroup: String
+    emergencyContact: EmergencyContact
+    medicalHistory: MedicalHistory
+    vitalSigns: VitalSigns
+    dentalHistory: DentalHistory
+    insurance: Insurance
     status: String
+  }
+
+  type EmergencyContact {
+    name: String
+    relationship: String
+    phone: String
+  }
+
+  type MedicalHistory {
+    allergies: [String]
+    chronicConditions: [String]
+    medications: [String]
+    previousSurgeries: [String]
+    familyHistory: [String]
+  }
+
+  type VitalSigns {
+    bloodPressure: String
+    height: String
+    weight: String
+  }
+
+  type DentalHistory {
+    lastVisit: String
+    previousTreatments: [String]
+    currentIssues: [String]
+  }
+
+  type Insurance {
+    provider: String
+    policyNumber: String
+    expiryDate: String
+  }
+
+  input EmergencyContactInput {
+    name: String
+    relationship: String
+    phone: String
+  }
+
+  input MedicalHistoryInput {
+    allergies: [String]
+    chronicConditions: [String]
+    medications: [String]
+    previousSurgeries: [String]
+    familyHistory: [String]
+  }
+
+  input VitalSignsInput {
+    bloodPressure: String
+    height: String
+    weight: String
+  }
+
+  input DentalHistoryInput {
+    lastVisit: String
+    previousTreatments: [String]
+    currentIssues: [String]
+  }
+
+  input InsuranceInput {
+    provider: String
+    policyNumber: String
+    expiryDate: String
   }
 
   type PaymentLedger {
@@ -269,6 +339,8 @@ const typeDefs = `#graphql
     getMedicineCategories: [String]
     getPatients(page: Int, limit: Int, search: String): PaginatedPatients
     getPatient(id: ID!): Patient
+    getMyPatient: Patient
+    checkPatientExists(phone: String!): Boolean!
     getAppointments(page: Int, limit: Int, search: String, status: String): PaginatedAppointments
     getMedicalRecords: [MedicalRecord]
     getInvoices: [Invoice]
@@ -359,12 +431,19 @@ const typeDefs = `#graphql
 
     createPatient(
       name: String!,
-      email: String!,
+      email: String,
       phone: String!,
       dateOfBirth: String!,
       gender: String!,
       address: String,
-      bloodGroup: String
+      bloodGroup: String,
+      userId: ID,
+      emergencyContact: EmergencyContactInput,
+      medicalHistory: MedicalHistoryInput,
+      vitalSigns: VitalSignsInput,
+      dentalHistory: DentalHistoryInput,
+      insurance: InsuranceInput,
+      status: String
     ): Patient
 
     updatePatient(
@@ -376,6 +455,11 @@ const typeDefs = `#graphql
       gender: String,
       address: String,
       bloodGroup: String,
+      emergencyContact: EmergencyContactInput,
+      medicalHistory: MedicalHistoryInput,
+      vitalSigns: VitalSignsInput,
+      dentalHistory: DentalHistoryInput,
+      insurance: InsuranceInput,
       status: String
     ): Patient
     

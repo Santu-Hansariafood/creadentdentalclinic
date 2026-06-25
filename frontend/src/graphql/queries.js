@@ -178,6 +178,28 @@ export const GET_PATIENT = gql`
   }
 `;
 
+export const GET_MY_PATIENT = gql`
+  query GetMyPatient {
+    getMyPatient {
+      id
+      name
+      email
+      phone
+      dateOfBirth
+      gender
+      address
+      bloodGroup
+      status
+    }
+  }
+`;
+
+export const CHECK_PATIENT_EXISTS = gql`
+  query CheckPatientExists($phone: String!) {
+    checkPatientExists(phone: $phone)
+  }
+`;
+
 export const GET_DASHBOARD_STATS = gql`
   query GetDashboardStats {
     getDashboardStats {

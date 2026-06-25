@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   User,
@@ -14,16 +15,24 @@ import {
 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import toast from "react-hot-toast";
-import { useMutation } from "@apollo/client";
+import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
 import { CREATE_PATIENT, UPDATE_PATIENT } from "../graphql/mutations";
-import { GET_PATIENTS } from "../graphql/queries";
+import { GET_PATIENTS, GET_MY_PATIENT, CHECK_PATIENT_EXISTS } from "../graphql/queries";
 import { formatName, toCamelCase } from "../utils/validation";
+import { useAuth } from "../context/AuthContext";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { patientRegistrationSchema } from "../utils/schemas";
 
-const PatientRegistration = ({ initialPatient = null, onClose = null }) => {
+const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegistration = false }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { data: myPatientData } = useQuery(GET_MY_PATIENT, {
+    skip: !isSelfRegistration || !user,
+  });
+  
+  const [checkPatientExistsQuery] = useLazyQuery(CHECK_PATIENT_EXISTS);
 
   const {
     register,
@@ -65,53 +74,95 @@ const PatientRegistration = ({ initialPatient = null, onClose = null }) => {
     },
   });
 
+  // Custom async validation for phone number
+  const checkPhoneExists = async (phone) => {
+    if (!phone || phone.length !== 10) {
+      return; // Skip check if invalid format
+    }
+
+    // If we're editing, skip check if phone hasn't changed
+    if (initialPatient?.phone === phone) {
+      return;
+    }
+    if (isSelfRegistration && myPatientData?.getMyPatient?.phone === phone) {
+      return;
+    }
+
+    try {
+      const { data } = await checkPatientExistsQuery({
+        variables: { phone },
+        fetchPolicy: "network-only"
+      });
+
+      if (data?.checkPatientExists) {
+        return "This phone number is already registered as a patient";
+      }
+    } catch (error) {
+      console.error("Error checking phone number:", error);
+    }
+  };
+
   const watchName = watch("name");
   const watchPhone = watch("phone");
   const watchEmergencyContactName = watch("emergencyContactName");
   const watchEmergencyContactRelation = watch("emergencyContactRelation");
   const watchEmergencyContactPhone = watch("emergencyContactPhone");
 
-  // Populate form when initialPatient changes
+  // Populate form when initialPatient or user (for self-registration) changes
   useEffect(() => {
-    if (initialPatient) {
-      reset({
-        id: initialPatient.id,
-        name: initialPatient.name || "",
-        email: initialPatient.email || "",
-        phone: initialPatient.phone || "",
-        dateOfBirth: initialPatient.dateOfBirth || "",
-        gender: initialPatient.gender || "",
-        address: initialPatient.address || "",
-        bloodGroup: initialPatient.bloodGroup || "",
-        status: initialPatient.status || "Active",
-        emergencyContactName: "",
-        emergencyContactRelation: "",
-        emergencyContactPhone: "",
-        allergies: "",
-        chronicConditions: "",
-        medications: "",
-        previousSurgeries: "",
-        familyHistory: "",
-        bloodPressure: "",
-        height: "",
-        weight: "",
-        lastVisit: "",
-        previousTreatments: "",
-        currentIssues: "",
-        insuranceProvider: "",
-        policyNumber: "",
-        expiryDate: "",
-      });
+    const loadPatientData = (patientData, userData = null) => ({
+      id: patientData?.id || null,
+      name: patientData?.name || userData?.name || "",
+      email: patientData?.email || userData?.email || "",
+      phone: patientData?.phone || userData?.phone || "",
+      dateOfBirth: patientData?.dateOfBirth || "",
+      gender: patientData?.gender || "",
+      address: patientData?.address || "",
+      bloodGroup: patientData?.bloodGroup || "",
+      status: patientData?.status || "Active",
+      emergencyContactName: patientData?.emergencyContact?.name || "",
+      emergencyContactRelation: patientData?.emergencyContact?.relationship || "",
+      emergencyContactPhone: patientData?.emergencyContact?.phone || "",
+      allergies: patientData?.medicalHistory?.allergies?.join(", ") || "",
+      chronicConditions: patientData?.medicalHistory?.chronicConditions?.join(", ") || "",
+      medications: patientData?.medicalHistory?.medications?.join(", ") || "",
+      previousSurgeries: patientData?.medicalHistory?.previousSurgeries?.join(", ") || "",
+      familyHistory: patientData?.medicalHistory?.familyHistory?.join(", ") || "",
+      bloodPressure: patientData?.vitalSigns?.bloodPressure || "",
+      height: patientData?.vitalSigns?.height || "",
+      weight: patientData?.vitalSigns?.weight || "",
+      lastVisit: patientData?.dentalHistory?.lastVisit || "",
+      previousTreatments: patientData?.dentalHistory?.previousTreatments?.join(", ") || "",
+      currentIssues: patientData?.dentalHistory?.currentIssues?.join(", ") || "",
+      insuranceProvider: patientData?.insurance?.provider || "",
+      policyNumber: patientData?.insurance?.policyNumber || "",
+      expiryDate: patientData?.insurance?.expiryDate || "",
+    });
+
+    if (isSelfRegistration && user) {
+      if (myPatientData?.getMyPatient) {
+        reset(loadPatientData(myPatientData.getMyPatient, user));
+      } else {
+        reset(loadPatientData(null, user));
+      }
+    } else if (initialPatient) {
+      reset(loadPatientData(initialPatient));
     }
-  }, [initialPatient, reset]);
+  }, [initialPatient, reset, isSelfRegistration, user, myPatientData]);
 
   const [createPatient] = useMutation(CREATE_PATIENT, {
-    refetchQueries: [{ query: GET_PATIENTS }],
+    refetchQueries: isSelfRegistration 
+      ? [{ query: GET_MY_PATIENT }] 
+      : [{ query: GET_PATIENTS }],
     onCompleted: () => {
       toast.success("Patient registered successfully!");
-      if (onClose) onClose();
-      setCurrentStep(1);
-      reset();
+      if (isSelfRegistration) {
+        navigate("/patient/dashboard");
+      } else {
+        if (onClose) onClose();
+        setCurrentStep(1);
+        reset();
+      }
     },
     onError: (error) => {
       toast.error(`Error: ${error.message}`);
@@ -119,10 +170,16 @@ const PatientRegistration = ({ initialPatient = null, onClose = null }) => {
   });
 
   const [updatePatient] = useMutation(UPDATE_PATIENT, {
-    refetchQueries: [{ query: GET_PATIENTS }],
+    refetchQueries: isSelfRegistration 
+      ? [{ query: GET_MY_PATIENT }] 
+      : [{ query: GET_PATIENTS }],
     onCompleted: () => {
       toast.success("Patient updated successfully!");
-      if (onClose) onClose();
+      if (isSelfRegistration) {
+        navigate("/patient/dashboard");
+      } else {
+        if (onClose) onClose();
+      }
     },
     onError: (error) => {
       toast.error(`Error: ${error.message}`);
@@ -189,41 +246,56 @@ const PatientRegistration = ({ initialPatient = null, onClose = null }) => {
   };
 
   const onSubmit = async (data) => {
-    // Format data before submission
+    // Format the form data into the nested structure expected by GraphQL
     const formattedData = {
-      ...data,
       name: formatName(data.name),
-      emergencyContactName: formatName(data.emergencyContactName),
-      emergencyContactRelation: formatName(data.emergencyContactRelation),
+      email: data.email,
+      phone: data.phone,
+      dateOfBirth: data.dateOfBirth,
+      gender: data.gender,
+      address: data.address,
+      bloodGroup: data.bloodGroup,
+      status: data.status,
+      userId: isSelfRegistration && user ? user.id : undefined,
+      emergencyContact: (data.emergencyContactName || data.emergencyContactRelation || data.emergencyContactPhone) ? {
+        name: formatName(data.emergencyContactName),
+        relationship: formatName(data.emergencyContactRelation),
+        phone: data.emergencyContactPhone,
+      } : undefined,
+      medicalHistory: (data.allergies || data.chronicConditions || data.medications || data.previousSurgeries || data.familyHistory) ? {
+        allergies: data.allergies ? data.allergies.split(",").map(s => s.trim()).filter(Boolean) : [],
+        chronicConditions: data.chronicConditions ? data.chronicConditions.split(",").map(s => s.trim()).filter(Boolean) : [],
+        medications: data.medications ? data.medications.split(",").map(s => s.trim()).filter(Boolean) : [],
+        previousSurgeries: data.previousSurgeries ? data.previousSurgeries.split(",").map(s => s.trim()).filter(Boolean) : [],
+        familyHistory: data.familyHistory ? data.familyHistory.split(",").map(s => s.trim()).filter(Boolean) : [],
+      } : undefined,
+      vitalSigns: (data.bloodPressure || data.height || data.weight) ? {
+        bloodPressure: data.bloodPressure,
+        height: data.height,
+        weight: data.weight,
+      } : undefined,
+      dentalHistory: (data.lastVisit || data.previousTreatments || data.currentIssues) ? {
+        lastVisit: data.lastVisit,
+        previousTreatments: data.previousTreatments ? data.previousTreatments.split(",").map(s => s.trim()).filter(Boolean) : [],
+        currentIssues: data.currentIssues ? data.currentIssues.split(",").map(s => s.trim()).filter(Boolean) : [],
+      } : undefined,
+      insurance: (data.insuranceProvider || data.policyNumber || data.expiryDate) ? {
+        provider: data.insuranceProvider,
+        policyNumber: data.policyNumber,
+        expiryDate: data.expiryDate,
+      } : undefined,
     };
-
-    const camelCaseData = toCamelCase(formattedData);
 
     if (data.id) {
       await updatePatient({
         variables: {
-          id: camelCaseData.id,
-          name: camelCaseData.name,
-          email: camelCaseData.email,
-          phone: camelCaseData.phone,
-          dateOfBirth: camelCaseData.dateOfBirth,
-          gender: camelCaseData.gender,
-          address: camelCaseData.address,
-          bloodGroup: camelCaseData.bloodGroup,
-          status: camelCaseData.status,
+          id: data.id,
+          ...formattedData,
         },
       });
     } else {
       await createPatient({
-        variables: {
-          name: camelCaseData.name,
-          email: camelCaseData.email,
-          phone: camelCaseData.phone,
-          dateOfBirth: camelCaseData.dateOfBirth,
-          gender: camelCaseData.gender,
-          address: camelCaseData.address,
-          bloodGroup: camelCaseData.bloodGroup,
-        },
+        variables: formattedData,
       });
     }
   };
@@ -325,7 +397,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null }) => {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Email Address *
+                            Email Address
                           </label>
                           <input
                             type="email"
@@ -342,7 +414,11 @@ const PatientRegistration = ({ initialPatient = null, onClose = null }) => {
                           </label>
                           <input
                             type="tel"
-                            {...register("phone")}
+                            {...register("phone", {
+                              validate: {
+                                asyncCheck: checkPhoneExists
+                              }
+                            })}
                             className={`input-field ${errors.phone ? "border-red-500" : ""}`}
                             maxLength={10}
                           />
@@ -772,7 +848,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null }) => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address *
+                        Email Address
                       </label>
                       <input
                         type="email"
@@ -789,7 +865,11 @@ const PatientRegistration = ({ initialPatient = null, onClose = null }) => {
                       </label>
                       <input
                         type="tel"
-                        {...register("phone")}
+                        {...register("phone", {
+                          validate: {
+                            asyncCheck: checkPhoneExists
+                          }
+                        })}
                         className={`input-field ${errors.phone ? "border-red-500" : ""}`}
                         maxLength={10}
                       />
