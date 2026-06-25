@@ -52,6 +52,8 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
       dateOfBirth: "",
       gender: "",
       address: "",
+      password: "",
+      confirmPassword: "",
       bloodGroup: "",
       status: "Active",
       emergencyContactName: "",
@@ -107,6 +109,17 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
   const watchEmergencyContactName = watch("emergencyContactName");
   const watchEmergencyContactRelation = watch("emergencyContactRelation");
   const watchEmergencyContactPhone = watch("emergencyContactPhone");
+  
+  // Auto-generate default password (year + last 4 digits of phone)
+  useEffect(() => {
+    if (watchPhone && watchPhone.length === 10) {
+      const currentYear = new Date().getFullYear().toString();
+      const last4Digits = watchPhone.slice(-4);
+      const defaultPassword = currentYear + last4Digits;
+      setValue("password", defaultPassword);
+      setValue("confirmPassword", defaultPassword);
+    }
+  }, [watchPhone, setValue]);
 
   // Populate form when initialPatient or user (for self-registration) changes
   useEffect(() => {
@@ -256,6 +269,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
       address: data.address,
       bloodGroup: data.bloodGroup,
       status: data.status,
+      password: data.password,
       userId: isSelfRegistration && user ? user.id : undefined,
       emergencyContact: (data.emergencyContactName || data.emergencyContactRelation || data.emergencyContactPhone) ? {
         name: formatName(data.emergencyContactName),
@@ -489,6 +503,53 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
                           <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>
                         )}
                       </div>
+
+                      {!isSelfRegistration && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Password *
+                            </label>
+                            <div className="relative">
+                              <Lock
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                                size={18}
+                              />
+                              <input
+                                type="text"
+                                {...register("password")}
+                                className={`input-field pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
+                              />
+                            </div>
+                            {errors.password && (
+                              <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+                            )}
+                            <p className="text-xs text-gray-500 mt-1">
+                              Default: Current year + last 4 digits of phone
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Confirm Password *
+                            </label>
+                            <div className="relative">
+                              <Lock
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                                size={18}
+                              />
+                              <input
+                                type="text"
+                                {...register("confirmPassword")}
+                                className={`input-field pl-10 ${errors.confirmPassword ? "border-red-500" : ""}`}
+                              />
+                            </div>
+                            {errors.confirmPassword && (
+                              <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 

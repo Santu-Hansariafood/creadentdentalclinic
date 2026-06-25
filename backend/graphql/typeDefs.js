@@ -464,7 +464,8 @@ const typeDefs = `#graphql
       vitalSigns: VitalSignsInput,
       dentalHistory: DentalHistoryInput,
       insurance: InsuranceInput,
-      status: String
+      status: String,
+      password: String
     ): Patient
 
     updatePatient(

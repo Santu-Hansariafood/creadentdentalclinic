@@ -26,6 +26,8 @@ export const patientRegistrationSchema = z.object({
   dateOfBirth: z.string().min(1, 'Date of birth is required'),
   gender: z.string().min(1, 'Gender is required'),
   address: z.string().min(1, 'Address is required'),
+  password: z.string().min(6, 'Password must be at least 6 characters').optional(),
+  confirmPassword: z.string().min(6, 'Confirm password must be at least 6 characters').optional(),
   bloodGroup: z.string().optional(),
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional().refine((val) => !val || /^\d{10}$/.test(val), {
@@ -46,4 +48,7 @@ export const patientRegistrationSchema = z.object({
   insuranceProvider: z.string().optional(),
   policyNumber: z.string().optional(),
   expiryDate: z.string().optional(),
+}).refine((data) => !data.password || data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
 });

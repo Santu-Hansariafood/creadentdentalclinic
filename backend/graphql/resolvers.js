@@ -647,10 +647,31 @@ const resolvers = {
       if (existingPatient) {
         throw new Error("A patient with this phone number already exists");
       }
+      
+      // Check if we need to create a user
+      let newUser = null;
+      if (args.password) {
+        const existingUser = await User.findOne({
+          $or: [{ email: args.email }, { phone: args.phone }],
+        });
+        if (existingUser) {
+          throw new Error("User with this email or phone already exists");
+        }
+        
+        newUser = await User.create({
+          name: args.name,
+          email: args.email,
+          phone: args.phone,
+          password: args.password,
+          role: "patient",
+          verified: true,
+        });
+      }
 
       // Prepare the data with proper date conversions
       const patientData = {
         ...args,
+        userId: newUser ? newUser._id : undefined,
         dateOfBirth: args.dateOfBirth ? new Date(args.dateOfBirth) : undefined,
         dentalHistory: args.dentalHistory ? {
           ...args.dentalHistory,

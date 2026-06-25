@@ -47,6 +47,7 @@ export const CREATE_PATIENT = gql`
     $dentalHistory: DentalHistoryInput
     $insurance: InsuranceInput
     $status: String
+    $password: String
   ) {
     createPatient(
       name: $name
@@ -63,6 +64,7 @@ export const CREATE_PATIENT = gql`
       dentalHistory: $dentalHistory
       insurance: $insurance
       status: $status
+      password: $password
     ) {
       id
       name
