@@ -84,6 +84,31 @@ const startServer = async () => {
     });
   });
 
+  app.get("/sitemap.xml", async (req, res) => {
+    const baseUrl = process.env.SITE_URL || "https://creadentsmiles.com";
+    const today = new Date().toISOString().split("T")[0];
+
+    const staticPages = [
+      { loc: `${baseUrl}/`, priority: "1.0", changefreq: "daily" },
+      { loc: `${baseUrl}/login`, priority: "0.8", changefreq: "monthly" },
+      { loc: `${baseUrl}/register`, priority: "0.8", changefreq: "monthly" },
+      { loc: `${baseUrl}/verify-otp`, priority: "0.7", changefreq: "monthly" },
+    ];
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${staticPages.map(page => `  <url>
+    <loc>${page.loc}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>`).join("\n")}
+</urlset>`;
+
+    res.header("Content-Type", "application/xml");
+    res.send(xml);
+  });
+
   app.get("/", (req, res) => {
     res.send({
       message: "Creadent Dental Clinic Management API",

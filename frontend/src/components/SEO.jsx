@@ -17,7 +17,6 @@ const SEO = ({
       <meta name="keywords" content={keywords} />
       <meta name="author" content={author} />
 
-      {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />
       <meta property="og:url" content={url} />
       <meta property="og:title" content={title} />
@@ -26,7 +25,6 @@ const SEO = ({
       <meta property="og:site_name" content="Creadent Dental Clinic" />
       <meta property="og:locale" content="en_IN" />
 
-      {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:url" content={url} />
       <meta name="twitter:title" content={title} />

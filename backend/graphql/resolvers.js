@@ -22,9 +22,7 @@ const toIsoDateString = (value) => {
 const toDateOnlyString = (value) => {
   if (!value) return "";
   const date = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(date.getTime())
-    ? ""
-    : date.toISOString().split("T")[0];
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().split("T")[0];
 };
 
 const resolvers = {
@@ -201,12 +199,24 @@ const resolvers = {
       };
     },
     getReportsData: async () => {
-      // Monthly revenue
       const invoices = await Invoice.find();
       const monthlyRevenueMap = {};
-      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      
-      invoices.forEach(invoice => {
+      const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+
+      invoices.forEach((invoice) => {
         const date = new Date(invoice.date);
         const monthKey = months[date.getMonth()];
         if (!monthlyRevenueMap[monthKey]) {
@@ -215,31 +225,36 @@ const resolvers = {
         monthlyRevenueMap[monthKey] += invoice.total;
       });
 
-      const monthlyRevenue = months.map(month => ({
+      const monthlyRevenue = months.map((month) => ({
         month,
-        revenue: monthlyRevenueMap[month] || 0
+        revenue: monthlyRevenueMap[month] || 0,
       }));
 
-      // Appointments by type
       const appointments = await Appointment.find();
       const typeCount = {};
-      appointments.forEach(apt => {
+      appointments.forEach((apt) => {
         if (!typeCount[apt.type]) {
           typeCount[apt.type] = 0;
         }
         typeCount[apt.type]++;
       });
-      
-      const appointmentsByType = Object.keys(typeCount).map(type => ({
+
+      const appointmentsByType = Object.keys(typeCount).map((type) => ({
         type,
-        count: typeCount[type]
+        count: typeCount[type],
       }));
 
       // Patient demographics by age group
       const patients = await Patient.find();
-      const ageGroups = { "0-18": 0, "19-35": 0, "36-50": 0, "51-65": 0, "65+": 0 };
-      
-      patients.forEach(patient => {
+      const ageGroups = {
+        "0-18": 0,
+        "19-35": 0,
+        "36-50": 0,
+        "51-65": 0,
+        "65+": 0,
+      };
+
+      patients.forEach((patient) => {
         const dob = new Date(patient.dateOfBirth);
         const today = new Date();
         let age = today.getFullYear() - dob.getFullYear();
@@ -247,7 +262,7 @@ const resolvers = {
         if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
           age--;
         }
-        
+
         if (age <= 18) ageGroups["0-18"]++;
         else if (age <= 35) ageGroups["19-35"]++;
         else if (age <= 50) ageGroups["36-50"]++;
@@ -255,36 +270,43 @@ const resolvers = {
         else ageGroups["65+"]++;
       });
 
-      const patientDemographics = Object.keys(ageGroups).map(ageGroup => ({
+      const patientDemographics = Object.keys(ageGroups).map((ageGroup) => ({
         ageGroup,
-        count: ageGroups[ageGroup]
+        count: ageGroups[ageGroup],
       }));
 
       // Treatment success (using medical records)
       const medicalRecords = await MedicalRecord.find();
       const treatmentCounts = {};
-      
-      medicalRecords.forEach(record => {
+
+      medicalRecords.forEach((record) => {
         if (record.diagnosis) {
           const treatment = record.diagnosis || "General Treatment";
           if (!treatmentCounts[treatment]) {
             treatmentCounts[treatment] = { total: 0, successful: 0 };
           }
           treatmentCounts[treatment].total++;
-          treatmentCounts[treatment].successful++; // We'll mark all as successful for now
+          treatmentCounts[treatment].successful++;
         }
       });
 
-      const treatmentSuccess = Object.keys(treatmentCounts).map(treatment => ({
-        treatment,
-        successRate: Math.round((treatmentCounts[treatment].successful / treatmentCounts[treatment].total) * 100) || 0
-      }));
+      const treatmentSuccess = Object.keys(treatmentCounts).map(
+        (treatment) => ({
+          treatment,
+          successRate:
+            Math.round(
+              (treatmentCounts[treatment].successful /
+                treatmentCounts[treatment].total) *
+                100,
+            ) || 0,
+        }),
+      );
 
       return {
         monthlyRevenue,
         appointmentsByType,
         patientDemographics,
-        treatmentSuccess
+        treatmentSuccess,
       };
     },
     getConversations: async (_, __, { user }) => {
