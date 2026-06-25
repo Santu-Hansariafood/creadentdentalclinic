@@ -254,6 +254,61 @@ export const UPDATE_MEDICINE_STOCK = gql`
   }
 `;
 
+export const UPDATE_MEDICINE = gql`
+  mutation UpdateMedicine($id: ID!, $name: String, $category: String, $description: String) {
+    updateMedicine(id: $id, name: $name, category: $category, description: $description) {
+      id
+      name
+      category
+      description
+    }
+  }
+`;
+
+export const DELETE_MEDICINE = gql`
+  mutation DeleteMedicine($id: ID!) {
+    deleteMedicine(id: $id)
+  }
+`;
+
+export const UPDATE_USER = gql`
+  mutation UpdateUser(
+    $id: ID!
+    $name: String
+    $email: String
+    $phone: String
+    $role: String
+    $specialization: String
+    $license: String
+    $password: String
+  ) {
+    updateUser(
+      id: $id
+      name: $name
+      email: $email
+      phone: $phone
+      role: $role
+      specialization: $specialization
+      license: $license
+      password: $password
+    ) {
+      id
+      name
+      email
+      phone
+      role
+      specialization
+      license
+    }
+  }
+`;
+
+export const DELETE_USER = gql`
+  mutation DeleteUser($id: ID!) {
+    deleteUser(id: $id)
+  }
+`;
+
 export const UPDATE_PATIENT = gql`
   mutation UpdatePatient(
     $id: ID!,

@@ -308,3 +308,17 @@ export const GET_RECENT_ACTIVITIES = gql`
     }
   }
 `;
+
+export const GET_USERS = gql`
+  query GetUsers {
+    getUsers {
+      id
+      name
+      email
+      phone
+      role
+      specialization
+      license
+    }
+  }
+`;

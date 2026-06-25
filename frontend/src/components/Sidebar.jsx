@@ -57,6 +57,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       icon: UserPlus,
       label: "Register Patient",
     },
+    { to: "/admin/staff", icon: Users, label: "Staff" },
     { to: "/admin/staff-registration", icon: Award, label: "Register Staff" },
     { to: "/admin/medicines", icon: Package, label: "Medicines" },
     {

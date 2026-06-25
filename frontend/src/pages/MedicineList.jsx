@@ -3,11 +3,14 @@ import { motion } from "framer-motion";
 import { Search, Filter, Plus, Pill } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import MedicineCard from "../components/MedicineCard";
+import MedicineRegistration from "./MedicineRegistration";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useQuery } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { GET_MEDICINES } from "../graphql/queries";
+import { DELETE_MEDICINE } from "../graphql/mutations";
 import Pagination from "../components/Pagination";
+import toast from "react-hot-toast";
 
 const MedicineList = () => {
   const { user } = useAuth();
@@ -15,6 +18,7 @@ const MedicineList = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("All");
   const [page, setPage] = useState(1);
+  const [selectedMedicine, setSelectedMedicine] = useState(null);
   const limit = 12;
 
   useEffect(() => {
@@ -25,9 +29,25 @@ const MedicineList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { loading, error, data } = useQuery(GET_MEDICINES, {
+  const { loading, error, data, refetch } = useQuery(GET_MEDICINES, {
     variables: { page, limit, search: debouncedSearch },
   });
+
+  const [deleteMedicine] = useMutation(DELETE_MEDICINE, {
+    onCompleted: () => {
+      toast.success("Medicine deleted successfully!");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`Error: ${error.message}`);
+    },
+  });
+
+  const handleDelete = (medicine) => {
+    if (window.confirm(`Are you sure you want to delete ${medicine.name}?`)) {
+      deleteMedicine({ variables: { id: medicine.id } });
+    }
+  };
 
   if (loading && !data)
     return <div className="p-6 text-center">Loading inventory...</div>;
@@ -115,6 +135,8 @@ const MedicineList = () => {
                 key={medicine.id}
                 medicine={medicine}
                 delay={index * 0.05}
+                onEdit={() => setSelectedMedicine(medicine)}
+                onDelete={() => handleDelete(medicine)}
               />
             ))}
           </div>
@@ -134,6 +156,16 @@ const MedicineList = () => {
             onPageChange={setPage}
           />
         </>
+      )}
+
+      {selectedMedicine && (
+        <MedicineRegistration
+          initialMedicine={selectedMedicine}
+          onClose={() => {
+            setSelectedMedicine(null);
+            refetch();
+          }}
+        />
       )}
     </div>
   );

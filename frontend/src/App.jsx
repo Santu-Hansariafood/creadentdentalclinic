@@ -28,6 +28,7 @@ const PatientList = lazy(() => import("./pages/PatientList"));
 const MedicineList = lazy(() => import("./pages/MedicineList"));
 const MedicineRegistration = lazy(() => import("./pages/MedicineRegistration"));
 const StaffRegistration = lazy(() => import("./pages/StaffRegistration"));
+const StaffList = lazy(() => import("./pages/StaffList"));
 const PaymentLedger = lazy(() => import("./pages/PaymentLedger"));
 const Settings = lazy(() => import("./pages/Settings"));
 
@@ -338,6 +339,14 @@ const App = () => {
                   element={
                     <ProtectedRoute role="admin">
                       <PatientRegistration />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/staff"
+                  element={
+                    <ProtectedRoute role="admin">
+                      <StaffList />
                     </ProtectedRoute>
                   }
                 />

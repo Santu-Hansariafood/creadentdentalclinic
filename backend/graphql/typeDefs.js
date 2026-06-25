@@ -376,6 +376,15 @@ const typeDefs = `#graphql
       category: String!,
       description: String
     ): Medicine
+    
+    updateMedicine(
+      id: ID!,
+      name: String,
+      category: String,
+      description: String
+    ): Medicine
+    
+    deleteMedicine(id: ID!): Boolean
 
     createAppointment(
       patientId: ID!,
@@ -464,6 +473,19 @@ const typeDefs = `#graphql
     ): Patient
     
     deletePatient(id: ID!): Boolean
+    
+    updateUser(
+      id: ID!,
+      name: String,
+      email: String,
+      phone: String,
+      role: String,
+      specialization: String,
+      license: String,
+      password: String
+    ): User
+    
+    deleteUser(id: ID!): Boolean
 
     addPaymentLedger(
       slNo: Int!,

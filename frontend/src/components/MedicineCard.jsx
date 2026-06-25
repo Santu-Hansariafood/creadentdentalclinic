@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
-import { Pill, Tag } from "lucide-react";
+import { Pill, Tag, Edit2, Trash2 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 
-const MedicineCard = ({ medicine, delay = 0 }) => {
+const MedicineCard = ({ medicine, delay = 0, onEdit, onDelete }) => {
   return (
     <motion.div
       {...fadeIn("up", delay)}
@@ -23,9 +23,20 @@ const MedicineCard = ({ medicine, delay = 0 }) => {
         </div>
       </div>
 
-      <div className="pt-4 border-t border-gray-100 flex items-center justify-end">
-        <button className="text-sm text-primary hover:underline font-medium">
-          Edit Details
+      <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-2">
+        <button 
+          onClick={onEdit}
+          className="text-sm text-primary hover:underline font-medium flex items-center gap-1"
+        >
+          <Edit2 size={14} />
+          Edit
+        </button>
+        <button 
+          onClick={onDelete}
+          className="text-sm text-red-500 hover:underline font-medium flex items-center gap-1"
+        >
+          <Trash2 size={14} />
+          Delete
         </button>
       </div>
     </motion.div>

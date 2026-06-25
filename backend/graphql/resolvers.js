@@ -554,6 +554,31 @@ const resolvers = {
       const medicine = new Medicine(args);
       return await medicine.save();
     },
+    
+    updateMedicine: async (_, { id, ...args }) => {
+      return await Medicine.findByIdAndUpdate(id, args, { new: true });
+    },
+    
+    deleteMedicine: async (_, { id }) => {
+      await Medicine.findByIdAndDelete(id);
+      return true;
+    },
+    
+    updateUser: async (_, { id, ...args }, { user }) => {
+      if (!user || user.role !== "admin") {
+        throw new Error("Unauthorized: Only admins can update users");
+      }
+      return await User.findByIdAndUpdate(id, args, { new: true });
+    },
+    
+    deleteUser: async (_, { id }, { user }) => {
+      if (!user || user.role !== "admin") {
+        throw new Error("Unauthorized: Only admins can delete users");
+      }
+      await User.findByIdAndDelete(id);
+      return true;
+    },
+    
     createAppointment: async (_, args, { io }) => {
       const appointment = new Appointment(args);
       const savedAppointment = await appointment.save();
