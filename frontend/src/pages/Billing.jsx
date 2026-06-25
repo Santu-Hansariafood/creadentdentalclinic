@@ -8,6 +8,7 @@ import {
   Download,
   Calendar,
   Plus,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import InvoiceCard from "../components/InvoiceCard";
@@ -17,7 +18,7 @@ import { fadeIn, staggerContainer } from "../utils/motion";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_INVOICES } from "../graphql/queries";
+import { GET_INVOICES, GET_PATIENTS } from "../graphql/queries";
 import { CREATE_INVOICE } from "../graphql/mutations";
 
 const Billing = () => {
@@ -36,10 +37,17 @@ const Billing = () => {
     patientId: "",
     patientName: "",
     date: format(new Date(), "yyyy-MM-dd"),
-    total: 0,
+    dueDate: "",
+    items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
+    tax: 0,
+    discount: 0,
+    notes: "",
   });
 
   const { loading, error, data } = useQuery(GET_INVOICES);
+  const { data: patientsData } = useQuery(GET_PATIENTS, {
+    variables: { page: 1, limit: 100 },
+  });
   const [createInvoice] = useMutation(CREATE_INVOICE, {
     refetchQueries: [{ query: GET_INVOICES }],
   });
@@ -51,6 +59,7 @@ const Billing = () => {
     );
 
   const allInvoices = data?.getInvoices || [];
+  const patients = patientsData?.getPatients?.patients || [];
 
   // Filter invoices for patients - only show their own invoices
   const invoices =
@@ -91,15 +100,54 @@ const Billing = () => {
 
   const pendingCount = filteredInvoices.filter((inv) => inv.balance > 0).length;
 
+  // Calculate subtotal and total
+  const subtotal = newInvoice.items.reduce((sum, item) => sum + item.total, 0);
+  const totalAmount = subtotal + newInvoice.tax - newInvoice.discount;
+
+  const handleItemChange = (index, field, value) => {
+    const updatedItems = [...newInvoice.items];
+    if (field === "quantity" || field === "unitPrice") {
+      updatedItems[index][field] = parseFloat(value) || 0;
+      updatedItems[index].total =
+        updatedItems[index].quantity * updatedItems[index].unitPrice;
+    } else {
+      updatedItems[index][field] = value;
+    }
+    setNewInvoice({ ...newInvoice, items: updatedItems });
+  };
+
+  const handleAddItem = () => {
+    setNewInvoice({
+      ...newInvoice,
+      items: [...newInvoice.items, { description: "", quantity: 1, unitPrice: 0, total: 0 }],
+    });
+  };
+
+  const handleRemoveItem = (index) => {
+    const updatedItems = newInvoice.items.filter((_, i) => i !== index);
+    setNewInvoice({ ...newInvoice, items: updatedItems });
+  };
+
+  const handlePatientChange = (patientId) => {
+    const patient = patients.find((p) => p.id === patientId);
+    if (patient) {
+      setNewInvoice({
+        ...newInvoice,
+        patientId,
+        patientName: patient.name,
+      });
+    }
+  };
+
   const handleCreateInvoice = async (e) => {
     e.preventDefault();
     try {
       await createInvoice({
         variables: {
           ...newInvoice,
-          subtotal: parseFloat(newInvoice.total),
-          total: parseFloat(newInvoice.total),
-          balance: parseFloat(newInvoice.total),
+          subtotal,
+          total: totalAmount,
+          balance: totalAmount,
         },
       });
       toast.success("Invoice created successfully!");
@@ -109,7 +157,11 @@ const Billing = () => {
         patientId: "",
         patientName: "",
         date: format(new Date(), "yyyy-MM-dd"),
-        total: 0,
+        dueDate: "",
+        items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
+        tax: 0,
+        discount: 0,
+        notes: "",
       });
     } catch (err) {
       toast.error("Failed to create invoice");
@@ -182,49 +234,180 @@ const Billing = () => {
       {showCreateInvoice && (
         <motion.div {...fadeIn("up")} className="card mb-8">
           <h2 className="text-xl font-bold mb-4">Create New Invoice</h2>
-          <form
-            onSubmit={handleCreateInvoice}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          >
-            <input
-              type="text"
-              placeholder="Invoice Number"
-              className="input-field"
-              value={newInvoice.invoiceNumber}
-              onChange={(e) =>
-                setNewInvoice({ ...newInvoice, invoiceNumber: e.target.value })
-              }
-              required
-            />
-            <input
-              type="text"
-              placeholder="Patient Name"
-              className="input-field"
-              value={newInvoice.patientName}
-              onChange={(e) =>
-                setNewInvoice({ ...newInvoice, patientName: e.target.value })
-              }
-              required
-            />
-            <input
-              type="date"
-              className="input-field"
-              value={newInvoice.date}
-              onChange={(e) =>
-                setNewInvoice({ ...newInvoice, date: e.target.value })
-              }
-              required
-            />
-            <input
-              type="number"
-              placeholder="Total Amount"
-              className="input-field"
-              value={newInvoice.total}
-              onChange={(e) =>
-                setNewInvoice({ ...newInvoice, total: e.target.value })
-              }
-              required
-            />
+          <form onSubmit={handleCreateInvoice} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Patient
+                </label>
+                <select
+                  className="input-field"
+                  value={newInvoice.patientId}
+                  onChange={(e) => handlePatientChange(e.target.value)}
+                  required
+                >
+                  <option value="">Select Patient</option>
+                  {patients.map((patient) => (
+                    <option key={patient.id} value={patient.id}>
+                      {patient.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  className="input-field"
+                  value={newInvoice.date}
+                  onChange={(e) =>
+                    setNewInvoice({ ...newInvoice, date: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Due Date
+                </label>
+                <input
+                  type="date"
+                  className="input-field"
+                  value={newInvoice.dueDate}
+                  onChange={(e) =>
+                    setNewInvoice({ ...newInvoice, dueDate: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tax (%)
+                </label>
+                <input
+                  type="number"
+                  className="input-field"
+                  value={newInvoice.tax}
+                  onChange={(e) =>
+                    setNewInvoice({ ...newInvoice, tax: parseFloat(e.target.value) || 0 })
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Discount
+                </label>
+                <input
+                  type="number"
+                  className="input-field"
+                  value={newInvoice.discount}
+                  onChange={(e) =>
+                    setNewInvoice({ ...newInvoice, discount: parseFloat(e.target.value) || 0 })
+                  }
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Items
+                </label>
+                <button
+                  type="button"
+                  onClick={handleAddItem}
+                  className="text-primary hover:text-primary-dark text-sm font-medium flex items-center gap-1"
+                >
+                  <Plus size={16} />
+                  Add Item
+                </button>
+              </div>
+              <div className="space-y-3">
+                {newInvoice.items.map((item, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-3 items-end">
+                    <div className="col-span-5">
+                      <input
+                        type="text"
+                        placeholder="Description (e.g., Cleaning, Filling)"
+                        className="input-field"
+                        value={item.description}
+                        onChange={(e) => handleItemChange(index, "description", e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <input
+                        type="number"
+                        placeholder="Qty"
+                        className="input-field"
+                        value={item.quantity}
+                        onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
+                        min="1"
+                        required
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <input
+                        type="number"
+                        placeholder="Price"
+                        className="input-field"
+                        value={item.unitPrice}
+                        onChange={(e) => handleItemChange(index, "unitPrice", e.target.value)}
+                        min="0"
+                        step="0.01"
+                        required
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-gray-900 font-medium">${item.total.toFixed(2)}</p>
+                    </div>
+                    <div className="col-span-1">
+                      {newInvoice.items.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveItem(index)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex items-center gap-4">
+                <span className="text-gray-600">Subtotal:</span>
+                <span className="font-medium">${subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-gray-600">Tax:</span>
+                <span className="font-medium">${newInvoice.tax.toFixed(2)}</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-gray-600">Discount:</span>
+                <span className="font-medium">-${newInvoice.discount.toFixed(2)}</span>
+              </div>
+              <div className="flex items-center gap-4 border-t border-gray-200 pt-2">
+                <span className="text-gray-900 font-bold">Total:</span>
+                <span className="text-primary text-xl font-bold">${totalAmount.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Notes
+              </label>
+              <textarea
+                className="input-field min-h-[100px]"
+                value={newInvoice.notes}
+                onChange={(e) => setNewInvoice({ ...newInvoice, notes: e.target.value })}
+              />
+            </div>
+
             <div className="md:col-span-2 flex gap-2">
               <button type="submit" className="btn-primary">
                 Generate Invoice

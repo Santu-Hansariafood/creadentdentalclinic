@@ -621,7 +621,14 @@ const resolvers = {
       return await record.save();
     },
     createInvoice: async (_, args) => {
-      const invoice = new Invoice(args);
+      // Auto-generate invoice number if not provided
+      let invoiceNumber = args.invoiceNumber;
+      if (!invoiceNumber) {
+        const lastInvoice = await Invoice.findOne().sort({ createdAt: -1 });
+        const nextNumber = lastInvoice ? parseInt(lastInvoice.invoiceNumber.replace('INV-', '')) + 1 : 1;
+        invoiceNumber = `INV-${String(nextNumber).padStart(4, '0')}`;
+      }
+      const invoice = new Invoice({ ...args, invoiceNumber });
       return await invoice.save();
     },
     createPrescription: async (_, args) => {

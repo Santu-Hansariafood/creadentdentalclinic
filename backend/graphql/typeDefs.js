@@ -53,6 +53,13 @@ const typeDefs = `#graphql
     total: Float
   }
 
+  input InvoiceItemInput {
+    description: String
+    quantity: Int
+    unitPrice: Float
+    total: Float
+  }
+
   type Invoice {
     id: ID!
     invoiceNumber: String!
@@ -417,13 +424,18 @@ const typeDefs = `#graphql
     ): MedicalRecord
 
     createInvoice(
-      invoiceNumber: String!,
+      invoiceNumber: String,
       patientId: ID!,
       patientName: String!,
       date: String!,
+      dueDate: String,
+      items: [InvoiceItemInput],
       subtotal: Float!,
+      tax: Float,
+      discount: Float,
       total: Float!,
-      balance: Float!
+      balance: Float!,
+      notes: String
     ): Invoice
 
     createPrescription(

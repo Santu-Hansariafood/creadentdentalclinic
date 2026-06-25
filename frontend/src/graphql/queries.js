@@ -91,11 +91,24 @@ export const GET_INVOICES = gql`
     getInvoices {
       id
       invoiceNumber
+      patientId
       patientName
       date
+      dueDate
+      items {
+        description
+        quantity
+        unitPrice
+        total
+      }
+      subtotal
+      tax
+      discount
       total
-      status
+      amountPaid
       balance
+      status
+      notes
     }
   }
 `;

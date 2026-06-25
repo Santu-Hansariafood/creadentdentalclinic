@@ -222,25 +222,36 @@ export const CREATE_MEDICAL_RECORD = gql`
 
 export const CREATE_INVOICE = gql`
   mutation CreateInvoice(
-    $invoiceNumber: String!
+    $invoiceNumber: String
     $patientId: ID!
     $patientName: String!
     $date: String!
+    $dueDate: String
+    $items: [InvoiceItemInput]
     $subtotal: Float!
+    $tax: Float
+    $discount: Float
     $total: Float!
     $balance: Float!
+    $notes: String
   ) {
     createInvoice(
       invoiceNumber: $invoiceNumber
       patientId: $patientId
       patientName: $patientName
       date: $date
+      dueDate: $dueDate
+      items: $items
       subtotal: $subtotal
+      tax: $tax
+      discount: $discount
       total: $total
       balance: $balance
+      notes: $notes
     ) {
       id
       status
+      invoiceNumber
     }
   }
 `;
