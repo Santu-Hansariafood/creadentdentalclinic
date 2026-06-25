@@ -47,6 +47,7 @@ const Login = () => {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(loginSchema),
+    mode: "onSubmit", // Only validate on form submit, not as user types
     defaultValues: {
       phone: "",
       password: "",

@@ -26,6 +26,7 @@ const Register = () => {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(registerSchema),
+    mode: "onSubmit", // Only validate on form submit
     defaultValues: {
       name: "",
       email: "",

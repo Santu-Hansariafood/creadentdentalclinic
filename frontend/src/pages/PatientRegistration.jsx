@@ -44,6 +44,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(patientRegistrationSchema),
+    mode: "onSubmit", // Only validate on form submit
     defaultValues: {
       id: null,
       name: "",
@@ -389,7 +390,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
               </div>
 
               <motion.div {...fadeIn("up", 0.2)} className="card">
-                <form onSubmit={handleSubmit(onSubmit)}>
+                <form onSubmit={handleSubmit(onSubmit)} noValidate>
                   {currentStep === 1 && (
                     <div className="space-y-4">
                       <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
@@ -887,7 +888,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
           </div>
 
           <motion.div {...fadeIn("up", 0.2)} className="card">
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
               {currentStep === 1 && (
                 <div className="space-y-4">
                   <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
