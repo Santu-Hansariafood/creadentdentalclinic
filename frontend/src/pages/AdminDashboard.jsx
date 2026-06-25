@@ -25,16 +25,43 @@ import {
   Cell,
 } from "recharts";
 import { useQuery } from "@apollo/client";
-import { GET_DASHBOARD_STATS, GET_REPORTS_DATA } from "../graphql/queries";
+import { GET_DASHBOARD_STATS, GET_REPORTS_DATA, GET_RECENT_ACTIVITIES } from "../graphql/queries";
 import SEO from "../components/SEO";
 import { Suspense } from "react";
 import Preloader from "../components/Preloader";
+
+// Format time ago
+const formatTimeAgo = (dateString) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
+  
+  const intervals = [
+    { label: 'year', seconds: 31536000 },
+    { label: 'month', seconds: 2592000 },
+    { label: 'week', seconds: 604800 },
+    { label: 'day', seconds: 86400 },
+    { label: 'hour', seconds: 3600 },
+    { label: 'minute', seconds: 60 },
+  ];
+
+  for (const interval of intervals) {
+    const count = Math.floor(seconds / interval.seconds);
+    if (count >= 1) {
+      return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
+    }
+  }
+  
+  return 'just now';
+};
 
 const AdminDashboard = () => {
   const { data: statsData, loading: statsLoading } =
     useQuery(GET_DASHBOARD_STATS);
   const { data: reportsData, loading: reportsLoading } =
     useQuery(GET_REPORTS_DATA);
+  const { data: activitiesData, loading: activitiesLoading } =
+    useQuery(GET_RECENT_ACTIVITIES, { variables: { limit: 10 } });
 
   if (statsLoading || reportsLoading)
     return <div className="p-8 text-center">Loading dashboard...</div>;
@@ -54,6 +81,9 @@ const AdminDashboard = () => {
       <SEO
         title="Admin Dashboard | Creadent Dental Clinic"
         description="Admin dashboard for Creadent Dental Clinic - manage patients, appointments, billing, and reports."
+        noindex={true}
+        nofollow={true}
+        url="/admin/dashboard"
       />
       <div className="max-w-7xl mx-auto">
         <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
@@ -196,42 +226,25 @@ const AdminDashboard = () => {
               Recent Activity
             </h2>
             <div className="space-y-3">
-              {[
-                {
-                  action: "New patient registered",
-                  user: "Robert Johnson",
-                  time: "10 minutes ago",
-                },
-                {
-                  action: "Appointment scheduled",
-                  user: "Jane Smith",
-                  time: "25 minutes ago",
-                },
-                {
-                  action: "Payment received",
-                  user: "John Doe",
-                  time: "1 hour ago",
-                },
-                {
-                  action: "Medical record updated",
-                  user: "Dr. Sunita Agarwalla",
-                  time: "2 hours ago",
-                },
-              ].map((activity, index) => (
-                <motion.div
-                  key={index}
-                  {...fadeIn("up", index * 0.05)}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900 text-sm">
-                      {activity.action}
-                    </p>
-                    <p className="text-xs text-gray-600">{activity.user}</p>
-                  </div>
-                  <span className="text-xs text-gray-500">{activity.time}</span>
-                </motion.div>
-              ))}
+              {activitiesLoading ? (
+                <div className="p-8 text-center text-gray-500">Loading activities...</div>
+              ) : (
+                (activitiesData?.getRecentActivities || []).map((activity, index) => (
+                  <motion.div
+                    key={activity.id}
+                    {...fadeIn("up", index * 0.05)}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div>
+                      <p className="font-medium text-gray-900 text-sm">
+                        {activity.action}
+                      </p>
+                      <p className="text-xs text-gray-600">{activity.user}</p>
+                    </div>
+                    <span className="text-xs text-gray-500">{formatTimeAgo(activity.timestamp)}</span>
+                  </motion.div>
+                ))
+              )}
             </div>
           </div>
         </motion.div>

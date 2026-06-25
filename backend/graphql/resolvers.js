@@ -324,6 +324,73 @@ const resolvers = {
         timestamp: -1,
       });
     },
+    getRecentActivities: async (_, { limit = 10 }) => {
+      // Fetch recent records from all collections
+      const patients = await Patient.find().sort({ createdAt: -1 }).limit(limit);
+      const appointments = await Appointment.find().sort({ createdAt: -1 }).limit(limit);
+      const prescriptions = await Prescription.find().sort({ createdAt: -1 }).limit(limit);
+      const medicines = await Medicine.find().sort({ createdAt: -1 }).limit(limit);
+      const medicalRecords = await MedicalRecord.find().sort({ createdAt: -1 }).limit(limit);
+      const invoices = await Invoice.find().sort({ createdAt: -1 }).limit(limit);
+      const paymentLedgers = await PaymentLedger.find().sort({ createdAt: -1 }).limit(limit);
+
+      // Format all into activity objects
+      const activities = [
+        ...patients.map(p => ({
+          id: p._id.toString(),
+          type: 'patient',
+          action: 'New patient registered',
+          user: p.name,
+          timestamp: p.createdAt
+        })),
+        ...appointments.map(a => ({
+          id: a._id.toString(),
+          type: 'appointment',
+          action: 'Appointment scheduled',
+          user: a.patientName,
+          timestamp: a.createdAt
+        })),
+        ...prescriptions.map(p => ({
+          id: p._id.toString(),
+          type: 'prescription',
+          action: 'New prescription created',
+          user: p.patientName,
+          timestamp: p.createdAt
+        })),
+        ...medicines.map(m => ({
+          id: m._id.toString(),
+          type: 'medicine',
+          action: 'New medicine added',
+          user: m.name,
+          timestamp: m.createdAt
+        })),
+        ...medicalRecords.map(r => ({
+          id: r._id.toString(),
+          type: 'medical_record',
+          action: 'Medical record updated',
+          user: r.patientName,
+          timestamp: r.createdAt
+        })),
+        ...invoices.map(i => ({
+          id: i._id.toString(),
+          type: 'invoice',
+          action: 'Invoice generated',
+          user: i.patientName,
+          timestamp: i.createdAt
+        })),
+        ...paymentLedgers.map(l => ({
+          id: l._id.toString(),
+          type: 'payment',
+          action: 'Payment ledger entry added',
+          user: l.lorryNo,
+          timestamp: l.createdAt
+        }))
+      ];
+
+      // Sort by timestamp descending and limit
+      activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      return activities.slice(0, limit);
+    },
   },
   Mutation: {
     register: async (

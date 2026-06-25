@@ -240,6 +240,14 @@ const typeDefs = `#graphql
     read: Boolean
   }
 
+  type Activity {
+    id: ID!
+    type: String!
+    action: String!
+    user: String!
+    timestamp: String!
+  }
+
   type Notification {
     id: ID!
     userId: ID!
@@ -271,6 +279,7 @@ const typeDefs = `#graphql
     getConversations: [Conversation]
     getChatMessages(conversationId: ID!): [ChatMessage]
     getNotifications: [Notification]
+    getRecentActivities(limit: Int): [Activity]
   }
 
   type Mutation {

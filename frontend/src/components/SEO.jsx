@@ -8,7 +8,14 @@ const SEO = ({
   url = window.location.href,
   author = "Creadent Dental Clinic",
   type = "website",
+  noindex = false,
+  nofollow = false,
+  canonical,
 }) => {
+  const baseUrl = process.env.VITE_SITE_URL || "https://creadentsmiles.com";
+  const fullUrl = url.startsWith("http") ? url : `${baseUrl}${url}`;
+  const canonicalUrl = canonical || fullUrl;
+
   return (
     <Helmet>
       <title>{title}</title>
@@ -16,9 +23,12 @@ const SEO = ({
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
       <meta name="author" content={author} />
+      <meta name="robots" content={`${noindex ? "noindex" : "index"}, ${nofollow ? "nofollow" : "follow"}`} />
+      
+      <link rel="canonical" href={canonicalUrl} />
 
       <meta property="og:type" content={type} />
-      <meta property="og:url" content={url} />
+      <meta property="og:url" content={fullUrl} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={image} />
@@ -26,7 +36,7 @@ const SEO = ({
       <meta property="og:locale" content="en_IN" />
 
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:url" content={url} />
+      <meta name="twitter:url" content={fullUrl} />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={image} />

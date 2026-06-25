@@ -12,6 +12,7 @@ import {
   GET_APPOINTMENTS,
   GET_PATIENTS,
 } from "../graphql/queries";
+import SEO from "../components/SEO";
 
 const DoctorDashboard = () => {
   const { user } = useAuth();
@@ -38,6 +39,13 @@ const DoctorDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto">
+      <SEO
+        title="Doctor Dashboard | Creadent Dental Clinic"
+        description="Manage your appointments, patients, medical records, and prescriptions."
+        noindex={true}
+        nofollow={true}
+        url="/doctor/dashboard"
+      />
       <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
         <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Good morning, {user.name}!

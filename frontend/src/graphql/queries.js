@@ -274,3 +274,15 @@ export const GET_NOTIFICATIONS = gql`
     }
   }
 `;
+
+export const GET_RECENT_ACTIVITIES = gql`
+  query GetRecentActivities($limit: Int) {
+    getRecentActivities(limit: $limit) {
+      id
+      type
+      action
+      user
+      timestamp
+    }
+  }
+`;
