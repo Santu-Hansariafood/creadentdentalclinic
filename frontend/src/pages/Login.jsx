@@ -51,7 +51,6 @@ const Login = () => {
 
   const watchPhone = watch("phone");
 
-  // Preload common next routes
   useEffect(() => {
     preloadRoute("/register");
     preloadRoute("/patient/dashboard");
@@ -59,7 +58,6 @@ const Login = () => {
     preloadRoute("/admin/dashboard");
   }, []);
 
-  // Format phone number as user types
   useEffect(() => {
     if (watchPhone) {
       const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
@@ -79,7 +77,9 @@ const Login = () => {
   const handleForgotSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await forgotPasswordMutation({ variables: { phone: watchPhone } });
+      const { data } = await forgotPasswordMutation({
+        variables: { phone: watchPhone },
+      });
       if (data.forgotPassword) {
         toast.success("6-digit OTP sent to your WhatsApp!");
         setView("reset");
@@ -120,290 +120,198 @@ const Login = () => {
   };
 
   return (
-    <>
-      <SEO 
-        title="Login to Creadent Dental Clinic | Book Appointment" 
-        description="Login to Creadent Dental Clinic to book appointments, view records, and manage your dental care." 
+    <Suspense fallback={<div>Loading...</div>}>
+      <SEO
+        title="Login to Creadent Dental Clinic | Book Appointment"
+        description="Login to Creadent Dental Clinic to book appointments, view records, and manage your dental care."
       />
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 p-4">
-      <motion.div {...fadeIn("up")} className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="w-24 h-24 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 shadow-sm">
-            <img
-              src="/logo/logo.png"
-              alt="Creadent Dental Clinic Logo"
-              className="w-16 h-16 object-contain"
-            />
+        <motion.div {...fadeIn("up")} className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="w-24 h-24 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <img
+                src="/logo/logo.png"
+                alt="Creadent Dental Clinic Logo"
+                className="w-16 h-16 object-contain"
+              />
+            </div>
+            <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+              {view === "login"
+                ? "Welcome Back"
+                : view === "forgot"
+                  ? "Forgot Password"
+                  : "Reset Password"}
+            </h1>
+            <p className="text-gray-600">
+              {view === "login"
+                ? "Sign in to access your Creadent Dental Clinic account"
+                : view === "forgot"
+                  ? "Enter your registered mobile number to receive an OTP"
+                  : "Enter the 6-digit OTP sent to your WhatsApp"}
+            </p>
           </div>
-          <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
-            {view === "login"
-              ? "Welcome Back"
-              : view === "forgot"
-              ? "Forgot Password"
-              : "Reset Password"}
-          </h1>
-          <p className="text-gray-600">
-            {view === "login"
-              ? "Sign in to access your Creadent Dental Clinic account"
-              : view === "forgot"
-              ? "Enter your registered mobile number to receive an OTP"
-              : "Enter the 6-digit OTP sent to your WhatsApp"}
-          </p>
-        </div>
 
-        <div className="card">
-          <AnimatePresence mode="wait">
-            {view === "login" && (
-              <motion.form
-                key="login"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                onSubmit={handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Role
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { id: "patient", label: "Patient" },
-                      { id: "doctor", label: "Doctor" },
-                      { id: "admin", label: "Admin" },
-                    ].map((r) => (
+          <div className="card">
+            <AnimatePresence mode="wait">
+              {view === "login" && (
+                <motion.form
+                  key="login"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  onSubmit={handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Select Role
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: "patient", label: "Patient" },
+                        { id: "doctor", label: "Doctor" },
+                        { id: "admin", label: "Admin" },
+                      ].map((r) => (
+                        <button
+                          key={r.id}
+                          type="button"
+                          onClick={() => setRole(r.id)}
+                          className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
+                            role === r.id
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-gray-200 hover:border-primary/50 text-gray-600"
+                          }`}
+                        >
+                          {r.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Mobile Number
+                    </label>
+                    <div className="relative">
+                      <Phone
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
+                      <input
+                        type="tel"
+                        {...register("phone")}
+                        className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
+                        placeholder="Enter your mobile number"
+                        maxLength={10}
+                      />
+                    </div>
+                    {errors.phone && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.phone.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Lock
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        {...register("password")}
+                        className={`input-field pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
+                        placeholder="Enter your password"
+                      />
                       <button
-                        key={r.id}
                         type="button"
-                        onClick={() => setRole(r.id)}
-                        className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
-                          role === r.id
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-gray-200 hover:border-primary/50 text-gray-600"
-                        }`}
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                       >
-                        {r.label}
+                        {showPassword ? (
+                          <EyeOff size={20} />
+                        ) : (
+                          <Eye size={20} />
+                        )}
                       </button>
-                    ))}
+                    </div>
+                    {errors.password && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.password.message}
+                      </p>
+                    )}
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mobile Number
-                  </label>
-                  <div className="relative">
-                    <Phone
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                      size={20}
-                    />
-                    <input
-                      type="tel"
-                      {...register("phone")}
-                      className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
-                      placeholder="1234567890"
-                      maxLength={10}
-                    />
-                  </div>
-                  {errors.phone && (
-                    <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                      size={20}
-                    />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      {...register("password")}
-                      className={`input-field pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
-                      placeholder="••••••••"
-                    />
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300"
+                      />
+                      <span className="text-sm text-gray-600">Remember me</span>
+                    </label>
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      onClick={() => setView("forgot")}
+                      className="text-sm text-primary hover:underline"
                     >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      Forgot password?
                     </button>
                   </div>
-                  {errors.password && (
-                    <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
-                  )}
-                </div>
 
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      className="rounded border-gray-300"
-                    />
-                    <span className="text-sm text-gray-600">Remember me</span>
-                  </label>
                   <button
-                    type="button"
-                    onClick={() => setView("forgot")}
-                    className="text-sm text-primary hover:underline"
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="btn-primary w-full"
                   >
-                    Forgot password?
+                    {isSubmitting ? "Signing in..." : "Sign In"}
                   </button>
-                </div>
+                </motion.form>
+              )}
 
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="btn-primary w-full"
+              {view === "forgot" && (
+                <motion.form
+                  key="forgot"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  onSubmit={handleForgotSubmit}
+                  className="space-y-4"
                 >
-                  {isSubmitting ? "Signing in..." : "Sign In"}
-                </button>
-              </motion.form>
-            )}
-
-            {view === "forgot" && (
-              <motion.form
-                key="forgot"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                onSubmit={handleForgotSubmit}
-                className="space-y-4"
-              >
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mobile Number
-                  </label>
-                  <div className="relative">
-                    <Phone
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                      size={20}
-                    />
-                    <input
-                      type="tel"
-                      value={watchPhone}
-                      onChange={(e) => setValue("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
-                      className="input-field pl-10"
-                      placeholder="1234567890"
-                      maxLength={10}
-                      required
-                    />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Mobile Number
+                    </label>
+                    <div className="relative">
+                      <Phone
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
+                      <input
+                        type="tel"
+                        value={watchPhone}
+                        onChange={(e) =>
+                          setValue(
+                            "phone",
+                            e.target.value.replace(/\D/g, "").slice(0, 10),
+                          )
+                        }
+                        className="input-field pl-10"
+                        placeholder="Enter your mobile number"
+                        maxLength={10}
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <button
-                  type="submit"
-                  className="btn-primary w-full"
-                >
-                  Sending OTP...
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setView("login")}
-                  className="flex items-center justify-center gap-2 w-full text-sm text-gray-600 hover:text-primary transition-colors"
-                >
-                  <ArrowLeft size={16} />
-                  Back to Login
-                </button>
-              </motion.form>
-            )}
-
-            {view === "reset" && (
-              <motion.form
-                key="reset"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                onSubmit={handleResetSubmit}
-                className="space-y-4"
-              >
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    6-Digit OTP
-                  </label>
-                  <div className="relative">
-                    <KeyRound
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                      size={20}
-                    />
-                    <input
-                      type="text"
-                      maxLength={6}
-                      value={otp}
-                      onChange={(e) =>
-                        setOtp(e.target.value.replace(/\D/g, ""))
-                      }
-                      className="input-field pl-10 tracking-[0.5em] font-bold text-lg"
-                      placeholder="000000"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    New Password
-                  </label>
-                  <div className="relative">
-                    <Lock
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                      size={20}
-                    />
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="input-field pl-10"
-                      placeholder="••••••••"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Confirm New Password
-                  </label>
-                  <div className="relative">
-                    <Lock
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                      size={20}
-                    />
-                    <input
-                      type="password"
-                      value={confirmNewPassword}
-                      onChange={(e) => setConfirmNewPassword(e.target.value)}
-                      className="input-field pl-10"
-                      placeholder="••••••••"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn-primary w-full"
-                >
-                  Resetting...
-                </button>
-
-                <div className="flex flex-col gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOtp("");
-                      const fakeEvent = { preventDefault: () => {} };
-                      handleForgotSubmit(fakeEvent);
-                    }}
-                    className="text-sm text-primary hover:underline"
-                  >
-                    Resend OTP
+                  <button type="submit" className="btn-primary w-full">
+                    Sending OTP...
                   </button>
+
                   <button
                     type="button"
                     onClick={() => setView("login")}
@@ -412,30 +320,129 @@ const Login = () => {
                     <ArrowLeft size={16} />
                     Back to Login
                   </button>
-                </div>
-              </motion.form>
-            )}
-          </AnimatePresence>
+                </motion.form>
+              )}
 
-          {view === "login" && (
-            <>
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
-                  Don't have an account?{" "}
-                  <Link
-                    to="/register"
-                    className="text-primary font-medium hover:underline"
-                  >
-                    Sign up
-                  </Link>
-                </p>
-              </div>
-            </>
-          )}
-        </div>
-      </motion.div>
-    </div>
-    </>
+              {view === "reset" && (
+                <motion.form
+                  key="reset"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  onSubmit={handleResetSubmit}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      6-Digit OTP
+                    </label>
+                    <div className="relative">
+                      <KeyRound
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
+                      <input
+                        type="text"
+                        maxLength={6}
+                        value={otp}
+                        onChange={(e) =>
+                          setOtp(e.target.value.replace(/\D/g, ""))
+                        }
+                        className="input-field pl-10 tracking-[0.5em] font-bold text-lg"
+                        placeholder="000000"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      New Password
+                    </label>
+                    <div className="relative">
+                      <Lock
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="input-field pl-10"
+                        placeholder="Enter new password"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Confirm New Password
+                    </label>
+                    <div className="relative">
+                      <Lock
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
+                      <input
+                        type="password"
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        className="input-field pl-10"
+                        placeholder="Confirm new password"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <button type="submit" className="btn-primary w-full">
+                    Resetting...
+                  </button>
+
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOtp("");
+                        const fakeEvent = { preventDefault: () => {} };
+                        handleForgotSubmit(fakeEvent);
+                      }}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      Resend OTP
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setView("login")}
+                      className="flex items-center justify-center gap-2 w-full text-sm text-gray-600 hover:text-primary transition-colors"
+                    >
+                      <ArrowLeft size={16} />
+                      Back to Login
+                    </button>
+                  </div>
+                </motion.form>
+              )}
+            </AnimatePresence>
+
+            {view === "login" && (
+              <Suspense fallback={<div>Loading...</div>}>
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-gray-600">
+                    Don't have an account?{" "}
+                    <Link
+                      to="/register"
+                      className="text-primary font-medium hover:underline"
+                    >
+                      Sign up
+                    </Link>
+                  </p>
+                </div>
+              </Suspense>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    </Suspense>
   );
 };
 
