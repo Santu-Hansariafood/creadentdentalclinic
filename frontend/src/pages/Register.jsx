@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { User, Mail, Lock, Phone, Eye, EyeOff } from "lucide-react";
@@ -15,6 +15,8 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
+  const nameInputRef = useRef(null);
+  const phoneInputRef = useRef(null);
 
   const {
     register,
@@ -42,7 +44,11 @@ const Register = () => {
     if (watchName) {
       const formatted = formatName(watchName);
       if (formatted !== watchName) {
-        setValue("name", formatted);
+        const cursorPosition = nameInputRef.current?.selectionStart;
+        setValue("name", formatted, { shouldValidate: false });
+        if (cursorPosition !== null && nameInputRef.current) {
+          nameInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+        }
       }
     }
   }, [watchName, setValue]);
@@ -51,7 +57,11 @@ const Register = () => {
     if (watchPhone) {
       const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
       if (formatted !== watchPhone) {
-        setValue("phone", formatted);
+        const cursorPosition = phoneInputRef.current?.selectionStart;
+        setValue("phone", formatted, { shouldValidate: false });
+        if (cursorPosition !== null && phoneInputRef.current) {
+          phoneInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+        }
       }
     }
   }, [watchPhone, setValue]);
@@ -109,6 +119,7 @@ const Register = () => {
                 <input
                   type="text"
                   {...register("name")}
+                  ref={nameInputRef}
                   className={`input-field pl-10 ${errors.name ? "border-red-500" : ""}`}
                   placeholder="John Doe"
                 />
@@ -151,6 +162,7 @@ const Register = () => {
                 <input
                   type="tel"
                   {...register("phone")}
+                  ref={phoneInputRef}
                   className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
                   placeholder="1234567890"
                   maxLength={10}

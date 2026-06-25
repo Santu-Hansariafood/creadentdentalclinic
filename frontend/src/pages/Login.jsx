@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -31,6 +31,7 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+  const phoneInputRef = useRef(null);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -65,7 +66,11 @@ const Login = () => {
     if (watchPhone) {
       const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
       if (formatted !== watchPhone) {
-        setValue("phone", formatted);
+        const cursorPosition = phoneInputRef.current?.selectionStart;
+        setValue("phone", formatted, { shouldValidate: false });
+        if (cursorPosition !== null && phoneInputRef.current) {
+          phoneInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+        }
       }
     }
   }, [watchPhone, setValue]);
@@ -209,12 +214,13 @@ const Login = () => {
                         size={20}
                       />
                       <input
-                        type="tel"
-                        {...register("phone")}
-                        className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
-                        placeholder="Enter your mobile number"
-                        maxLength={10}
-                      />
+                  type="tel"
+                  {...register("phone")}
+                  ref={phoneInputRef}
+                  className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
+                  placeholder="Enter your mobile number"
+                  maxLength={10}
+                />
                     </div>
                     {errors.phone && (
                       <p className="text-red-500 text-xs mt-1">
@@ -305,19 +311,27 @@ const Login = () => {
                         size={20}
                       />
                       <input
-                        type="tel"
-                        value={watchPhone}
-                        onChange={(e) =>
-                          setValue(
-                            "phone",
-                            e.target.value.replace(/\D/g, "").slice(0, 10),
-                          )
-                        }
-                        className="input-field pl-10"
-                        placeholder="Enter your mobile number"
-                        maxLength={10}
-                        required
-                      />
+                  type="tel"
+                  value={watchPhone}
+                  ref={phoneInputRef}
+                  onChange={(e) => {
+                    const cursorPosition = phoneInputRef.current?.selectionStart;
+                    setValue(
+                      "phone",
+                      e.target.value.replace(/\D/g, "").slice(0, 10),
+                      { shouldValidate: false }
+                    );
+                    setTimeout(() => {
+                      if (cursorPosition !== null && phoneInputRef.current) {
+                        phoneInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+                      }
+                    }, 0);
+                  }}
+                  className="input-field pl-10"
+                  placeholder="Enter your mobile number"
+                  maxLength={10}
+                  required
+                />
                     </div>
                   </div>
 

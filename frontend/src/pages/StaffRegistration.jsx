@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   User,
@@ -26,6 +26,9 @@ import { registerSchema } from "../utils/schemas";
 
 const StaffRegistration = ({ initialStaff, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const phoneInputRef = useRef(null);
+  const nameInputRef = useRef(null);
+  const specializationInputRef = useRef(null);
 
   const {
     register,
@@ -67,7 +70,11 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
     if (watchName) {
       const formatted = formatName(watchName);
       if (formatted !== watchName) {
-        setValue("name", formatted);
+        const cursorPosition = nameInputRef.current?.selectionStart;
+        setValue("name", formatted, { shouldValidate: false });
+        if (cursorPosition !== null && nameInputRef.current) {
+          nameInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+        }
       }
     }
   }, [watchName, setValue]);
@@ -76,7 +83,11 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
     if (watchSpecialization) {
       const formatted = formatName(watchSpecialization);
       if (formatted !== watchSpecialization) {
-        setValue("specialization", formatted);
+        const cursorPosition = specializationInputRef.current?.selectionStart;
+        setValue("specialization", formatted, { shouldValidate: false });
+        if (cursorPosition !== null && specializationInputRef.current) {
+          specializationInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+        }
       }
     }
   }, [watchSpecialization, setValue]);
@@ -85,7 +96,11 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
     if (watchPhone) {
       const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
       if (formatted !== watchPhone) {
-        setValue("phone", formatted);
+        const cursorPosition = phoneInputRef.current?.selectionStart;
+        setValue("phone", formatted, { shouldValidate: false });
+        if (cursorPosition !== null && phoneInputRef.current) {
+          phoneInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+        }
       }
     }
   }, [watchPhone, setValue]);
@@ -178,11 +193,12 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
               size={18}
             />
             <input
-              type="text"
-              {...register("name")}
-              className={`input-field pl-10 ${errors.name ? "border-red-500" : ""}`}
-              placeholder="John Doe"
-            />
+                type="text"
+                {...register("name")}
+                ref={nameInputRef}
+                className={`input-field pl-10 ${errors.name ? "border-red-500" : ""}`}
+                placeholder="John Doe"
+              />
           </div>
           {errors.name && (
             <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
@@ -220,12 +236,13 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
               size={18}
             />
             <input
-              type="tel"
-              {...register("phone")}
-              className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
-              placeholder="+1 (555) 000-0000"
-              maxLength={10}
-            />
+                type="tel"
+                {...register("phone")}
+                ref={phoneInputRef}
+                className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
+                placeholder="+1 (555) 000-0000"
+                maxLength={10}
+              />
           </div>
           {errors.phone && (
             <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
@@ -246,6 +263,7 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
                 <input
                   type="text"
                   {...register("specialization")}
+                  ref={specializationInputRef}
                   className={`input-field pl-10 ${errors.specialization ? "border-red-500" : ""}`}
                   placeholder="e.g. Orthodontist"
                 />
