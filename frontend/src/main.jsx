@@ -8,6 +8,18 @@ import { Toaster } from "react-hot-toast";
 import { ApolloProvider } from "@apollo/client";
 import client from "./apolloClient";
 import { Helmet, HelmetProvider } from "react-helmet-async";
+import { registerSW } from "virtual:pwa-register";
+
+const updateSW = registerSW({
+  onNeedRefresh() {
+    if (confirm("New version available! Refresh to update?")) {
+      updateSW();
+    }
+  },
+  onOfflineReady() {
+    console.log("App ready for offline use");
+  },
+});
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
