@@ -34,7 +34,7 @@ export const RESET_PASSWORD = gql`
 export const CREATE_PATIENT = gql`
   mutation CreatePatient(
     $name: String!
-    $email: String!
+    $email: String
     $phone: String!
     $dateOfBirth: String!
     $gender: String!

@@ -248,7 +248,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
   const handleNext = async () => {
     // Validate step 1 fields before proceeding
     if (currentStep === 1) {
-      const isValid = await trigger(["name", "email", "phone", "dateOfBirth", "gender", "address"]);
+      const isValid = await trigger(["name", "phone", "dateOfBirth", "gender", "address"]);
       if (!isValid) return;
     }
     setCurrentStep(currentStep + 1);
