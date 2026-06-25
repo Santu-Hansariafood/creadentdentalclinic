@@ -93,6 +93,12 @@ const startServer = async () => {
       { loc: `${baseUrl}/login`, priority: "0.8", changefreq: "monthly" },
       { loc: `${baseUrl}/register`, priority: "0.8", changefreq: "monthly" },
       { loc: `${baseUrl}/verify-otp`, priority: "0.7", changefreq: "monthly" },
+      { loc: `${baseUrl}/privacy-policy`, priority: "0.7", changefreq: "monthly" },
+      { loc: `${baseUrl}/account-deletion-policy`, priority: "0.7", changefreq: "monthly" },
+      { loc: `${baseUrl}/terms-of-service`, priority: "0.7", changefreq: "monthly" },
+      { loc: `${baseUrl}/cookie-policy`, priority: "0.7", changefreq: "monthly" },
+      { loc: `${baseUrl}/disclaimer`, priority: "0.7", changefreq: "monthly" },
+      { loc: `${baseUrl}/careers`, priority: "0.8", changefreq: "weekly" },
     ];
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
