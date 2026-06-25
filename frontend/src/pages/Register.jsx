@@ -31,8 +31,6 @@ const Register = () => {
       password: "",
       confirmPassword: "",
       role: "patient",
-      specialization: "",
-      license: "",
     },
   });
 

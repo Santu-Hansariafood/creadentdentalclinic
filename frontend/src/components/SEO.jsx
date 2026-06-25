@@ -12,7 +12,7 @@ const SEO = ({
   nofollow = false,
   canonical,
 }) => {
-  const baseUrl = process.env.VITE_SITE_URL || "https://creadentsmiles.com";
+  const baseUrl = import.meta.env.VITE_SITE_URL || "https://creadentsmiles.com";
   const fullUrl = url.startsWith("http") ? url : `${baseUrl}${url}`;
   const canonicalUrl = canonical || fullUrl;
 

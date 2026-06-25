@@ -28,6 +28,9 @@ const Login = () => {
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -76,6 +79,7 @@ const Login = () => {
 
   const handleForgotSubmit = async (e) => {
     e.preventDefault();
+    setForgotLoading(true);
     try {
       const { data } = await forgotPasswordMutation({
         variables: { phone: watchPhone },
@@ -86,19 +90,24 @@ const Login = () => {
       }
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setForgotLoading(false);
     }
   };
 
   const handleResetSubmit = async (e) => {
     e.preventDefault();
+    setResetLoading(true);
 
     if (newPassword !== confirmNewPassword) {
       toast.error("Passwords do not match!");
+      setResetLoading(false);
       return;
     }
 
     if (newPassword.length < 6) {
       toast.error("Password must be at least 6 characters!");
+      setResetLoading(false);
       return;
     }
 
@@ -116,11 +125,13 @@ const Login = () => {
       }
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setResetLoading(false);
     }
   };
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <>
       <SEO
         title="Login to Creadent Dental Clinic | Book Appointment"
         description="Login to Creadent Dental Clinic to book appointments, view records, and manage your dental care."
@@ -250,6 +261,8 @@ const Login = () => {
                     <label className="flex items-center gap-2">
                       <input
                         type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
                         className="rounded border-gray-300"
                       />
                       <span className="text-sm text-gray-600">Remember me</span>
@@ -308,8 +321,8 @@ const Login = () => {
                     </div>
                   </div>
 
-                  <button type="submit" className="btn-primary w-full">
-                    Sending OTP...
+                  <button type="submit" disabled={forgotLoading} className="btn-primary w-full">
+                    {forgotLoading ? "Sending OTP..." : "Send OTP"}
                   </button>
 
                   <button
@@ -395,8 +408,8 @@ const Login = () => {
                     </div>
                   </div>
 
-                  <button type="submit" className="btn-primary w-full">
-                    Resetting...
+                  <button type="submit" disabled={resetLoading} className="btn-primary w-full">
+                    {resetLoading ? "Resetting..." : "Reset Password"}
                   </button>
 
                   <div className="flex flex-col gap-2">
@@ -425,7 +438,7 @@ const Login = () => {
             </AnimatePresence>
 
             {view === "login" && (
-              <Suspense fallback={<div>Loading...</div>}>
+              <>
                 <div className="mt-6 text-center">
                   <p className="text-sm text-gray-600">
                     Don't have an account?{" "}
@@ -437,12 +450,12 @@ const Login = () => {
                     </Link>
                   </p>
                 </div>
-              </Suspense>
+              </>
             )}
           </div>
         </motion.div>
       </div>
-    </Suspense>
+    </>
   );
 };
 
