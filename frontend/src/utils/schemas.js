@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export const loginSchema = z.object({
-  phone: z.string().trim().regex(/^\d{10}$/, 'Phone number must be 10 digits'),
-  password: z.string().trim().min(1, 'Password is required'),
+  phone: z.string().trim().regex(/^\d{10}$/, "Phone number must be 10 digits").default(""),
+  password: z.string().trim().min(1, "Password is required").default(""),
 });
 
 export const registerSchema = z.object({

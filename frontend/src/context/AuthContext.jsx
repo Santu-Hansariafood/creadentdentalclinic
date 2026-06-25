@@ -42,11 +42,21 @@ export const AuthProvider = ({ children }) => {
   }, [meData, meError, meLoading]);
 
   const login = async (phone, password) => {
-    console.log("AuthContext login called with phone:", phone, "password length:", password.length);
+    console.log("🔐 AuthContext login called:");
+    console.log("   phone:", JSON.stringify(phone));
+    console.log("   phone type:", typeof phone);
+    console.log("   password:", JSON.stringify(password));
+    console.log("   password type:", typeof password);
+    
     try {
-      const { data } = await loginMutation({
-        variables: { phone, password },
-      });
+      const variables = {
+        phone: phone || "",
+        password: password || ""
+      };
+      
+      console.log("   Sending variables:", variables);
+      
+      const { data } = await loginMutation({ variables });
       console.log("Login mutation response data:", data);
 
       if (data?.login) {
@@ -59,7 +69,13 @@ export const AuthProvider = ({ children }) => {
         return { success: true };
       }
     } catch (error) {
-      console.error("Login mutation error:", error);
+      console.error("❌ Login mutation error:", error);
+      console.error("   Error details:", {
+        message: error.message,
+        graphQLErrors: error.graphQLErrors,
+        networkError: error.networkError,
+        stack: error.stack
+      });
       toast.error(error.message || "Login failed");
       return { success: false };
     }

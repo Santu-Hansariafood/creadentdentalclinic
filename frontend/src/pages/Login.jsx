@@ -64,6 +64,12 @@ const Login = () => {
   }, []);
 
   useEffect(() => {
+    console.log("📞 watchPhone changed:", {
+      rawValue: watchPhone,
+      type: typeof watchPhone,
+      length: watchPhone?.length
+    });
+    
     if (watchPhone) {
       const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
       if (formatted !== watchPhone) {
@@ -77,8 +83,14 @@ const Login = () => {
   }, [watchPhone, setValue]);
 
   const onSubmit = async (data) => {
-    console.log("Login form submitted with data:", data);
-    console.log("Form errors:", errors);
+    console.log("🔍 Login form submission debug:");
+    console.log("   Form data:", data);
+    console.log("   Phone value type:", typeof data.phone);
+    console.log("   Phone value:", data.phone);
+    console.log("   Password value type:", typeof data.password);
+    console.log("   Password value (length):", data.password?.length);
+    console.log("   Form errors:", errors);
+    
     const result = await login(data.phone, data.password);
     if (result.success) {
       navigate("/");
@@ -218,13 +230,28 @@ const Login = () => {
                         size={20}
                       />
                       <input
-                  type="tel"
-                  {...register("phone")}
-                  ref={phoneInputRef}
-                  className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
-                  placeholder="Enter your mobile number"
-                  maxLength={10}
-                />
+                        type="tel"
+                        {...(() => {
+                          // Get register props once
+                          const { ref, ...rest } = register("phone");
+                          return {
+                            ...rest,
+                            ref: (e) => {
+                              // Call react-hook-form's ref
+                              if (typeof ref === "function") {
+                                ref(e);
+                              } else if (ref) {
+                                ref.current = e;
+                              }
+                              // Also set our phoneInputRef
+                              phoneInputRef.current = e;
+                            },
+                          };
+                        })()}
+                        className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
+                        placeholder="Enter your mobile number"
+                        maxLength={10}
+                      />
                     </div>
                     {errors.phone && (
                       <p className="text-red-500 text-xs mt-1">
