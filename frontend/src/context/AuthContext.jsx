@@ -42,10 +42,12 @@ export const AuthProvider = ({ children }) => {
   }, [meData, meError, meLoading]);
 
   const login = async (phone, password) => {
+    console.log("AuthContext login called with phone:", phone, "password length:", password.length);
     try {
       const { data } = await loginMutation({
         variables: { phone, password },
       });
+      console.log("Login mutation response data:", data);
 
       if (data?.login) {
         const { token, user: userData } = data.login;
@@ -57,6 +59,7 @@ export const AuthProvider = ({ children }) => {
         return { success: true };
       }
     } catch (error) {
+      console.error("Login mutation error:", error);
       toast.error(error.message || "Login failed");
       return { success: false };
     }

@@ -76,6 +76,8 @@ const Login = () => {
   }, [watchPhone, setValue]);
 
   const onSubmit = async (data) => {
+    console.log("Login form submitted with data:", data);
+    console.log("Form errors:", errors);
     const result = await login(data.phone, data.password);
     if (result.success) {
       navigate("/");
@@ -177,6 +179,7 @@ const Login = () => {
                   exit={{ opacity: 0, x: 20 }}
                   onSubmit={handleSubmit(onSubmit)}
                   className="space-y-4"
+                  noValidate
                 >
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">

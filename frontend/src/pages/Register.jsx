@@ -107,7 +107,7 @@ const Register = () => {
         </div>
 
         <div className="card">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Full Name
