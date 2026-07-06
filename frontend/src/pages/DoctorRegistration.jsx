@@ -47,16 +47,7 @@ const DoctorRegistration = () => {
   const watchName = watch("name");
   const watchPhone = watch("phone");
 
-  // Format name and phone as user types
-  useEffect(() => {
-    if (watchName) {
-      const formatted = formatName(watchName);
-      if (formatted !== watchName) {
-        setValue("name", formatted);
-      }
-    }
-  }, [watchName, setValue]);
-
+  // Format phone as user types
   useEffect(() => {
     if (watchPhone) {
       const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);

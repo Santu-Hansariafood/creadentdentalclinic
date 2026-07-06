@@ -200,34 +200,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
     },
   });
 
-  // Format name and phone fields as user types
-  useEffect(() => {
-    if (watchName) {
-      const formatted = formatName(watchName);
-      if (formatted !== watchName) {
-        setValue("name", formatted);
-      }
-    }
-  }, [watchName, setValue]);
-
-  useEffect(() => {
-    if (watchEmergencyContactName) {
-      const formatted = formatName(watchEmergencyContactName);
-      if (formatted !== watchEmergencyContactName) {
-        setValue("emergencyContactName", formatted);
-      }
-    }
-  }, [watchEmergencyContactName, setValue]);
-
-  useEffect(() => {
-    if (watchEmergencyContactRelation) {
-      const formatted = formatName(watchEmergencyContactRelation);
-      if (formatted !== watchEmergencyContactRelation) {
-        setValue("emergencyContactRelation", formatted);
-      }
-    }
-  }, [watchEmergencyContactRelation, setValue]);
-
+  // Format phone fields as user types
   useEffect(() => {
     if (watchPhone) {
       const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);

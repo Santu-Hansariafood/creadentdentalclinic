@@ -41,20 +41,7 @@ const Register = () => {
   const watchPhone = watch("phone");
   const watchRole = watch("role");
 
-  // Format name and phone as user types
-  useEffect(() => {
-    if (watchName) {
-      const formatted = formatName(watchName);
-      if (formatted !== watchName) {
-        const cursorPosition = nameInputRef.current?.selectionStart;
-        setValue("name", formatted, { shouldValidate: false });
-        if (cursorPosition !== null && nameInputRef.current) {
-          nameInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
-        }
-      }
-    }
-  }, [watchName, setValue]);
-
+  // Format phone as user types
   useEffect(() => {
     if (watchPhone) {
       const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);

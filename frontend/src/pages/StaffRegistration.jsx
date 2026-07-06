@@ -69,32 +69,7 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
   const { ref: specializationFieldRef, ...specializationField } =
     register("specialization");
 
-  // Format name and phone as user types
-  useEffect(() => {
-    if (watchName) {
-      const formatted = formatName(watchName);
-      if (formatted !== watchName) {
-        const cursorPosition = nameInputRef.current?.selectionStart;
-        setValue("name", formatted, { shouldValidate: false });
-        if (cursorPosition !== null && nameInputRef.current) {
-          nameInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
-        }
-      }
-    }
-  }, [watchName, setValue]);
-
-  useEffect(() => {
-    if (watchSpecialization) {
-      const formatted = formatName(watchSpecialization);
-      if (formatted !== watchSpecialization) {
-        const cursorPosition = specializationInputRef.current?.selectionStart;
-        setValue("specialization", formatted, { shouldValidate: false });
-        if (cursorPosition !== null && specializationInputRef.current) {
-          specializationInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
-        }
-      }
-    }
-  }, [watchSpecialization, setValue]);
+  // Format phone as user types
 
   useEffect(() => {
     if (watchPhone) {
