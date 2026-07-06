@@ -13,6 +13,9 @@ export const validatePin = (pin) => {
 
 // Format name to proper case (capitalize first letter of each word, rest lowercase)
 export const formatName = (name) => {
+  if (!name) {
+    return name;
+  }
   return name
     .trim()
     .replace(/\s+/g, ' ') // Replace multiple spaces with single
@@ -25,9 +28,13 @@ export const formatName = (name) => {
 
 // Convert object keys to camelCase
 export const toCamelCase = (obj) => {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
   if (Array.isArray(obj)) {
     return obj.map(item => toCamelCase(item));
-  } else if (obj !== null && obj.constructor === Object) {
+  }
+  if (typeof obj === 'object') {
     return Object.keys(obj).reduce((result, key) => {
       const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
                            .replace(/^([A-Z])/, (_, letter) => letter.toLowerCase());
