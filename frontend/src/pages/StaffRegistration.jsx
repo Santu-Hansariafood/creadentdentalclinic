@@ -64,6 +64,10 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
   const watchPhone = watch("phone");
   const watchSpecialization = watch("specialization");
   const watchRole = watch("role");
+  const { ref: nameFieldRef, ...nameField } = register("name");
+  const { ref: phoneFieldRef, ...phoneField } = register("phone");
+  const { ref: specializationFieldRef, ...specializationField } =
+    register("specialization");
 
   // Format name and phone as user types
   useEffect(() => {
@@ -193,12 +197,15 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
               size={18}
             />
             <input
-                type="text"
-                {...register("name")}
-                ref={nameInputRef}
-                className={`input-field pl-10 ${errors.name ? "border-red-500" : ""}`}
-                placeholder="John Doe"
-              />
+              type="text"
+              {...nameField}
+              ref={(element) => {
+                nameFieldRef(element);
+                nameInputRef.current = element;
+              }}
+              className={`input-field pl-10 ${errors.name ? "border-red-500" : ""}`}
+              placeholder="John Doe"
+            />
           </div>
           {errors.name && (
             <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
@@ -236,13 +243,16 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
               size={18}
             />
             <input
-                type="tel"
-                {...register("phone")}
-                ref={phoneInputRef}
-                className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
-                placeholder="+1 (555) 000-0000"
-                maxLength={10}
-              />
+              type="tel"
+              {...phoneField}
+              ref={(element) => {
+                phoneFieldRef(element);
+                phoneInputRef.current = element;
+              }}
+              className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
+              placeholder="+1 (555) 000-0000"
+              maxLength={10}
+            />
           </div>
           {errors.phone && (
             <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
@@ -262,8 +272,11 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
                 />
                 <input
                   type="text"
-                  {...register("specialization")}
-                  ref={specializationInputRef}
+                  {...specializationField}
+                  ref={(element) => {
+                    specializationFieldRef(element);
+                    specializationInputRef.current = element;
+                  }}
                   className={`input-field pl-10 ${errors.specialization ? "border-red-500" : ""}`}
                   placeholder="e.g. Orthodontist"
                 />
