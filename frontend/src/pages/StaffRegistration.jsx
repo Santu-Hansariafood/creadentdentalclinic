@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   User,
@@ -26,12 +26,10 @@ import { registerSchema } from "../utils/schemas";
 
 const StaffRegistration = ({ initialStaff, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
-  const phoneInputRef = useRef(null);
 
   const {
     register,
     handleSubmit,
-    setValue,
     watch,
     reset,
     formState: { errors, isSubmitting },
@@ -58,23 +56,7 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
     },
   });
 
-  const watchPhone = watch("phone");
   const watchRole = watch("role");
-  const { ref: phoneFieldRef, ...phoneField } = register("phone");
-
-  // Format phone as user types
-  useEffect(() => {
-    if (watchPhone) {
-      const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
-      if (formatted !== watchPhone) {
-        const cursorPosition = phoneInputRef.current?.selectionStart;
-        setValue("phone", formatted, { shouldValidate: false });
-        if (cursorPosition !== null && phoneInputRef.current) {
-          phoneInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
-        }
-      }
-    }
-  }, [watchPhone, setValue]);
 
   const [registerStaff] = useMutation(REGISTER, {
     onCompleted: () => {
@@ -206,16 +188,11 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
               size={18}
             />
             <input
-              type="tel"
-              {...phoneField}
-              ref={(element) => {
-                phoneFieldRef(element);
-                phoneInputRef.current = element;
-              }}
-              className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
-              placeholder="+1 (555) 000-0000"
-              maxLength={10}
-            />
+                  type="tel"
+                  {...register("phone")}
+                  className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
+                  placeholder="1234567890"
+                />
           </div>
           {errors.phone && (
             <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>

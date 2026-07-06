@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   User,
@@ -22,13 +22,10 @@ import { formatName, toCamelCase } from "../utils/validation";
 
 const DoctorRegistration = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const phoneInputRef = useRef(null);
 
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
     reset,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -44,22 +41,6 @@ const DoctorRegistration = () => {
       license: "",
     },
   });
-
-  const watchPhone = watch("phone");
-
-  // Format phone as user types
-  useEffect(() => {
-    if (watchPhone) {
-      const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
-      if (formatted !== watchPhone) {
-        const cursorPosition = phoneInputRef.current?.selectionStart;
-        setValue("phone", formatted, { shouldValidate: false });
-        if (cursorPosition !== null && phoneInputRef.current) {
-          phoneInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
-        }
-      }
-    }
-  }, [watchPhone, setValue]);
 
   const [registerDoctor] = useMutation(REGISTER, {
     onCompleted: () => {
@@ -147,10 +128,8 @@ const DoctorRegistration = () => {
                 <input
                   type="tel"
                   {...register("phone")}
-                  ref={phoneInputRef}
                   className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
-                  placeholder="+1 (555) 000-0000"
-                  maxLength={10}
+                  placeholder="1234567890"
                 />
               </div>
               {errors.phone && (

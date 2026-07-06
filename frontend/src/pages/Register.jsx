@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { User, Mail, Lock, Phone, Eye, EyeOff } from "lucide-react";
@@ -15,7 +15,6 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
-  const phoneInputRef = useRef(null);
 
   const {
     register,
@@ -36,22 +35,7 @@ const Register = () => {
     },
   });
 
-  const watchPhone = watch("phone");
   const watchRole = watch("role");
-
-  // Format phone as user types
-  useEffect(() => {
-    if (watchPhone) {
-      const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
-      if (formatted !== watchPhone) {
-        const cursorPosition = phoneInputRef.current?.selectionStart;
-        setValue("phone", formatted, { shouldValidate: false });
-        if (cursorPosition !== null && phoneInputRef.current) {
-          phoneInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
-        }
-      }
-    }
-  }, [watchPhone, setValue]);
 
   const onSubmit = async (data) => {
     // Format data before submission
@@ -148,10 +132,8 @@ const Register = () => {
                 <input
                   type="tel"
                   {...register("phone")}
-                  ref={phoneInputRef}
                   className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
                   placeholder="1234567890"
-                  maxLength={10}
                 />
               </div>
               {errors.phone && (

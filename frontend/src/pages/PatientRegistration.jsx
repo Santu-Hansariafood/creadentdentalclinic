@@ -200,24 +200,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
     },
   });
 
-  // Format phone fields as user types
-  useEffect(() => {
-    if (watchPhone) {
-      const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
-      if (formatted !== watchPhone) {
-        setValue("phone", formatted);
-      }
-    }
-  }, [watchPhone, setValue]);
 
-  useEffect(() => {
-    if (watchEmergencyContactPhone) {
-      const formatted = watchEmergencyContactPhone.replace(/\D/g, "").slice(0, 10);
-      if (formatted !== watchEmergencyContactPhone) {
-        setValue("emergencyContactPhone", formatted);
-      }
-    }
-  }, [watchEmergencyContactPhone, setValue]);
 
   const handleNext = async () => {
     // Validate step 1 fields before proceeding
