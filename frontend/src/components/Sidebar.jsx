@@ -73,6 +73,28 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { to: "/admin/settings", icon: Settings, label: "Settings" },
   ];
 
+  const employeeLinks = [
+    { to: "/employee/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/employee/patients", icon: Users, label: "Patients" },
+    {
+      to: "/employee/patient-registration",
+      icon: UserPlus,
+      label: "Register Patient",
+    },
+    { to: "/employee/medicines", icon: Package, label: "Medicines" },
+    {
+      to: "/employee/medicine-registration",
+      icon: PlusCircle,
+      label: "Register Medicine",
+    },
+    { to: "/employee/payment-ledger", icon: FileText, label: "Payment Ledger" },
+    { to: "/employee/appointments", icon: Calendar, label: "Appointments" },
+    { to: "/employee/records", icon: FileText, label: "Medical Records" },
+    { to: "/employee/billing", icon: CreditCard, label: "Billing" },
+    { to: "/employee/reports", icon: BarChart3, label: "Reports" },
+    { to: "/employee/settings", icon: Settings, label: "Settings" },
+  ];
+
   const getLinks = () => {
     switch (user?.role) {
       case "patient":
@@ -81,6 +103,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         return doctorLinks;
       case "admin":
         return adminLinks;
+      case "employee":
+        return employeeLinks;
       default:
         return [];
     }

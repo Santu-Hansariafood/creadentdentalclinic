@@ -17,6 +17,7 @@ const OTPVerification = lazy(() => import("./pages/OTPVerification"));
 const PatientDashboard = lazy(() => import("./pages/PatientDashboard"));
 const DoctorDashboard = lazy(() => import("./pages/DoctorDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const EmployeeDashboard = lazy(() => import("./pages/EmployeeDashboard"));
 const PatientRegistration = lazy(() => import("./pages/PatientRegistration"));
 const Appointments = lazy(() => import("./pages/Appointments"));
 const MedicalRecords = lazy(() => import("./pages/MedicalRecords"));
@@ -115,6 +116,8 @@ const App = () => {
         return "/doctor/dashboard";
       case "admin":
         return "/admin/dashboard";
+      case "employee":
+        return "/employee/dashboard";
       default:
         return "/login";
     }
@@ -426,6 +429,95 @@ const App = () => {
                   path="/admin/settings"
                   element={
                     <ProtectedRoute role="admin">
+                      <Settings />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/employee/dashboard"
+                  element={
+                    <ProtectedRoute role="employee">
+                      <EmployeeDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/employee/patients"
+                  element={
+                    <ProtectedRoute role="employee">
+                      <PatientList />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/employee/patient-registration"
+                  element={
+                    <ProtectedRoute role="employee">
+                      <PatientRegistration />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/employee/medicines"
+                  element={
+                    <ProtectedRoute role="employee">
+                      <MedicineList />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/employee/medicine-registration"
+                  element={
+                    <ProtectedRoute role="employee">
+                      <MedicineRegistration />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/employee/payment-ledger"
+                  element={
+                    <ProtectedRoute role="employee">
+                      <PaymentLedger />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/employee/appointments"
+                  element={
+                    <ProtectedRoute role="employee">
+                      <Appointments />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/employee/records"
+                  element={
+                    <ProtectedRoute role="employee">
+                      <MedicalRecords />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/employee/billing"
+                  element={
+                    <ProtectedRoute role="employee">
+                      <Billing />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/employee/reports"
+                  element={
+                    <ProtectedRoute role="employee">
+                      <Reports />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/employee/settings"
+                  element={
+                    <ProtectedRoute role="employee">
                       <Settings />
                     </ProtectedRoute>
                   }

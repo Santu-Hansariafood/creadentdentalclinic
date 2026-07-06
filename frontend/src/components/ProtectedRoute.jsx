@@ -13,6 +13,7 @@ const ProtectedRoute = ({ children, role }) => {
       patient: "/patient/dashboard",
       doctor: "/doctor/dashboard",
       admin: "/admin/dashboard",
+      employee: "/employee/dashboard",
     };
     return <Navigate to={dashboardRoutes[user.role]} replace />;
   }
