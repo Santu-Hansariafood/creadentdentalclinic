@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   User,
@@ -22,6 +22,7 @@ import { formatName, toCamelCase } from "../utils/validation";
 
 const DoctorRegistration = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const phoneInputRef = useRef(null);
 
   const {
     register,
@@ -44,7 +45,6 @@ const DoctorRegistration = () => {
     },
   });
 
-  const watchName = watch("name");
   const watchPhone = watch("phone");
 
   // Format phone as user types
@@ -52,7 +52,11 @@ const DoctorRegistration = () => {
     if (watchPhone) {
       const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
       if (formatted !== watchPhone) {
-        setValue("phone", formatted);
+        const cursorPosition = phoneInputRef.current?.selectionStart;
+        setValue("phone", formatted, { shouldValidate: false });
+        if (cursorPosition !== null && phoneInputRef.current) {
+          phoneInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+        }
       }
     }
   }, [watchPhone, setValue]);
@@ -143,6 +147,7 @@ const DoctorRegistration = () => {
                 <input
                   type="tel"
                   {...register("phone")}
+                  ref={phoneInputRef}
                   className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
                   placeholder="+1 (555) 000-0000"
                   maxLength={10}

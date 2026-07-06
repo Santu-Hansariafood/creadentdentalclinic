@@ -27,8 +27,6 @@ import { registerSchema } from "../utils/schemas";
 const StaffRegistration = ({ initialStaff, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const phoneInputRef = useRef(null);
-  const nameInputRef = useRef(null);
-  const specializationInputRef = useRef(null);
 
   const {
     register,
@@ -60,17 +58,11 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
     },
   });
 
-  const watchName = watch("name");
   const watchPhone = watch("phone");
-  const watchSpecialization = watch("specialization");
   const watchRole = watch("role");
-  const { ref: nameFieldRef, ...nameField } = register("name");
   const { ref: phoneFieldRef, ...phoneField } = register("phone");
-  const { ref: specializationFieldRef, ...specializationField } =
-    register("specialization");
 
   // Format phone as user types
-
   useEffect(() => {
     if (watchPhone) {
       const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
@@ -173,11 +165,7 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
             />
             <input
               type="text"
-              {...nameField}
-              ref={(element) => {
-                nameFieldRef(element);
-                nameInputRef.current = element;
-              }}
+              {...register("name")}
               className={`input-field pl-10 ${errors.name ? "border-red-500" : ""}`}
               placeholder="John Doe"
             />
@@ -247,11 +235,7 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
                 />
                 <input
                   type="text"
-                  {...specializationField}
-                  ref={(element) => {
-                    specializationFieldRef(element);
-                    specializationInputRef.current = element;
-                  }}
+                  {...register("specialization")}
                   className={`input-field pl-10 ${errors.specialization ? "border-red-500" : ""}`}
                   placeholder="e.g. Orthodontist"
                 />

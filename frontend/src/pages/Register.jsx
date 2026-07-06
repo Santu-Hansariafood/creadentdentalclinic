@@ -15,7 +15,6 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
-  const nameInputRef = useRef(null);
   const phoneInputRef = useRef(null);
 
   const {
@@ -37,7 +36,6 @@ const Register = () => {
     },
   });
 
-  const watchName = watch("name");
   const watchPhone = watch("phone");
   const watchRole = watch("role");
 
@@ -106,12 +104,11 @@ const Register = () => {
                   size={20}
                 />
                 <input
-                  type="text"
-                  {...register("name")}
-                  ref={nameInputRef}
-                  className={`input-field pl-10 ${errors.name ? "border-red-500" : ""}`}
-                  placeholder="John Doe"
-                />
+              type="text"
+              {...register("name")}
+              className={`input-field pl-10 ${errors.name ? "border-red-500" : ""}`}
+              placeholder="John Doe"
+            />
               </div>
               {errors.name && (
                 <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
