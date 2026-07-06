@@ -30,6 +30,7 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
   const {
     register,
     handleSubmit,
+    setValue,
     watch,
     reset,
     formState: { errors, isSubmitting },
