@@ -193,6 +193,7 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
                   {...register("phone")}
                   className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
                   placeholder="1234567890"
+                  maxLength={10}
                 />
           </div>
           {errors.phone && (

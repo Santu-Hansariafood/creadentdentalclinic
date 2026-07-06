@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -8,7 +8,6 @@ import {
   EyeOff,
   KeyRound,
   ArrowLeft,
-  User,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { fadeIn } from "../utils/motion";
@@ -31,7 +30,6 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
-  const phoneInputRef = useRef(null);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -42,7 +40,6 @@ const Login = () => {
   const {
     register,
     handleSubmit,
-    setValue,
     watch,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -62,25 +59,6 @@ const Login = () => {
     preloadRoute("/doctor/dashboard");
     preloadRoute("/admin/dashboard");
   }, []);
-
-  useEffect(() => {
-    console.log("📞 watchPhone changed:", {
-      rawValue: watchPhone,
-      type: typeof watchPhone,
-      length: watchPhone?.length
-    });
-    
-    if (watchPhone) {
-      const formatted = watchPhone.replace(/\D/g, "").slice(0, 10);
-      if (formatted !== watchPhone) {
-        const cursorPosition = phoneInputRef.current?.selectionStart;
-        setValue("phone", formatted, { shouldValidate: false });
-        if (cursorPosition !== null && phoneInputRef.current) {
-          phoneInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
-        }
-      }
-    }
-  }, [watchPhone, setValue]);
 
   const onSubmit = async (data) => {
     console.log("🔍 Login form submission debug:");
@@ -231,25 +209,9 @@ const Login = () => {
                       />
                       <input
                         type="tel"
-                        {...(() => {
-                          // Get register props once
-                          const { ref, ...rest } = register("phone");
-                          return {
-                            ...rest,
-                            ref: (e) => {
-                              // Call react-hook-form's ref
-                              if (typeof ref === "function") {
-                                ref(e);
-                              } else if (ref) {
-                                ref.current = e;
-                              }
-                              // Also set our phoneInputRef
-                              phoneInputRef.current = e;
-                            },
-                          };
-                        })()}
+                        {...register("phone")}
                         className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
-                        placeholder="Enter your mobile number"
+                        placeholder="Enter 10-digit mobile number"
                         maxLength={10}
                       />
                     </div>
@@ -342,28 +304,18 @@ const Login = () => {
                         size={20}
                       />
                       <input
-                  type="tel"
-                  value={watchPhone}
-                  ref={phoneInputRef}
-                  onChange={(e) => {
-                    const cursorPosition = phoneInputRef.current?.selectionStart;
-                    setValue(
-                      "phone",
-                      e.target.value.replace(/\D/g, "").slice(0, 10),
-                      { shouldValidate: false }
-                    );
-                    setTimeout(() => {
-                      if (cursorPosition !== null && phoneInputRef.current) {
-                        phoneInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
-                      }
-                    }, 0);
-                  }}
-                  className="input-field pl-10"
-                  placeholder="Enter your mobile number"
-                  maxLength={10}
-                  required
-                />
+                        type="tel"
+                        {...register("phone")}
+                        className={`input-field pl-10 ${errors.phone ? "border-red-500" : ""}`}
+                        placeholder="Enter 10-digit mobile number"
+                        maxLength={10}
+                      />
                     </div>
+                    {errors.phone && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.phone.message}
+                      </p>
+                    )}
                   </div>
 
                   <button type="submit" disabled={forgotLoading} className="btn-primary w-full">

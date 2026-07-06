@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery, useApolloClient } from "@apollo/client";
 import { LOGIN, REGISTER } from "../graphql/mutations";
 import { GET_ME } from "../graphql/queries";
 
@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const apolloClient = useApolloClient();
 
   const [loginMutation] = useMutation(LOGIN);
   const [registerMutation] = useMutation(REGISTER);
@@ -103,10 +104,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Clear React state
     setUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    
+    // Clear all local storage
+    localStorage.clear();
+    
+    // Clear all session storage
+    sessionStorage.clear();
+    
+    // Reset Apollo Client cache
+    apolloClient.resetStore();
+    
     toast.success("Logged out successfully");
   };
 
