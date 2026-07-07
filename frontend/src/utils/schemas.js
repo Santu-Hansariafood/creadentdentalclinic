@@ -11,7 +11,7 @@ export const registerSchema = z.object({
   phone: z.string().trim().regex(/^\d{10}$/, 'Phone number must be 10 digits'),
   password: z.string().trim().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string().trim().min(6, 'Confirm password is required'),
-  role: z.string().trim().min(1, 'Role is required'),
+  role: z.string().trim().optional().default('patient'),
   specialization: z.string().trim().optional(),
   license: z.string().trim().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
