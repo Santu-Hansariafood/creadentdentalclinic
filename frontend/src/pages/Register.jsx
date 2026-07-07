@@ -19,8 +19,6 @@ const Register = () => {
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(registerSchema),
@@ -34,8 +32,6 @@ const Register = () => {
       role: "patient",
     },
   });
-
-  const watchRole = watch("role");
 
   const onSubmit = async (data) => {
     // Format data before submission
@@ -142,34 +138,7 @@ const Register = () => {
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Role
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: "patient", label: "Patient" },
-                  { id: "doctor", label: "Doctor" },
-                  { id: "admin", label: "Admin" },
-                ].map((r) => (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={() => setValue("role", r.id)}
-                    className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
-                      watchRole === r.id
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-gray-200 hover:border-primary/50 text-gray-600"
-                    }`}
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-              {errors.role && (
-                <p className="text-red-500 text-xs mt-1">{errors.role.message}</p>
-              )}
-            </div>
+
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
