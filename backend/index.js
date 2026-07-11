@@ -21,6 +21,12 @@ const startServer = async () => {
 
   // Custom CORS middleware to handle both origins and subdomains
   app.use((req, res, next) => {
+    console.log("=== Incoming request ===");
+    console.log("Method:", req.method);
+    console.log("URL:", req.url);
+    console.log("Origin:", req.headers.origin);
+    console.log("Headers:", req.headers);
+
     const allowedOrigins = [
       "https://creadentsmiles.com",
       "https://api.creadentsmiles.com",
@@ -29,15 +35,24 @@ const startServer = async () => {
       "http://localhost:3000"
     ];
     const origin = req.headers.origin;
+
+    // Always set CORS headers for allowed origins or no origin
     if (allowedOrigins.includes(origin) || !origin) {
       res.setHeader("Access-Control-Allow-Origin", origin || "*");
+      console.log("Set Access-Control-Allow-Origin to:", origin || "*");
+    } else {
+      console.log("Origin not allowed:", origin);
     }
+
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, apollographql-client-name, apollographql-client-version");
     res.setHeader("Access-Control-Allow-Credentials", "true");
+
     if (req.method === "OPTIONS") {
+      console.log("Handling OPTIONS preflight request");
       return res.sendStatus(204);
     }
+
     next();
   });
 
@@ -135,12 +150,18 @@ ${staticPages.map(page => `  <url>
     res.send(xml);
   });
 
-  // Catch-all route for client-side routing
-  app.get("*", (req, res) => {
-    if (req.path.startsWith("/graphql") || req.path.startsWith("/api")) {
-      return;
+  // Catch-all middleware for client-side routing (avoids Express 5 path-to-regexp error)
+  app.use((req, res, next) => {
+    if (
+      req.method === "GET" &&
+      !req.path.startsWith("/graphql") &&
+      !req.path.startsWith("/api") &&
+      !req.path.startsWith("/health") &&
+      !req.path.startsWith("/sitemap.xml")
+    ) {
+      return res.sendFile(path.join(frontendBuildPath, "index.html"));
     }
-    res.sendFile(path.join(frontendBuildPath, "index.html"));
+    next();
   });
 
   app.use((req, res) => {
