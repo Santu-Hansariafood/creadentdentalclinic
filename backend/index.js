@@ -19,6 +19,9 @@ const startServer = async () => {
   const httpServer = http.createServer(app);
   const PORT = process.env.PORT || 25000;
 
+  app.use(express.json({ limit: "10mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
   // Custom CORS middleware to handle both origins and subdomains
   app.use((req, res, next) => {
     console.log("=== Incoming request ===");
@@ -55,9 +58,6 @@ const startServer = async () => {
 
     next();
   });
-
-  app.use(express.json({ limit: "10mb" }));
-  app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
   const io = socket.init(httpServer);
 
