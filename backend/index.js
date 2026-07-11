@@ -1,6 +1,7 @@
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
+const path = require("path");
 const { ApolloServer } = require("@apollo/server");
 const { expressMiddleware } = require("@apollo/server/express4");
 const connectDB = require("./config/db");
@@ -16,30 +17,29 @@ require("dotenv").config();
 const startServer = async () => {
   const app = express();
   const httpServer = http.createServer(app);
-  const PORT = process.env.PORT || 5000;
+  const PORT = process.env.PORT || 25000;
 
   app.use(
     cors({
-      origin: [
-        "https://creadentsmiles.com",
-        "http://localhost:5173",
-        "http://localhost:25000",
-        "http://localhost:3000"
-      ],
+      origin: (origin, callback) => {
+        const allowedOrigins = [
+          "https://creadentsmiles.com",
+          "http://localhost:5173",
+          "http://localhost:25000",
+          "http://localhost:3000"
+        ];
+        // Allow requests with no origin (like curl or mobile apps)
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
       credentials: true,
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"]
     }),
   );
-
-  // Handle preflight requests explicitly
-  app.options("*", (req, res) => {
-    res.header("Access-Control-Allow-Origin", req.headers.origin);
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.sendStatus(204);
-  });
 
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
@@ -93,6 +93,10 @@ const startServer = async () => {
 
   app.use("/api", authRoutes);
 
+  // Serve static files from frontend build
+  const frontendBuildPath = path.join(__dirname, "../frontend/dist");
+  app.use(express.static(frontendBuildPath));
+
   app.get("/health", (req, res) => {
     res.status(200).json({
       status: "ok",
@@ -131,13 +135,12 @@ ${staticPages.map(page => `  <url>
     res.send(xml);
   });
 
-  app.get("/", (req, res) => {
-    res.send({
-      message: "Creadent Dental Clinic Management API",
-      version: "1.0.0",
-      graphql: "/graphql",
-      rest: "/api",
-    });
+  // Catch-all route for client-side routing
+  app.get("*", (req, res) => {
+    if (req.path.startsWith("/graphql") || req.path.startsWith("/api")) {
+      return;
+    }
+    res.sendFile(path.join(frontendBuildPath, "index.html"));
   });
 
   app.use((req, res) => {

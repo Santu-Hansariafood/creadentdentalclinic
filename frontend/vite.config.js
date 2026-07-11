@@ -46,19 +46,19 @@ export default defineConfig(({ mode }) => {
       })
     ],
     server: {
-      port: 25000,
+      port: 25001,
       allowedHosts: ['api.creadentsmiles.com'],
       proxy: {
         '/api': {
-          target: env.VITE_API_URL || 'http://localhost:25001',
+          target: env.VITE_API_URL || 'http://localhost:25000',
           changeOrigin: true,
         },
         '/graphql': {
-          target: env.VITE_API_URL || 'http://localhost:25001',
+          target: env.VITE_API_URL || 'http://localhost:25000',
           changeOrigin: true,
         },
         '/socket.io': {
-          target: env.VITE_API_URL || 'http://localhost:25001',
+          target: env.VITE_API_URL || 'http://localhost:25000',
           changeOrigin: true,
           ws: true,
         }
