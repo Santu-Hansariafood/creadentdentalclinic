@@ -45,6 +45,85 @@
   },
   "pages": [
     {
+      "slug": "home",
+      "path": "/",
+      "label": "Home",
+      "badge": "Top Dental Care In Salt Lake",
+      "title": "Best Dental Clinic in Salt Lake Kolkata",
+      "heroDescription": "Creadent Dental Clinic offers advanced dental treatment, root canal therapy, teeth whitening, dental implants, braces, and family dental care in Salt Lake, Kolkata.",
+      "seo": {
+        "title": "Best Dental Clinic in Salt Lake Kolkata | Creadent Dental Clinic",
+        "description": "Looking for the best dental clinic in Salt Lake, Kolkata? Creadent Dental Clinic offers expert dentists, root canal treatment, dental implants, braces, teeth whitening, and family dental care.",
+        "keywords": "best dental clinic in Salt Lake Kolkata, best dentist in Bidhannagar, root canal treatment Salt Lake, dental implants Kolkata, teeth whitening Salt Lake, braces dentist Kolkata, family dental clinic Kolkata"
+      },
+      "highlights": [
+        {
+          "icon": "building",
+          "label": "Speciality",
+          "value": "Multispeciality dental care for adults and children"
+        },
+        {
+          "icon": "map-pin",
+          "label": "Address",
+          "value": "BD-85, Salt Lake Rd, AD Block, Sector 1, Bidhannagar, Kolkata 700064"
+        },
+        {
+          "icon": "clock",
+          "label": "Timings",
+          "value": "Open daily from 9:00 AM to 8:00 PM"
+        }
+      ],
+      "sections": [
+        {
+          "title": "Why patients choose Creadent",
+          "paragraphs": [
+            "Creadent Dental Clinic is designed to give patients in Salt Lake and Kolkata a reliable, modern, and comfortable dental care experience.",
+            "We focus on transparent consultations, quality treatment planning, and clear communication so patients know exactly what to expect at every stage."
+          ]
+        },
+        {
+          "title": "Popular dental services",
+          "items": [
+            "Root canal treatment and restorative dental care",
+            "Dental implants and replacement solutions",
+            "Professional teeth whitening and cosmetic dentistry",
+            "Braces, alignment treatment, and smile improvement",
+            "Routine checkups, cleaning, and preventive dentistry",
+            "Family dental care for children, adults, and senior patients"
+          ]
+        },
+        {
+          "title": "Serving Salt Lake and nearby Kolkata areas",
+          "paragraphs": [
+            "Our clinic is conveniently located in Bidhannagar, making it easy for patients across Salt Lake and surrounding Kolkata areas to access high-quality dental treatment.",
+            "Whether you need preventive care, cosmetic improvements, or restorative treatment, our goal is to deliver dependable care with a smooth digital experience."
+          ]
+        }
+      ],
+      "faq": [
+        {
+          "question": "Which is the best dental clinic in Salt Lake Kolkata?",
+          "answer": "Creadent Dental Clinic in Salt Lake, Kolkata provides modern dental care, transparent consultations, and advanced treatment options for patients of all ages."
+        },
+        {
+          "question": "Do you offer root canal treatment in Salt Lake?",
+          "answer": "Yes, Creadent Dental Clinic offers advanced root canal treatment along with restorative and preventive dental care."
+        },
+        {
+          "question": "Where is Creadent Dental Clinic located?",
+          "answer": "The clinic is located at BD-85, Salt Lake Rd, AD Block, Sector 1, Bidhannagar, Kolkata, West Bengal 700064."
+        }
+      ],
+      "cta": {
+        "title": "Book your visit with Creadent Dental Clinic",
+        "description": "Contact the clinic for appointments, treatment enquiries, and guidance before your visit.",
+        "primaryLabel": "Contact us",
+        "primaryHref": "/contact-us",
+        "secondaryLabel": "Login",
+        "secondaryHref": "/login"
+      }
+    },
+    {
       "slug": "about-us",
       "path": "/about-us",
       "label": "About us",

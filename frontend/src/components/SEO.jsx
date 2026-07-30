@@ -16,6 +16,7 @@ const SEO = ({
   const baseUrl = import.meta.env.VITE_SITE_URL || "https://creadentsmiles.com";
   const fullUrl = url.startsWith("http") ? url : `${baseUrl}${url}`;
   const canonicalUrl = canonical || fullUrl;
+  const imageUrl = image.startsWith("http") ? image : `${baseUrl}${image}`;
   const structuredDataList = Array.isArray(structuredData)
     ? structuredData
     : structuredData
@@ -29,15 +30,22 @@ const SEO = ({
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
       <meta name="author" content={author} />
+      <meta name="application-name" content="Creadent Dental Clinic" />
+      <meta name="theme-color" content="#007FAF" />
       <meta name="robots" content={`${noindex ? "noindex" : "index"}, ${nofollow ? "nofollow" : "follow"}`} />
+      <meta name="geo.region" content="IN-WB" />
+      <meta name="geo.placename" content="Salt Lake, Kolkata" />
+      <meta name="geo.position" content="22.5855;88.4017" />
+      <meta name="ICBM" content="22.5855, 88.4017" />
       
       <link rel="canonical" href={canonicalUrl} />
+      <link rel="alternate" hrefLang="en-in" href={canonicalUrl} />
 
       <meta property="og:type" content={type} />
       <meta property="og:url" content={fullUrl} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
-      <meta property="og:image" content={image} />
+      <meta property="og:image" content={imageUrl} />
       <meta property="og:site_name" content="Creadent Dental Clinic" />
       <meta property="og:locale" content="en_IN" />
 
@@ -45,7 +53,7 @@ const SEO = ({
       <meta name="twitter:url" content={fullUrl} />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={image} />
+      <meta name="twitter:image" content={imageUrl} />
 
       {structuredDataList.map((item, index) => (
         <script key={`${title}-schema-${index}`} type="application/ld+json">

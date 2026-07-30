@@ -15,7 +15,7 @@ const PublicLayout = ({ children }) => {
       <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <Link to="/about-us" className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                 <img
                   src="/logo/logo.png"

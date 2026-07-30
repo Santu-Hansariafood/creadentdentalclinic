@@ -538,15 +538,9 @@ const App = () => {
                 />
 
                 <Route
-                  path="/"
-                  element={
-                    <Navigate to={isAuthenticated ? getDashboardRoute() : "/about-us"} />
-                  }
-                />
-                <Route
                   path="*"
                   element={
-                    <Navigate to={isAuthenticated ? getDashboardRoute() : "/about-us"} />
+                    <Navigate to={isAuthenticated ? getDashboardRoute() : "/"} />
                   }
                 />
               </Routes>

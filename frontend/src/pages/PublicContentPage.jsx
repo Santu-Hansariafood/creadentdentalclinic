@@ -52,6 +52,8 @@ const PublicContentPage = ({ pageSlug }) => {
     "@type":
       page.slug === "contact-us"
         ? "ContactPage"
+        : page.slug === "home"
+          ? "WebPage"
         : page.slug === "about-us"
           ? "AboutPage"
           : "WebPage",
@@ -86,6 +88,56 @@ const PublicContentPage = ({ pageSlug }) => {
         }
       : null;
 
+  const homeBusinessSchema =
+    page.slug === "home"
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Dentist",
+          name: site.name,
+          url: site.website,
+          image: `${site.website}/logo/logo.png`,
+          telephone: site.phoneDisplay,
+          email: site.email,
+          priceRange: "₹200-₹5000",
+          areaServed: ["Salt Lake", "Bidhannagar", "Kolkata", "West Bengal"],
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: site.addressLines[0],
+            addressLocality: "Kolkata",
+            addressRegion: "West Bengal",
+            postalCode: "700064",
+            addressCountry: "IN",
+          },
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: Number(site.geo?.latitude || 22.5855),
+            longitude: Number(site.geo?.longitude || 88.4017),
+          },
+          openingHours: "Mo-Su 09:00-20:00",
+        }
+      : null;
+
+  const faqSchema =
+    page.faq?.length
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: page.faq.map((item) => ({
+            "@type": "Question",
+            name: item.question,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: item.answer,
+            },
+          })),
+        }
+      : null;
+
+  const structuredData = [webPageSchema, breadcrumbSchema];
+  if (contactSchema) structuredData.push(contactSchema);
+  if (homeBusinessSchema) structuredData.push(homeBusinessSchema);
+  if (faqSchema) structuredData.push(faqSchema);
+
   return (
     <>
       <SEO
@@ -94,7 +146,7 @@ const PublicContentPage = ({ pageSlug }) => {
         keywords={page.seo.keywords}
         url={page.path}
         canonical={`${site.website}${page.path}`}
-        structuredData={contactSchema ? [webPageSchema, breadcrumbSchema, contactSchema] : [webPageSchema, breadcrumbSchema]}
+        structuredData={structuredData}
       />
 
       <PublicLayout>
@@ -176,6 +228,28 @@ const PublicContentPage = ({ pageSlug }) => {
             ))}
           </div>
         </section>
+
+        {page.faq?.length ? (
+          <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8 lg:pb-16">
+            <div className="card">
+              <h2 className="font-heading text-2xl font-semibold text-gray-900">
+                Frequently asked questions
+              </h2>
+              <div className="mt-6 grid gap-4">
+                {page.faq.map((item) => (
+                  <article key={item.question} className="rounded-2xl border border-gray-200 p-5">
+                    <h3 className="font-heading text-lg font-semibold text-gray-900">
+                      {item.question}
+                    </h3>
+                    <p className="mt-2 text-base leading-7 text-gray-600">
+                      {item.answer}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         {page.cta ? (
           <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-20">
