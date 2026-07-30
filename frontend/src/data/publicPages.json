@@ -1,0 +1,363 @@
+{
+  "site": {
+    "name": "Creadent Dental Clinic",
+    "tagline": "Trusted dental care in Salt Lake, Kolkata.",
+    "description": "Creadent Dental Clinic provides modern dental care with a focus on patient comfort, transparency, and long-term oral health.",
+    "phoneDisplay": "+91 62923 00343",
+    "phoneHref": "tel:+916292300343",
+    "email": "creadentmultispecialitydentalclinic@gmail.com",
+    "emailHref": "mailto:creadentmultispecialitydentalclinic@gmail.com",
+    "addressLines": [
+      "BD-85, Salt Lake Rd, AD Block, Sector 1",
+      "Bidhannagar, Kolkata, West Bengal 700064"
+    ],
+    "website": "https://creadentsmiles.com",
+    "hours": [
+      "Monday to Sunday",
+      "9:00 AM to 8:00 PM"
+    ],
+    "cta": {
+      "primaryLabel": "Login",
+      "primaryHref": "/login",
+      "secondaryLabel": "Register",
+      "secondaryHref": "/register"
+    }
+  },
+  "pages": [
+    {
+      "slug": "about-us",
+      "path": "/about-us",
+      "label": "About us",
+      "badge": "Public Information",
+      "title": "About Creadent Dental Clinic",
+      "heroDescription": "We are committed to making high-quality dental care accessible, transparent, and comfortable for every patient who walks into our clinic.",
+      "seo": {
+        "title": "About Us | Creadent Dental Clinic Kolkata",
+        "description": "Learn about Creadent Dental Clinic in Kolkata, our patient-first approach, and our commitment to modern, dependable dental care.",
+        "keywords": "about Creadent Dental Clinic, dental clinic Kolkata, dentist Salt Lake Kolkata, patient-focused dental care"
+      },
+      "highlights": [
+        {
+          "icon": "building",
+          "label": "Clinic Focus",
+          "value": "Modern dental care with a patient-first approach"
+        },
+        {
+          "icon": "map-pin",
+          "label": "Location",
+          "value": "Salt Lake, Bidhannagar, Kolkata"
+        },
+        {
+          "icon": "clock",
+          "label": "Availability",
+          "value": "Open daily from 9:00 AM to 8:00 PM"
+        }
+      ],
+      "sections": [
+        {
+          "title": "Who we are",
+          "paragraphs": [
+            "Creadent Dental Clinic is a Kolkata-based dental care practice built around clear communication, reliable treatment planning, and a comfortable patient experience.",
+            "We aim to combine professional clinical care with a calm, well-organized process so patients can make informed decisions with confidence."
+          ]
+        },
+        {
+          "title": "What matters to us",
+          "items": [
+            "Clear guidance before, during, and after treatment",
+            "A welcoming experience for children, adults, and senior patients",
+            "Practical treatment recommendations based on actual patient needs",
+            "Consistent follow-up and support for long-term oral health"
+          ]
+        },
+        {
+          "title": "Our approach",
+          "paragraphs": [
+            "We believe dental care should feel approachable and transparent. That means explaining treatment options in simple terms, discussing expected outcomes honestly, and respecting each patient's time and comfort.",
+            "Whether you are visiting for preventive care or a more advanced procedure, our goal is to deliver dependable care through a thoughtful and organized clinical experience."
+          ]
+        }
+      ],
+      "cta": {
+        "title": "Ready to connect with our clinic?",
+        "description": "Visit our contact page for location details, call support, and operating hours.",
+        "primaryLabel": "Contact us",
+        "primaryHref": "/contact-us",
+        "secondaryLabel": "Login",
+        "secondaryHref": "/login"
+      }
+    },
+    {
+      "slug": "contact-us",
+      "path": "/contact-us",
+      "label": "Contact us",
+      "badge": "Get In Touch",
+      "title": "Contact Creadent Dental Clinic",
+      "heroDescription": "Reach out for appointments, clinic information, and general support using the contact details below.",
+      "seo": {
+        "title": "Contact Us | Creadent Dental Clinic Kolkata",
+        "description": "Contact Creadent Dental Clinic in Salt Lake, Kolkata for appointments, clinic enquiries, and patient support.",
+        "keywords": "contact Creadent Dental Clinic, dentist phone number Kolkata, dental clinic Salt Lake address, dental appointment Kolkata"
+      },
+      "highlights": [
+        {
+          "icon": "phone",
+          "label": "Phone",
+          "value": "+91 62923 00343",
+          "href": "tel:+916292300343"
+        },
+        {
+          "icon": "mail",
+          "label": "Email",
+          "value": "creadentmultispecialitydentalclinic@gmail.com",
+          "href": "mailto:creadentmultispecialitydentalclinic@gmail.com"
+        },
+        {
+          "icon": "map-pin",
+          "label": "Visit us",
+          "value": "BD-85, Salt Lake Rd, AD Block, Sector 1, Bidhannagar, Kolkata, West Bengal 700064"
+        }
+      ],
+      "sections": [
+        {
+          "title": "Clinic address",
+          "paragraphs": [
+            "BD-85, Salt Lake Rd, AD Block, Sector 1",
+            "Bidhannagar, Kolkata, West Bengal 700064"
+          ]
+        },
+        {
+          "title": "Working hours",
+          "items": [
+            "Monday to Sunday",
+            "9:00 AM to 8:00 PM",
+            "Please contact us in advance for appointment availability"
+          ]
+        },
+        {
+          "title": "How we can help",
+          "items": [
+            "Appointment booking and follow-up queries",
+            "General treatment and clinic information",
+            "Location guidance and visit planning",
+            "Support for existing patient communication"
+          ]
+        }
+      ],
+      "cta": {
+        "title": "Need quick access to your account?",
+        "description": "Patients and team members can continue through the secure login portal.",
+        "primaryLabel": "Login",
+        "primaryHref": "/login",
+        "secondaryLabel": "Register",
+        "secondaryHref": "/register"
+      }
+    },
+    {
+      "slug": "privacy-policy",
+      "path": "/privacy-policy",
+      "label": "Privacy policy",
+      "badge": "Policy",
+      "title": "Privacy Policy",
+      "heroDescription": "This policy explains how Creadent Dental Clinic collects, uses, stores, and protects information shared through our website and services.",
+      "seo": {
+        "title": "Privacy Policy | Creadent Dental Clinic",
+        "description": "Read the privacy policy for Creadent Dental Clinic to understand how we handle patient and visitor information.",
+        "keywords": "privacy policy dental clinic, patient data privacy, Creadent Dental Clinic privacy policy"
+      },
+      "sections": [
+        {
+          "title": "Information we collect",
+          "items": [
+            "Basic contact information such as name, phone number, and email address",
+            "Information submitted during account registration or appointment-related workflows",
+            "Technical information that helps us maintain website performance and security"
+          ]
+        },
+        {
+          "title": "How we use information",
+          "items": [
+            "To manage appointments, communication, and patient support",
+            "To operate, maintain, and improve our website and digital services",
+            "To comply with legal, regulatory, and record-keeping obligations"
+          ]
+        },
+        {
+          "title": "Data protection",
+          "paragraphs": [
+            "We take reasonable administrative and technical measures to protect personal information from unauthorized access, misuse, or disclosure.",
+            "Only authorized personnel and trusted service providers with a valid operational need may access relevant information."
+          ]
+        },
+        {
+          "title": "Your choices",
+          "items": [
+            "You may contact us to request corrections to inaccurate information",
+            "You may ask questions about how your information is used or retained",
+            "Where applicable, requests will be handled in accordance with our legal and operational obligations"
+          ]
+        }
+      ],
+      "cta": {
+        "title": "Questions about privacy?",
+        "description": "Please reach out through our contact page for policy-related enquiries.",
+        "primaryLabel": "Contact us",
+        "primaryHref": "/contact-us",
+        "secondaryLabel": "Terms and conditions",
+        "secondaryHref": "/terms-and-conditions"
+      }
+    },
+    {
+      "slug": "terms-and-conditions",
+      "path": "/terms-and-conditions",
+      "label": "Terms and conditions",
+      "badge": "Policy",
+      "title": "Terms and Conditions",
+      "heroDescription": "These terms explain the basic rules, responsibilities, and acceptable use conditions for accessing our website and clinic-related digital services.",
+      "seo": {
+        "title": "Terms and Conditions | Creadent Dental Clinic",
+        "description": "Review the terms and conditions for using the Creadent Dental Clinic website and digital services.",
+        "keywords": "terms and conditions dental clinic, website terms, Creadent Dental Clinic terms"
+      },
+      "sections": [
+        {
+          "title": "Use of this website",
+          "items": [
+            "You agree to use this website only for lawful and legitimate purposes",
+            "You must not attempt to disrupt, misuse, or gain unauthorized access to our systems",
+            "Information published on this website is intended for general informational use unless stated otherwise"
+          ]
+        },
+        {
+          "title": "Appointments and services",
+          "paragraphs": [
+            "Appointment availability, treatment recommendations, timelines, and outcomes may vary depending on medical assessment and clinic scheduling.",
+            "Submitting a request through our website does not guarantee a confirmed appointment until our team acknowledges or confirms it."
+          ]
+        },
+        {
+          "title": "Content and accuracy",
+          "paragraphs": [
+            "We make reasonable efforts to keep information current and accurate, but we do not guarantee that every page will always be complete, up to date, or free from error.",
+            "Clinic policies, service details, and operational information may be updated from time to time without prior notice."
+          ]
+        },
+        {
+          "title": "Limitation",
+          "items": [
+            "Website use is at your own discretion",
+            "We are not responsible for losses arising from external service interruptions beyond our control",
+            "These terms should be read together with our privacy, refund, and cancellation policies where relevant"
+          ]
+        }
+      ],
+      "cta": {
+        "title": "Review related policies",
+        "description": "You can also read our privacy, refund, and cancellation policies for more detail.",
+        "primaryLabel": "Privacy policy",
+        "primaryHref": "/privacy-policy",
+        "secondaryLabel": "Refund policy",
+        "secondaryHref": "/refund-policy"
+      }
+    },
+    {
+      "slug": "refund-policy",
+      "path": "/refund-policy",
+      "label": "Refund policy",
+      "badge": "Policy",
+      "title": "Refund Policy",
+      "heroDescription": "This page outlines the general principles we follow when reviewing payment-related refund requests.",
+      "seo": {
+        "title": "Refund Policy | Creadent Dental Clinic",
+        "description": "Read the refund policy for Creadent Dental Clinic to understand how payment and refund requests are reviewed.",
+        "keywords": "refund policy dental clinic, payment refund policy, Creadent Dental Clinic refund"
+      },
+      "sections": [
+        {
+          "title": "General refund guidance",
+          "paragraphs": [
+            "Refund requests are reviewed based on the nature of the payment, the service status, and the circumstances of the request.",
+            "Any approved refund is processed using the original payment method wherever operationally possible."
+          ]
+        },
+        {
+          "title": "When a refund may be considered",
+          "items": [
+            "Duplicate or accidental payment transactions",
+            "Payments collected for a service that was not ultimately provided",
+            "Other exceptional situations reviewed by the clinic on a case-by-case basis"
+          ]
+        },
+        {
+          "title": "When a refund may not apply",
+          "items": [
+            "Completed consultations, procedures, or services already delivered",
+            "Charges already consumed toward diagnostic, administrative, or treatment-related work",
+            "Situations where non-refundable terms were shared in advance"
+          ]
+        },
+        {
+          "title": "Processing time",
+          "paragraphs": [
+            "Approved refunds may take reasonable processing time depending on the payment provider, banking channels, and verification requirements.",
+            "For assistance, please contact the clinic with your payment details and request summary."
+          ]
+        }
+      ],
+      "cta": {
+        "title": "Need help with a payment issue?",
+        "description": "Please contact the clinic directly so the team can review your request.",
+        "primaryLabel": "Contact us",
+        "primaryHref": "/contact-us",
+        "secondaryLabel": "Cancellation policy",
+        "secondaryHref": "/cancellation-policy"
+      }
+    },
+    {
+      "slug": "cancellation-policy",
+      "path": "/cancellation-policy",
+      "label": "Cancellation policy",
+      "badge": "Policy",
+      "title": "Cancellation Policy",
+      "heroDescription": "This policy explains how appointment cancellations and rescheduling requests should be handled.",
+      "seo": {
+        "title": "Cancellation Policy | Creadent Dental Clinic",
+        "description": "Read the cancellation policy for Creadent Dental Clinic to understand appointment cancellation and rescheduling expectations.",
+        "keywords": "cancellation policy dental clinic, appointment cancellation, Creadent Dental Clinic cancellation"
+      },
+      "sections": [
+        {
+          "title": "Appointment cancellation",
+          "paragraphs": [
+            "If you need to cancel or reschedule an appointment, please contact the clinic as early as possible so the slot can be managed appropriately.",
+            "Advance notice helps us support other patients and coordinate clinic schedules more effectively."
+          ]
+        },
+        {
+          "title": "Late cancellation or missed visits",
+          "items": [
+            "Repeated short-notice cancellations may affect future scheduling preference",
+            "Missed appointments without prior notice may require reconfirmation before a new booking is accepted",
+            "Prepaid bookings may be reviewed in line with our refund policy and treatment-specific terms"
+          ]
+        },
+        {
+          "title": "Rescheduling support",
+          "items": [
+            "Our team will make reasonable efforts to provide the next suitable appointment slot",
+            "Rescheduled timing depends on doctor availability, treatment requirements, and clinic operations",
+            "Urgent dental concerns should be communicated clearly while requesting a new slot"
+          ]
+        }
+      ],
+      "cta": {
+        "title": "Need to reschedule an appointment?",
+        "description": "Get in touch with the clinic directly and the team will guide you through the next available option.",
+        "primaryLabel": "Contact us",
+        "primaryHref": "/contact-us",
+        "secondaryLabel": "Refund policy",
+        "secondaryHref": "/refund-policy"
+      }
+    }
+  ]
+}

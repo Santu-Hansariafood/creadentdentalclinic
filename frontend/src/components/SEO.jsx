@@ -11,10 +11,16 @@ const SEO = ({
   noindex = false,
   nofollow = false,
   canonical,
+  structuredData,
 }) => {
   const baseUrl = import.meta.env.VITE_SITE_URL || "https://creadentsmiles.com";
   const fullUrl = url.startsWith("http") ? url : `${baseUrl}${url}`;
   const canonicalUrl = canonical || fullUrl;
+  const structuredDataList = Array.isArray(structuredData)
+    ? structuredData
+    : structuredData
+      ? [structuredData]
+      : [];
 
   return (
     <Helmet>
@@ -40,6 +46,12 @@ const SEO = ({
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={image} />
+
+      {structuredDataList.map((item, index) => (
+        <script key={`${title}-schema-${index}`} type="application/ld+json">
+          {JSON.stringify(item)}
+        </script>
+      ))}
     </Helmet>
   );
 };

@@ -1,5 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
@@ -10,10 +10,12 @@ import toast from "react-hot-toast";
 import { preloadLikelyRoutes, preloadRoute } from "./utils/preload";
 import { useQuery } from "@apollo/client";
 import { GET_MY_PATIENT } from "./graphql/queries";
+import publicContent from "./data/publicPages.json";
 
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const OTPVerification = lazy(() => import("./pages/OTPVerification"));
+const PublicContentPage = lazy(() => import("./pages/PublicContentPage"));
 const PatientDashboard = lazy(() => import("./pages/PatientDashboard"));
 const DoctorDashboard = lazy(() => import("./pages/DoctorDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -63,9 +65,13 @@ const PatientRegistrationCheck = ({ children }) => {
 const App = () => {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const publicRoutePaths = publicContent.pages.map((page) => page.path);
+  const isPublicPage = publicRoutePaths.includes(location.pathname);
+  const showDashboardChrome = isAuthenticated && !isPublicPage;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -125,19 +131,27 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {isAuthenticated && (
+      {showDashboardChrome && (
         <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={sidebarOpen} />
       )}
       <div className="flex">
-        {isAuthenticated && (
+        {showDashboardChrome && (
           <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
         )}
         <main
-          className={`flex-1 transition-all duration-300 ${isAuthenticated ? "lg:ml-64 mt-16" : ""}`}
+          className={`flex-1 transition-all duration-300 ${showDashboardChrome ? "lg:ml-64 mt-16" : ""}`}
         >
-          <div className="p-4 sm:p-6 lg:p-8">
+          <div className={isPublicPage ? "" : "p-4 sm:p-6 lg:p-8"}>
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
+                {publicContent.pages.map((page) => (
+                  <Route
+                    key={page.slug}
+                    path={page.path}
+                    element={<PublicContentPage pageSlug={page.slug} />}
+                  />
+                ))}
+
                 <Route
                   path="/login"
                   element={
@@ -526,17 +540,13 @@ const App = () => {
                 <Route
                   path="/"
                   element={
-                    <Navigate
-                      to={isAuthenticated ? getDashboardRoute() : "/login"}
-                    />
+                    <Navigate to={isAuthenticated ? getDashboardRoute() : "/about-us"} />
                   }
                 />
                 <Route
                   path="*"
                   element={
-                    <Navigate
-                      to={isAuthenticated ? getDashboardRoute() : "/login"}
-                    />
+                    <Navigate to={isAuthenticated ? getDashboardRoute() : "/about-us"} />
                   }
                 />
               </Routes>
