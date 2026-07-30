@@ -12,15 +12,35 @@
       "Bidhannagar, Kolkata, West Bengal 700064"
     ],
     "website": "https://creadentsmiles.com",
-    "hours": [
-      "Monday to Sunday",
-      "9:00 AM to 8:00 PM"
-    ],
+    "geo": {
+      "latitude": "22.5855",
+      "longitude": "88.4017",
+      "region": "IN-WB",
+      "locality": "Salt Lake, Kolkata"
+    },
+    "hours": ["Monday to Sunday", "9:00 AM to 8:00 PM"],
+    "currency": "INR",
+    "currencySymbol": "₹",
+    "taxInfo": {
+      "gstin": "",
+      "taxNote": "Applicable GST will be levied on professional dental services as per government regulations."
+    },
+    "paymentGatewayConfig": {
+      "supportedMethods": [
+        "upi",
+        "credit_card",
+        "debit_card",
+        "net_banking",
+        "wallet"
+      ],
+      "defaultCurrency": "INR",
+      "receiptPrefix": "CREADENT-TXN"
+    },
     "cta": {
-      "primaryLabel": "Login",
-      "primaryHref": "/login",
-      "secondaryLabel": "Register",
-      "secondaryHref": "/register"
+      "primaryLabel": "Book Appointment",
+      "primaryHref": "/contact-us",
+      "secondaryLabel": "Login",
+      "secondaryHref": "/login"
     }
   },
   "pages": [
@@ -29,23 +49,23 @@
       "path": "/about-us",
       "label": "About us",
       "badge": "Public Information",
-      "title": "About Creadent Dental Clinic",
-      "heroDescription": "We are committed to making high-quality dental care accessible, transparent, and comfortable for every patient who walks into our clinic.",
+      "title": "About Creadent Dental Clinic | Salt Lake Kolkata",
+      "heroDescription": "We are committed to making high-quality dental care accessible, transparent, and comfortable for every patient who walks into our Salt Lake clinic.",
       "seo": {
-        "title": "About Us | Creadent Dental Clinic Kolkata",
-        "description": "Learn about Creadent Dental Clinic in Kolkata, our patient-first approach, and our commitment to modern, dependable dental care.",
-        "keywords": "about Creadent Dental Clinic, dental clinic Kolkata, dentist Salt Lake Kolkata, patient-focused dental care"
+        "title": "About Us | Best Dental Clinic in Salt Lake Kolkata",
+        "description": "Learn about Creadent Dental Clinic in Salt Lake, Kolkata, our patient-first approach, and our commitment to modern, dependable dental care.",
+        "keywords": "about Creadent Dental Clinic, dental clinic Salt Lake Kolkata, dentist Bidhannagar, patient-focused dental care"
       },
       "highlights": [
         {
           "icon": "building",
           "label": "Clinic Focus",
-          "value": "Modern dental care with a patient-first approach"
+          "value": "Advanced multispeciality dental care with a patient-first approach"
         },
         {
           "icon": "map-pin",
           "label": "Location",
-          "value": "Salt Lake, Bidhannagar, Kolkata"
+          "value": "BD-85, Salt Lake Rd, AD Block, Sector 1, Bidhannagar, Kolkata 700064"
         },
         {
           "icon": "clock",
@@ -57,34 +77,34 @@
         {
           "title": "Who we are",
           "paragraphs": [
-            "Creadent Dental Clinic is a Kolkata-based dental care practice built around clear communication, reliable treatment planning, and a comfortable patient experience.",
-            "We aim to combine professional clinical care with a calm, well-organized process so patients can make informed decisions with confidence."
+            "Creadent Dental Clinic is a premier Kolkata-based dental care practice located in Salt Lake, built around clear communication, reliable treatment planning, and a comfortable patient experience.",
+            "We combine professional clinical expertise with modern technology so patients can make informed oral healthcare decisions with complete confidence."
           ]
         },
         {
           "title": "What matters to us",
           "items": [
-            "Clear guidance before, during, and after treatment",
-            "A welcoming experience for children, adults, and senior patients",
-            "Practical treatment recommendations based on actual patient needs",
-            "Consistent follow-up and support for long-term oral health"
+            "Clear guidance and transparent pricing before, during, and after treatment",
+            "A welcoming, stress-free experience for children, adults, and senior patients",
+            "Practical treatment recommendations based on actual clinical needs",
+            "Consistent follow-up and digital support for long-term oral health"
           ]
         },
         {
           "title": "Our approach",
           "paragraphs": [
-            "We believe dental care should feel approachable and transparent. That means explaining treatment options in simple terms, discussing expected outcomes honestly, and respecting each patient's time and comfort.",
-            "Whether you are visiting for preventive care or a more advanced procedure, our goal is to deliver dependable care through a thoughtful and organized clinical experience."
+            "We believe dental care in Kolkata should feel approachable and transparent. That means explaining treatment options in simple terms, discussing expected outcomes honestly, and respecting each patient's time.",
+            "Whether you are visiting for preventive checkups, root canal therapy, or dental implants, our goal is to deliver dependable care through a seamless digital and clinical experience."
           ]
         }
       ],
       "cta": {
-        "title": "Ready to connect with our clinic?",
-        "description": "Visit our contact page for location details, call support, and operating hours.",
+        "title": "Ready to visit our clinic?",
+        "description": "Get in touch for appointment scheduling, location details, and payment support.",
         "primaryLabel": "Contact us",
         "primaryHref": "/contact-us",
-        "secondaryLabel": "Login",
-        "secondaryHref": "/login"
+        "secondaryLabel": "Book Consultation",
+        "secondaryHref": "/contact-us"
       }
     },
     {
@@ -93,11 +113,11 @@
       "label": "Contact us",
       "badge": "Get In Touch",
       "title": "Contact Creadent Dental Clinic",
-      "heroDescription": "Reach out for appointments, clinic information, and general support using the contact details below.",
+      "heroDescription": "Reach out for appointments, billing enquiries, payment support, and clinic information using the details below.",
       "seo": {
-        "title": "Contact Us | Creadent Dental Clinic Kolkata",
-        "description": "Contact Creadent Dental Clinic in Salt Lake, Kolkata for appointments, clinic enquiries, and patient support.",
-        "keywords": "contact Creadent Dental Clinic, dentist phone number Kolkata, dental clinic Salt Lake address, dental appointment Kolkata"
+        "title": "Contact Us | Creadent Dental Clinic Salt Lake Kolkata",
+        "description": "Contact Creadent Dental Clinic in Salt Lake, Kolkata for appointments, payment support, and patient enquiries.",
+        "keywords": "contact Creadent Dental Clinic, dentist phone number Kolkata, dental clinic Salt Lake address, book dental appointment Kolkata"
       },
       "highlights": [
         {
@@ -131,16 +151,16 @@
           "items": [
             "Monday to Sunday",
             "9:00 AM to 8:00 PM",
-            "Please contact us in advance for appointment availability"
+            "Online advance booking and digital payment options available"
           ]
         },
         {
           "title": "How we can help",
           "items": [
-            "Appointment booking and follow-up queries",
-            "General treatment and clinic information",
-            "Location guidance and visit planning",
-            "Support for existing patient communication"
+            "Appointment bookings and online consultation payments",
+            "Treatment cost estimates and payment gateway assistance",
+            "Location guidance and visit planning in Salt Lake",
+            "Post-treatment support and billing receipt queries"
           ]
         }
       ],
@@ -159,48 +179,49 @@
       "label": "Privacy policy",
       "badge": "Policy",
       "title": "Privacy Policy",
-      "heroDescription": "This policy explains how Creadent Dental Clinic collects, uses, stores, and protects information shared through our website and services.",
+      "heroDescription": "This policy explains how Creadent Dental Clinic collects, uses, stores, and protects information shared through our website, appointment bookings, and payment gateways.",
       "seo": {
-        "title": "Privacy Policy | Creadent Dental Clinic",
-        "description": "Read the privacy policy for Creadent Dental Clinic to understand how we handle patient and visitor information.",
-        "keywords": "privacy policy dental clinic, patient data privacy, Creadent Dental Clinic privacy policy"
+        "title": "Privacy Policy | Creadent Dental Clinic Kolkata",
+        "description": "Read the privacy policy for Creadent Dental Clinic to understand how we securely handle patient, visitor, and payment information.",
+        "keywords": "privacy policy dental clinic, patient data privacy, secure payment privacy policy, Creadent Dental Clinic"
       },
       "sections": [
         {
           "title": "Information we collect",
           "items": [
             "Basic contact information such as name, phone number, and email address",
-            "Information submitted during account registration or appointment-related workflows",
-            "Technical information that helps us maintain website performance and security"
+            "Appointment booking history, medical consultation notes, and treatment preferences",
+            "Encrypted payment transaction logs and billing details processed securely via certified payment gateways",
+            "Technical information that helps us maintain website performance, security, and uptime"
           ]
         },
         {
           "title": "How we use information",
           "items": [
-            "To manage appointments, communication, and patient support",
+            "To manage appointments, clinical communications, and patient support",
+            "To process secure online payments, issue digital receipts, and prevent fraudulent transactions",
             "To operate, maintain, and improve our website and digital services",
-            "To comply with legal, regulatory, and record-keeping obligations"
+            "To comply with legal, medical record-keeping, and financial regulatory obligations"
+          ]
+        },
+        {
+          "title": "Payment security",
+          "paragraphs": [
+            "All online payments processed through our website are handled by PCI-DSS compliant secure payment gateway providers.",
+            "We do not store your complete credit card numbers, CVV, or net banking passwords directly on our servers."
           ]
         },
         {
           "title": "Data protection",
           "paragraphs": [
-            "We take reasonable administrative and technical measures to protect personal information from unauthorized access, misuse, or disclosure.",
-            "Only authorized personnel and trusted service providers with a valid operational need may access relevant information."
-          ]
-        },
-        {
-          "title": "Your choices",
-          "items": [
-            "You may contact us to request corrections to inaccurate information",
-            "You may ask questions about how your information is used or retained",
-            "Where applicable, requests will be handled in accordance with our legal and operational obligations"
+            "We implement robust administrative, technical, and physical security measures to protect personal and financial information from unauthorized access, alteration, or disclosure.",
+            "Only authorized clinical and billing personnel with a valid operational need may access relevant records."
           ]
         }
       ],
       "cta": {
-        "title": "Questions about privacy?",
-        "description": "Please reach out through our contact page for policy-related enquiries.",
+        "title": "Questions about privacy or payments?",
+        "description": "Please reach out through our contact page for policy or transaction-related enquiries.",
         "primaryLabel": "Contact us",
         "primaryHref": "/contact-us",
         "secondaryLabel": "Terms and conditions",
@@ -213,47 +234,39 @@
       "label": "Terms and conditions",
       "badge": "Policy",
       "title": "Terms and Conditions",
-      "heroDescription": "These terms explain the basic rules, responsibilities, and acceptable use conditions for accessing our website and clinic-related digital services.",
+      "heroDescription": "These terms outline the rules, payment obligations, and usage conditions for accessing our website, booking services, and interacting with our digital portal.",
       "seo": {
         "title": "Terms and Conditions | Creadent Dental Clinic",
-        "description": "Review the terms and conditions for using the Creadent Dental Clinic website and digital services.",
-        "keywords": "terms and conditions dental clinic, website terms, Creadent Dental Clinic terms"
+        "description": "Review the terms and conditions for using the Creadent Dental Clinic website, online booking, and payment processing services.",
+        "keywords": "terms and conditions dental clinic, website terms, payment terms, Creadent Dental Clinic terms"
       },
       "sections": [
         {
           "title": "Use of this website",
           "items": [
-            "You agree to use this website only for lawful and legitimate purposes",
-            "You must not attempt to disrupt, misuse, or gain unauthorized access to our systems",
-            "Information published on this website is intended for general informational use unless stated otherwise"
+            "You agree to use this website and booking platform only for lawful and legitimate healthcare purposes",
+            "You must not attempt to disrupt, hack, or gain unauthorized access to our payment systems or database",
+            "Information published on this website is intended for general guidance and informational use"
           ]
         },
         {
-          "title": "Appointments and services",
+          "title": "Bookings and online payments",
           "paragraphs": [
-            "Appointment availability, treatment recommendations, timelines, and outcomes may vary depending on medical assessment and clinic scheduling.",
-            "Submitting a request through our website does not guarantee a confirmed appointment until our team acknowledges or confirms it."
+            "Submitting an advance payment or booking request through our website reserves your appointment slot pending clinical confirmation.",
+            "Service prices, treatment packages, and consultation fees are quoted in Indian Rupees (INR) and are subject to change based on customized medical assessments."
           ]
         },
         {
           "title": "Content and accuracy",
           "paragraphs": [
-            "We make reasonable efforts to keep information current and accurate, but we do not guarantee that every page will always be complete, up to date, or free from error.",
-            "Clinic policies, service details, and operational information may be updated from time to time without prior notice."
-          ]
-        },
-        {
-          "title": "Limitation",
-          "items": [
-            "Website use is at your own discretion",
-            "We are not responsible for losses arising from external service interruptions beyond our control",
-            "These terms should be read together with our privacy, refund, and cancellation policies where relevant"
+            "We make every effort to maintain accurate pricing, service availability, and contact information, but disclaim minor typographical or technical errors.",
+            "Clinic policies and digital service rules may be updated periodically without prior direct notification."
           ]
         }
       ],
       "cta": {
         "title": "Review related policies",
-        "description": "You can also read our privacy, refund, and cancellation policies for more detail.",
+        "description": "You can also read our privacy, refund, and cancellation policies for complete clarity.",
         "primaryLabel": "Privacy policy",
         "primaryHref": "/privacy-policy",
         "secondaryLabel": "Refund policy",
@@ -266,47 +279,47 @@
       "label": "Refund policy",
       "badge": "Policy",
       "title": "Refund Policy",
-      "heroDescription": "This page outlines the general principles we follow when reviewing payment-related refund requests.",
+      "heroDescription": "This policy details the transparent guidelines we follow when reviewing payment-related refund and chargeback requests for dental bookings.",
       "seo": {
         "title": "Refund Policy | Creadent Dental Clinic",
-        "description": "Read the refund policy for Creadent Dental Clinic to understand how payment and refund requests are reviewed.",
-        "keywords": "refund policy dental clinic, payment refund policy, Creadent Dental Clinic refund"
+        "description": "Read the refund policy for Creadent Dental Clinic to understand how online payment refunds and transaction reversals are handled.",
+        "keywords": "refund policy dental clinic, online payment refund, appointment refund policy, Creadent Dental Clinic"
       },
       "sections": [
         {
           "title": "General refund guidance",
           "paragraphs": [
-            "Refund requests are reviewed based on the nature of the payment, the service status, and the circumstances of the request.",
-            "Any approved refund is processed using the original payment method wherever operationally possible."
+            "Refund requests for online payments are evaluated based on the timing of cancellation, service status, and transaction details.",
+            "Approved refunds are credited strictly back to the original payment source (bank account, UPI, credit/debit card) within standard banking timeframes."
           ]
         },
         {
-          "title": "When a refund may be considered",
+          "title": "Eligible scenarios for refunds",
           "items": [
-            "Duplicate or accidental payment transactions",
-            "Payments collected for a service that was not ultimately provided",
-            "Other exceptional situations reviewed by the clinic on a case-by-case basis"
+            "Duplicate or accidental debit transactions for the same appointment booking",
+            "Advance payments made for services that could not be rendered due to clinic scheduling adjustments",
+            "Cancellations requested well in advance of the scheduled appointment slot"
           ]
         },
         {
-          "title": "When a refund may not apply",
+          "title": "Non-refundable scenarios",
           "items": [
-            "Completed consultations, procedures, or services already delivered",
-            "Charges already consumed toward diagnostic, administrative, or treatment-related work",
-            "Situations where non-refundable terms were shared in advance"
+            "Consultations, diagnostics, or dental procedures that have already been fully or partially delivered",
+            "Administrative or specialized diagnostic fees consumed during patient examination",
+            "No-show appointments where the clinical team was kept waiting without prior notice"
           ]
         },
         {
-          "title": "Processing time",
+          "title": "Processing timeline",
           "paragraphs": [
-            "Approved refunds may take reasonable processing time depending on the payment provider, banking channels, and verification requirements.",
-            "For assistance, please contact the clinic with your payment details and request summary."
+            "Once approved, refunds typically take 5 to 7 business days to reflect in your account, depending on your banking provider and payment gateway turnaround times.",
+            "Please share your Transaction ID and registered phone number when contacting us for refund inquiries."
           ]
         }
       ],
       "cta": {
         "title": "Need help with a payment issue?",
-        "description": "Please contact the clinic directly so the team can review your request.",
+        "description": "Contact our clinic front desk with your transaction receipt so we can resolve it promptly.",
         "primaryLabel": "Contact us",
         "primaryHref": "/contact-us",
         "secondaryLabel": "Cancellation policy",
@@ -319,40 +332,39 @@
       "label": "Cancellation policy",
       "badge": "Policy",
       "title": "Cancellation Policy",
-      "heroDescription": "This policy explains how appointment cancellations and rescheduling requests should be handled.",
+      "heroDescription": "This policy sets out expectations for cancelling or rescheduling dental appointments to ensure smooth clinic operations and patient convenience.",
       "seo": {
         "title": "Cancellation Policy | Creadent Dental Clinic",
-        "description": "Read the cancellation policy for Creadent Dental Clinic to understand appointment cancellation and rescheduling expectations.",
-        "keywords": "cancellation policy dental clinic, appointment cancellation, Creadent Dental Clinic cancellation"
+        "description": "Read the cancellation and rescheduling policy for Creadent Dental Clinic in Salt Lake, Kolkata.",
+        "keywords": "cancellation policy dental clinic, appointment rescheduling, dental booking cancellation, Creadent Dental Clinic"
       },
       "sections": [
         {
-          "title": "Appointment cancellation",
+          "title": "Appointment cancellation guidelines",
           "paragraphs": [
-            "If you need to cancel or reschedule an appointment, please contact the clinic as early as possible so the slot can be managed appropriately.",
-            "Advance notice helps us support other patients and coordinate clinic schedules more effectively."
+            "If you need to cancel or reschedule your booked appointment, please notify us at least 4 hours in advance.",
+            "Timely notice helps us accommodate other patients seeking urgent dental care in Salt Lake."
           ]
         },
         {
-          "title": "Late cancellation or missed visits",
+          "title": "Late cancellations and missed visits",
           "items": [
-            "Repeated short-notice cancellations may affect future scheduling preference",
-            "Missed appointments without prior notice may require reconfirmation before a new booking is accepted",
-            "Prepaid bookings may be reviewed in line with our refund policy and treatment-specific terms"
+            "Frequent short-notice cancellations may require advance re-confirmation for future bookings",
+            "Missed appointments without prior notification may forfeit pre-booked consultation priority slots",
+            "Prepaid booking adjustments are subject to our refund and service policies"
           ]
         },
         {
           "title": "Rescheduling support",
           "items": [
-            "Our team will make reasonable efforts to provide the next suitable appointment slot",
-            "Rescheduled timing depends on doctor availability, treatment requirements, and clinic operations",
-            "Urgent dental concerns should be communicated clearly while requesting a new slot"
+            "Our team will gladly help you shift your appointment to the next available suitable slot at no extra administrative penalty",
+            "Emergency dental cases are given priority adjustments when rescheduling"
           ]
         }
       ],
       "cta": {
         "title": "Need to reschedule an appointment?",
-        "description": "Get in touch with the clinic directly and the team will guide you through the next available option.",
+        "description": "Get in touch directly via phone or our contact page for immediate assistance.",
         "primaryLabel": "Contact us",
         "primaryHref": "/contact-us",
         "secondaryLabel": "Refund policy",
