@@ -395,7 +395,8 @@ export const UPDATE_PATIENT = gql`
     $medicalHistory: MedicalHistoryInput,
     $vitalSigns: VitalSignsInput,
     $dentalHistory: DentalHistoryInput,
-    $insurance: InsuranceInput
+    $insurance: InsuranceInput,
+    $password: String
   ) {
     updatePatient(
       id: $id,
@@ -411,9 +412,11 @@ export const UPDATE_PATIENT = gql`
       medicalHistory: $medicalHistory,
       vitalSigns: $vitalSigns,
       dentalHistory: $dentalHistory,
-      insurance: $insurance
+      insurance: $insurance,
+      password: $password
     ) {
       id
+      userId
       name
       email
       phone

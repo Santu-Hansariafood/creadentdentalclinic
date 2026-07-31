@@ -26,8 +26,8 @@ export const patientRegistrationSchema = z.object({
   dateOfBirth: z.string().trim().min(1, 'Date of birth is required'),
   gender: z.string().trim().min(1, 'Gender is required'),
   address: z.string().trim().min(1, 'Address is required'),
-  password: z.string().trim().min(6, 'Password must be at least 6 characters').optional(),
-  confirmPassword: z.string().trim().min(6, 'Confirm password must be at least 6 characters').optional(),
+  password: z.string().trim().min(6, 'Password must be at least 6 characters').optional().or(z.literal('')),
+  confirmPassword: z.string().trim().min(6, 'Confirm password must be at least 6 characters').optional().or(z.literal('')),
   bloodGroup: z.string().trim().optional(),
   emergencyContactName: z.string().trim().optional(),
   emergencyContactPhone: z.string().trim().optional().refine((val) => !val || /^\d{10}$/.test(val), {

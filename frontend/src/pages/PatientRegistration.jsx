@@ -24,6 +24,8 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
   const [currentStep, setCurrentStep] = useState(1);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const canManagePatientPassword = !isSelfRegistration && (!initialPatient || user?.role === "admin");
+  const isCreatingPatient = !initialPatient;
   const { data: myPatientData } = useQuery(GET_MY_PATIENT, {
     skip: !isSelfRegistration || !user,
   });
@@ -171,7 +173,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
     // Validate step 1 fields before proceeding
     if (currentStep === 1) {
       const fieldsToValidate = ["name", "phone", "dateOfBirth", "gender", "address"];
-      if (!isSelfRegistration && !initialPatient) {
+      if (canManagePatientPassword && isCreatingPatient) {
         fieldsToValidate.push("password", "confirmPassword");
       }
       const isValid = await trigger(fieldsToValidate);
@@ -185,7 +187,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
   };
 
   const onSubmit = async (data) => {
-    if (!isSelfRegistration && !data.id && !data.password) {
+    if (canManagePatientPassword && isCreatingPatient && !data.password) {
       toast.error("Custom password is required for patient login");
       return;
     }
@@ -200,7 +202,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
       address: data.address,
       bloodGroup: data.bloodGroup,
       status: data.status,
-      password: data.password,
+      password: data.password?.trim() ? data.password : undefined,
       userId: isSelfRegistration && user ? user.id : undefined,
       emergencyContact: (data.emergencyContactName || data.emergencyContactRelation || data.emergencyContactPhone) ? {
         name: formatName(data.emergencyContactName),
@@ -825,11 +827,11 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
                     )}
                   </div>
 
-                      {!isSelfRegistration && !initialPatient && (
+                      {canManagePatientPassword && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Password *
+                              {isCreatingPatient ? "Password *" : "New Password"}
                             </label>
                             <div className="relative">
                               <Lock
@@ -847,13 +849,17 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
                               <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
                             )}
                             <p className="text-xs text-gray-500 mt-1">
-                              Staff must enter a custom password for this patient.
+                              {isCreatingPatient
+                                ? "Admin must enter a custom password for this patient."
+                                : "Leave blank to keep the current password."}
                             </p>
                           </div>
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Confirm Password *
+                              {isCreatingPatient ? "Confirm Password *" : "Confirm New Password"}
+                            </label>
+                              {isCreatingPatient ? "Confirm Password *" : "Confirm New Password"}
                             </label>
                             <div className="relative">
                               <Lock

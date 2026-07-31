@@ -796,7 +796,23 @@ const resolvers = {
         newlyCreated,
       };
     },
-    updatePatient: async (_, { id, ...args }) => {
+    updatePatient: async (_, { id, ...args }, { user }) => {
+      if (!user) {
+        throw new Error("Not authenticated");
+      }
+
+      const patient = await Patient.findById(id);
+      if (!patient) {
+        throw new Error("Patient not found");
+      }
+
+      if (user.role === "patient" && patient.userId?.toString() !== user._id.toString()) {
+        throw new Error("Unauthorized: You can only update your own patient profile");
+      }
+
+      const nextPhone = args.phone || patient.phone;
+      const nextEmail = args.email ?? patient.email;
+
       // Check if phone number is being changed and already exists
       if (args.phone) {
         const existingPatient = await Patient.findOne({ 
@@ -808,9 +824,54 @@ const resolvers = {
         }
       }
 
+      let patientUser = null;
+      if (patient.userId) {
+        patientUser = await User.findById(patient.userId);
+      }
+
+      if (args.password) {
+        if (!patientUser) {
+          const existingUser = await User.findOne({
+            role: "patient",
+            $or: [
+              { phone: nextPhone },
+              ...(nextEmail ? [{ email: nextEmail }] : []),
+            ],
+          });
+
+          if (existingUser) {
+            patientUser = existingUser;
+          } else {
+            patientUser = new User({
+              name: args.name || patient.name,
+              email: nextEmail || `${nextPhone}@patient.creadent.local`,
+              phone: nextPhone,
+              password: args.password,
+              role: "patient",
+              verified: true,
+            });
+          }
+        } else {
+          patientUser.name = args.name || patient.name;
+          patientUser.phone = nextPhone;
+          patientUser.email = nextEmail || patientUser.email;
+          patientUser.password = args.password;
+          patientUser.verified = true;
+        }
+
+        await patientUser.save();
+        patient.userId = patientUser._id;
+      } else if (patientUser) {
+        patientUser.name = args.name || patient.name;
+        patientUser.phone = nextPhone;
+        patientUser.email = nextEmail || patientUser.email;
+        await patientUser.save();
+      }
+
       // Prepare the data with proper date conversions
       const updateData = {
         ...args,
+        userId: patient.userId,
         dateOfBirth: args.dateOfBirth ? new Date(args.dateOfBirth) : undefined,
         dentalHistory: args.dentalHistory ? {
           ...args.dentalHistory,
