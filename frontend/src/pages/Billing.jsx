@@ -119,7 +119,10 @@ const Billing = () => {
   const handleAddItem = () => {
     setNewInvoice({
       ...newInvoice,
-      items: [...newInvoice.items, { description: "", quantity: 1, unitPrice: 0, total: 0 }],
+      items: [
+        ...newInvoice.items,
+        { description: "", quantity: 1, unitPrice: 0, total: 0 },
+      ],
     });
   };
 
@@ -182,7 +185,7 @@ const Billing = () => {
       const inv = invoices.find((i) => i.id === id);
       return sum + (inv?.balance || 0);
     }, 0);
-    toast.success(`Processing bulk payment of $${totalAmount.toFixed(2)}...`);
+    toast.success(`Processing bulk payment of ₹${totalAmount.toFixed(2)}...`);
   };
 
   const handleExport = (format) => {
@@ -290,7 +293,10 @@ const Billing = () => {
                   className="input-field"
                   value={newInvoice.tax}
                   onChange={(e) =>
-                    setNewInvoice({ ...newInvoice, tax: parseFloat(e.target.value) || 0 })
+                    setNewInvoice({
+                      ...newInvoice,
+                      tax: parseFloat(e.target.value) || 0,
+                    })
                   }
                 />
               </div>
@@ -303,7 +309,10 @@ const Billing = () => {
                   className="input-field"
                   value={newInvoice.discount}
                   onChange={(e) =>
-                    setNewInvoice({ ...newInvoice, discount: parseFloat(e.target.value) || 0 })
+                    setNewInvoice({
+                      ...newInvoice,
+                      discount: parseFloat(e.target.value) || 0,
+                    })
                   }
                 />
               </div>
@@ -325,14 +334,19 @@ const Billing = () => {
               </div>
               <div className="space-y-3">
                 {newInvoice.items.map((item, index) => (
-                  <div key={index} className="grid grid-cols-12 gap-3 items-end">
+                  <div
+                    key={index}
+                    className="grid grid-cols-12 gap-3 items-end"
+                  >
                     <div className="col-span-5">
                       <input
                         type="text"
                         placeholder="Description (e.g., Cleaning, Filling)"
                         className="input-field"
                         value={item.description}
-                        onChange={(e) => handleItemChange(index, "description", e.target.value)}
+                        onChange={(e) =>
+                          handleItemChange(index, "description", e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -342,7 +356,9 @@ const Billing = () => {
                         placeholder="Qty"
                         className="input-field"
                         value={item.quantity}
-                        onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
+                        onChange={(e) =>
+                          handleItemChange(index, "quantity", e.target.value)
+                        }
                         min="1"
                         required
                       />
@@ -353,14 +369,18 @@ const Billing = () => {
                         placeholder="Price"
                         className="input-field"
                         value={item.unitPrice}
-                        onChange={(e) => handleItemChange(index, "unitPrice", e.target.value)}
+                        onChange={(e) =>
+                          handleItemChange(index, "unitPrice", e.target.value)
+                        }
                         min="0"
                         step="0.01"
                         required
                       />
                     </div>
                     <div className="col-span-2">
-                      <p className="text-gray-900 font-medium">${item.total.toFixed(2)}</p>
+                      <p className="text-gray-900 font-medium">
+                        ₹{item.total.toFixed(2)}
+                      </p>
                     </div>
                     <div className="col-span-1">
                       {newInvoice.items.length > 1 && (
@@ -381,19 +401,25 @@ const Billing = () => {
             <div className="flex flex-col items-end gap-2">
               <div className="flex items-center gap-4">
                 <span className="text-gray-600">Subtotal:</span>
-                <span className="font-medium">${subtotal.toFixed(2)}</span>
+                <span className="font-medium">₹{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-gray-600">Tax:</span>
-                <span className="font-medium">${newInvoice.tax.toFixed(2)}</span>
+                <span className="font-medium">
+                  ₹{newInvoice.tax.toFixed(2)}
+                </span>
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-gray-600">Discount:</span>
-                <span className="font-medium">-${newInvoice.discount.toFixed(2)}</span>
+                <span className="font-medium">
+                  -₹{newInvoice.discount.toFixed(2)}
+                </span>
               </div>
               <div className="flex items-center gap-4 border-t border-gray-200 pt-2">
                 <span className="text-gray-900 font-bold">Total:</span>
-                <span className="text-primary text-xl font-bold">${totalAmount.toFixed(2)}</span>
+                <span className="text-primary text-xl font-bold">
+                  ₹{totalAmount.toFixed(2)}
+                </span>
               </div>
             </div>
 
@@ -404,7 +430,9 @@ const Billing = () => {
               <textarea
                 className="input-field min-h-[100px]"
                 value={newInvoice.notes}
-                onChange={(e) => setNewInvoice({ ...newInvoice, notes: e.target.value })}
+                onChange={(e) =>
+                  setNewInvoice({ ...newInvoice, notes: e.target.value })
+                }
               />
             </div>
 
@@ -433,7 +461,7 @@ const Billing = () => {
             <div>
               <p className="text-sm text-gray-600">Pending Balance</p>
               <p className="text-2xl font-bold text-gray-900">
-                ${totalPending.toFixed(2)}
+                ₹{totalPending.toFixed(2)}
               </p>
             </div>
           </div>
@@ -450,7 +478,7 @@ const Billing = () => {
             <div>
               <p className="text-sm text-gray-600">Total Paid</p>
               <p className="text-2xl font-bold text-gray-900">
-                ${totalPaid.toFixed(2)}
+                ₹{totalPaid.toFixed(2)}
               </p>
             </div>
           </div>
@@ -604,7 +632,7 @@ const Billing = () => {
                   {selectedInvoices.length} invoice(s) selected
                 </p>
                 <button onClick={handleBulkPayment} className="btn-primary">
-                  Pay Selected ($
+                  Pay Selected (₹
                   {selectedInvoices
                     .reduce((sum, id) => {
                       const inv = invoices.find((i) => i.id === id);
@@ -669,7 +697,7 @@ const Billing = () => {
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-gray-900">
-                          ${inv.total.toFixed(2)}
+                          ₹{inv.total.toFixed(2)}
                         </p>
                         <span className="badge badge-success">Paid</span>
                       </div>
