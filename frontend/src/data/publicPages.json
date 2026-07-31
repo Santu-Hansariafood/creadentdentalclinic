@@ -23,7 +23,7 @@
     "currencySymbol": "₹",
     "taxInfo": {
       "gstin": "",
-      "taxNote": "Applicable GST will be levied on professional dental services as per government regulations."
+      "taxNote": "Applicable GST will be levied on professional healthcare and dental services in accordance with Indian government regulations."
     },
     "paymentGatewayConfig": {
       "supportedMethods": [
@@ -49,7 +49,7 @@
       "path": "/",
       "label": "Home",
       "badge": "Top Dental Care In Salt Lake",
-      "title": "Best Dental Clinic in Salt Lake Kolkata",
+      "title": "Best Dental Clinic in Salt Lake Kolkata | Creadent Dental Clinic",
       "heroDescription": "Creadent Dental Clinic offers advanced dental treatment, root canal therapy, teeth whitening, dental implants, braces, and family dental care in Salt Lake, Kolkata.",
       "seo": {
         "title": "Best Dental Clinic in Salt Lake Kolkata | Creadent Dental Clinic",
@@ -75,28 +75,28 @@
       ],
       "sections": [
         {
-          "title": "Why patients choose Creadent",
+          "title": "Why patients choose Creadent Dental Clinic",
           "paragraphs": [
             "Creadent Dental Clinic is designed to give patients in Salt Lake and Kolkata a reliable, modern, and comfortable dental care experience.",
-            "We focus on transparent consultations, quality treatment planning, and clear communication so patients know exactly what to expect at every stage."
+            "We focus on transparent consultations, quality treatment planning, and clear communication so patients know exactly what to expect at every stage of their oral health journey."
           ]
         },
         {
           "title": "Popular dental services",
           "items": [
             "Root canal treatment and restorative dental care",
-            "Dental implants and replacement solutions",
-            "Professional teeth whitening and cosmetic dentistry",
-            "Braces, alignment treatment, and smile improvement",
-            "Routine checkups, cleaning, and preventive dentistry",
-            "Family dental care for children, adults, and senior patients"
+            "Advanced dental implants and permanent replacement solutions",
+            "Professional teeth whitening and specialized cosmetic dentistry",
+            "Orthodontic braces, alignment treatment, and smile improvement",
+            "Routine checkups, scaling, cleaning, and preventive dentistry",
+            "Comprehensive family dental care for children, adults, and senior patients"
           ]
         },
         {
           "title": "Serving Salt Lake and nearby Kolkata areas",
           "paragraphs": [
-            "Our clinic is conveniently located in Bidhannagar, making it easy for patients across Salt Lake and surrounding Kolkata areas to access high-quality dental treatment.",
-            "Whether you need preventive care, cosmetic improvements, or restorative treatment, our goal is to deliver dependable care with a smooth digital experience."
+            "Our clinic is conveniently located in Bidhannagar, making it easy for patients across Salt Lake, Ultadanga, Lake Town, and surrounding Kolkata neighborhoods to access high-quality dental treatment.",
+            "Whether you need preventive care, cosmetic improvements, or emergency restorative treatment, our goal is to deliver dependable care with a smooth digital appointment and payment experience."
           ]
         }
       ],
@@ -107,7 +107,7 @@
         },
         {
           "question": "Do you offer root canal treatment in Salt Lake?",
-          "answer": "Yes, Creadent Dental Clinic offers advanced root canal treatment along with restorative and preventive dental care."
+          "answer": "Yes, Creadent Dental Clinic offers advanced painless root canal treatment along with comprehensive restorative and preventive dental care."
         },
         {
           "question": "Where is Creadent Dental Clinic located?",
@@ -116,7 +116,7 @@
       ],
       "cta": {
         "title": "Book your visit with Creadent Dental Clinic",
-        "description": "Contact the clinic for appointments, treatment enquiries, and guidance before your visit.",
+        "description": "Contact the clinic for secure appointments, treatment enquiries, and payment guidance before your visit.",
         "primaryLabel": "Contact us",
         "primaryHref": "/contact-us",
         "secondaryLabel": "Login",
@@ -170,7 +170,7 @@
           ]
         },
         {
-          "title": "Our approach",
+          "title": "Our clinical approach",
           "paragraphs": [
             "We believe dental care in Kolkata should feel approachable and transparent. That means explaining treatment options in simple terms, discussing expected outcomes honestly, and respecting each patient's time.",
             "Whether you are visiting for preventive checkups, root canal therapy, or dental implants, our goal is to deliver dependable care through a seamless digital and clinical experience."
@@ -192,7 +192,7 @@
       "label": "Contact us",
       "badge": "Get In Touch",
       "title": "Contact Creadent Dental Clinic",
-      "heroDescription": "Reach out for appointments, billing enquiries, payment support, and clinic information using the details below.",
+      "heroDescription": "Reach out for appointments, billing enquiries, secure payment support, and clinic information using the details below.",
       "seo": {
         "title": "Contact Us | Creadent Dental Clinic Salt Lake Kolkata",
         "description": "Contact Creadent Dental Clinic in Salt Lake, Kolkata for appointments, payment support, and patient enquiries.",
@@ -219,27 +219,28 @@
       ],
       "sections": [
         {
-          "title": "Clinic address",
+          "title": "Official clinic address",
           "paragraphs": [
+            "Creadent Dental Clinic",
             "BD-85, Salt Lake Rd, AD Block, Sector 1",
-            "Bidhannagar, Kolkata, West Bengal 700064"
+            "Bidhannagar, Kolkata, West Bengal 700064",
+            "Country: India"
           ]
         },
         {
           "title": "Working hours",
           "items": [
-            "Monday to Sunday",
-            "9:00 AM to 8:00 PM",
-            "Online advance booking and digital payment options available"
+            "Monday to Sunday: 9:00 AM to 8:00 PM",
+            "Online advance booking and digital payment options available 24/7"
           ]
         },
         {
-          "title": "How we can help",
+          "title": "Customer support and assistance",
           "items": [
-            "Appointment bookings and online consultation payments",
-            "Treatment cost estimates and payment gateway assistance",
-            "Location guidance and visit planning in Salt Lake",
-            "Post-treatment support and billing receipt queries"
+            "Appointment bookings and secure online consultation payments",
+            "Treatment cost estimates and payment gateway transaction support",
+            "Location guidance and clinic visit planning in Salt Lake, Kolkata",
+            "Post-treatment support, billing verification, and digital receipt queries"
           ]
         }
       ],
@@ -256,9 +257,9 @@
       "slug": "privacy-policy",
       "path": "/privacy-policy",
       "label": "Privacy policy",
-      "badge": "Policy",
+      "badge": "Legal Policy",
       "title": "Privacy Policy",
-      "heroDescription": "This policy explains how Creadent Dental Clinic collects, uses, stores, and protects information shared through our website, appointment bookings, and payment gateways.",
+      "heroDescription": "This Privacy Policy describes how Creadent Dental Clinic collects, uses, processes, and protects personal, medical, and financial data shared through our website, appointment bookings, and payment gateways.",
       "seo": {
         "title": "Privacy Policy | Creadent Dental Clinic Kolkata",
         "description": "Read the privacy policy for Creadent Dental Clinic to understand how we securely handle patient, visitor, and payment information.",
@@ -266,35 +267,35 @@
       },
       "sections": [
         {
-          "title": "Information we collect",
+          "title": "1. Information we collect",
           "items": [
-            "Basic contact information such as name, phone number, and email address",
-            "Appointment booking history, medical consultation notes, and treatment preferences",
-            "Encrypted payment transaction logs and billing details processed securely via certified payment gateways",
-            "Technical information that helps us maintain website performance, security, and uptime"
+            "Basic contact information: Full name, phone number, and email address",
+            "Medical data: Appointment booking history, clinical consultation notes, and treatment preferences",
+            "Financial data: Encrypted payment transaction logs and billing details processed securely via certified PCI-DSS compliant payment gateways",
+            "Technical logs: IP address, browser type, and device information utilized solely for website performance, security, and uptime maintenance"
           ]
         },
         {
-          "title": "How we use information",
+          "title": "2. How we use your information",
           "items": [
-            "To manage appointments, clinical communications, and patient support",
-            "To process secure online payments, issue digital receipts, and prevent fraudulent transactions",
-            "To operate, maintain, and improve our website and digital services",
-            "To comply with legal, medical record-keeping, and financial regulatory obligations"
+            "To manage clinical appointments, communications, and patient support services",
+            "To process secure online payments, issue digital transaction receipts, and prevent fraudulent activities",
+            "To operate, maintain, and optimize our website and digital patient portal",
+            "To comply with applicable Indian medical record-keeping and financial regulatory requirements"
           ]
         },
         {
-          "title": "Payment security",
+          "title": "3. Payment security compliance",
           "paragraphs": [
-            "All online payments processed through our website are handled by PCI-DSS compliant secure payment gateway providers.",
-            "We do not store your complete credit card numbers, CVV, or net banking passwords directly on our servers."
+            "All online payments processed through https://creadentsmiles.com are handled entirely by RBI-authorized and PCI-DSS compliant secure payment gateway partners.",
+            "Creadent Dental Clinic does not store your sensitive financial information such as complete credit/debit card numbers, CVV codes, or net banking passwords directly on our servers."
           ]
         },
         {
-          "title": "Data protection",
+          "title": "4. Data protection and confidentiality",
           "paragraphs": [
-            "We implement robust administrative, technical, and physical security measures to protect personal and financial information from unauthorized access, alteration, or disclosure.",
-            "Only authorized clinical and billing personnel with a valid operational need may access relevant records."
+            "We enforce robust administrative, technical, and physical security safeguards to protect personal, health, and financial records against unauthorized access, modification, or disclosure.",
+            "Access to patient records is strictly restricted to authorized clinical and administrative personnel bound by professional confidentiality obligations."
           ]
         }
       ],
@@ -311,9 +312,9 @@
       "slug": "terms-and-conditions",
       "path": "/terms-and-conditions",
       "label": "Terms and conditions",
-      "badge": "Policy",
+      "badge": "Legal Policy",
       "title": "Terms and Conditions",
-      "heroDescription": "These terms outline the rules, payment obligations, and usage conditions for accessing our website, booking services, and interacting with our digital portal.",
+      "heroDescription": "These Terms and Conditions govern your access to and use of the Creadent Dental Clinic website, digital booking systems, and online payment gateway services.",
       "seo": {
         "title": "Terms and Conditions | Creadent Dental Clinic",
         "description": "Review the terms and conditions for using the Creadent Dental Clinic website, online booking, and payment processing services.",
@@ -321,25 +322,33 @@
       },
       "sections": [
         {
-          "title": "Use of this website",
+          "title": "1. Acceptance of terms",
+          "paragraphs": [
+            "By accessing https://creadentsmiles.com, booking an appointment, or making an online payment, you agree to comply with and be legally bound by these Terms and Conditions.",
+            "If you do not agree with any part of these terms, you must refrain from using our website and digital services."
+          ]
+        },
+        {
+          "title": "2. Use of website and services",
           "items": [
-            "You agree to use this website and booking platform only for lawful and legitimate healthcare purposes",
-            "You must not attempt to disrupt, hack, or gain unauthorized access to our payment systems or database",
-            "Information published on this website is intended for general guidance and informational use"
+            "You agree to use this platform exclusively for legitimate healthcare and appointment booking purposes",
+            "You must not attempt to hack, disrupt, overburden, or gain unauthorized access to our database or payment systems",
+            "Information published on this website is for general guidance and does not substitute professional clinical diagnosis"
           ]
         },
         {
-          "title": "Bookings and online payments",
+          "title": "3. Pricing, bookings, and online payments",
           "paragraphs": [
-            "Submitting an advance payment or booking request through our website reserves your appointment slot pending clinical confirmation.",
-            "Service prices, treatment packages, and consultation fees are quoted in Indian Rupees (INR) and are subject to change based on customized medical assessments."
+            "Submitting an advance payment or booking request through our website reserves your appointment slot pending final clinic confirmation.",
+            "All prices, service packages, and consultation fees are quoted in Indian Rupees (INR). Applicable taxes will be charged as per Indian laws.",
+            "Final treatment costs may vary based on customized physical clinical assessments performed by our dentists at the clinic."
           ]
         },
         {
-          "title": "Content and accuracy",
+          "title": "4. Governing law and jurisdiction",
           "paragraphs": [
-            "We make every effort to maintain accurate pricing, service availability, and contact information, but disclaim minor typographical or technical errors.",
-            "Clinic policies and digital service rules may be updated periodically without prior direct notification."
+            "These terms shall be governed by and construed in accordance with the laws of India.",
+            "Any disputes arising out of or in connection with website use, bookings, or payments shall be subject to the exclusive jurisdiction of the courts located in Kolkata, West Bengal."
           ]
         }
       ],
@@ -356,9 +365,9 @@
       "slug": "refund-policy",
       "path": "/refund-policy",
       "label": "Refund policy",
-      "badge": "Policy",
+      "badge": "Legal Policy",
       "title": "Refund Policy",
-      "heroDescription": "This policy details the transparent guidelines we follow when reviewing payment-related refund and chargeback requests for dental bookings.",
+      "heroDescription": "This policy details the transparent guidelines followed by Creadent Dental Clinic when reviewing online payment refunds, transaction reversals, and billing adjustments.",
       "seo": {
         "title": "Refund Policy | Creadent Dental Clinic",
         "description": "Read the refund policy for Creadent Dental Clinic to understand how online payment refunds and transaction reversals are handled.",
@@ -366,33 +375,33 @@
       },
       "sections": [
         {
-          "title": "General refund guidance",
+          "title": "1. General refund principles",
           "paragraphs": [
-            "Refund requests for online payments are evaluated based on the timing of cancellation, service status, and transaction details.",
-            "Approved refunds are credited strictly back to the original payment source (bank account, UPI, credit/debit card) within standard banking timeframes."
+            "Refund requests for online appointment bookings or advance payments are evaluated based on cancellation timing, service delivery status, and transaction validation.",
+            "Approved refunds are credited strictly back to the original source of payment (bank account, UPI handle, credit/debit card, or wallet) within standard institutional banking timeframes."
           ]
         },
         {
-          "title": "Eligible scenarios for refunds",
+          "title": "2. Eligible scenarios for refunds",
           "items": [
-            "Duplicate or accidental debit transactions for the same appointment booking",
-            "Advance payments made for services that could not be rendered due to clinic scheduling adjustments",
-            "Cancellations requested well in advance of the scheduled appointment slot"
+            "Duplicate or accidental debit transactions processed for a single appointment booking",
+            "Advance payments made for services that could not be rendered due to sudden clinic scheduling adjustments",
+            "Cancellations requested in accordance with our advance notice guidelines"
           ]
         },
         {
-          "title": "Non-refundable scenarios",
+          "title": "3. Non-refundable scenarios",
           "items": [
-            "Consultations, diagnostics, or dental procedures that have already been fully or partially delivered",
-            "Administrative or specialized diagnostic fees consumed during patient examination",
-            "No-show appointments where the clinical team was kept waiting without prior notice"
+            "Consultations, diagnostics, imaging, or dental procedures that have already been fully or partially delivered",
+            "Specialized administrative or diagnostic lab fees consumed during patient physical examination",
+            "No-show appointments where the dental team was kept waiting without prior cancellation notice"
           ]
         },
         {
-          "title": "Processing timeline",
+          "title": "4. Processing timeline",
           "paragraphs": [
-            "Once approved, refunds typically take 5 to 7 business days to reflect in your account, depending on your banking provider and payment gateway turnaround times.",
-            "Please share your Transaction ID and registered phone number when contacting us for refund inquiries."
+            "Once an online refund is officially approved by Creadent Dental Clinic, it typically takes 5 to 7 business days to reflect in the user's account, depending on bank turnaround times and payment gateway processing cycles.",
+            "Please quote your transaction ID and registered phone number when contacting us for any refund or billing status inquiries."
           ]
         }
       ],
@@ -409,9 +418,9 @@
       "slug": "cancellation-policy",
       "path": "/cancellation-policy",
       "label": "Cancellation policy",
-      "badge": "Policy",
+      "badge": "Legal Policy",
       "title": "Cancellation Policy",
-      "heroDescription": "This policy sets out expectations for cancelling or rescheduling dental appointments to ensure smooth clinic operations and patient convenience.",
+      "heroDescription": "This policy sets out clear expectations for cancelling or rescheduling dental appointments to ensure optimal clinic operations and patient convenience.",
       "seo": {
         "title": "Cancellation Policy | Creadent Dental Clinic",
         "description": "Read the cancellation and rescheduling policy for Creadent Dental Clinic in Salt Lake, Kolkata.",
@@ -419,25 +428,25 @@
       },
       "sections": [
         {
-          "title": "Appointment cancellation guidelines",
+          "title": "1. Appointment cancellation guidelines",
           "paragraphs": [
-            "If you need to cancel or reschedule your booked appointment, please notify us at least 4 hours in advance.",
-            "Timely notice helps us accommodate other patients seeking urgent dental care in Salt Lake."
+            "If you need to cancel or reschedule your booked appointment, please notify our clinic team at least 4 hours in advance.",
+            "Providing timely notice enables us to accommodate other patients seeking urgent or routine dental care in Salt Lake, Kolkata."
           ]
         },
         {
-          "title": "Late cancellations and missed visits",
+          "title": "2. Late cancellations and missed visits",
           "items": [
-            "Frequent short-notice cancellations may require advance re-confirmation for future bookings",
+            "Frequent short-notice cancellations may require advance re-confirmation for future appointment slots",
             "Missed appointments without prior notification may forfeit pre-booked consultation priority slots",
-            "Prepaid booking adjustments are subject to our refund and service policies"
+            "Prepaid booking adjustments remain subject to our clinic refund and service execution policies"
           ]
         },
         {
-          "title": "Rescheduling support",
+          "title": "3. Rescheduling support",
           "items": [
-            "Our team will gladly help you shift your appointment to the next available suitable slot at no extra administrative penalty",
-            "Emergency dental cases are given priority adjustments when rescheduling"
+            "Our administrative team will gladly assist you in shifting your appointment to the next available convenient slot at zero extra penalty",
+            "Emergency dental cases are granted priority scheduling adjustments"
           ]
         }
       ],
