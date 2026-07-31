@@ -5,12 +5,8 @@ import {
   User,
   Mail,
   Phone,
-  Calendar,
-  MapPin,
+  Lock,
   Heart,
-  AlertCircle,
-  FileText,
-  Shield,
   X,
 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
@@ -18,7 +14,7 @@ import toast from "react-hot-toast";
 import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
 import { CREATE_PATIENT, UPDATE_PATIENT } from "../graphql/mutations";
 import { GET_PATIENTS, GET_MY_PATIENT, CHECK_PATIENT_EXISTS } from "../graphql/queries";
-import { formatName, toCamelCase } from "../utils/validation";
+import { formatName } from "../utils/validation";
 import { useAuth } from "../context/AuthContext";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,8 +33,6 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
     reset,
     trigger,
     formState: { errors, isSubmitting },
@@ -68,12 +62,6 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
       bloodPressure: "",
       height: "",
       weight: "",
-      lastVisit: "",
-      previousTreatments: "",
-      currentIssues: "",
-      insuranceProvider: "",
-      policyNumber: "",
-      expiryDate: "",
     },
   });
 
@@ -105,23 +93,6 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
     }
   };
 
-  const watchName = watch("name");
-  const watchPhone = watch("phone");
-  const watchEmergencyContactName = watch("emergencyContactName");
-  const watchEmergencyContactRelation = watch("emergencyContactRelation");
-  const watchEmergencyContactPhone = watch("emergencyContactPhone");
-  
-  // Auto-generate default password (year + last 4 digits of phone)
-  useEffect(() => {
-    if (watchPhone && watchPhone.length === 10) {
-      const currentYear = new Date().getFullYear().toString();
-      const last4Digits = watchPhone.slice(-4);
-      const defaultPassword = currentYear + last4Digits;
-      setValue("password", defaultPassword);
-      setValue("confirmPassword", defaultPassword);
-    }
-  }, [watchPhone, setValue]);
-
   // Populate form when initialPatient or user (for self-registration) changes
   useEffect(() => {
     const loadPatientData = (patientData, userData = null) => ({
@@ -145,12 +116,6 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
       bloodPressure: patientData?.vitalSigns?.bloodPressure || "",
       height: patientData?.vitalSigns?.height || "",
       weight: patientData?.vitalSigns?.weight || "",
-      lastVisit: patientData?.dentalHistory?.lastVisit || "",
-      previousTreatments: patientData?.dentalHistory?.previousTreatments?.join(", ") || "",
-      currentIssues: patientData?.dentalHistory?.currentIssues?.join(", ") || "",
-      insuranceProvider: patientData?.insurance?.provider || "",
-      policyNumber: patientData?.insurance?.policyNumber || "",
-      expiryDate: patientData?.insurance?.expiryDate || "",
     });
 
     if (isSelfRegistration && user) {
@@ -205,7 +170,11 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
   const handleNext = async () => {
     // Validate step 1 fields before proceeding
     if (currentStep === 1) {
-      const isValid = await trigger(["name", "phone", "dateOfBirth", "gender", "address"]);
+      const fieldsToValidate = ["name", "phone", "dateOfBirth", "gender", "address"];
+      if (!isSelfRegistration && !initialPatient) {
+        fieldsToValidate.push("password", "confirmPassword");
+      }
+      const isValid = await trigger(fieldsToValidate);
       if (!isValid) return;
     }
     setCurrentStep(currentStep + 1);
@@ -216,6 +185,11 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
   };
 
   const onSubmit = async (data) => {
+    if (!isSelfRegistration && !data.id && !data.password) {
+      toast.error("Custom password is required for patient login");
+      return;
+    }
+
     // Format the form data into the nested structure expected by GraphQL
     const formattedData = {
       name: formatName(data.name),
@@ -245,16 +219,6 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
         height: data.height,
         weight: data.weight,
       } : undefined,
-      dentalHistory: (data.lastVisit || data.previousTreatments || data.currentIssues) ? {
-        lastVisit: data.lastVisit,
-        previousTreatments: data.previousTreatments ? data.previousTreatments.split(",").map(s => s.trim()).filter(Boolean) : [],
-        currentIssues: data.currentIssues ? data.currentIssues.split(",").map(s => s.trim()).filter(Boolean) : [],
-      } : undefined,
-      insurance: (data.insuranceProvider || data.policyNumber || data.expiryDate) ? {
-        provider: data.insuranceProvider,
-        policyNumber: data.policyNumber,
-        expiryDate: data.expiryDate,
-      } : undefined,
     };
 
     if (data.id) {
@@ -275,8 +239,6 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
     { number: 1, title: "Personal Information", icon: User },
     { number: 2, title: "Emergency Contact", icon: Phone },
     { number: 3, title: "Medical History", icon: Heart },
-    { number: 4, title: "Dental History", icon: FileText },
-    { number: 5, title: "Insurance Details", icon: Shield },
   ];
 
   return (
@@ -473,16 +435,17 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
                                 size={18}
                               />
                               <input
-                                type="text"
+                                type="password"
                                 {...register("password")}
                                 className={`input-field pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
+                                placeholder="Enter custom password"
                               />
                             </div>
                             {errors.password && (
                               <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
                             )}
                             <p className="text-xs text-gray-500 mt-1">
-                              Default: Current year + last 4 digits of phone
+                              Staff must enter a custom password for this patient.
                             </p>
                           </div>
 
@@ -496,9 +459,10 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
                                 size={18}
                               />
                               <input
-                                type="text"
+                                type="password"
                                 {...register("confirmPassword")}
                                 className={`input-field pl-10 ${errors.confirmPassword ? "border-red-500" : ""}`}
+                                placeholder="Confirm custom password"
                               />
                             </div>
                             {errors.confirmPassword && (
@@ -664,104 +628,6 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
                     </div>
                   )}
 
-                  {currentStep === 4 && (
-                    <div className="space-y-4">
-                      <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
-                        Dental History
-                      </h2>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Last Dental Visit
-                        </label>
-                        <input
-                          type="date"
-                          {...register("lastVisit")}
-                          className="input-field"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Previous Dental Treatments
-                        </label>
-                        <textarea
-                          {...register("previousTreatments")}
-                          className="input-field"
-                          rows={3}
-                          placeholder="Describe any previous dental treatments (fillings, root canals, etc.)"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Current Dental Issues
-                        </label>
-                        <textarea
-                          {...register("currentIssues")}
-                          className="input-field"
-                          rows={3}
-                          placeholder="Describe any current dental problems or concerns"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === 5 && (
-                    <div className="space-y-4">
-                      <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
-                        Insurance Details
-                      </h2>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Insurance Provider
-                          </label>
-                          <input
-                            type="text"
-                            {...register("insuranceProvider")}
-                            className="input-field"
-                            placeholder="e.g., Delta Dental, Cigna"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Policy Number
-                          </label>
-                          <input
-                            type="text"
-                            {...register("policyNumber")}
-                            className="input-field"
-                          />
-                        </div>
-                        <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Policy Expiry Date
-                          </label>
-                          <input
-                            type="date"
-                            {...register("expiryDate")}
-                            className="input-field"
-                          />
-                        </div>
-                      </div>
-                      <div className="p-4 bg-blue-50 rounded-lg mt-4">
-                        <div className="flex gap-3">
-                          <AlertCircle
-                            size={20}
-                            className="text-blue-600 flex-shrink-0 mt-0.5"
-                          />
-                          <div>
-                            <p className="text-sm font-medium text-blue-900 mb-1">
-                              Insurance Verification
-                            </p>
-                            <p className="text-xs text-blue-700">
-                              Please ensure all insurance information is accurate. We
-                              will verify coverage before your first appointment.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                   <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
                     {currentStep > 1 && (
                       <button
@@ -772,7 +638,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
                         Previous
                       </button>
                     )}
-                    {currentStep < 5 ? (
+                    {currentStep < steps.length ? (
                       <button
                         type="button"
                         onClick={handleNext}
@@ -958,6 +824,55 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
                       <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>
                     )}
                   </div>
+
+                      {!isSelfRegistration && !initialPatient && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Password *
+                            </label>
+                            <div className="relative">
+                              <Lock
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                                size={18}
+                              />
+                              <input
+                                type="password"
+                                {...register("password")}
+                                className={`input-field pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
+                                placeholder="Enter custom password"
+                              />
+                            </div>
+                            {errors.password && (
+                              <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+                            )}
+                            <p className="text-xs text-gray-500 mt-1">
+                              Staff must enter a custom password for this patient.
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Confirm Password *
+                            </label>
+                            <div className="relative">
+                              <Lock
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                                size={18}
+                              />
+                              <input
+                                type="password"
+                                {...register("confirmPassword")}
+                                className={`input-field pl-10 ${errors.confirmPassword ? "border-red-500" : ""}`}
+                                placeholder="Confirm custom password"
+                              />
+                            </div>
+                            {errors.confirmPassword && (
+                              <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
                 </div>
               )}
 
@@ -1115,104 +1030,6 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
                 </div>
               )}
 
-              {currentStep === 4 && (
-                <div className="space-y-4">
-                  <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
-                    Dental History
-                  </h2>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Last Dental Visit
-                    </label>
-                    <input
-                      type="date"
-                      {...register("lastVisit")}
-                      className="input-field"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Previous Dental Treatments
-                    </label>
-                    <textarea
-                      {...register("previousTreatments")}
-                      className="input-field"
-                      rows={3}
-                      placeholder="Describe any previous dental treatments (fillings, root canals, etc.)"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Current Dental Issues
-                    </label>
-                    <textarea
-                      {...register("currentIssues")}
-                      className="input-field"
-                      rows={3}
-                      placeholder="Describe any current dental problems or concerns"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 5 && (
-                <div className="space-y-4">
-                  <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
-                    Insurance Details
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Insurance Provider
-                      </label>
-                      <input
-                        type="text"
-                        {...register("insuranceProvider")}
-                        className="input-field"
-                        placeholder="e.g., Delta Dental, Cigna"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Policy Number
-                      </label>
-                      <input
-                        type="text"
-                        {...register("policyNumber")}
-                        className="input-field"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Policy Expiry Date
-                      </label>
-                      <input
-                        type="date"
-                        {...register("expiryDate")}
-                        className="input-field"
-                      />
-                    </div>
-                  </div>
-                  <div className="p-4 bg-blue-50 rounded-lg mt-4">
-                    <div className="flex gap-3">
-                      <AlertCircle
-                        size={20}
-                        className="text-blue-600 flex-shrink-0 mt-0.5"
-                      />
-                      <div>
-                        <p className="text-sm font-medium text-blue-900 mb-1">
-                          Insurance Verification
-                        </p>
-                        <p className="text-xs text-blue-700">
-                          Please ensure all insurance information is accurate. We
-                          will verify coverage before your first appointment.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
                 {currentStep > 1 && (
                   <button
@@ -1223,7 +1040,7 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
                     Previous
                   </button>
                 )}
-                {currentStep < 5 ? (
+                {currentStep < steps.length ? (
                   <button
                     type="button"
                     onClick={handleNext}

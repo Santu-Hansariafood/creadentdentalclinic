@@ -42,12 +42,6 @@ export const patientRegistrationSchema = z.object({
   bloodPressure: z.string().trim().optional(),
   height: z.string().trim().optional(),
   weight: z.string().trim().optional(),
-  lastVisit: z.string().trim().optional(),
-  previousTreatments: z.string().trim().optional(),
-  currentIssues: z.string().trim().optional(),
-  insuranceProvider: z.string().trim().optional(),
-  policyNumber: z.string().trim().optional(),
-  expiryDate: z.string().trim().optional(),
 }).refine((data) => !data.password || data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
