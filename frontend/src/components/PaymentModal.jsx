@@ -1,104 +1,51 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, CreditCard, Lock, CheckCircle } from "lucide-react";
-import { loadStripe } from "@stripe/stripe-js";
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements,
-} from "@stripe/react-stripe-js";
+import { X, CreditCard, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
+import { useMutation } from "@apollo/client";
+import { RECORD_INVOICE_PAYMENT } from "../graphql/mutations";
 
-const stripePromise = loadStripe("pk_test_YOUR_PUBLISHABLE_KEY");
+const paymentMethodOptions = [
+  "Cash",
+  "UPI",
+  "Card",
+  "Bank Transfer",
+  "Insurance",
+];
 
 const PaymentForm = ({ invoice, onSuccess, onClose }) => {
-  const stripe = useStripe();
-  const elements = useElements();
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
-  const [saveCard, setSaveCard] = useState(false);
+  const [amount, setAmount] = useState(invoice.balance?.toFixed(2) || "0.00");
+  const [paymentMethod, setPaymentMethod] = useState("UPI");
+  const [recordInvoicePayment] = useMutation(RECORD_INVOICE_PAYMENT);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!stripe || !elements) {
-      return;
-    }
-
     setProcessing(true);
 
-    const cardElement = elements.getElement(CardElement);
-
     try {
-      const { error, paymentMethod } = await stripe.createPaymentMethod({
-        type: "card",
-        card: cardElement,
-      });
-
-      if (error) {
-        toast.error(error.message);
-        setProcessing(false);
-        return;
-      }
-
-      const response = await fetch("/api/create-payment-intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: Math.round(invoice.balance * 100),
-          paymentMethodId: paymentMethod.id,
+      const numericAmount = parseFloat(amount);
+      const { data } = await recordInvoicePayment({
+        variables: {
           invoiceId: invoice.id,
-          saveCard,
-        }),
+          amount: numericAmount,
+          paymentMethod,
+          paymentDate: new Date().toISOString(),
+        },
       });
 
-      const { clientSecret, error: backendError } = await response.json();
-
-      if (backendError) {
-        toast.error(backendError);
-        setProcessing(false);
-        return;
-      }
-
-      const { error: confirmError, paymentIntent } =
-        await stripe.confirmCardPayment(clientSecret);
-
-      if (confirmError) {
-        toast.error(confirmError.message);
-        setProcessing(false);
-        return;
-      }
-
-      if (paymentIntent.status === "succeeded") {
+      if (data?.recordInvoicePayment) {
         setSucceeded(true);
         setTimeout(() => {
-          onSuccess(paymentIntent);
-        }, 2000);
+          onSuccess(data.recordInvoicePayment);
+        }, 1200);
       }
     } catch (err) {
-      console.error("Payment error:", err);
-      toast.error("Payment failed. Please try again.");
+      toast.error(err.message || "Payment failed. Please try again.");
       setProcessing(false);
     }
-  };
-
-  const CARD_ELEMENT_OPTIONS = {
-    style: {
-      base: {
-        color: "#1f2937",
-        fontFamily: '"Inter", sans-serif',
-        fontSmoothing: "antialiased",
-        fontSize: "16px",
-        "::placeholder": {
-          color: "#9ca3af",
-        },
-      },
-      invalid: {
-        color: "#ef4444",
-        iconColor: "#ef4444",
-      },
-    },
   };
 
   if (succeeded) {
@@ -119,10 +66,10 @@ const PaymentForm = ({ invoice, onSuccess, onClose }) => {
           Payment Successful!
         </h3>
         <p className="text-gray-600 mb-4">
-          Your payment of ${invoice.balance.toFixed(2)} has been processed.
+          Payment of Rs {parseFloat(amount || 0).toFixed(2)} has been recorded.
         </p>
         <p className="text-sm text-gray-500">
-          Receipt has been sent to your email.
+          The invoice status has been updated.
         </p>
       </motion.div>
     );
@@ -144,7 +91,7 @@ const PaymentForm = ({ invoice, onSuccess, onClose }) => {
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">Amount Due:</span>
             <span className="text-2xl font-bold text-gray-900">
-              ${invoice.balance.toFixed(2)}
+              Rs {invoice.balance.toFixed(2)}
             </span>
           </div>
         </div>
@@ -152,36 +99,44 @@ const PaymentForm = ({ invoice, onSuccess, onClose }) => {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Card Information
+          Payment Amount
         </label>
-        <div className="p-4 border-2 border-gray-300 rounded-lg focus-within:border-primary transition-colors">
-          <CardElement options={CARD_ELEMENT_OPTIONS} />
-        </div>
-        <div className="flex items-center gap-2 mt-3">
-          <Lock size={16} className="text-gray-400" />
-          <span className="text-xs text-gray-500">
-            Your payment information is encrypted and secure
-          </span>
-        </div>
+        <input
+          type="number"
+          min="0.01"
+          max={invoice.balance}
+          step="0.01"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className="input-field"
+          required
+        />
       </div>
 
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="saveCard"
-          checked={saveCard}
-          onChange={(e) => setSaveCard(e.target.checked)}
-          className="rounded border-gray-300"
-        />
-        <label htmlFor="saveCard" className="text-sm text-gray-700">
-          Save this card for future payments
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Payment Method
         </label>
+        <select
+          value={paymentMethod}
+          onChange={(e) => setPaymentMethod(e.target.value)}
+          className="input-field"
+        >
+          {paymentMethodOptions.map((method) => (
+            <option key={method} value={method}>
+              {method}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-500 mt-2">
+          Use this to record a full or partial payment immediately.
+        </p>
       </div>
 
       <div className="flex gap-3">
         <button
           type="submit"
-          disabled={!stripe || processing}
+          disabled={processing}
           className="btn-primary flex-1"
         >
           {processing ? (
@@ -190,7 +145,7 @@ const PaymentForm = ({ invoice, onSuccess, onClose }) => {
               Processing...
             </span>
           ) : (
-            `Pay $${invoice.balance.toFixed(2)}`
+            `Pay Rs ${parseFloat(amount || 0).toFixed(2)}`
           )}
         </button>
         <button
@@ -204,14 +159,9 @@ const PaymentForm = ({ invoice, onSuccess, onClose }) => {
       </div>
 
       <div className="flex items-center justify-center gap-4 pt-4 border-t border-gray-200">
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg"
-          alt="Stripe"
-          className="h-6"
-        />
         <div className="flex gap-2">
           <CreditCard size={24} className="text-gray-400" />
-          <span className="text-xs text-gray-500">Secured by Stripe</span>
+          <span className="text-xs text-gray-500">Recorded in billing</span>
         </div>
       </div>
     </form>
@@ -248,13 +198,11 @@ const PaymentModal = ({ invoice, onClose, onSuccess }) => {
           </div>
 
           <div className="p-6">
-            <Elements stripe={stripePromise}>
-              <PaymentForm
-                invoice={invoice}
-                onSuccess={onSuccess}
-                onClose={onClose}
-              />
-            </Elements>
+            <PaymentForm
+              invoice={invoice}
+              onSuccess={onSuccess}
+              onClose={onClose}
+            />
           </div>
         </motion.div>
       </motion.div>

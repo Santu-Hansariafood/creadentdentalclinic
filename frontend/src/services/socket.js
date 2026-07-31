@@ -9,7 +9,6 @@ class SocketService {
 
   connect() {
     if (!this.socket) {
-      console.log("🔌 Connecting to socket server at:", SOCKET_URL);
       this.socket = io(SOCKET_URL, {
         transports: ["websocket", "polling"],
       });
@@ -31,7 +30,6 @@ class SocketService {
 
   disconnect() {
     if (this.socket) {
-      console.log("🔌 Disconnecting from socket server");
       this.socket.disconnect();
       this.socket = null;
     }

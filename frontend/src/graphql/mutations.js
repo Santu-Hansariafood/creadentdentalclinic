@@ -252,8 +252,66 @@ export const CREATE_INVOICE = gql`
       notes: $notes
     ) {
       id
+      patientId
+      patientName
+      date
+      dueDate
+      items {
+        description
+        quantity
+        unitPrice
+        total
+      }
+      subtotal
+      tax
+      discount
+      total
+      amountPaid
+      balance
       status
       invoiceNumber
+      paymentMethod
+      paymentDate
+      notes
+    }
+  }
+`;
+
+export const RECORD_INVOICE_PAYMENT = gql`
+  mutation RecordInvoicePayment(
+    $invoiceId: ID!
+    $amount: Float!
+    $paymentMethod: String!
+    $paymentDate: String
+  ) {
+    recordInvoicePayment(
+      invoiceId: $invoiceId
+      amount: $amount
+      paymentMethod: $paymentMethod
+      paymentDate: $paymentDate
+    ) {
+      id
+      invoiceNumber
+      patientId
+      patientName
+      date
+      dueDate
+      items {
+        description
+        quantity
+        unitPrice
+        total
+      }
+      subtotal
+      tax
+      discount
+      total
+      amountPaid
+      balance
+      status
+      paymentMethod
+      paymentDate
+      notes
     }
   }
 `;
@@ -366,5 +424,18 @@ export const UPDATE_PATIENT = gql`
 export const DELETE_PATIENT = gql`
   mutation DeletePatient($id: ID!) {
     deletePatient(id: $id)
+  }
+`;
+
+export const GENERATE_PATIENT_LOGIN = gql`
+  mutation GeneratePatientLogin($patientId: ID!) {
+    generatePatientLogin(patientId: $patientId) {
+      patientId
+      patientName
+      phone
+      password
+      userId
+      newlyCreated
+    }
   }
 `;

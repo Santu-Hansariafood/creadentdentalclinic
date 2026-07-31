@@ -11,12 +11,13 @@ import { fadeIn } from "../utils/motion";
 import { formatDate } from "../utils/dateUtils";
 import toast from "react-hot-toast";
 import { generateInvoicePDF } from "../utils/pdfGenerator";
+import { format } from "date-fns";
 
 const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
   const statusColors = {
     Paid: "badge-success",
     Partial: "badge-warning",
-    Pending: "badge-warning",
+    Unpaid: "badge-warning",
     Overdue: "badge-error",
     Processing: "badge-info",
     Failed: "badge-error",
@@ -211,7 +212,7 @@ const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
           </>
         )}
 
-        {(invoice.status === "Pending" || invoice.status === "Partial") &&
+        {(invoice.status === "Unpaid" || invoice.status === "Partial") &&
           !hasInstallmentPlan && (
             <button
               onClick={() => toast.info("Installment plan setup")}

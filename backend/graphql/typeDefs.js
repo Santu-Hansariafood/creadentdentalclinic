@@ -207,6 +207,15 @@ const typeDefs = `#graphql
     user: User!
   }
 
+  type PatientLoginCredentials {
+    patientId: ID!
+    patientName: String!
+    phone: String!
+    password: String!
+    userId: ID!
+    newlyCreated: Boolean!
+  }
+
   type PaginatedMedicines {
     medicines: [Medicine]
     totalCount: Int
@@ -438,6 +447,13 @@ const typeDefs = `#graphql
       notes: String
     ): Invoice
 
+    recordInvoicePayment(
+      invoiceId: ID!,
+      amount: Float!,
+      paymentMethod: String!,
+      paymentDate: String
+    ): Invoice
+
     createPrescription(
       patientId: ID!,
       patientName: String!,
@@ -467,6 +483,8 @@ const typeDefs = `#graphql
       status: String,
       password: String
     ): Patient
+
+    generatePatientLogin(patientId: ID!): PatientLoginCredentials
 
     updatePatient(
       id: ID!,

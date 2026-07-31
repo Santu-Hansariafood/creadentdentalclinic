@@ -1,5 +1,4 @@
 
-// Route to component map for preloading
 const routeImports = {
   "/login": () => import("../pages/Login"),
   "/register": () => import("../pages/Register"),
@@ -49,18 +48,15 @@ const routeImports = {
   "/doctor/settings": () => import("../pages/Settings"),
 };
 
-// Track already preloaded routes to avoid duplicates
 const preloadedRoutes = new Set();
 
 export const preloadRoute = (route) => {
   if (routeImports[route] && !preloadedRoutes.has(route)) {
     preloadedRoutes.add(route);
-    routeImports[route](); // Preload the component
-    console.log(`Preloaded: ${route}`);
+    routeImports[route]();
   }
 };
 
-// Preload next likely routes based on user role and current page
 export const preloadLikelyRoutes = (userRole, currentRoute) => {
   const routesToPreload = [];
   

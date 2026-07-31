@@ -40,6 +40,7 @@ const Login = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     watch,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -61,13 +62,6 @@ const Login = () => {
   }, []);
 
   const onSubmit = async (data) => {
-    console.log("🔍 Login form submission debug:");
-    console.log("   Form data:", data);
-    console.log("   Phone value type:", typeof data.phone);
-    console.log("   Phone value:", data.phone);
-    console.log("   Password value type:", typeof data.password);
-    console.log("   Password value (length):", data.password?.length);
-    console.log("   Form errors:", errors);
     
     const result = await login(data.phone, data.password);
     if (result.success) {

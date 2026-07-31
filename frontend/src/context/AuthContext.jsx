@@ -43,11 +43,6 @@ export const AuthProvider = ({ children }) => {
   }, [meData, meError, meLoading]);
 
   const login = async (phone, password) => {
-    console.log("🔐 AuthContext login called:");
-    console.log("   phone:", JSON.stringify(phone));
-    console.log("   phone type:", typeof phone);
-    console.log("   password:", JSON.stringify(password));
-    console.log("   password type:", typeof password);
     
     try {
       const variables = {
@@ -55,10 +50,8 @@ export const AuthProvider = ({ children }) => {
         password: password || ""
       };
       
-      console.log("   Sending variables:", variables);
       
       const { data } = await loginMutation({ variables });
-      console.log("Login mutation response data:", data);
 
       if (data?.login) {
         const { token, user: userData } = data.login;
@@ -104,17 +97,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    // Clear React state
     setUser(null);
     setIsAuthenticated(false);
     
-    // Clear all local storage
     localStorage.clear();
     
-    // Clear all session storage
     sessionStorage.clear();
     
-    // Reset Apollo Client cache
     apolloClient.resetStore();
     
     toast.success("Logged out successfully");

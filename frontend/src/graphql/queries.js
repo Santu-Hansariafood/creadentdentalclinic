@@ -108,6 +108,8 @@ export const GET_INVOICES = gql`
       amountPaid
       balance
       status
+      paymentMethod
+      paymentDate
       notes
     }
   }
@@ -159,6 +161,7 @@ export const GET_PATIENTS = gql`
     getPatients(page: $page, limit: $limit, search: $search) {
       patients {
         id
+        userId
         name
         email
         phone

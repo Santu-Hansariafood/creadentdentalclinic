@@ -18,8 +18,11 @@ import { fadeIn, staggerContainer } from "../utils/motion";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_INVOICES, GET_PATIENTS } from "../graphql/queries";
-import { CREATE_INVOICE } from "../graphql/mutations";
+import { GET_INVOICES, GET_MY_PATIENT, GET_PATIENTS } from "../graphql/queries";
+import {
+  CREATE_INVOICE,
+  GENERATE_PATIENT_LOGIN,
+} from "../graphql/mutations";
 
 const Billing = () => {
   const { user } = useAuth();
@@ -32,6 +35,8 @@ const Billing = () => {
   const [showPaymentMethods, setShowPaymentMethods] = useState(false);
   const [activeTab, setActiveTab] = useState("invoices");
   const [showCreateInvoice, setShowCreateInvoice] = useState(false);
+  const [autoGenerateLogin, setAutoGenerateLogin] = useState(true);
+  const [generatedLogin, setGeneratedLogin] = useState(null);
   const [newInvoice, setNewInvoice] = useState({
     invoiceNumber: "",
     patientId: "",
@@ -44,13 +49,17 @@ const Billing = () => {
     notes: "",
   });
 
-  const { loading, error, data } = useQuery(GET_INVOICES);
+  const { loading, error, data, refetch } = useQuery(GET_INVOICES);
   const { data: patientsData } = useQuery(GET_PATIENTS, {
     variables: { page: 1, limit: 100 },
+  });
+  const { data: myPatientData } = useQuery(GET_MY_PATIENT, {
+    skip: user?.role !== "patient",
   });
   const [createInvoice] = useMutation(CREATE_INVOICE, {
     refetchQueries: [{ query: GET_INVOICES }],
   });
+  const [generatePatientLogin] = useMutation(GENERATE_PATIENT_LOGIN);
 
   if (loading) return <div className="p-6 text-center">Loading billing...</div>;
   if (error)
@@ -60,13 +69,14 @@ const Billing = () => {
 
   const allInvoices = data?.getInvoices || [];
   const patients = patientsData?.getPatients?.patients || [];
+  const myPatient = myPatientData?.getMyPatient;
+  const buildPatientPassword = (phone = "") =>
+    `${new Date().getFullYear()}${phone.slice(-4)}`;
 
   // Filter invoices for patients - only show their own invoices
   const invoices =
-    user?.role === "patient"
-      ? allInvoices.filter((inv) =>
-          inv.patientName.toLowerCase().includes(user.name.toLowerCase()),
-        )
+    user?.role === "patient" && myPatient
+      ? allInvoices.filter((inv) => inv.patientId === myPatient.id)
       : allInvoices;
 
   const paymentMethods = []; // Mocked as empty for now until model is ready
@@ -134,6 +144,15 @@ const Billing = () => {
   const handlePatientChange = (patientId) => {
     const patient = patients.find((p) => p.id === patientId);
     if (patient) {
+      setGeneratedLogin({
+        patientId: patient.id,
+        patientName: patient.name,
+        phone: patient.phone,
+        password: buildPatientPassword(patient.phone),
+        userId: patient.userId,
+        newlyCreated: !patient.userId,
+        preview: true,
+      });
       setNewInvoice({
         ...newInvoice,
         patientId,
@@ -142,10 +161,29 @@ const Billing = () => {
     }
   };
 
-  const handleCreateInvoice = async (e) => {
+  const resetInvoiceForm = (clearGeneratedCredentials = true) => {
+    setShowCreateInvoice(false);
+    if (clearGeneratedCredentials) {
+      setGeneratedLogin(null);
+    }
+    setAutoGenerateLogin(true);
+    setNewInvoice({
+      invoiceNumber: "",
+      patientId: "",
+      patientName: "",
+      date: format(new Date(), "yyyy-MM-dd"),
+      dueDate: "",
+      items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
+      tax: 0,
+      discount: 0,
+      notes: "",
+    });
+  };
+
+  const handleCreateInvoice = async (e, shouldPayNow = false) => {
     e.preventDefault();
     try {
-      await createInvoice({
+      const { data: createInvoiceData } = await createInvoice({
         variables: {
           ...newInvoice,
           subtotal,
@@ -153,21 +191,38 @@ const Billing = () => {
           balance: totalAmount,
         },
       });
-      toast.success("Invoice created successfully!");
-      setShowCreateInvoice(false);
-      setNewInvoice({
-        invoiceNumber: "",
-        patientId: "",
-        patientName: "",
-        date: format(new Date(), "yyyy-MM-dd"),
-        dueDate: "",
-        items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
-        tax: 0,
-        discount: 0,
-        notes: "",
-      });
+      const createdInvoice = createInvoiceData?.createInvoice;
+      let loginCredentials = null;
+
+      if (autoGenerateLogin && newInvoice.patientId) {
+        const { data: loginData } = await generatePatientLogin({
+          variables: { patientId: newInvoice.patientId },
+        });
+        if (loginData?.generatePatientLogin) {
+          loginCredentials = loginData.generatePatientLogin;
+          setGeneratedLogin(loginCredentials);
+          toast.success(
+            `Patient login password generated: ${loginCredentials.password}`,
+          );
+        }
+      } else {
+        setGeneratedLogin(null);
+      }
+
+      toast.success(
+        shouldPayNow
+          ? "Invoice created. Ready to record payment."
+          : "Invoice created successfully!",
+      );
+
+      if (shouldPayNow && createdInvoice) {
+        setSelectedInvoice(createdInvoice);
+        setShowPaymentModal(true);
+      }
+
+      resetInvoiceForm(!loginCredentials);
     } catch (err) {
-      toast.error("Failed to create invoice");
+      toast.error(err.message || "Failed to create invoice");
     }
   };
 
@@ -200,7 +255,8 @@ const Billing = () => {
     );
   };
 
-  const handlePaymentSuccess = (paymentIntent) => {
+  const handlePaymentSuccess = async () => {
+    await refetch();
     toast.success("Payment processed successfully!");
     setShowPaymentModal(false);
     setSelectedInvoice(null);
@@ -225,7 +281,10 @@ const Billing = () => {
         </div>
         {user?.role === "admin" && (
           <button
-            onClick={() => setShowCreateInvoice(true)}
+            onClick={() => {
+              setGeneratedLogin(null);
+              setShowCreateInvoice(true);
+            }}
             className="btn-primary flex items-center gap-2 self-start sm:self-auto"
           >
             <Plus size={20} />
@@ -234,10 +293,21 @@ const Billing = () => {
         )}
       </motion.div>
 
+      {generatedLogin && !generatedLogin.preview && (
+        <motion.div {...fadeIn("up", 0.05)} className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-4">
+          <p className="text-sm font-semibold text-green-900">
+            Patient login generated for {generatedLogin.patientName}
+          </p>
+          <p className="text-sm text-green-800 mt-1">
+            Phone: {generatedLogin.phone} | Password: {generatedLogin.password}
+          </p>
+        </motion.div>
+      )}
+
       {showCreateInvoice && (
         <motion.div {...fadeIn("up")} className="card mb-8">
           <h2 className="text-xl font-bold mb-4">Create New Invoice</h2>
-          <form onSubmit={handleCreateInvoice} className="space-y-6">
+          <form onSubmit={(e) => handleCreateInvoice(e, false)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -316,6 +386,41 @@ const Billing = () => {
                   }
                 />
               </div>
+            </div>
+
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-800">
+                <input
+                  type="checkbox"
+                  checked={autoGenerateLogin}
+                  onChange={(e) => setAutoGenerateLogin(e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                Generate patient login password
+              </label>
+              {generatedLogin && (
+                <div className="text-sm text-gray-700 space-y-1">
+                  <p>
+                    Patient: <span className="font-semibold">{generatedLogin.patientName}</span>
+                  </p>
+                  <p>
+                    Login phone: <span className="font-semibold">{generatedLogin.phone}</span>
+                  </p>
+                  <p>
+                    Generated password:{" "}
+                    <span className="font-semibold">{generatedLogin.password}</span>
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {generatedLogin.preview
+                      ? generatedLogin.userId
+                        ? "This will reset the patient's current login to the generated password."
+                        : "A new patient login will be created when the invoice is generated."
+                      : generatedLogin.newlyCreated
+                        ? "New patient login created successfully."
+                        : "Existing patient login password updated successfully."}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>
@@ -437,13 +542,23 @@ const Billing = () => {
             </div>
 
             <div className="md:col-span-2 flex gap-2">
-              <button type="submit" className="btn-primary">
+              <button
+                type="submit"
+                className="btn-primary"
+              >
                 Generate Invoice
               </button>
               <button
                 type="button"
                 className="btn-outline"
-                onClick={() => setShowCreateInvoice(false)}
+                onClick={(e) => handleCreateInvoice(e, true)}
+              >
+                Generate & Pay Now
+              </button>
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={resetInvoiceForm}
               >
                 Cancel
               </button>
@@ -577,8 +692,7 @@ const Billing = () => {
                   <option value="All">All Status</option>
                   <option value="Paid">Paid</option>
                   <option value="Partial">Partial</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Overdue">Overdue</option>
+                  <option value="Unpaid">Unpaid</option>
                 </select>
               </div>
             </div>

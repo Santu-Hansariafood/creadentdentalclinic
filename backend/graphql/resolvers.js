@@ -11,6 +11,12 @@ const ChatMessage = require("../models/ChatMessage");
 const Notification = require("../models/Notification");
 const generateToken = require("../utils/generateToken");
 
+const generatePatientPassword = (phone = "") => {
+  const currentYear = new Date().getFullYear().toString();
+  const last4Digits = phone.slice(-4);
+  return `${currentYear}${last4Digits}`;
+};
+
 const toIsoDateString = (value) => {
   if (!value) return new Date().toISOString();
   const date = value instanceof Date ? value : new Date(value);
@@ -628,7 +634,50 @@ const resolvers = {
         const nextNumber = lastInvoice ? parseInt(lastInvoice.invoiceNumber.replace('INV-', '')) + 1 : 1;
         invoiceNumber = `INV-${String(nextNumber).padStart(4, '0')}`;
       }
-      const invoice = new Invoice({ ...args, invoiceNumber });
+      const invoice = new Invoice({
+        ...args,
+        invoiceNumber,
+        amountPaid: args.amountPaid || 0,
+        status: args.balance > 0 ? "Unpaid" : "Paid",
+      });
+      return await invoice.save();
+    },
+    recordInvoicePayment: async (_, { invoiceId, amount, paymentMethod, paymentDate }, { user }) => {
+      if (!user) {
+        throw new Error("Not authenticated");
+      }
+
+      if (user.role === "doctor") {
+        throw new Error("Unauthorized: Doctors cannot record invoice payments");
+      }
+
+      const invoice = await Invoice.findById(invoiceId);
+      if (!invoice) {
+        throw new Error("Invoice not found");
+      }
+
+      if (user.role === "patient") {
+        const patient = await Patient.findOne({ userId: user._id });
+        if (!patient || invoice.patientId.toString() !== patient._id.toString()) {
+          throw new Error("Unauthorized: You can only pay your own invoices");
+        }
+      }
+
+      const paymentAmount = Number(amount);
+      if (!Number.isFinite(paymentAmount) || paymentAmount <= 0) {
+        throw new Error("Payment amount must be greater than 0");
+      }
+
+      if (paymentAmount > invoice.balance) {
+        throw new Error("Payment amount cannot exceed the outstanding balance");
+      }
+
+      invoice.amountPaid = (invoice.amountPaid || 0) + paymentAmount;
+      invoice.balance = Math.max(0, invoice.total - invoice.amountPaid);
+      invoice.status = invoice.balance === 0 ? "Paid" : "Partial";
+      invoice.paymentMethod = paymentMethod;
+      invoice.paymentDate = paymentDate ? new Date(paymentDate) : new Date();
+
       return await invoice.save();
     },
     createPrescription: async (_, args) => {
@@ -685,6 +734,67 @@ const resolvers = {
       
       const patient = new Patient(patientData);
       return await patient.save();
+    },
+    generatePatientLogin: async (_, { patientId }, { user }) => {
+      if (!user || !["admin", "employee"].includes(user.role)) {
+        throw new Error("Unauthorized: Only admins and employees can generate patient logins");
+      }
+
+      const patient = await Patient.findById(patientId);
+      if (!patient) {
+        throw new Error("Patient not found");
+      }
+
+      const generatedPassword = generatePatientPassword(patient.phone);
+      let patientUser = null;
+      let newlyCreated = false;
+
+      if (patient.userId) {
+        patientUser = await User.findById(patient.userId);
+      }
+
+      if (!patientUser) {
+        patientUser = await User.findOne({
+          role: "patient",
+          $or: [
+            { phone: patient.phone },
+            ...(patient.email ? [{ email: patient.email }] : []),
+          ],
+        });
+      }
+
+      if (patientUser) {
+        patientUser.name = patient.name;
+        patientUser.phone = patient.phone;
+        patientUser.email = patient.email || patientUser.email;
+        patientUser.password = generatedPassword;
+        patientUser.verified = true;
+        await patientUser.save();
+      } else {
+        patientUser = await User.create({
+          name: patient.name,
+          email: patient.email || `${patient.phone}@patient.creadent.local`,
+          phone: patient.phone,
+          password: generatedPassword,
+          role: "patient",
+          verified: true,
+        });
+        newlyCreated = true;
+      }
+
+      if (!patient.userId || patient.userId.toString() !== patientUser._id.toString()) {
+        patient.userId = patientUser._id;
+        await patient.save();
+      }
+
+      return {
+        patientId: patient._id.toString(),
+        patientName: patient.name,
+        phone: patient.phone,
+        password: generatedPassword,
+        userId: patientUser._id.toString(),
+        newlyCreated,
+      };
     },
     updatePatient: async (_, { id, ...args }) => {
       // Check if phone number is being changed and already exists
