@@ -1,9 +1,14 @@
-# Creadent Dental Clinic
+# Creadent Dental Clinic - Robots.txt
 # For more information about the robots.txt protocol, see:
 # https://www.robotstxt.org/robotstxt.html
 
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /dashboard/
 
 # Sitemap
 Sitemap: https://creadentsmiles.com/sitemap.xml

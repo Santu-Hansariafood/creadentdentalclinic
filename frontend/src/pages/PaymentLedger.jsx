@@ -2,12 +2,13 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Search,
-  Filter,
   Plus,
-  Truck,
+  Activity,
   Calendar,
   DollarSign,
   FileText,
+  CreditCard,
+  Hash,
 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import { useQuery } from "@apollo/client";
@@ -33,7 +34,7 @@ const PaymentLedger = () => {
   const { paymentLedgers = [], totalPages = 1 } = data?.getPaymentLedgers || {};
 
   const filteredLedgers = paymentLedgers.filter((ledger) =>
-    ledger.lorryNo.toLowerCase().includes(searchTerm.toLowerCase()),
+    ledger.treatmentName.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -45,7 +46,7 @@ const PaymentLedger = () => {
               Payment Ledger MIS
             </h1>
             <p className="text-gray-600">
-              Track payments and dues by Lorry Number
+              Track payments and dues by Treatment Name
             </p>
           </div>
           <button className="btn-primary flex items-center gap-2 self-start md:self-center">
@@ -63,7 +64,7 @@ const PaymentLedger = () => {
           />
           <input
             type="text"
-            placeholder="Search by Lorry Number..."
+            placeholder="Search by Treatment Name..."
             className="input-field pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -83,10 +84,16 @@ const PaymentLedger = () => {
                   Sl No
                 </th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-700">
-                  Lorry No
+                  Treatment Name
                 </th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-700">
                   Payment Date
+                </th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                  Payment Mode
+                </th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                  Reference No
                 </th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-700">
                   Payment Amount
@@ -113,9 +120,9 @@ const PaymentLedger = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <Truck size={16} className="text-primary" />
+                      <Activity size={16} className="text-primary" />
                       <span className="font-medium text-gray-900">
-                        {ledger.lorryNo}
+                        {ledger.treatmentName}
                       </span>
                     </div>
                   </td>
@@ -123,6 +130,18 @@ const PaymentLedger = () => {
                     <div className="flex items-center gap-2">
                       <Calendar size={14} />
                       {formatDate(ledger.paymentDate)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <CreditCard size={14} className="text-gray-400" />
+                      {ledger.paymentMode || "-"}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Hash size={14} className="text-gray-400" />
+                      {ledger.referenceNo || "-"}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -158,7 +177,7 @@ const PaymentLedger = () => {
               {filteredLedgers.length === 0 && (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="9"
                     className="px-6 py-12 text-center text-gray-500"
                   >
                     <FileText
@@ -174,7 +193,7 @@ const PaymentLedger = () => {
               <tfoot className="bg-gray-50 font-semibold">
                 <tr>
                   <td
-                    colSpan="3"
+                    colSpan="5"
                     className="px-6 py-4 text-right text-gray-700"
                   >
                     Total:
