@@ -3,21 +3,44 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
+import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider } from "./context/AuthContext";
-import { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { ApolloProvider } from "@apollo/client";
 import client from "./apolloClient";
-import { Helmet, HelmetProvider } from "react-helmet-async";
+import { HelmetProvider } from "react-helmet-async";
+import { ToastContainer } from "react-toastify";
 import { registerSW } from "virtual:pwa-register";
 
 const updateSW = registerSW({
   onNeedRefresh() {
-    if (confirm("New version available! Refresh to update?")) {
-      updateSW();
-    }
+    toast.info(
+      <div className="flex items-center gap-3">
+        <div className="flex-1">
+          <p className="font-semibold">Update available</p>
+          <p className="text-sm text-slate-600">
+            Refresh to load the latest clinic app version.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="rounded bg-primary px-3 py-1.5 text-sm font-medium text-white"
+          onClick={() => updateSW(true)}
+        >
+          Refresh
+        </button>
+      </div>,
+      {
+        autoClose: false,
+        closeOnClick: false,
+        toastId: "app-update-ready",
+      },
+    );
   },
   onOfflineReady() {
-    console.log("App ready for offline use");
+    toast.success("Offline support is ready.", {
+      toastId: "app-offline-ready",
+    });
   },
 });
 
@@ -28,29 +51,19 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <BrowserRouter>
           <AuthProvider>
             <App />
-            <Toaster
+            <ToastContainer
               position="top-right"
-              toastOptions={{
-                duration: 3000,
-                style: {
-                  background: "#fff",
-                  color: "#1f2937",
-                  padding: "16px",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                },
-                success: {
-                  iconTheme: {
-                    primary: "#10b981",
-                    secondary: "#fff",
-                  },
-                },
-                error: {
-                  iconTheme: {
-                    primary: "#ef4444",
-                    secondary: "#fff",
-                  },
-                },
+              autoClose={3000}
+              newestOnTop
+              pauseOnFocusLoss={false}
+              limit={4}
+              theme="light"
+              toastStyle={{
+                background: "#fff",
+                color: "#1f2937",
+                padding: "16px",
+                borderRadius: "12px",
+                boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.12)",
               }}
             />
           </AuthProvider>

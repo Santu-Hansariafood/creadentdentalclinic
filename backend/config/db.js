@@ -12,7 +12,6 @@ const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI, options);
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
     console.log(
       `Connection Pool: max=${options.maxPoolSize}, min=${options.minPoolSize}`,
     );

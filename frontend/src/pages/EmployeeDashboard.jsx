@@ -30,7 +30,6 @@ import SEO from "../components/SEO";
 import { Suspense } from "react";
 import Preloader from "../components/Preloader";
 
-// Format time ago
 const formatTimeAgo = (dateString) => {
   const date = new Date(dateString);
   const now = new Date();

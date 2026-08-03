@@ -859,8 +859,6 @@ const PatientRegistration = ({ initialPatient = null, onClose = null, isSelfRegi
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               {isCreatingPatient ? "Confirm Password *" : "Confirm New Password"}
                             </label>
-                              {isCreatingPatient ? "Confirm Password *" : "Confirm New Password"}
-                            </label>
                             <div className="relative">
                               <Lock
                                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"

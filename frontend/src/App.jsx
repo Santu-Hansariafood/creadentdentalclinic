@@ -7,7 +7,12 @@ import Sidebar from "./components/Sidebar";
 import Preloader from "./components/Preloader";
 import socketService from "./services/socket";
 import toast from "react-hot-toast";
-import { preloadLikelyRoutes, preloadRoute } from "./utils/preload";
+import {
+  preloadLikelyRoutes,
+  preloadPublicRoutes,
+  preloadRoute,
+  prefetchCriticalAssets,
+} from "./utils/preload";
 import { useQuery } from "@apollo/client";
 import { GET_MY_PATIENT } from "./graphql/queries";
 import publicContent from "./data/publicPages.json";
@@ -98,14 +103,18 @@ const App = () => {
     }
   }, [isAuthenticated]);
 
-  // Smart preloading based on auth state and user role
   useEffect(() => {
-    if (isAuthenticated && user) {
-      preloadLikelyRoutes(user.role, window.location.pathname);
+    prefetchCriticalAssets();
+
+    if (isPublicPage) {
+      preloadPublicRoutes(location.pathname);
+    } else if (isAuthenticated && user) {
+      preloadLikelyRoutes(user.role, location.pathname);
     } else {
       preloadRoute("/login");
+      preloadRoute("/register");
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, isPublicPage, location.pathname, user]);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
