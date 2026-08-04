@@ -13,6 +13,7 @@ import { ToastContainer } from "react-toastify";
 import { registerSW } from "virtual:pwa-register";
 
 const updateSW = registerSW({
+  immediate: true,
   onNeedRefresh() {
     toast.info(
       <div className="flex items-center gap-3">

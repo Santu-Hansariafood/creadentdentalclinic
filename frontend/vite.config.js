@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => {
         react: path.resolve(__dirname, "node_modules/react"),
         "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
       },
+      dedupe: ["react", "react-dom"],
     },
     plugins: [
       react(),
@@ -130,11 +131,15 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id) {
             if (
-              id.includes("node_modules/react") ||
-              id.includes("node_modules/react-dom") ||
-              id.includes("node_modules/scheduler")
+              id.includes("node_modules/react/") ||
+              id.includes("node_modules/react-dom/") ||
+              id.includes("node_modules/scheduler/") ||
+              id.includes("node_modules/@apollo/client")
             ) {
-              return "vendor-react";
+              return "vendor-core";
+            }
+            if (id.includes("node_modules/lucide-react")) {
+              return "vendor-lucide";
             }
             if (id.includes("node_modules/@tanstack")) {
               return "vendor-tanstack";
