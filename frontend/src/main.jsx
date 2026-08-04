@@ -12,6 +12,39 @@ import { HelmetProvider } from "react-helmet-async";
 import { ToastContainer } from "react-toastify";
 import { registerSW } from "virtual:pwa-register";
 
+// After deploy, stale tabs may request old hashed chunks. A 404 (not index.html)
+// or MIME mismatch should trigger one hard reload to pick up the new manifest.
+const reloadForStaleAssets = () => {
+  const reloadKey = "pwa-stale-asset-reload";
+  if (sessionStorage.getItem(reloadKey)) {
+    return;
+  }
+  sessionStorage.setItem(reloadKey, "1");
+  window.location.reload();
+};
+
+window.addEventListener("vite:preloadError", (event) => {
+  event.preventDefault();
+  reloadForStaleAssets();
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  const reason = event.reason;
+  const message =
+    typeof reason === "string"
+      ? reason
+      : reason?.message || reason?.toString?.() || "";
+
+  if (
+    /Loading chunk|Failed to fetch dynamically imported module|Importing a module script failed|MIME type/i.test(
+      message,
+    )
+  ) {
+    event.preventDefault();
+    reloadForStaleAssets();
+  }
+});
+
 // #region debug-point B:main-startup
 fetch("http://127.0.0.1:7777/event", {
   method: "POST",
@@ -52,47 +85,8 @@ const updateSW = registerSW({
       }),
     }).catch(() => {});
     // #endregion
-    toast.info(
-      <div className="flex items-center gap-3">
-        <div className="flex-1">
-          <p className="font-semibold">Update available</p>
-          <p className="text-sm text-slate-600">
-            Refresh to load the latest clinic app version.
-          </p>
-        </div>
-        <button
-          type="button"
-          className="rounded bg-primary px-3 py-1.5 text-sm font-medium text-white"
-          onClick={() => {
-            // #region debug-point A:sw-apply-update
-            fetch("http://127.0.0.1:7777/event", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                sessionId: "prod-reload-loop",
-                runId: "pre-fix",
-                hypothesisId: "A",
-                location: "src/main.jsx:53",
-                msg: "[DEBUG] User accepted service worker refresh",
-                data: {
-                  href: window.location.href,
-                },
-                ts: Date.now(),
-              }),
-            }).catch(() => {});
-            // #endregion
-            updateSW(true);
-          }}
-        >
-          Refresh
-        </button>
-      </div>,
-      {
-        autoClose: false,
-        closeOnClick: false,
-        toastId: "app-update-ready",
-      },
-    );
+    // registerType is autoUpdate — apply immediately instead of waiting for user action.
+    updateSW(true);
   },
   onOfflineReady() {
     // #region debug-point A:sw-offline-ready

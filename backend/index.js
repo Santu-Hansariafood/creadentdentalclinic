@@ -110,7 +110,30 @@ const startServer = async () => {
 
   // Serve static files from frontend build
   const frontendBuildPath = path.join(__dirname, "../frontend/dist");
-  app.use(express.static(frontendBuildPath));
+  const hashedAssetPattern = /\.[a-z0-9]{2,8}$/i;
+  const isStaticAssetRequest = (requestPath) =>
+    requestPath.startsWith("/assets/") ||
+    requestPath === "/sw.js" ||
+    requestPath.startsWith("/workbox-") ||
+    requestPath.endsWith(".webmanifest") ||
+    hashedAssetPattern.test(requestPath);
+
+  app.use(
+    express.static(frontendBuildPath, {
+      setHeaders(res, filePath) {
+        const fileName = path.basename(filePath);
+        if (
+          fileName === "index.html" ||
+          fileName === "sw.js" ||
+          fileName.endsWith(".webmanifest")
+        ) {
+          res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        } else if (hashedAssetPattern.test(fileName)) {
+          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        }
+      },
+    }),
+  );
 
   app.get("/health", (req, res) => {
     res.status(200).json({
@@ -152,16 +175,27 @@ ${staticPages.map(page => `  <url>
 
   // Catch-all middleware for client-side routing (avoids Express 5 path-to-regexp error)
   app.use((req, res, next) => {
-    if (
-      req.method === "GET" &&
-      !req.path.startsWith("/graphql") &&
-      !req.path.startsWith("/api") &&
-      !req.path.startsWith("/health") &&
-      !req.path.startsWith("/sitemap.xml")
-    ) {
-      return res.sendFile(path.join(frontendBuildPath, "index.html"));
+    if (req.method !== "GET") {
+      return next();
     }
-    next();
+
+    if (
+      req.path.startsWith("/graphql") ||
+      req.path.startsWith("/api") ||
+      req.path.startsWith("/health") ||
+      req.path.startsWith("/sitemap.xml")
+    ) {
+      return next();
+    }
+
+    // Missing hashed assets must 404 — returning index.html causes MIME type errors
+    // when the browser tries to execute HTML as JavaScript after deploy.
+    if (isStaticAssetRequest(req.path)) {
+      return res.status(404).type("text/plain").send("Not found");
+    }
+
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    return res.sendFile(path.join(frontendBuildPath, "index.html"));
   });
 
   app.use((req, res) => {

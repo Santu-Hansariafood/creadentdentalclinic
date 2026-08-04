@@ -60,6 +60,14 @@ export default defineConfig(({ mode }) => {
           skipWaiting: true,
           clientsClaim: true,
           navigationPreload: false,
+          navigateFallback: "index.html",
+          navigateFallbackDenylist: [
+            /^\/api/,
+            /^\/graphql/,
+            /^\/health/,
+            /^\/assets\//,
+            /\.(?:js|css|map|woff2?|png|jpe?g|svg|ico|json|webmanifest)$/i,
+          ],
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
