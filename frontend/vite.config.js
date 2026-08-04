@@ -122,39 +122,50 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id) {
             if (id.includes("node_modules")) {
+              const normalizedId = id.replace(/\\/g, "/");
+
               if (
-                id.includes("react") ||
-                id.includes("react-dom") ||
-                id.includes("react-router-dom")
+                normalizedId.includes("/node_modules/react/") ||
+                normalizedId.includes("/node_modules/react-dom/") ||
+                normalizedId.includes("/node_modules/react-router/") ||
+                normalizedId.includes("/node_modules/react-router-dom/") ||
+                normalizedId.includes("/node_modules/scheduler/")
               ) {
                 return "vendor-react";
               }
-              if (id.includes("@mui") || id.includes("@emotion")) {
+              if (
+                normalizedId.includes("/node_modules/@mui/") ||
+                normalizedId.includes("/node_modules/@emotion/")
+              ) {
                 return "vendor-mui";
               }
               if (
-                id.includes("framer-motion") ||
-                id.includes("lucide-react") ||
-                id.includes("recharts") ||
-                id.includes("react-toastify")
+                normalizedId.includes("/node_modules/framer-motion/") ||
+                normalizedId.includes("/node_modules/lucide-react/") ||
+                normalizedId.includes("/node_modules/recharts/") ||
+                normalizedId.includes("/node_modules/react-toastify/") ||
+                normalizedId.includes("/node_modules/react-hot-toast/")
               ) {
                 return "vendor-ui";
               }
-              if (id.includes("@apollo/client") || id.includes("graphql")) {
+              if (
+                normalizedId.includes("/node_modules/@apollo/client/") ||
+                normalizedId.includes("/node_modules/graphql/")
+              ) {
                 return "vendor-graphql";
               }
               if (
-                id.includes("jspdf") ||
-                id.includes("stripe") ||
-                id.includes("axios") ||
-                id.includes("socket.io-client")
+                normalizedId.includes("/node_modules/jspdf/") ||
+                normalizedId.includes("/node_modules/@stripe/") ||
+                normalizedId.includes("/node_modules/axios/") ||
+                normalizedId.includes("/node_modules/socket.io-client/")
               ) {
                 return "vendor-utils";
               }
               if (
-                id.includes("react-icons") ||
-                id.includes("bootstrap") ||
-                id.includes("react-countup")
+                normalizedId.includes("/node_modules/react-icons/") ||
+                normalizedId.includes("/node_modules/bootstrap/") ||
+                normalizedId.includes("/node_modules/react-countup/")
               ) {
                 return "vendor-libs";
               }
