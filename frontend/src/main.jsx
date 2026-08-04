@@ -28,6 +28,20 @@ window.addEventListener("vite:preloadError", (event) => {
   reloadForStaleAssets();
 });
 
+window.addEventListener(
+  "error",
+  (event) => {
+    const target = event.target;
+    if (
+      target instanceof HTMLScriptElement &&
+      (target.type === "module" || target.src.includes("/assets/"))
+    ) {
+      reloadForStaleAssets();
+    }
+  },
+  true,
+);
+
 window.addEventListener("unhandledrejection", (event) => {
   const reason = event.reason;
   const message =

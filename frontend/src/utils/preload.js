@@ -68,7 +68,7 @@ const scheduleIdleTask = (callback) => {
   window.setTimeout(callback, 250);
 };
 
-const addHint = ({ href, rel, as, crossOrigin }) => {
+const addHint = ({ href, rel, as, crossOrigin, fetchPriority }) => {
   if (typeof document === "undefined" || hintedAssets.has(`${rel}:${href}`)) {
     return;
   }
@@ -83,6 +83,10 @@ const addHint = ({ href, rel, as, crossOrigin }) => {
 
   if (crossOrigin) {
     link.crossOrigin = crossOrigin;
+  }
+
+  if (fetchPriority) {
+    link.setAttribute("fetchpriority", fetchPriority);
   }
 
   document.head.appendChild(link);
@@ -113,7 +117,7 @@ export const prefetchRoutes = (routes = [], currentRoute = "") => {
 };
 
 export const prefetchCriticalAssets = () => {
-  addHint({ href: "/logo/logo.png", rel: "preload", as: "image" });
+  addHint({ href: "/logo/logo.png", rel: "preload", as: "image", fetchpriority: "high" });
   addHint({ href: "/favicon/favicon.ico", rel: "prefetch", as: "image" });
 };
 
