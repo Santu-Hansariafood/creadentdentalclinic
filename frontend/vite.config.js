@@ -54,6 +54,8 @@ export default defineConfig(({ mode }) => {
         workbox: {
           globPatterns: ["**/*.{js,css,html,ico,png,svg,json,woff2}"],
           cleanupOutdatedCaches: true,
+          skipWaiting: true,
+          clientsClaim: true,
           navigationPreload: true,
           runtimeCaching: [
             {
@@ -118,63 +120,7 @@ export default defineConfig(({ mode }) => {
       allowedHosts: ["api.creadentsmiles.com"],
     },
     build: {
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            if (id.includes("node_modules")) {
-              const normalizedId = id.replace(/\\/g, "/");
-
-              if (
-                normalizedId.includes("/node_modules/react/") ||
-                normalizedId.includes("/node_modules/react-dom/") ||
-                normalizedId.includes("/node_modules/react-router/") ||
-                normalizedId.includes("/node_modules/react-router-dom/") ||
-                normalizedId.includes("/node_modules/scheduler/")
-              ) {
-                return "vendor-react";
-              }
-              if (
-                normalizedId.includes("/node_modules/@mui/") ||
-                normalizedId.includes("/node_modules/@emotion/")
-              ) {
-                return "vendor-mui";
-              }
-              if (
-                normalizedId.includes("/node_modules/framer-motion/") ||
-                normalizedId.includes("/node_modules/lucide-react/") ||
-                normalizedId.includes("/node_modules/recharts/") ||
-                normalizedId.includes("/node_modules/react-toastify/") ||
-                normalizedId.includes("/node_modules/react-hot-toast/")
-              ) {
-                return "vendor-ui";
-              }
-              if (
-                normalizedId.includes("/node_modules/@apollo/client/") ||
-                normalizedId.includes("/node_modules/graphql/")
-              ) {
-                return "vendor-graphql";
-              }
-              if (
-                normalizedId.includes("/node_modules/jspdf/") ||
-                normalizedId.includes("/node_modules/@stripe/") ||
-                normalizedId.includes("/node_modules/axios/") ||
-                normalizedId.includes("/node_modules/socket.io-client/")
-              ) {
-                return "vendor-utils";
-              }
-              if (
-                normalizedId.includes("/node_modules/react-icons/") ||
-                normalizedId.includes("/node_modules/bootstrap/") ||
-                normalizedId.includes("/node_modules/react-countup/")
-              ) {
-                return "vendor-libs";
-              }
-              return "vendor-misc";
-            }
-          },
-        },
-      },
       chunkSizeWarningLimit: 1000,
-    }
+    },
   };
 });
