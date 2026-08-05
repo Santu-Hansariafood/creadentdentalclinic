@@ -28,4 +28,6 @@ const chatMessageSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+chatMessageSchema.index({ receiverId: 1, read: 1 });
+
 module.exports = mongoose.model("ChatMessage", chatMessageSchema);

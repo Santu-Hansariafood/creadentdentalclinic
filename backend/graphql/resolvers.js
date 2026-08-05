@@ -13,6 +13,12 @@ const generateToken = require("../utils/generateToken");
 const {
   sendAppointmentBookingNotifications,
 } = require("../utils/appointmentNotifications");
+const {
+  fetchAdminStats,
+  fetchReportsData,
+  fetchDashboardStatsForUser,
+} = require("../utils/dashboardQueries");
+const { fetchRecentActivities } = require("../utils/dashboardQueries");
 
 const generatePatientPassword = (phone = "") => {
   const currentYear = new Date().getFullYear().toString();
@@ -164,175 +170,25 @@ const resolvers = {
     },
     getDashboardStats: async (_, __, { user }) => {
       if (!user) throw new Error("Not authenticated");
-
-      const totalPatients = await Patient.countDocuments();
-      const today = new Date().toISOString().split("T")[0];
-      const todayAppointments = await Appointment.countDocuments({
-        date: today,
-      });
-
-      const invoices = await Invoice.find();
-      const pendingPayments = invoices.filter((inv) => inv.balance > 0).length;
-      const monthlyRevenue = invoices.reduce((sum, inv) => sum + inv.total, 0);
-
-      const unreadMessages = await ChatMessage.countDocuments({
-        receiverId: user._id,
-        read: false,
-      });
-      const upcomingAppointments = await Appointment.countDocuments({
-        patientId: user._id,
-        date: { $gte: today },
-        status: "Scheduled",
-      });
-      const pendingBills = await Invoice.countDocuments({
-        patientId: user._id,
-        balance: { $gt: 0 },
-      });
-
-      const doctorApts = await Appointment.countDocuments({
-        doctorId: user._id,
-        date: today,
-      });
-      const doctorPatients = await Appointment.distinct("patientId", {
-        doctorId: user._id,
-      }).length;
-      const pendingReports = await MedicalRecord.countDocuments({
-        doctorId: user._id,
-        diagnosis: { $exists: false },
-      });
-
-      return {
-        patient: {
-          upcomingAppointments,
-          totalAppointments: await Appointment.countDocuments({
-            patientId: user._id,
-          }),
-          pendingBills,
-          unreadMessages,
-        },
-        doctor: {
-          todayAppointments: doctorApts,
-          totalPatients: doctorPatients,
-          pendingReports,
-          unreadMessages,
-        },
-        admin: {
-          totalPatients,
-          todayAppointments,
-          pendingPayments,
-          monthlyRevenue,
-        },
-      };
+      return fetchDashboardStatsForUser(user);
     },
-    getReportsData: async () => {
-      const invoices = await Invoice.find();
-      const monthlyRevenueMap = {};
-      const months = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
+    getReportsData: async () => fetchReportsData(),
+    getAdminDashboard: async (_, { limit = 10 }, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      if (user.role !== "admin" && user.role !== "employee") {
+        throw new Error("Unauthorized");
+      }
 
-      invoices.forEach((invoice) => {
-        const date = new Date(invoice.date);
-        const monthKey = months[date.getMonth()];
-        if (!monthlyRevenueMap[monthKey]) {
-          monthlyRevenueMap[monthKey] = 0;
-        }
-        monthlyRevenueMap[monthKey] += invoice.total;
-      });
-
-      const monthlyRevenue = months.map((month) => ({
-        month,
-        revenue: monthlyRevenueMap[month] || 0,
-      }));
-
-      const appointments = await Appointment.find();
-      const typeCount = {};
-      appointments.forEach((apt) => {
-        if (!typeCount[apt.type]) {
-          typeCount[apt.type] = 0;
-        }
-        typeCount[apt.type]++;
-      });
-
-      const appointmentsByType = Object.keys(typeCount).map((type) => ({
-        type,
-        count: typeCount[type],
-      }));
-
-      // Patient demographics by age group
-      const patients = await Patient.find();
-      const ageGroups = {
-        "0-18": 0,
-        "19-35": 0,
-        "36-50": 0,
-        "51-65": 0,
-        "65+": 0,
-      };
-
-      patients.forEach((patient) => {
-        const dob = new Date(patient.dateOfBirth);
-        const today = new Date();
-        let age = today.getFullYear() - dob.getFullYear();
-        const m = today.getMonth() - dob.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-          age--;
-        }
-
-        if (age <= 18) ageGroups["0-18"]++;
-        else if (age <= 35) ageGroups["19-35"]++;
-        else if (age <= 50) ageGroups["36-50"]++;
-        else if (age <= 65) ageGroups["51-65"]++;
-        else ageGroups["65+"]++;
-      });
-
-      const patientDemographics = Object.keys(ageGroups).map((ageGroup) => ({
-        ageGroup,
-        count: ageGroups[ageGroup],
-      }));
-
-      // Treatment success (using medical records)
-      const medicalRecords = await MedicalRecord.find();
-      const treatmentCounts = {};
-
-      medicalRecords.forEach((record) => {
-        if (record.diagnosis) {
-          const treatment = record.diagnosis || "General Treatment";
-          if (!treatmentCounts[treatment]) {
-            treatmentCounts[treatment] = { total: 0, successful: 0 };
-          }
-          treatmentCounts[treatment].total++;
-          treatmentCounts[treatment].successful++;
-        }
-      });
-
-      const treatmentSuccess = Object.keys(treatmentCounts).map(
-        (treatment) => ({
-          treatment,
-          successRate:
-            Math.round(
-              (treatmentCounts[treatment].successful /
-                treatmentCounts[treatment].total) *
-                100,
-            ) || 0,
-        }),
-      );
+      const [admin, reports, recentActivities] = await Promise.all([
+        fetchAdminStats(),
+        fetchReportsData(),
+        resolvers.Query.getRecentActivities(_, { limit }, { user }),
+      ]);
 
       return {
-        monthlyRevenue,
-        appointmentsByType,
-        patientDemographics,
-        treatmentSuccess,
+        stats: admin,
+        reports,
+        recentActivities,
       };
     },
     getConversations: async (_, __, { user }) => {
