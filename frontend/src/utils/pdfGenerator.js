@@ -1,318 +1,474 @@
 import jsPDF from "jspdf";
 import { format } from "date-fns";
+import QRCode from "qrcode"; // npm install qrcode
 
-const formatCurrency = (amount = 0) => `₹${Number(amount || 0).toFixed(2)}`;
+const formatCurrency = (amount = 0) => `Rs. ${Number(amount || 0).toFixed(2)}`;
 const formatPdfDate = (value, formatStr = "MMM dd, yyyy") => {
   if (!value) return "-";
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? "-" : format(date, formatStr);
 };
 
-export const generateInvoicePDF = (invoice) => {
-  const doc = new jsPDF();
+// Clinic details
+const CLINIC = {
+  name: "Creadent Multispeciality Dental Clinic",
+  address:
+    "BD-85, Salt Lake Rd, BD Block, Sector 1, Bidhannagar, Kolkata, West Bengal 700064",
+  phone: "+91 6292300343",
+  email: "creadentmultispecialitydentalc@gmail.com",
+  logoUrl: "https://creadentsmiles.com/logo/logo.png",
+};
 
+/**
+ * Load an image from a URL and return it as a base64 data URL.
+ */
+const loadImage = (url) => {
+  return new Promise((resolve, reject) => {
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to load image");
+        return response.blob();
+      })
+      .then((blob) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      })
+      .catch(reject);
+  });
+};
+
+/**
+ * Generate a QR code as a data URL from a string.
+ */
+const generateQR = async (text) => {
+  try {
+    return await QRCode.toDataURL(text, {
+      width: 80,
+      margin: 2,
+      color: {
+        dark: "#000000",
+        light: "#ffffff",
+      },
+    });
+  } catch (err) {
+    console.error("QR generation failed:", err);
+    return null;
+  }
+};
+
+/**
+ * Generate Invoice PDF (async)
+ * Usage: await generateInvoicePDF(invoice);
+ */
+export const generateInvoicePDF = async (invoice) => {
+  const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 20;
-  let yPosition = margin;
+  let y = margin;
 
-  doc.setFontSize(24);
-  doc.setFont("helvetica", "bold");
-  doc.text("creadent dental clinic", margin, yPosition);
+  // Load logo
+  let logoDataUrl = null;
+  try {
+    logoDataUrl = await loadImage(CLINIC.logoUrl);
+  } catch (e) {
+    console.warn("Logo could not be loaded", e);
+  }
 
-  yPosition += 10;
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.text("123 Medical Street, Healthcare City", margin, yPosition);
-  yPosition += 5;
-  doc.text(
-    "Phone: (555) 123-4567 | Email: billing@dentalclinic.com",
-    margin,
-    yPosition,
-  );
+  // --- Header: Logo + Clinic info ---
+  if (logoDataUrl) {
+    doc.addImage(logoDataUrl, "PNG", margin, y, 40, 40);
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text(CLINIC.name, margin + 50, y + 12);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(CLINIC.address, margin + 50, y + 22);
+    doc.text(
+      `Phone: ${CLINIC.phone}  |  Email: ${CLINIC.email}`,
+      margin + 50,
+      y + 32,
+    );
+    y += 50;
+  } else {
+    // Fallback if logo fails
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.text(CLINIC.name, margin, y);
+    y += 10;
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(CLINIC.address, margin, y);
+    y += 5;
+    doc.text(`Phone: ${CLINIC.phone}  |  Email: ${CLINIC.email}`, margin, y);
+    y += 10;
+  }
 
-  yPosition += 15;
+  // Separator line
   doc.setDrawColor(0, 127, 175);
   doc.setLineWidth(0.5);
-  doc.line(margin, yPosition, pageWidth - margin, yPosition);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 10;
 
-  yPosition += 15;
-  doc.setFontSize(18);
+  // --- Invoice/Receipt Title ---
+  doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
-  doc.text(
-    invoice.status === "Paid" ? "RECEIPT" : "INVOICE",
-    margin,
-    yPosition,
-  );
+  const title = invoice.status === "Paid" ? "RECEIPT" : "INVOICE";
+  doc.text(title, margin, y);
+  y += 8;
 
-  yPosition += 10;
+  // Invoice details (right-aligned)
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text(`Invoice Number: ${invoice.invoiceNumber}`, margin, yPosition);
-  yPosition += 6;
-  doc.text(
-    `Date: ${formatPdfDate(invoice.date)}`,
-    margin,
-    yPosition,
-  );
-  yPosition += 6;
-  doc.text(
-    `Due Date: ${formatPdfDate(invoice.dueDate)}`,
-    margin,
-    yPosition,
-  );
-
+  const rightColX = pageWidth - margin;
+  doc.text(`Invoice #: ${invoice.invoiceNumber}`, rightColX, y - 4, {
+    align: "right",
+  });
+  doc.text(`Date: ${formatPdfDate(invoice.date)}`, rightColX, y + 2, {
+    align: "right",
+  });
+  doc.text(`Due Date: ${formatPdfDate(invoice.dueDate)}`, rightColX, y + 8, {
+    align: "right",
+  });
   if (invoice.paymentDate) {
-    yPosition += 6;
     doc.setTextColor(16, 185, 129);
     doc.text(
       `Payment Date: ${formatPdfDate(invoice.paymentDate)}`,
-      margin,
-      yPosition,
+      rightColX,
+      y + 14,
+      { align: "right" },
     );
     doc.setTextColor(0, 0, 0);
   }
+  y += 20;
 
-  yPosition += 15;
+  // --- Bill To ---
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text("Bill To:", margin, yPosition);
-  yPosition += 7;
+  doc.text("Bill To:", margin, y);
+  y += 6;
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text(invoice.patientName, margin, yPosition);
+  doc.text(invoice.patientName, margin, y);
+  y += 12;
 
-  yPosition += 15;
-  doc.setDrawColor(200, 200, 200);
-  doc.line(margin, yPosition, pageWidth - margin, yPosition);
-
-  yPosition += 10;
+  // --- Invoice Items Table ---
+  // Table headers
+  const col1 = margin;
+  const col2 = pageWidth - 100;
+  const col3 = pageWidth - 70;
+  const col4 = pageWidth - margin;
   doc.setFont("helvetica", "bold");
-  doc.text("Description", margin, yPosition);
-  doc.text("Qty", pageWidth - 80, yPosition);
-  doc.text("Price", pageWidth - 60, yPosition);
-  doc.text("Amount", pageWidth - margin, yPosition, { align: "right" });
+  doc.text("Description", col1, y);
+  doc.text("Qty", col2, y);
+  doc.text("Price", col3, y);
+  doc.text("Amount", col4, y, { align: "right" });
+  y += 4;
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 6;
 
-  yPosition += 5;
-  doc.line(margin, yPosition, pageWidth - margin, yPosition);
-
-  yPosition += 8;
+  // Items
   doc.setFont("helvetica", "normal");
-
   invoice.items.forEach((item) => {
-    if (yPosition > pageHeight - 60) {
+    if (y > pageHeight - 60) {
       doc.addPage();
-      yPosition = margin;
+      y = margin;
+      // reprint headers on new page
+      doc.setFont("helvetica", "bold");
+      doc.text("Description", col1, y);
+      doc.text("Qty", col2, y);
+      doc.text("Price", col3, y);
+      doc.text("Amount", col4, y, { align: "right" });
+      y += 4;
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 6;
+      doc.setFont("helvetica", "normal");
     }
+    const descLines = doc.splitTextToSize(item.description, col2 - col1 - 10);
+    doc.text(descLines, col1, y);
+    doc.text(item.quantity.toString(), col2, y);
+    doc.text(formatCurrency(item.unitPrice), col3, y);
+    doc.text(formatCurrency(item.total), col4, y, { align: "right" });
+    y += descLines.length * 5 + 5;
+  });
 
-    const descLines = doc.splitTextToSize(item.description, 100);
-    doc.text(descLines, margin, yPosition);
-    doc.text(item.quantity.toString(), pageWidth - 80, yPosition);
-    doc.text(formatCurrency(item.unitPrice), pageWidth - 60, yPosition);
-    doc.text(formatCurrency(item.total), pageWidth - margin, yPosition, {
+  // Separator line
+  y += 2;
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 8;
+
+  // --- Summary (right-aligned) ---
+  const summaryX = pageWidth - 80;
+  doc.text("Subtotal:", summaryX, y);
+  doc.text(formatCurrency(invoice.subtotal), pageWidth - margin, y, {
+    align: "right",
+  });
+  y += 6;
+  doc.text("Tax:", summaryX, y);
+  doc.text(formatCurrency(invoice.tax), pageWidth - margin, y, {
+    align: "right",
+  });
+  y += 6;
+  if (invoice.discount > 0) {
+    doc.setTextColor(16, 185, 129);
+    doc.text("Discount:", summaryX, y);
+    doc.text(`-${formatCurrency(invoice.discount)}`, pageWidth - margin, y, {
       align: "right",
     });
-
-    yPosition += descLines.length * 5 + 5;
-  });
-
-  yPosition += 5;
-  doc.setDrawColor(200, 200, 200);
-  doc.line(margin, yPosition, pageWidth - margin, yPosition);
-
-  yPosition += 10;
-  const summaryX = pageWidth - 80;
-
-  doc.text("Subtotal:", summaryX, yPosition);
-  doc.text(formatCurrency(invoice.subtotal), pageWidth - margin, yPosition, {
-    align: "right",
-  });
-
-  yPosition += 6;
-  doc.text("Tax:", summaryX, yPosition);
-  doc.text(formatCurrency(invoice.tax), pageWidth - margin, yPosition, {
-    align: "right",
-  });
-
-  if (invoice.discount > 0) {
-    yPosition += 6;
-    doc.setTextColor(16, 185, 129);
-    doc.text("Discount:", summaryX, yPosition);
-    doc.text(
-      `-${formatCurrency(invoice.discount)}`,
-      pageWidth - margin,
-      yPosition,
-      { align: "right" },
-    );
     doc.setTextColor(0, 0, 0);
+    y += 6;
   }
 
-  yPosition += 8;
+  // Total
+  y += 4;
   doc.setDrawColor(0, 127, 175);
-  doc.setLineWidth(0.5);
-  doc.line(summaryX - 5, yPosition, pageWidth - margin, yPosition);
-
-  yPosition += 8;
+  doc.line(summaryX - 5, y, pageWidth - margin, y);
+  y += 6;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
-  doc.text("Total:", summaryX, yPosition);
-  doc.text(formatCurrency(invoice.total), pageWidth - margin, yPosition, {
+  doc.text("Total:", summaryX, y);
+  doc.text(formatCurrency(invoice.total), pageWidth - margin, y, {
     align: "right",
   });
 
+  // Paid / Balance
+  y += 8;
+  doc.setFontSize(10);
   if (invoice.amountPaid > 0) {
-    yPosition += 8;
-    doc.setFontSize(10);
     doc.setTextColor(16, 185, 129);
-    doc.text("Amount Paid:", summaryX, yPosition);
-    doc.text(
-      formatCurrency(invoice.amountPaid),
-      pageWidth - margin,
-      yPosition,
-      { align: "right" },
-    );
+    doc.text("Amount Paid:", summaryX, y);
+    doc.text(formatCurrency(invoice.amountPaid), pageWidth - margin, y, {
+      align: "right",
+    });
+    y += 6;
   }
-
   if (invoice.balance > 0) {
-    yPosition += 8;
     doc.setTextColor(239, 68, 68);
-    doc.text("Balance Due:", summaryX, yPosition);
-    doc.text(formatCurrency(invoice.balance), pageWidth - margin, yPosition, {
+    doc.text("Balance Due:", summaryX, y);
+    doc.text(formatCurrency(invoice.balance), pageWidth - margin, y, {
       align: "right",
     });
     doc.setTextColor(0, 0, 0);
+    y += 6;
   }
 
+  // --- Insurance Claim (if any) ---
   if (invoice.insuranceClaim) {
-    yPosition += 15;
-    doc.setFontSize(10);
+    y += 10;
     doc.setFont("helvetica", "bold");
-    doc.text("Insurance Claim Information:", margin, yPosition);
-    yPosition += 6;
+    doc.text("Insurance Claim Information:", margin, y);
+    y += 6;
     doc.setFont("helvetica", "normal");
-    doc.text(`Provider: ${invoice.insuranceClaim.provider}`, margin, yPosition);
-    yPosition += 5;
-    doc.text(
-      `Claim Number: ${invoice.insuranceClaim.claimNumber}`,
-      margin,
-      yPosition,
-    );
-    yPosition += 5;
+    doc.text(`Provider: ${invoice.insuranceClaim.provider}`, margin, y);
+    y += 5;
+    doc.text(`Claim Number: ${invoice.insuranceClaim.claimNumber}`, margin, y);
+    y += 5;
     doc.text(
       `Claim Amount: ${formatCurrency(invoice.insuranceClaim.claimAmount)}`,
       margin,
-      yPosition,
+      y,
     );
-    yPosition += 5;
-    doc.text(`Status: ${invoice.insuranceClaim.status}`, margin, yPosition);
+    y += 5;
+    doc.text(`Status: ${invoice.insuranceClaim.status}`, margin, y);
+    y += 8;
   }
 
+  // --- Payment Info ---
   if (invoice.paymentMethod && invoice.transactionId) {
-    yPosition += 15;
-    doc.setFontSize(10);
+    y += 6;
     doc.setFont("helvetica", "bold");
-    doc.text("Payment Information:", margin, yPosition);
-    yPosition += 6;
+    doc.text("Payment Information:", margin, y);
+    y += 6;
     doc.setFont("helvetica", "normal");
-    doc.text(`Method: ${invoice.paymentMethod}`, margin, yPosition);
-    yPosition += 5;
-    doc.text(`Transaction ID: ${invoice.transactionId}`, margin, yPosition);
+    doc.text(`Method: ${invoice.paymentMethod}`, margin, y);
+    y += 5;
+    doc.text(`Transaction ID: ${invoice.transactionId}`, margin, y);
+    y += 8;
   }
 
+  // --- Notes ---
   if (invoice.notes) {
-    yPosition += 15;
+    y += 4;
     doc.setFontSize(9);
     doc.setFont("helvetica", "italic");
     doc.setTextColor(100, 100, 100);
     const noteLines = doc.splitTextToSize(
       `Notes: ${invoice.notes}`,
-      pageWidth - 2 * margin,
+      pageWidth - 2 * margin - 30,
     );
-    doc.text(noteLines, margin, yPosition);
+    doc.text(noteLines, margin, y);
     doc.setTextColor(0, 0, 0);
+    y += noteLines.length * 4 + 6;
   }
 
-  const footerY = pageHeight - 20;
+  // --- QR Code (right side, bottom) ---
+  // Generate QR from invoice number or a payment link
+  let qrData = `Invoice: ${invoice.invoiceNumber}`;
+  if (invoice.status === "Paid") {
+    qrData = `Receipt: ${invoice.invoiceNumber} | Paid: ${formatCurrency(invoice.total)}`;
+  }
+  const qrImage = await generateQR(qrData);
+  if (qrImage) {
+    const qrSize = 40;
+    const qrX = pageWidth - margin - qrSize;
+    const qrY = pageHeight - margin - qrSize - 20; // above footer
+    doc.addImage(qrImage, "PNG", qrX, qrY, qrSize, qrSize);
+    // Small label
+    doc.setFontSize(6);
+    doc.setTextColor(100, 100, 100);
+    doc.text("Scan to verify", qrX + qrSize / 2, qrY + qrSize + 4, {
+      align: "center",
+    });
+  }
+
+  // --- Footer ---
+  const footerY = pageHeight - 15;
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(150, 150, 150);
-  doc.text("Thank you for your business!", pageWidth / 2, footerY, {
-    align: "center",
-  });
   doc.text(
-    "For questions, contact us at billing@dentalclinic.com",
+    "Thank you for choosing Creadent Multispeciality Dental Clinic",
+    pageWidth / 2,
+    footerY,
+    { align: "center" },
+  );
+  doc.text(
+    "For questions, contact us at " + CLINIC.email,
     pageWidth / 2,
     footerY + 4,
     { align: "center" },
   );
 
+  // Save file
   const fileName =
     invoice.status === "Paid"
       ? `Receipt_${invoice.invoiceNumber}.pdf`
       : `Invoice_${invoice.invoiceNumber}.pdf`;
-
   doc.save(fileName);
 };
 
-export const generatePaymentReceipt = (invoice, paymentDetails) => {
+/**
+ * Generate Payment Receipt (async)
+ */
+export const generatePaymentReceipt = async (invoice, paymentDetails) => {
   const doc = new jsPDF();
-
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
-  let yPosition = margin;
+  let y = margin;
 
+  // Load logo
+  let logoDataUrl = null;
+  try {
+    logoDataUrl = await loadImage(CLINIC.logoUrl);
+  } catch (e) {
+    console.warn("Logo could not be loaded", e);
+  }
+
+  // Header with logo
+  if (logoDataUrl) {
+    doc.addImage(logoDataUrl, "PNG", margin, y, 40, 40);
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text(CLINIC.name, margin + 50, y + 12);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(CLINIC.address, margin + 50, y + 22);
+    doc.text(
+      `Phone: ${CLINIC.phone}  |  Email: ${CLINIC.email}`,
+      margin + 50,
+      y + 32,
+    );
+    y += 50;
+  } else {
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.text(CLINIC.name, margin, y);
+    y += 10;
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(CLINIC.address, margin, y);
+    y += 5;
+    doc.text(`Phone: ${CLINIC.phone}  |  Email: ${CLINIC.email}`, margin, y);
+    y += 15;
+  }
+
+  // Receipt title
   doc.setFontSize(24);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(16, 185, 129);
-  doc.text("PAYMENT RECEIPT", pageWidth / 2, yPosition, { align: "center" });
+  doc.text("PAYMENT RECEIPT", pageWidth / 2, y, { align: "center" });
   doc.setTextColor(0, 0, 0);
+  y += 20;
 
-  yPosition += 20;
+  // Transaction details
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text("Transaction Details", margin, yPosition);
-
-  yPosition += 10;
+  doc.text("Transaction Details", margin, y);
+  y += 10;
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text(
-    `Receipt Number: ${paymentDetails.receiptNumber}`,
-    margin,
-    yPosition,
-  );
-  yPosition += 6;
-  doc.text(
-    `Transaction ID: ${paymentDetails.transactionId}`,
-    margin,
-    yPosition,
-  );
-  yPosition += 6;
+  doc.text(`Receipt Number: ${paymentDetails.receiptNumber}`, margin, y);
+  y += 6;
+  doc.text(`Transaction ID: ${paymentDetails.transactionId}`, margin, y);
+  y += 6;
   doc.text(
     `Payment Date: ${formatPdfDate(paymentDetails.date, "MMM dd, yyyy HH:mm")}`,
     margin,
-    yPosition,
+    y,
   );
-  yPosition += 6;
-  doc.text(`Payment Method: ${paymentDetails.method}`, margin, yPosition);
+  y += 6;
+  doc.text(`Payment Method: ${paymentDetails.method}`, margin, y);
+  y += 10;
 
-  yPosition += 15;
+  // Amount
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text("Amount Paid", margin, yPosition);
-  yPosition += 10;
-  doc.setFontSize(20);
+  doc.text("Amount Paid", margin, y);
+  y += 8;
+  doc.setFontSize(22);
   doc.setTextColor(16, 185, 129);
-  doc.text(formatCurrency(paymentDetails.amount), margin, yPosition);
+  doc.text(formatCurrency(paymentDetails.amount), margin, y);
   doc.setTextColor(0, 0, 0);
+  y += 20;
 
-  yPosition += 20;
+  // Invoice reference
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
+  doc.text(`Paid against Invoice: ${invoice.invoiceNumber}`, margin, y);
+  y += 8;
   doc.text(
     "This receipt confirms your payment has been successfully processed.",
     margin,
-    yPosition,
+    y,
   );
+  y += 15;
+
+  // --- QR Code ---
+  const qrData = `Receipt ${paymentDetails.receiptNumber} | Invoice ${invoice.invoiceNumber} | Amount ${formatCurrency(paymentDetails.amount)}`;
+  const qrImage = await generateQR(qrData);
+  if (qrImage) {
+    const qrSize = 50;
+    const qrX = pageWidth - margin - qrSize;
+    const qrY = y - 10;
+    doc.addImage(qrImage, "PNG", qrX, qrY, qrSize, qrSize);
+    doc.setFontSize(6);
+    doc.setTextColor(100, 100, 100);
+    doc.text("Scan to verify", qrX + qrSize / 2, qrY + qrSize + 4, {
+      align: "center",
+    });
+  }
+
+  // Footer
+  const footerY = doc.internal.pageSize.getHeight() - 15;
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(150, 150, 150);
+  doc.text("Creadent Multispeciality Dental Clinic", pageWidth / 2, footerY, {
+    align: "center",
+  });
+  doc.text(CLINIC.address, pageWidth / 2, footerY + 4, { align: "center" });
 
   doc.save(`Receipt_${paymentDetails.receiptNumber}.pdf`);
 };
