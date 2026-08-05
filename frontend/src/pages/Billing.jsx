@@ -19,10 +19,7 @@ import toast from "react-hot-toast";
 import { format } from "date-fns";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_INVOICES, GET_MY_PATIENT, GET_PATIENTS } from "../graphql/queries";
-import {
-  CREATE_INVOICE,
-  GENERATE_PATIENT_LOGIN,
-} from "../graphql/mutations";
+import { CREATE_INVOICE, GENERATE_PATIENT_LOGIN } from "../graphql/mutations";
 import { generateInvoicePDF } from "../utils/pdfGenerator";
 
 const Billing = () => {
@@ -295,7 +292,10 @@ const Billing = () => {
       </motion.div>
 
       {generatedLogin && !generatedLogin.preview && (
-        <motion.div {...fadeIn("up", 0.05)} className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-4">
+        <motion.div
+          {...fadeIn("up", 0.05)}
+          className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-4"
+        >
           <p className="text-sm font-semibold text-green-900">
             Patient login generated for {generatedLogin.patientName}
           </p>
@@ -308,7 +308,10 @@ const Billing = () => {
       {showCreateInvoice && (
         <motion.div {...fadeIn("up")} className="card mb-8">
           <h2 className="text-xl font-bold mb-4">Create New Invoice</h2>
-          <form onSubmit={(e) => handleCreateInvoice(e, false)} className="space-y-6">
+          <form
+            onSubmit={(e) => handleCreateInvoice(e, false)}
+            className="space-y-6"
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -402,14 +405,22 @@ const Billing = () => {
               {generatedLogin && (
                 <div className="text-sm text-gray-700 space-y-1">
                   <p>
-                    Patient: <span className="font-semibold">{generatedLogin.patientName}</span>
+                    Patient:{" "}
+                    <span className="font-semibold">
+                      {generatedLogin.patientName}
+                    </span>
                   </p>
                   <p>
-                    Login phone: <span className="font-semibold">{generatedLogin.phone}</span>
+                    Login phone:{" "}
+                    <span className="font-semibold">
+                      {generatedLogin.phone}
+                    </span>
                   </p>
                   <p>
                     Generated password:{" "}
-                    <span className="font-semibold">{generatedLogin.password}</span>
+                    <span className="font-semibold">
+                      {generatedLogin.password}
+                    </span>
                   </p>
                   <p className="text-xs text-gray-500">
                     {generatedLogin.preview
@@ -543,10 +554,7 @@ const Billing = () => {
             </div>
 
             <div className="md:col-span-2 flex gap-2">
-              <button
-                type="submit"
-                className="btn-primary"
-              >
+              <button type="submit" className="btn-primary">
                 Generate Invoice
               </button>
               <button

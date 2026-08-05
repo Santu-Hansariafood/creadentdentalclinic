@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import { format } from "date-fns";
-import QRCode from "qrcode"; // npm install qrcode
+import QRCode from "qrcode";
 
 const formatCurrency = (amount = 0) => `Rs. ${Number(amount || 0).toFixed(2)}`;
 const formatPdfDate = (value, formatStr = "MMM dd, yyyy") => {
@@ -9,7 +9,6 @@ const formatPdfDate = (value, formatStr = "MMM dd, yyyy") => {
   return Number.isNaN(date.getTime()) ? "-" : format(date, formatStr);
 };
 
-// Clinic details
 const CLINIC = {
   name: "Creadent Multispeciality Dental Clinic",
   address:
@@ -19,9 +18,6 @@ const CLINIC = {
   logoUrl: "https://creadentsmiles.com/logo/logo.png",
 };
 
-/**
- * Load an image from a URL and return it as a base64 data URL.
- */
 const loadImage = (url) => {
   return new Promise((resolve, reject) => {
     fetch(url)
@@ -39,9 +35,6 @@ const loadImage = (url) => {
   });
 };
 
-/**
- * Generate a QR code as a data URL from a string.
- */
 const generateQR = async (text) => {
   try {
     return await QRCode.toDataURL(text, {
@@ -58,10 +51,6 @@ const generateQR = async (text) => {
   }
 };
 
-/**
- * Generate Invoice PDF (async)
- * Usage: await generateInvoicePDF(invoice);
- */
 export const generateInvoicePDF = async (invoice) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -69,7 +58,6 @@ export const generateInvoicePDF = async (invoice) => {
   const margin = 20;
   let y = margin;
 
-  // Load logo
   let logoDataUrl = null;
   try {
     logoDataUrl = await loadImage(CLINIC.logoUrl);
@@ -77,7 +65,6 @@ export const generateInvoicePDF = async (invoice) => {
     console.warn("Logo could not be loaded", e);
   }
 
-  // --- Header: Logo + Clinic info ---
   if (logoDataUrl) {
     doc.addImage(logoDataUrl, "PNG", margin, y, 40, 40);
     doc.setFontSize(18);
@@ -93,7 +80,6 @@ export const generateInvoicePDF = async (invoice) => {
     );
     y += 50;
   } else {
-    // Fallback if logo fails
     doc.setFontSize(20);
     doc.setFont("helvetica", "bold");
     doc.text(CLINIC.name, margin, y);
@@ -106,20 +92,17 @@ export const generateInvoicePDF = async (invoice) => {
     y += 10;
   }
 
-  // Separator line
   doc.setDrawColor(0, 127, 175);
   doc.setLineWidth(0.5);
   doc.line(margin, y, pageWidth - margin, y);
   y += 10;
 
-  // --- Invoice/Receipt Title ---
   doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
   const title = invoice.status === "Paid" ? "RECEIPT" : "INVOICE";
   doc.text(title, margin, y);
   y += 8;
 
-  // Invoice details (right-aligned)
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   const rightColX = pageWidth - margin;
@@ -144,7 +127,6 @@ export const generateInvoicePDF = async (invoice) => {
   }
   y += 20;
 
-  // --- Bill To ---
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
   doc.text("Bill To:", margin, y);
@@ -154,8 +136,6 @@ export const generateInvoicePDF = async (invoice) => {
   doc.text(invoice.patientName, margin, y);
   y += 12;
 
-  // --- Invoice Items Table ---
-  // Table headers
   const col1 = margin;
   const col2 = pageWidth - 100;
   const col3 = pageWidth - 70;
@@ -169,13 +149,11 @@ export const generateInvoicePDF = async (invoice) => {
   doc.line(margin, y, pageWidth - margin, y);
   y += 6;
 
-  // Items
   doc.setFont("helvetica", "normal");
   invoice.items.forEach((item) => {
     if (y > pageHeight - 60) {
       doc.addPage();
       y = margin;
-      // reprint headers on new page
       doc.setFont("helvetica", "bold");
       doc.text("Description", col1, y);
       doc.text("Qty", col2, y);
@@ -194,12 +172,10 @@ export const generateInvoicePDF = async (invoice) => {
     y += descLines.length * 5 + 5;
   });
 
-  // Separator line
   y += 2;
   doc.line(margin, y, pageWidth - margin, y);
   y += 8;
 
-  // --- Summary (right-aligned) ---
   const summaryX = pageWidth - 80;
   doc.text("Subtotal:", summaryX, y);
   doc.text(formatCurrency(invoice.subtotal), pageWidth - margin, y, {
@@ -221,7 +197,6 @@ export const generateInvoicePDF = async (invoice) => {
     y += 6;
   }
 
-  // Total
   y += 4;
   doc.setDrawColor(0, 127, 175);
   doc.line(summaryX - 5, y, pageWidth - margin, y);
@@ -233,7 +208,6 @@ export const generateInvoicePDF = async (invoice) => {
     align: "right",
   });
 
-  // Paid / Balance
   y += 8;
   doc.setFontSize(10);
   if (invoice.amountPaid > 0) {
@@ -275,7 +249,6 @@ export const generateInvoicePDF = async (invoice) => {
     y += 8;
   }
 
-  // --- Payment Info ---
   if (invoice.paymentMethod && invoice.transactionId) {
     y += 6;
     doc.setFont("helvetica", "bold");
@@ -288,7 +261,6 @@ export const generateInvoicePDF = async (invoice) => {
     y += 8;
   }
 
-  // --- Notes ---
   if (invoice.notes) {
     y += 4;
     doc.setFontSize(9);
@@ -303,8 +275,6 @@ export const generateInvoicePDF = async (invoice) => {
     y += noteLines.length * 4 + 6;
   }
 
-  // --- QR Code (right side, bottom) ---
-  // Generate QR from invoice number or a payment link
   let qrData = `Invoice: ${invoice.invoiceNumber}`;
   if (invoice.status === "Paid") {
     qrData = `Receipt: ${invoice.invoiceNumber} | Paid: ${formatCurrency(invoice.total)}`;
@@ -315,7 +285,6 @@ export const generateInvoicePDF = async (invoice) => {
     const qrX = pageWidth - margin - qrSize;
     const qrY = pageHeight - margin - qrSize - 20; // above footer
     doc.addImage(qrImage, "PNG", qrX, qrY, qrSize, qrSize);
-    // Small label
     doc.setFontSize(6);
     doc.setTextColor(100, 100, 100);
     doc.text("Scan to verify", qrX + qrSize / 2, qrY + qrSize + 4, {
@@ -323,7 +292,6 @@ export const generateInvoicePDF = async (invoice) => {
     });
   }
 
-  // --- Footer ---
   const footerY = pageHeight - 15;
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
@@ -341,7 +309,6 @@ export const generateInvoicePDF = async (invoice) => {
     { align: "center" },
   );
 
-  // Save file
   const fileName =
     invoice.status === "Paid"
       ? `Receipt_${invoice.invoiceNumber}.pdf`
@@ -349,16 +316,12 @@ export const generateInvoicePDF = async (invoice) => {
   doc.save(fileName);
 };
 
-/**
- * Generate Payment Receipt (async)
- */
 export const generatePaymentReceipt = async (invoice, paymentDetails) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
   let y = margin;
 
-  // Load logo
   let logoDataUrl = null;
   try {
     logoDataUrl = await loadImage(CLINIC.logoUrl);
@@ -366,7 +329,6 @@ export const generatePaymentReceipt = async (invoice, paymentDetails) => {
     console.warn("Logo could not be loaded", e);
   }
 
-  // Header with logo
   if (logoDataUrl) {
     doc.addImage(logoDataUrl, "PNG", margin, y, 40, 40);
     doc.setFontSize(18);
@@ -394,7 +356,6 @@ export const generatePaymentReceipt = async (invoice, paymentDetails) => {
     y += 15;
   }
 
-  // Receipt title
   doc.setFontSize(24);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(16, 185, 129);
@@ -402,7 +363,6 @@ export const generatePaymentReceipt = async (invoice, paymentDetails) => {
   doc.setTextColor(0, 0, 0);
   y += 20;
 
-  // Transaction details
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
   doc.text("Transaction Details", margin, y);
@@ -422,7 +382,6 @@ export const generatePaymentReceipt = async (invoice, paymentDetails) => {
   doc.text(`Payment Method: ${paymentDetails.method}`, margin, y);
   y += 10;
 
-  // Amount
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
   doc.text("Amount Paid", margin, y);
@@ -433,7 +392,6 @@ export const generatePaymentReceipt = async (invoice, paymentDetails) => {
   doc.setTextColor(0, 0, 0);
   y += 20;
 
-  // Invoice reference
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text(`Paid against Invoice: ${invoice.invoiceNumber}`, margin, y);
@@ -445,7 +403,6 @@ export const generatePaymentReceipt = async (invoice, paymentDetails) => {
   );
   y += 15;
 
-  // --- QR Code ---
   const qrData = `Receipt ${paymentDetails.receiptNumber} | Invoice ${invoice.invoiceNumber} | Amount ${formatCurrency(paymentDetails.amount)}`;
   const qrImage = await generateQR(qrData);
   if (qrImage) {
@@ -460,7 +417,6 @@ export const generatePaymentReceipt = async (invoice, paymentDetails) => {
     });
   }
 
-  // Footer
   const footerY = doc.internal.pageSize.getHeight() - 15;
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");

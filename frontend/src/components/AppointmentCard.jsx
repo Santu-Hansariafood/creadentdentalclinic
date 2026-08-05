@@ -39,7 +39,8 @@ const AppointmentCard = ({ appointment, delay = 0, onAction }) => {
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Calendar size={16} />
           <span>
-            Scheduled Date: {formatDate(appointment.date, "EEEE, MMMM do, yyyy")}
+            Scheduled Date:{" "}
+            {formatDate(appointment.date, "EEEE, MMMM do, yyyy")}
           </span>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600">

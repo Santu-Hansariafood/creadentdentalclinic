@@ -163,7 +163,8 @@ const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
           </p>
           <div className="text-xs text-purple-700 space-y-1">
             <p>
-              Monthly Payment: {formatCurrency(invoice.installmentPlan.monthlyAmount)}
+              Monthly Payment:{" "}
+              {formatCurrency(invoice.installmentPlan.monthlyAmount)}
             </p>
             <p>
               Remaining: {invoice.installmentPlan.remainingPayments} of{" "}
