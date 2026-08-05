@@ -3,7 +3,7 @@ import {
   FileText,
   Calendar,
   CreditCard,
-  DollarSign,
+  IndianRupee,
   Download,
   RefreshCw,
 } from "lucide-react";
@@ -14,6 +14,8 @@ import { generateInvoicePDF } from "../utils/pdfGenerator";
 import { format } from "date-fns";
 
 const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
+  const formatCurrency = (amount = 0) => `₹${Number(amount || 0).toFixed(2)}`;
+
   const statusColors = {
     Paid: "badge-success",
     Partial: "badge-warning",
@@ -95,11 +97,11 @@ const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
             <div className="flex-1">
               <p className="text-gray-900">{item.description}</p>
               <p className="text-xs text-gray-500">
-                Qty: {item.quantity} × ${item.unitPrice}
+                Qty: {item.quantity} × {formatCurrency(item.unitPrice)}
               </p>
             </div>
             <p className="font-medium text-gray-900">
-              ${item.total.toFixed(2)}
+              {formatCurrency(item.total)}
             </p>
           </div>
         ))}
@@ -108,32 +110,32 @@ const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
       <div className="space-y-1 mb-4">
         <div className="flex justify-between text-sm text-gray-600">
           <span>Subtotal:</span>
-          <span>${invoice.subtotal.toFixed(2)}</span>
+          <span>{formatCurrency(invoice.subtotal)}</span>
         </div>
         <div className="flex justify-between text-sm text-gray-600">
           <span>Tax:</span>
-          <span>${invoice.tax.toFixed(2)}</span>
+          <span>{formatCurrency(invoice.tax)}</span>
         </div>
         {invoice.discount > 0 && (
           <div className="flex justify-between text-sm text-success">
             <span>Discount:</span>
-            <span>-${invoice.discount.toFixed(2)}</span>
+            <span>-{formatCurrency(invoice.discount)}</span>
           </div>
         )}
         <div className="flex justify-between text-base font-semibold text-gray-900 pt-2 border-t border-gray-200">
           <span>Total:</span>
-          <span>${invoice.total.toFixed(2)}</span>
+          <span>{formatCurrency(invoice.total)}</span>
         </div>
         {invoice.amountPaid > 0 && (
           <div className="flex justify-between text-sm text-success">
             <span>Paid:</span>
-            <span>${invoice.amountPaid.toFixed(2)}</span>
+            <span>{formatCurrency(invoice.amountPaid)}</span>
           </div>
         )}
         {invoice.balance > 0 && (
           <div className="flex justify-between text-base font-semibold text-danger">
             <span>Balance Due:</span>
-            <span>${invoice.balance.toFixed(2)}</span>
+            <span>{formatCurrency(invoice.balance)}</span>
           </div>
         )}
       </div>
@@ -146,7 +148,7 @@ const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
           <div className="text-xs text-blue-700 space-y-1">
             <p>Provider: {invoice.insuranceClaim.provider}</p>
             <p>Claim #: {invoice.insuranceClaim.claimNumber}</p>
-            <p>Amount: ${invoice.insuranceClaim.claimAmount.toFixed(2)}</p>
+            <p>Amount: {formatCurrency(invoice.insuranceClaim.claimAmount)}</p>
             <p className="font-medium">
               Status: {invoice.insuranceClaim.status}
             </p>
@@ -161,8 +163,7 @@ const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
           </p>
           <div className="text-xs text-purple-700 space-y-1">
             <p>
-              Monthly Payment: $
-              {invoice.installmentPlan.monthlyAmount.toFixed(2)}
+              Monthly Payment: {formatCurrency(invoice.installmentPlan.monthlyAmount)}
             </p>
             <p>
               Remaining: {invoice.installmentPlan.remainingPayments} of{" "}
@@ -188,8 +189,8 @@ const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
       <div className="flex gap-2">
         {invoice.balance > 0 && onPay && (
           <button onClick={() => onPay(invoice)} className="btn-primary flex-1">
-            <DollarSign size={18} className="inline mr-2" />
-            Pay ${invoice.balance.toFixed(2)}
+            <IndianRupee size={18} className="inline mr-2" />
+            Pay {formatCurrency(invoice.balance)}
           </button>
         )}
 

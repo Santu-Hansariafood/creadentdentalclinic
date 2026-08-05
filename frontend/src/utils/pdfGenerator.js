@@ -1,6 +1,13 @@
 import jsPDF from "jspdf";
 import { format } from "date-fns";
 
+const formatCurrency = (amount = 0) => `₹${Number(amount || 0).toFixed(2)}`;
+const formatPdfDate = (value, formatStr = "MMM dd, yyyy") => {
+  if (!value) return "-";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "-" : format(date, formatStr);
+};
+
 export const generateInvoicePDF = (invoice) => {
   const doc = new jsPDF();
 
@@ -44,13 +51,13 @@ export const generateInvoicePDF = (invoice) => {
   doc.text(`Invoice Number: ${invoice.invoiceNumber}`, margin, yPosition);
   yPosition += 6;
   doc.text(
-    `Date: ${format(new Date(invoice.date), "MMM dd, yyyy")}`,
+    `Date: ${formatPdfDate(invoice.date)}`,
     margin,
     yPosition,
   );
   yPosition += 6;
   doc.text(
-    `Due Date: ${format(new Date(invoice.dueDate), "MMM dd, yyyy")}`,
+    `Due Date: ${formatPdfDate(invoice.dueDate)}`,
     margin,
     yPosition,
   );
@@ -59,7 +66,7 @@ export const generateInvoicePDF = (invoice) => {
     yPosition += 6;
     doc.setTextColor(16, 185, 129);
     doc.text(
-      `Payment Date: ${format(new Date(invoice.paymentDate), "MMM dd, yyyy")}`,
+      `Payment Date: ${formatPdfDate(invoice.paymentDate)}`,
       margin,
       yPosition,
     );
@@ -101,8 +108,8 @@ export const generateInvoicePDF = (invoice) => {
     const descLines = doc.splitTextToSize(item.description, 100);
     doc.text(descLines, margin, yPosition);
     doc.text(item.quantity.toString(), pageWidth - 80, yPosition);
-    doc.text(`$${item.unitPrice.toFixed(2)}`, pageWidth - 60, yPosition);
-    doc.text(`$${item.total.toFixed(2)}`, pageWidth - margin, yPosition, {
+    doc.text(formatCurrency(item.unitPrice), pageWidth - 60, yPosition);
+    doc.text(formatCurrency(item.total), pageWidth - margin, yPosition, {
       align: "right",
     });
 
@@ -117,13 +124,13 @@ export const generateInvoicePDF = (invoice) => {
   const summaryX = pageWidth - 80;
 
   doc.text("Subtotal:", summaryX, yPosition);
-  doc.text(`$${invoice.subtotal.toFixed(2)}`, pageWidth - margin, yPosition, {
+  doc.text(formatCurrency(invoice.subtotal), pageWidth - margin, yPosition, {
     align: "right",
   });
 
   yPosition += 6;
   doc.text("Tax:", summaryX, yPosition);
-  doc.text(`$${invoice.tax.toFixed(2)}`, pageWidth - margin, yPosition, {
+  doc.text(formatCurrency(invoice.tax), pageWidth - margin, yPosition, {
     align: "right",
   });
 
@@ -132,7 +139,7 @@ export const generateInvoicePDF = (invoice) => {
     doc.setTextColor(16, 185, 129);
     doc.text("Discount:", summaryX, yPosition);
     doc.text(
-      `-$${invoice.discount.toFixed(2)}`,
+      `-${formatCurrency(invoice.discount)}`,
       pageWidth - margin,
       yPosition,
       { align: "right" },
@@ -149,7 +156,7 @@ export const generateInvoicePDF = (invoice) => {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
   doc.text("Total:", summaryX, yPosition);
-  doc.text(`$${invoice.total.toFixed(2)}`, pageWidth - margin, yPosition, {
+  doc.text(formatCurrency(invoice.total), pageWidth - margin, yPosition, {
     align: "right",
   });
 
@@ -159,7 +166,7 @@ export const generateInvoicePDF = (invoice) => {
     doc.setTextColor(16, 185, 129);
     doc.text("Amount Paid:", summaryX, yPosition);
     doc.text(
-      `$${invoice.amountPaid.toFixed(2)}`,
+      formatCurrency(invoice.amountPaid),
       pageWidth - margin,
       yPosition,
       { align: "right" },
@@ -170,7 +177,7 @@ export const generateInvoicePDF = (invoice) => {
     yPosition += 8;
     doc.setTextColor(239, 68, 68);
     doc.text("Balance Due:", summaryX, yPosition);
-    doc.text(`$${invoice.balance.toFixed(2)}`, pageWidth - margin, yPosition, {
+    doc.text(formatCurrency(invoice.balance), pageWidth - margin, yPosition, {
       align: "right",
     });
     doc.setTextColor(0, 0, 0);
@@ -192,7 +199,7 @@ export const generateInvoicePDF = (invoice) => {
     );
     yPosition += 5;
     doc.text(
-      `Claim Amount: $${invoice.insuranceClaim.claimAmount.toFixed(2)}`,
+      `Claim Amount: ${formatCurrency(invoice.insuranceClaim.claimAmount)}`,
       margin,
       yPosition,
     );
@@ -281,7 +288,7 @@ export const generatePaymentReceipt = (invoice, paymentDetails) => {
   );
   yPosition += 6;
   doc.text(
-    `Payment Date: ${format(new Date(paymentDetails.date), "MMM dd, yyyy HH:mm")}`,
+    `Payment Date: ${formatPdfDate(paymentDetails.date, "MMM dd, yyyy HH:mm")}`,
     margin,
     yPosition,
   );
@@ -295,7 +302,7 @@ export const generatePaymentReceipt = (invoice, paymentDetails) => {
   yPosition += 10;
   doc.setFontSize(20);
   doc.setTextColor(16, 185, 129);
-  doc.text(`$${paymentDetails.amount.toFixed(2)}`, margin, yPosition);
+  doc.text(formatCurrency(paymentDetails.amount), margin, yPosition);
   doc.setTextColor(0, 0, 0);
 
   yPosition += 20;

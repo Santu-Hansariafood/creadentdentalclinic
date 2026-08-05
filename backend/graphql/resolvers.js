@@ -10,6 +10,9 @@ const Conversation = require("../models/Conversation");
 const ChatMessage = require("../models/ChatMessage");
 const Notification = require("../models/Notification");
 const generateToken = require("../utils/generateToken");
+const {
+  sendAppointmentBookingNotifications,
+} = require("../utils/appointmentNotifications");
 
 const generatePatientPassword = (phone = "") => {
   const currentYear = new Date().getFullYear().toString();
@@ -589,6 +592,8 @@ const resolvers = {
       const appointment = new Appointment(args);
       const savedAppointment = await appointment.save();
 
+      await sendAppointmentBookingNotifications(savedAppointment);
+
       if (io) {
         io.emit("notification", {
           type: "NEW_APPOINTMENT",
@@ -600,9 +605,28 @@ const resolvers = {
       return savedAppointment;
     },
     updateAppointment: async (_, { id, ...args }, { io }) => {
+      const appointmentNotificationReset =
+        args.date || args.time
+          ? {
+              reminderOneDaySentAt: null,
+              reminderOneHourSentAt: null,
+              lastNotificationError: null,
+            }
+          : {};
+
       const updatedAppointment = await Appointment.findByIdAndUpdate(id, args, {
         new: true,
       });
+
+      if (updatedAppointment && Object.keys(appointmentNotificationReset).length > 0) {
+        updatedAppointment.reminderOneDaySentAt =
+          appointmentNotificationReset.reminderOneDaySentAt;
+        updatedAppointment.reminderOneHourSentAt =
+          appointmentNotificationReset.reminderOneHourSentAt;
+        updatedAppointment.lastNotificationError =
+          appointmentNotificationReset.lastNotificationError;
+        await updatedAppointment.save();
+      }
 
       if (io && updatedAppointment) {
         let message = `Appointment for ${updatedAppointment.patientName} has been updated`;

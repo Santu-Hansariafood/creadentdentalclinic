@@ -12,6 +12,9 @@ const jwt = require("jsonwebtoken");
 const User = require("./models/User");
 const socket = require("./socket");
 const authRoutes = require("./routes/authRoutes");
+const {
+  startAppointmentReminderScheduler,
+} = require("./utils/appointmentNotifications");
 require("dotenv").config();
 
 const startServer = async () => {
@@ -72,6 +75,7 @@ const startServer = async () => {
   await connectDB();
 
   await seedAdmin();
+  startAppointmentReminderScheduler();
 
   const server = new ApolloServer({
     typeDefs,

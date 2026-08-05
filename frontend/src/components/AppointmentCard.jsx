@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Calendar, Clock, User, MapPin } from "lucide-react";
+import { Calendar, Clock, User } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import { formatDate } from "../utils/dateUtils";
 
@@ -38,7 +38,9 @@ const AppointmentCard = ({ appointment, delay = 0, onAction }) => {
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Calendar size={16} />
-          <span>{formatDate(appointment.date, "EEEE, MMMM do, yyyy")}</span>
+          <span>
+            Scheduled Date: {formatDate(appointment.date, "EEEE, MMMM do, yyyy")}
+          </span>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Clock size={16} />

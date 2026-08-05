@@ -25,6 +25,11 @@ const appointmentSchema = new mongoose.Schema(
     },
     reason: { type: String },
     notes: { type: String },
+    bookingPatientNotificationSentAt: { type: Date },
+    bookingDoctorNotificationSentAt: { type: Date },
+    reminderOneDaySentAt: { type: Date },
+    reminderOneHourSentAt: { type: Date },
+    lastNotificationError: { type: String },
   },
   { timestamps: true },
 );

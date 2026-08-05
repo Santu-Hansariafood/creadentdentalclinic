@@ -4,7 +4,7 @@ import {
   CreditCard,
   Search,
   Filter,
-  DollarSign,
+  IndianRupee,
   Download,
   Calendar,
   Plus,
@@ -23,6 +23,7 @@ import {
   CREATE_INVOICE,
   GENERATE_PATIENT_LOGIN,
 } from "../graphql/mutations";
+import { generateInvoicePDF } from "../utils/pdfGenerator";
 
 const Billing = () => {
   const { user } = useAuth();
@@ -571,7 +572,7 @@ const Billing = () => {
         <motion.div {...fadeIn("up", 0.1)} className="card">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center">
-              <DollarSign size={24} className="text-warning" />
+              <IndianRupee size={24} className="text-warning" />
             </div>
             <div>
               <p className="text-sm text-gray-600">Pending Balance</p>
@@ -819,7 +820,10 @@ const Billing = () => {
                     <div className="flex items-center justify-between text-sm text-gray-600">
                       <span>{inv.patientName}</span>
                       <button
-                        onClick={() => toast.success("Downloading receipt...")}
+                        onClick={() => {
+                          generateInvoicePDF(inv);
+                          toast.success("Receipt downloaded successfully");
+                        }}
                         className="text-primary hover:underline flex items-center gap-1"
                       >
                         <Download size={14} />
