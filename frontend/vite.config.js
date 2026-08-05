@@ -5,12 +5,17 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const toastCompatibilityPath = fileURLToPath(
+  new URL("./src/lib/toast.js", import.meta.url),
+);
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
 
   return {
     resolve: {
       alias: {
+        "react-hot-toast": toastCompatibilityPath,
         "@": path.resolve(__dirname, "src"),
         react: path.resolve(__dirname, "node_modules/react"),
         "react-dom": path.resolve(__dirname, "node_modules/react-dom"),

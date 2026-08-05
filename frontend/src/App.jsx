@@ -73,9 +73,17 @@ const App = () => {
   const location = useLocation();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
   const publicRoutePaths = publicContent.pages.map((page) => page.path);
   const isPublicPage = publicRoutePaths.includes(location.pathname);
   const showDashboardChrome = isAuthenticated && !isPublicPage;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInitialLoad(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -110,7 +118,7 @@ const App = () => {
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  if (authLoading) {
+  if (initialLoad || authLoading) {
     return <Preloader />;
   }
 
