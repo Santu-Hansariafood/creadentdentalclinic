@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FileText,
@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_MEDICAL_RECORDS } from "../graphql/queries";
 import { CREATE_MEDICAL_RECORD } from "../graphql/mutations";
+import Preloader from "../components/Preloader";
 
 const MedicalRecords = () => {
   const { user } = useAuth();
@@ -52,7 +53,7 @@ const MedicalRecords = () => {
     }
   };
 
-  if (loading) return <div className="p-6 text-center">Loading records...</div>;
+  if (loading) return <Preloader/>;
   if (error)
     return (
       <div className="p-6 text-center text-red-500">Error: {error.message}</div>
@@ -74,6 +75,7 @@ const MedicalRecords = () => {
   };
 
   return (
+    <Suspense fallback={<Preloader/>}>
     <div className="p-6 max-w-7xl mx-auto">
       <motion.div {...fadeIn("down")} className="mb-8">
         <div className="flex items-center justify-between">
@@ -499,6 +501,7 @@ const MedicalRecords = () => {
         </motion.div>
       </div>
     </div>
+    </Suspense>
   );
 };
 

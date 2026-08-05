@@ -1,14 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Phone,
-  Lock,
-  Eye,
-  EyeOff,
-  KeyRound,
-  ArrowLeft,
-} from "lucide-react";
+import { Phone, Lock, Eye, EyeOff, KeyRound, ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { fadeIn } from "../utils/motion";
 import { useMutation } from "@apollo/client";
@@ -19,6 +12,7 @@ import SEO from "../components/SEO";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "../utils/schemas";
+import Preloader from "../components/Preloader";
 
 const Login = () => {
   const [role, setRole] = useState("patient");
@@ -62,7 +56,6 @@ const Login = () => {
   }, []);
 
   const onSubmit = async (data) => {
-    
     const result = await login(data.phone, data.password);
     if (result.success) {
       navigate("/");
@@ -123,7 +116,7 @@ const Login = () => {
   };
 
   return (
-    <>
+    <Suspense fallback={<Preloader/>}>
       <SEO
         title="Login to Creadent Dental Clinic | Book Appointment"
         description="Login to Creadent Dental Clinic to book appointments, view records, and manage your dental care."
@@ -312,7 +305,11 @@ const Login = () => {
                     )}
                   </div>
 
-                  <button type="submit" disabled={forgotLoading} className="btn-primary w-full">
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="btn-primary w-full"
+                  >
                     {forgotLoading ? "Sending OTP..." : "Send OTP"}
                   </button>
 
@@ -399,7 +396,11 @@ const Login = () => {
                     </div>
                   </div>
 
-                  <button type="submit" disabled={resetLoading} className="btn-primary w-full">
+                  <button
+                    type="submit"
+                    disabled={resetLoading}
+                    className="btn-primary w-full"
+                  >
                     {resetLoading ? "Resetting..." : "Reset Password"}
                   </button>
 
@@ -446,7 +447,7 @@ const Login = () => {
           </div>
         </motion.div>
       </div>
-    </>
+    </Suspense>
   );
 };
 

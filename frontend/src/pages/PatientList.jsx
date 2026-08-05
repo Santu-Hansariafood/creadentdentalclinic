@@ -115,7 +115,6 @@ const PatientList = () => {
         </>
       )}
       
-      {/* Edit Patient Modal */}
       {selectedPatient && (
         <PatientRegistration
           initialPatient={selectedPatient}

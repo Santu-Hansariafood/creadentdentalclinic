@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import {
   Users,
   Calendar,
-  DollarSign,
+  IndianRupee,
   TrendingUp,
   UserPlus,
   FileText,
@@ -117,7 +117,7 @@ const EmployeeDashboard = () => {
             delay={0.1}
           />
           <DashboardCard
-            icon={DollarSign}
+            icon={IndianRupee}
             title="Pending Payments"
             value={stats.pendingPayments || 0}
             subtitle="Outstanding invoices"
@@ -216,35 +216,6 @@ const EmployeeDashboard = () => {
                 View analytics and insights
               </p>
             </Link>
-          </div>
-        </motion.div>
-
-        <motion.div {...fadeIn("up", 0.5)} className="mt-8">
-          <div className="card">
-            <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
-              Recent Activity
-            </h2>
-            <div className="space-y-3">
-              {activitiesLoading ? (
-                <div className="p-8 text-center text-gray-500">Loading activities...</div>
-              ) : (
-                (activitiesData?.getRecentActivities || []).map((activity, index) => (
-                  <motion.div
-                    key={activity.id}
-                    {...fadeIn("up", index * 0.05)}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-900 text-sm">
-                        {activity.action}
-                      </p>
-                      <p className="text-xs text-gray-600">{activity.user}</p>
-                    </div>
-                    <span className="text-xs text-gray-500">{formatTimeAgo(activity.timestamp)}</span>
-                  </motion.div>
-                ))
-              )}
-            </div>
           </div>
         </motion.div>
       </div>

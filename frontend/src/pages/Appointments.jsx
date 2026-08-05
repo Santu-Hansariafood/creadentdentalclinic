@@ -12,9 +12,9 @@ import {
   GET_PATIENTS,
 } from "../graphql/queries";
 import { CREATE_APPOINTMENT, UPDATE_APPOINTMENT } from "../graphql/mutations";
+import Preloader from "../components/Preloader";
 import Pagination from "../components/Pagination";
 
-// Define appointment time slots
 const appointmentSlots = [
   { time: "09:00 AM", available: true },
   { time: "09:30 AM", available: true },
@@ -28,6 +28,11 @@ const appointmentSlots = [
   { time: "03:30 PM", available: true },
   { time: "04:00 PM", available: true },
   { time: "04:30 PM", available: true },
+  { time: "05:00 PM", available: true },
+  { time: "05:30 PM", available: true },
+  { time: "06:00 PM", available: true },
+  { time: "6:30 PM", available: true },
+  { time: "7:00 PM", available: true },
 ];
 
 const Appointments = () => {
@@ -47,7 +52,6 @@ const Appointments = () => {
     reason: "",
   });
 
-  // Debounce search term
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
@@ -64,7 +68,6 @@ const Appointments = () => {
     variables: { page, limit, search: debouncedSearch, status: filterStatus },
   });
 
-  // Update status filter change handler
   const handleStatusChange = (e) => {
     setFilterStatus(e.target.value);
     setPage(1);
@@ -89,7 +92,7 @@ const Appointments = () => {
   const [rescheduleData, setRescheduleData] = useState({ date: "", time: "" });
 
   if (loadingApts && !dataApts)
-    return <div className="p-6 text-center">Loading appointments...</div>;
+    return <Preloader/>;
   if (errorApts)
     return (
       <div className="p-6 text-center text-red-500">
@@ -101,8 +104,6 @@ const Appointments = () => {
   const doctors = dataDoctors?.getUsersByRole || [];
   const patients = dataPatients?.getPatients?.patients || [];
 
-  // Filtered appointments is now managed by the backend, but we can still have local sorting if needed
-  // No need for client-side filtering anymore
   const displayAppointments = appointments;
 
   const handleBookingChange = (e) => {
@@ -185,6 +186,7 @@ const Appointments = () => {
   };
 
   return (
+    <Suspense fallback={<Preloader />}>
     <div className="p-6 max-w-7xl mx-auto">
       <motion.div {...fadeIn("down")} className="mb-8">
         <div className="flex items-center justify-between">
@@ -493,6 +495,7 @@ const Appointments = () => {
         onPageChange={setPage}
       />
     </div>
+    </Suspense>
   );
 };
 

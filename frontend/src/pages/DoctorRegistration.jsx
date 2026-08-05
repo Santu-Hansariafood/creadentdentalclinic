@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { motion } from "framer-motion";
 import {
   User,
@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema } from "../utils/schemas";
 import { formatName, toCamelCase } from "../utils/validation";
+import Preloader from "../components/Preloader";
 
 const DoctorRegistration = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -61,6 +62,7 @@ const DoctorRegistration = () => {
   };
 
   return (
+    <Suspense fallback={<Preloader/>}>
     <div className="max-w-4xl mx-auto">
       <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
         <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
@@ -245,6 +247,7 @@ const DoctorRegistration = () => {
         </form>
       </motion.div>
     </div>
+    </Suspense>
   );
 };
 

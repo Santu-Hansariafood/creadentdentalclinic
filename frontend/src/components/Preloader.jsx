@@ -8,7 +8,11 @@ const Preloader = () => {
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { type: "spring", stiffness: 100 },
+    },
   };
 
   const circleVariants = {
@@ -40,7 +44,10 @@ const Preloader = () => {
         animate="visible"
         className="text-center"
       >
-        <motion.div variants={itemVariants} className="relative w-32 h-32 mx-auto mb-6">
+        <motion.div
+          variants={itemVariants}
+          className="relative w-32 h-32 mx-auto mb-6"
+        >
           {/* Outer Pulse */}
           <motion.div
             variants={pulseVariants}
@@ -75,11 +82,16 @@ const Preloader = () => {
         </motion.div>
 
         <motion.div variants={itemVariants} className="mb-2">
-          <h1 className="font-heading font-bold text-2xl text-gray-900">Creadent</h1>
+          <h1 className="font-heading font-bold text-2xl text-gray-900">
+            Creadent
+          </h1>
           <p className="text-sm text-gray-500">Dental Clinic</p>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="flex items-center justify-center gap-2">
+        <motion.div
+          variants={itemVariants}
+          className="flex items-center justify-center gap-2"
+        >
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import {
   User,
@@ -13,6 +13,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { fadeIn } from "../utils/motion";
 import toast from "react-hot-toast";
+import Preloader from "../components/Preloader";
 
 const Settings = () => {
   const { user } = useAuth();
@@ -59,6 +60,7 @@ const Settings = () => {
 
   if (user?.role !== "admin") {
     return (
+      <Suspense fallback={<Preloader/>}>
       <div className="max-w-4xl mx-auto">
         <motion.div {...fadeIn("down")} className="card text-center py-16">
           <Shield size={64} className="mx-auto mb-4 text-gray-300" />
@@ -70,10 +72,12 @@ const Settings = () => {
           </p>
         </motion.div>
       </div>
+      </Suspense>
     );
   }
 
   return (
+    <Suspense fallback={<Preloader/>}>
     <div className="max-w-4xl mx-auto">
       <motion.div {...fadeIn("down")} className="mb-8">
         <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
@@ -349,6 +353,7 @@ const Settings = () => {
         )}
       </motion.div>
     </div>
+    </Suspense>
   );
 };
 

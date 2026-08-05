@@ -12,6 +12,8 @@ import SEO from "../components/SEO";
 import PublicLayout from "../components/PublicLayout";
 import ScrollToTop from "../components/ScrollToTop";
 import publicContent from "../data/publicPages.json";
+import { Suspense } from "react";
+import Preloader from "../components/Preloader";
 
 const iconMap = {
   building: Building2,
@@ -130,7 +132,7 @@ const PublicContentPage = ({ pageSlug }) => {
   if (faqSchema) structuredData.push(faqSchema);
 
   return (
-    <>
+    <Suspense fallback={<Preloader />}>
       <ScrollToTop />
       <SEO
         title={page.seo.title}
@@ -305,7 +307,7 @@ const PublicContentPage = ({ pageSlug }) => {
           </section>
         ) : null}
       </PublicLayout>
-    </>
+    </Suspense>
   );
 };
 
