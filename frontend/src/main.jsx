@@ -12,8 +12,6 @@ import { HelmetProvider } from "react-helmet-async";
 import { ToastContainer } from "react-toastify";
 import { registerSW } from "virtual:pwa-register";
 
-// After deploy, stale tabs may request old hashed chunks. A 404 (not index.html)
-// or MIME mismatch should trigger one hard reload to pick up the new manifest.
 const reloadForStaleAssets = () => {
   const reloadKey = "pwa-stale-asset-reload";
   if (sessionStorage.getItem(reloadKey)) {
@@ -59,7 +57,6 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 });
 
-// #region debug-point B:main-startup
 fetch("http://127.0.0.1:7777/event", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -76,12 +73,10 @@ fetch("http://127.0.0.1:7777/event", {
     ts: Date.now(),
   }),
 }).catch(() => {});
-// #endregion
 
 const updateSW = registerSW({
   immediate: true,
   onNeedRefresh() {
-    // #region debug-point A:sw-need-refresh
     fetch("http://127.0.0.1:7777/event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -98,12 +93,9 @@ const updateSW = registerSW({
         ts: Date.now(),
       }),
     }).catch(() => {});
-    // #endregion
-    // registerType is autoUpdate — apply immediately instead of waiting for user action.
     updateSW(true);
   },
   onOfflineReady() {
-    // #region debug-point A:sw-offline-ready
     fetch("http://127.0.0.1:7777/event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -119,7 +111,6 @@ const updateSW = registerSW({
         ts: Date.now(),
       }),
     }).catch(() => {});
-    // #endregion
     toast.success("Offline support is ready.", {
       toastId: "app-offline-ready",
     });
