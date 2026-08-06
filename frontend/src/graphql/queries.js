@@ -121,7 +121,19 @@ export const GET_PRESCRIPTIONS = gql`
   query GetPrescriptions {
     getPrescriptions {
       id
+      patientId
       patientName
+      patient {
+        id
+        patientId
+        name
+        email
+        phone
+        dateOfBirth
+        gender
+        address
+        bloodGroup
+      }
       doctorName
       date
       diagnosis

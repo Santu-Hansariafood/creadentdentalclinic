@@ -8,23 +8,31 @@ import {
   Eye,
   Clock,
   Stethoscope,
+  Mail,
+  Loader2,
 } from "lucide-react";
 import { formatDate } from "../utils/dateUtils";
 import { fadeIn } from "../utils/motion";
 import toast from "react-hot-toast";
 import generatePrescriptionPDF from "./PrescriptionPDF";
 import PrescriptionPreview from "./PrescriptionPreview";
+import { useMutation } from "@apollo/client";
+import { SEND_PRESCRIPTION_EMAIL } from "../graphql/mutations";
 
 const PrescriptionCard = ({ prescription, delay = 0 }) => {
   const [showPreview, setShowPreview] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendEmail] = useMutation(SEND_PRESCRIPTION_EMAIL);
 
   const rxId = prescription.id
     ? `RX-${String(prescription.id).slice(-8).toUpperCase()}`
     : "RX-NEW";
 
+  const patient = prescription.patient || null;
+
   const handleDownload = async () => {
     try {
-      await generatePrescriptionPDF(prescription);
+      await generatePrescriptionPDF(prescription, patient);
       toast.success("Prescription downloaded successfully!");
     } catch (err) {
       console.error("Error generating PDF:", err);
@@ -33,6 +41,52 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
           ? `Failed to generate PDF: ${err.message}`
           : "Failed to generate prescription PDF",
       );
+    }
+  };
+
+  const handleSendEmail = async () => {
+    setSendingEmail(true);
+    try {
+      let pdfDataUri = "";
+      try {
+        const result = await generatePrescriptionPDF(
+          prescription,
+          patient,
+          { save: false },
+        );
+        pdfDataUri = result?.dataUriString || "";
+      } catch (pdfErr) {
+        console.warn("Could not attach PDF:", pdfErr);
+      }
+
+      const { data } = await sendEmail({
+        variables: {
+          prescriptionId: prescription.id,
+          patientName: prescription.patientName,
+          patientEmail: patient?.email || undefined,
+          patientId: patient?.patientId || undefined,
+          doctorName: prescription.doctorName,
+          date: prescription.date,
+          diagnosis: prescription.diagnosis,
+          notes: prescription.notes,
+          medications: prescription.medications || [],
+          pdfDataUri,
+        },
+      });
+
+      const resp = data?.sendPrescriptionEmail;
+      if (resp?.success) {
+        toast.success(resp.message || "Prescription email sent!");
+      } else {
+        toast.error(resp?.message || "Failed to send prescription email");
+      }
+    } catch (err) {
+      console.error("Error sending email:", err);
+      toast.error(
+        err?.message || "An error occurred while sending the prescription email",
+      );
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -67,6 +121,11 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
                 </div>
                 <p className="text-xs font-mono text-primary/70 mt-0.5">
                   {rxId}
+                  {patient?.patientId && (
+                    <span className="ml-2 text-gray-400">
+                      | {patient.patientId}
+                    </span>
+                  )}
                 </p>
                 <p className="text-sm text-gray-600 mt-1 line-clamp-1">
                   {prescription.diagnosis}
@@ -90,6 +149,12 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
                 {(prescription.medications || []).length} medication(s)
               </span>
             </div>
+            {patient?.email && (
+              <div className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 px-2.5 py-1.5 rounded-lg ring-1 ring-emerald-100">
+                <Mail size={13} />
+                <span className="truncate max-w-[160px]">{patient.email}</span>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2 mb-4">
@@ -138,30 +203,55 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
             </div>
           )}
 
-          <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-100">
             <button
               onClick={() => setShowPreview(true)}
-              className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 border border-primary/20 transition-colors"
+              className="flex-1 min-w-[100px] flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 border border-primary/20 transition-colors"
             >
               <Eye size={16} />
               Preview
             </button>
             <button
               onClick={handleDownload}
-              className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm"
+              className="flex-1 min-w-[100px] flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm"
             >
               <Download size={16} />
               Download
             </button>
+            <button
+              onClick={handleSendEmail}
+              disabled={sendingEmail}
+              className="flex-1 min-w-[100px] flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {sendingEmail ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Mail size={16} />
+                  Email to Patient
+                </>
+              )}
+            </button>
           </div>
+          {!patient?.email && (
+            <p className="mt-2 text-[11px] text-amber-600 bg-amber-50 px-2.5 py-1 rounded">
+              ⚠ Patient email not registered. Please update patient profile to enable email.
+            </p>
+          )}
         </div>
       </motion.div>
 
       {showPreview && (
         <PrescriptionPreview
           prescription={prescription}
+          patient={patient}
           onClose={() => setShowPreview(false)}
           onDownload={handleDownload}
+          onSendEmail={handleSendEmail}
+          sendingEmail={sendingEmail}
         />
       )}
     </>

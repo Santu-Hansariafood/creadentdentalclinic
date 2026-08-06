@@ -1,6 +1,15 @@
 import { Suspense, useState } from "react";
 import { motion } from "framer-motion";
-import { Pill, Search, Filter, Plus, Trash2, Download } from "lucide-react";
+import {
+  Pill,
+  Search,
+  Filter,
+  Plus,
+  Trash2,
+  Download,
+  Mail,
+  Loader2,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import PrescriptionCard from "../components/PrescriptionCard";
 import { fadeIn, staggerContainer } from "../utils/motion";
@@ -11,7 +20,7 @@ import {
   GET_PATIENTS,
   GET_MEDICINES,
 } from "../graphql/queries";
-import { CREATE_PRESCRIPTION } from "../graphql/mutations";
+import { CREATE_PRESCRIPTION, SEND_PRESCRIPTION_EMAIL } from "../graphql/mutations";
 import generatePrescriptionPDF from "../components/PrescriptionPDF";
 import Preloader from "../components/Preloader";
 
@@ -37,6 +46,8 @@ const Prescriptions = () => {
   const [createPrescription] = useMutation(CREATE_PRESCRIPTION, {
     refetchQueries: [{ query: GET_PRESCRIPTIONS }],
   });
+  const [sendPrescriptionEmail] = useMutation(SEND_PRESCRIPTION_EMAIL);
+  const [sendingEmailAfterCreate, setSendingEmailAfterCreate] = useState(false);
 
   if (loading) return <Preloader />;
   if (error)
@@ -86,9 +97,10 @@ const Prescriptions = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const downloadPrescription = async (prescription) => {
+  const downloadPrescription = async (prescription, patientOverride = null) => {
     try {
-      await generatePrescriptionPDF(prescription);
+      const patient = patientOverride || prescription?.patient || null;
+      await generatePrescriptionPDF(prescription, patient);
       toast.success("Prescription downloaded successfully!");
     } catch (err) {
       console.error(err);
@@ -134,7 +146,85 @@ const Prescriptions = () => {
       setDiagnosis("");
       setNotes("");
 
-      setTimeout(() => downloadPrescription(newPrescription), 500);
+      await downloadPrescription(
+        { ...newPrescription, patient: selectedPatient },
+        selectedPatient,
+      );
+
+      if (selectedPatient?.email) {
+        setSendingEmailAfterCreate(true);
+        try {
+          let pdfDataUri = "";
+          try {
+            const pdfResult = await generatePrescriptionPDF(
+              { ...newPrescription, patient: selectedPatient },
+              selectedPatient,
+              { save: false },
+            );
+            pdfDataUri = pdfResult?.dataUriString || "";
+          } catch (pdfErr) {
+            console.warn("Could not attach PDF:", pdfErr);
+          }
+          const emailRes = await sendPrescriptionEmail({
+            variables: {
+              prescriptionId: newPrescription.id,
+              patientName: selectedPatient.name,
+              patientEmail: selectedPatient.email,
+              patientId: selectedPatient.patientId,
+              doctorName: user.name,
+              date: newPrescription.date,
+              diagnosis,
+              notes,
+              medications: medications.map(
+                ({ name, dosage, frequency, duration, instructions }) => ({
+                  name,
+                  dosage,
+                  frequency,
+                  duration,
+                  instructions,
+                }),
+              ),
+              pdfDataUri,
+            },
+          });
+          const resp = emailRes.data?.sendPrescriptionEmail;
+          if (resp?.success) {
+            toast.success(
+              resp.message ||
+                `Prescription emailed to ${selectedPatient.email}`,
+            );
+          } else {
+            toast.error(
+              resp?.message ||
+                "Prescription saved, but email could not be sent.",
+            );
+          }
+        } catch (emailErr) {
+          console.error("Email error:", emailErr);
+          toast.error(
+            "Prescription saved. Email send failed: " +
+              (emailErr?.message || "Unknown error"),
+          );
+        } finally {
+          setSendingEmailAfterCreate(false);
+        }
+      } else {
+        toast(
+          (t) => (
+            <span className="text-sm">
+              ⚠ Patient has no registered email. Prescription saved & downloaded
+              but email was skipped.
+              <button
+                onClick={() => toast.dismiss(t.id)}
+                className="ml-3 text-primary font-medium underline"
+              >
+                OK
+              </button>
+            </span>
+          ),
+          { duration: 6000 },
+        );
+      }
     } catch (err) {
       toast.error("Failed to create prescription: " + err.message);
     }
@@ -364,22 +454,37 @@ const Prescriptions = () => {
                   onChange={(e) => setNotes(e.target.value)}
                 />
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-wrap">
                 <button
                   type="submit"
-                  className="btn-primary flex items-center gap-2"
+                  disabled={sendingEmailAfterCreate}
+                  className="btn-primary flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <Download size={20} />
-                  Generate & Download Prescription
+                  {sendingEmailAfterCreate ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin" />
+                      Sending Email to Patient...
+                    </>
+                  ) : (
+                    <>
+                      <Mail size={20} />
+                      Generate, Download & Email Prescription
+                    </>
+                  )}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateForm(false)}
                   className="btn-outline"
+                  disabled={sendingEmailAfterCreate}
                 >
                   Cancel
                 </button>
               </div>
+              <p className="text-xs text-gray-500 -mt-1">
+                ✅ After generating, the prescription PDF is downloaded and
+                automatically emailed to the patient's registered email address.
+              </p>
             </form>
           </motion.div>
         )}

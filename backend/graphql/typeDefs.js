@@ -204,6 +204,7 @@ input UpdateMedicineInput {
     id: ID!
     patientId: ID!
     patientName: String!
+    patient: Patient
     doctorId: ID!
     doctorName: String!
     date: String!
@@ -211,6 +212,13 @@ input UpdateMedicineInput {
     medications: [Medication]
     notes: String
     status: String
+  }
+
+  type EmailSendResult {
+    success: Boolean!
+    message: String
+    messageId: String
+    sentTo: String
   }
 
   input MedicationInput {
@@ -487,6 +495,19 @@ input UpdateMedicineInput {
       medications: [MedicationInput],
       notes: String
     ): Prescription
+
+    sendPrescriptionEmail(
+      prescriptionId: ID!,
+      patientName: String,
+      patientEmail: String,
+      patientId: String,
+      doctorName: String,
+      date: String,
+      diagnosis: String,
+      notes: String,
+      medications: [MedicationInput],
+      pdfDataUri: String
+    ): EmailSendResult
 
     updateMedicineStock(id: ID!, stock: Int!): Medicine
 

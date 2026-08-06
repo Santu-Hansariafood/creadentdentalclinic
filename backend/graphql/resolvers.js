@@ -13,6 +13,7 @@ const generateToken = require("../utils/generateToken");
 const {
   sendAppointmentBookingNotifications,
 } = require("../utils/appointmentNotifications");
+const { sendPrescriptionEmail } = require("../utils/emailService");
 
 const generatePatientPassword = (phone = "") => {
   const currentYear = new Date().getFullYear().toString();
@@ -38,6 +39,20 @@ const resolvers = {
   Prescription: {
     id: (parent) => (parent.id || parent._id)?.toString(),
     date: (parent) => toIsoDateString(parent.date),
+    patient: async (parent) => {
+      try {
+        const p = await Patient.findById(parent.patientId);
+        if (!p) return null;
+        return {
+          ...p.toObject(),
+          id: p._id.toString(),
+          userId: p.userId?.toString(),
+          dateOfBirth: toDateOnlyString(p.dateOfBirth),
+        };
+      } catch {
+        return null;
+      }
+    },
   },
   Patient: {
     id: (parent) => (parent.id || parent._id)?.toString(),
@@ -725,6 +740,123 @@ const resolvers = {
         date: args.date ? new Date(args.date) : new Date(),
       });
       return await prescription.save();
+    },
+    sendPrescriptionEmail: async (
+      _,
+      {
+        prescriptionId,
+        patientName,
+        patientEmail,
+        patientId: patientIdExternal,
+        doctorName,
+        date,
+        diagnosis,
+        notes,
+        medications,
+        pdfDataUri,
+      },
+    ) => {
+      let prescription = null;
+      let patient = null;
+
+      try {
+        prescription = await Prescription.findById(prescriptionId);
+      } catch {
+        prescription = null;
+      }
+
+      if (prescription) {
+        patientName = patientName || prescription.patientName;
+        doctorName = doctorName || prescription.doctorName;
+        date = date || prescription.date;
+        diagnosis = diagnosis || prescription.diagnosis;
+        notes = notes || prescription.notes;
+        medications = medications || prescription.medications;
+        try {
+          patient = await Patient.findById(prescription.patientId);
+        } catch {
+          patient = null;
+        }
+      }
+
+      if (!patientEmail && patient?.email) {
+        patientEmail = patient.email;
+      }
+
+      if (!patientEmail) {
+        return {
+          success: false,
+          message:
+            "Patient email address not available. Please update the patient's email first.",
+          sentTo: null,
+          messageId: null,
+        };
+      }
+
+      let pdfBuffer = null;
+      if (typeof pdfDataUri === "string" && pdfDataUri.includes("base64,")) {
+        try {
+          const base64 = pdfDataUri.split("base64,")[1];
+          pdfBuffer = Buffer.from(base64, "base64");
+        } catch (err) {
+          console.error("[EMAIL] Failed to decode PDF data URI:", err);
+          pdfBuffer = null;
+        }
+      }
+
+      const rxId = prescriptionId
+        ? `RX-${String(prescriptionId).slice(-8).toUpperCase()}`
+        : "RX-PRESCRIPTION";
+
+      const safePatientName = patientName || "Patient";
+      const filenameParts = safePatientName.replace(/[^a-zA-Z0-9]/g, "_");
+      const dateForFile = date
+        ? new Date(date)
+        : new Date();
+      const dateStr =
+        String(dateForFile.getDate()).padStart(2, "0") +
+        String(dateForFile.getMonth() + 1).padStart(2, "0") +
+        dateForFile.getFullYear();
+      const pdfFilename = `Prescription_${filenameParts}_${dateStr}.pdf`;
+
+      const clinicInfo = {
+        name: "CREADENT DENTAL CLINIC",
+        tagline: "Excellence in Dental Care",
+        address: "BD-85, Salt Lake Rd, BD Block, Sector 1",
+        city: "Bidhannagar, Kolkata, West Bengal 700064",
+        phone: "+91 6292300343",
+        email: "creadentmultispecialitydentalclinic@gmail.com",
+        website: "https://creadentdentalclinic.com/",
+      };
+
+      try {
+        const result = await sendPrescriptionEmail({
+          patientEmail,
+          patientName: safePatientName,
+          doctorName: doctorName || "Doctor",
+          rxId,
+          pdfBuffer,
+          pdfFilename,
+          clinicInfo,
+        });
+
+        return {
+          success: true,
+          message: `Prescription email sent successfully to ${patientEmail}`,
+          sentTo: patientEmail,
+          messageId: result.messageId,
+        };
+      } catch (err) {
+        console.error("[RESOLVER] sendPrescriptionEmail error:", err);
+        return {
+          success: false,
+          message:
+            err?.message ||
+            "Failed to send email. Check SMTP configuration / app password.",
+          sentTo: patientEmail,
+          messageId: null,
+        };
+      }
     },
     updateMedicineStock: async (_, { id, stock }) => {
       return await Medicine.findByIdAndUpdate(id, { stock }, { new: true });

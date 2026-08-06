@@ -8,8 +8,30 @@ const getRxId = (prescription) =>
     ? `RX-${String(prescription.id).slice(-8).toUpperCase()}`
     : "RX-NEW";
 
-const PrescriptionDocument = ({ prescription }) => {
+const calculateAge = (dob) => {
+  if (!dob) return null;
+  try {
+    const birthDate = new Date(dob);
+    if (Number.isNaN(birthDate.getTime())) return null;
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+    return age;
+  } catch {
+    return null;
+  }
+};
+
+const PrescriptionDocument = ({ prescription, patient }) => {
   const [qrSrc, setQrSrc] = useState("");
+
+  const patientObj = patient || prescription?.patient || null;
 
   useEffect(() => {
     if (!prescription) return;
@@ -17,9 +39,12 @@ const PrescriptionDocument = ({ prescription }) => {
       CLINIC_INFO.name,
       getRxId(prescription),
       prescription.patientName,
+      patientObj?.patientId ? `ID: ${patientObj.patientId}` : "",
       prescription.doctorName,
       formatDate(prescription.date),
-    ].join(" | ");
+    ]
+      .filter(Boolean)
+      .join(" | ");
 
     QRCode.toDataURL(payload, {
       width: 120,
@@ -28,11 +53,14 @@ const PrescriptionDocument = ({ prescription }) => {
     })
       .then(setQrSrc)
       .catch(() => setQrSrc(""));
-  }, [prescription]);
+  }, [prescription, patientObj]);
 
   if (!prescription) return null;
 
   const rxId = getRxId(prescription);
+  const age = patientObj?.dateOfBirth
+    ? calculateAge(patientObj.dateOfBirth)
+    : null;
 
   return (
     <div
@@ -81,15 +109,70 @@ const PrescriptionDocument = ({ prescription }) => {
             <span className="font-bold">Rx No:</span> {rxId}
           </p>
         </div>
-        <div className="flex justify-between gap-4">
-          <p>
-            <span className="font-bold">Patient:</span>{" "}
-            {prescription.patientName}
-          </p>
-          <p>
-            <span className="font-bold">Doctor:</span> Dr.{" "}
-            {prescription.doctorName}
-          </p>
+        <div className="grid grid-cols-2 gap-4 pt-2">
+          <div className="space-y-1.5">
+            <p>
+              <span className="font-bold">Patient Name:</span>{" "}
+              {prescription.patientName}
+            </p>
+            {patientObj?.patientId && (
+              <p>
+                <span className="font-bold">Patient ID:</span>{" "}
+                {patientObj.patientId}
+              </p>
+            )}
+            {(age || patientObj?.gender) && (
+              <p>
+                {age && (
+                  <>
+                    <span className="font-bold">Age:</span> {age} yrs
+                  </>
+                )}
+                {patientObj?.gender && (
+                  <span className="ml-3">
+                    <span className="font-bold">Gender:</span>{" "}
+                    {patientObj.gender}
+                  </span>
+                )}
+              </p>
+            )}
+            {patientObj?.phone && (
+              <p>
+                <span className="font-bold">Phone:</span> {patientObj.phone}
+              </p>
+            )}
+            {patientObj?.email && (
+              <p>
+                <span className="font-bold">Email:</span> {patientObj.email}
+              </p>
+            )}
+          </div>
+          <div className="space-y-1.5 text-right">
+            <p>
+              <span className="font-bold">Doctor:</span> Dr.{" "}
+              {prescription.doctorName}
+            </p>
+            {patientObj?.dateOfBirth && (
+              <p>
+                <span className="font-bold">DOB:</span>{" "}
+                {formatDate(patientObj.dateOfBirth)}
+              </p>
+            )}
+            {patientObj?.bloodGroup && (
+              <p>
+                <span className="font-bold">Blood Group:</span>{" "}
+                {patientObj.bloodGroup}
+              </p>
+            )}
+            {patientObj?.address && (
+              <p className="text-right">
+                <span className="font-bold">Address:</span>{" "}
+                <span className="inline-block text-left align-top max-w-[260px]">
+                  {patientObj.address}
+                </span>
+              </p>
+            )}
+          </div>
         </div>
       </div>
 

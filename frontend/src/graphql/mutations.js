@@ -197,7 +197,54 @@ export const CREATE_PRESCRIPTION = gql`
       notes: $notes
     ) {
       id
+      patientId
+      patientName
+      doctorId
+      doctorName
+      date
+      diagnosis
+      medications {
+        name
+        dosage
+        frequency
+        duration
+        instructions
+      }
+      notes
       status
+    }
+  }
+`;
+
+export const SEND_PRESCRIPTION_EMAIL = gql`
+  mutation SendPrescriptionEmail(
+    $prescriptionId: ID!
+    $patientName: String
+    $patientEmail: String
+    $patientId: String
+    $doctorName: String
+    $date: String
+    $diagnosis: String
+    $notes: String
+    $medications: [MedicationInput]
+    $pdfDataUri: String
+  ) {
+    sendPrescriptionEmail(
+      prescriptionId: $prescriptionId
+      patientName: $patientName
+      patientEmail: $patientEmail
+      patientId: $patientId
+      doctorName: $doctorName
+      date: $date
+      diagnosis: $diagnosis
+      notes: $notes
+      medications: $medications
+      pdfDataUri: $pdfDataUri
+    ) {
+      success
+      message
+      messageId
+      sentTo
     }
   }
 `;
