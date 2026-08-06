@@ -8,6 +8,7 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
+  XCircle,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import AppointmentCard from "../components/AppointmentCard";
@@ -142,27 +143,33 @@ const Appointments = () => {
     (a) => a.status === "Completed",
   );
   const previousNotDone = previousAppointments.filter(
-    (a) => a.status !== "Completed",
+    (a) => a.status !== "Completed" && a.status !== "Cancelled",
+  );
+  const previousCancelled = previousAppointments.filter(
+    (a) => a.status === "Cancelled",
   );
 
   let displayUpcoming = upcomingAppointments;
   let displayPreviousDone = previousDone;
   let displayPreviousNotDone = previousNotDone;
+  let displayPreviousCancelled = previousCancelled;
 
   if (groupTab === "all") {
     displayUpcoming = upcomingAppointments;
     displayPreviousDone = previousDone;
     displayPreviousNotDone = previousNotDone;
+    displayPreviousCancelled = previousCancelled;
   } else if (groupTab === "upcoming") {
     displayUpcoming = upcomingAppointments;
     displayPreviousDone = [];
     displayPreviousNotDone = [];
+    displayPreviousCancelled = [];
   } else if (groupTab === "previous") {
     displayUpcoming = [];
   }
 
   const groupedDisplayCount =
-    displayUpcoming.length + displayPreviousDone.length + displayPreviousNotDone.length;
+    displayUpcoming.length + displayPreviousDone.length + displayPreviousNotDone.length + displayPreviousCancelled.length;
 
   const handleBookingChange = (e) => {
     setBookingData({ ...bookingData, [e.target.name]: e.target.value });
@@ -547,7 +554,6 @@ const Appointments = () => {
                   <option value="Scheduled">Scheduled</option>
                   <option value="Completed">Completed</option>
                   <option value="Cancelled">Cancelled</option>
-                  <option value="Pending">Pending</option>
                 </select>
               </div>
             </div>
@@ -638,6 +644,36 @@ const Appointments = () => {
                   appointment={apt}
                   delay={index * 0.05}
                   onAction={handleAppointmentAction}
+                  showPatient={user.role !== "patient"}
+                />
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        {displayPreviousCancelled.length > 0 && groupTab !== "upcoming" && (
+          <motion.section
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+            className="mb-10"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <XCircle size={20} className="text-gray-500" />
+              <h2 className="font-heading text-xl font-bold text-gray-900">
+                Previous — Cancelled
+              </h2>
+              <span className="ml-auto text-xs font-medium px-3 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+                {displayPreviousCancelled.length}{" "}
+                {displayPreviousCancelled.length === 1 ? "appointment" : "appointments"} cancelled
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {displayPreviousCancelled.map((apt, index) => (
+                <AppointmentCard
+                  key={apt.id}
+                  appointment={apt}
+                  delay={index * 0.05}
                   showPatient={user.role !== "patient"}
                 />
               ))}

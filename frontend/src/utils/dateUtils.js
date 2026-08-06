@@ -1,6 +1,15 @@
-import { format, isValid, parseISO, isToday, isBefore, isAfter, startOfDay, endOfDay } from "date-fns";
+import { format, isValid, parseISO, isToday, isBefore, isAfter, startOfDay, endOfDay, getDate } from "date-fns";
 
 const DATE_ONLY_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+const getOrdinalSuffix = (day) => {
+  const j = day % 10;
+  const k = day % 100;
+  if (j === 1 && k !== 11) return "st";
+  if (j === 2 && k !== 12) return "nd";
+  if (j === 3 && k !== 13) return "rd";
+  return "th";
+};
 
 export const parseDate = (date) => {
   if (!date) return null;
@@ -40,6 +49,12 @@ export const parseDate = (date) => {
 export const formatDate = (date, formatStr = "dd MMM yyyy") => {
   const d = parseDate(date);
   if (!d) return "N/A";
+  if (formatStr.includes("do")) {
+    const day = getDate(d);
+    const suffix = getOrdinalSuffix(day);
+    const baseFormat = formatStr.replace("do", `d'${suffix}'`);
+    return format(d, baseFormat);
+  }
   return format(d, formatStr);
 };
 
