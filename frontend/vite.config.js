@@ -55,7 +55,6 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
-          // Don't precache index.html — stale shell HTML is the main cause of post-deploy MIME errors.
           globPatterns: ["**/*.{js,css,ico,png,svg,json,woff2}"],
           globIgnores: ["**/index.html"],
           cleanupOutdatedCaches: true,

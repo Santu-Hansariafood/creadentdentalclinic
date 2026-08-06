@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Calendar as CalendarIcon, Plus, Filter, Search } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
