@@ -146,7 +146,7 @@ const EmployeeDashboard = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="revenue" fill="#007FAF" name="Revenue ($)" />
+                <Bar dataKey="revenue" fill="#007FAF" name="Revenue (₹)" />
               </BarChart>
             </ResponsiveContainer>
           </motion.div>
