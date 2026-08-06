@@ -7,10 +7,13 @@ import { GET_PATIENTS } from "../graphql/queries";
 import { DELETE_PATIENT } from "../graphql/mutations";
 import Pagination from "../components/Pagination";
 import { useState, useEffect } from "react";
-import { Search } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const PatientList = () => {
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -57,12 +60,25 @@ const PatientList = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
-        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-          Patient List
-        </h1>
-        <p className="text-sm sm:text-base text-gray-600">
-          View and manage patient records.
-        </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+              Patient List
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600">
+              View and manage patient records.
+            </p>
+          </div>
+          {user && (user.role === "admin" || user.role === "doctor" || user.role === "employee") && (
+            <Link
+              to={`/${user.role}/patient-registration`}
+              className="btn-primary flex items-center gap-2 self-start md:self-center"
+            >
+              <Plus size={20} />
+              Add Patient
+            </Link>
+          )}
+        </div>
       </motion.div>
 
       <div className="mb-8">
