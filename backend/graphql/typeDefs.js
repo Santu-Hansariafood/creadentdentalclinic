@@ -11,12 +11,30 @@ const typeDefs = `#graphql
   }
 
   type Medicine {
-    id: ID!
-    name: String!
-    category: String!
-    description: String
-  }
+  id: ID!
+  name: String!
+  category: String!
+  description: String
+  dosageForm: String!
+  dosageStrength: String!
+}
 
+input RegisterMedicineInput {
+  name: String!
+  category: String!
+  description: String
+  dosageForm: String!
+  dosageStrength: String!
+}
+
+input UpdateMedicineInput {
+  id: ID!
+  name: String
+  category: String
+  description: String
+  dosageForm: String
+  dosageStrength: String
+}
   type Appointment {
     id: ID!
     patientId: ID!
@@ -390,14 +408,18 @@ const typeDefs = `#graphql
     registerMedicine(
       name: String!,
       category: String!,
-      description: String
+      description: String,
+      dosageForm: String!,
+      dosageStrength: String!
     ): Medicine
     
     updateMedicine(
       id: ID!,
       name: String,
       category: String,
-      description: String
+      description: String,
+      dosageForm: String,
+      dosageStrength: String
     ): Medicine
     
     deleteMedicine(id: ID!): Boolean

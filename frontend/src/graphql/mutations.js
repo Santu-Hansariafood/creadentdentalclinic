@@ -108,15 +108,21 @@ export const REGISTER_MEDICINE = gql`
     $name: String!
     $category: String!
     $description: String
+    $dosageForm: String!
+    $dosageStrength: String!
   ) {
     registerMedicine(
       name: $name
       category: $category
       description: $description
+      dosageForm: $dosageForm
+      dosageStrength: $dosageStrength
     ) {
       id
       name
       category
+      dosageForm
+      dosageStrength
     }
   }
 `;
@@ -326,12 +332,14 @@ export const UPDATE_MEDICINE_STOCK = gql`
 `;
 
 export const UPDATE_MEDICINE = gql`
-  mutation UpdateMedicine($id: ID!, $name: String, $category: String, $description: String) {
-    updateMedicine(id: $id, name: $name, category: $category, description: $description) {
+  mutation UpdateMedicine($id: ID!, $name: String, $category: String, $description: String, $dosageForm: String, $dosageStrength: String) {
+    updateMedicine(id: $id, name: $name, category: $category, description: $description, dosageForm: $dosageForm, dosageStrength: $dosageStrength) {
       id
       name
       category
       description
+      dosageForm
+      dosageStrength
     }
   }
 `;

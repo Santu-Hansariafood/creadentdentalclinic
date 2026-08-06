@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Pill, Tag, Edit2, Trash2 } from "lucide-react";
+import { Pill, Tag, Edit2, Trash2, Syringe } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 
 const MedicineCard = ({ medicine, delay = 0, onEdit, onDelete }) => {
@@ -12,7 +12,7 @@ const MedicineCard = ({ medicine, delay = 0, onEdit, onDelete }) => {
         <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
           <Pill size={24} className="text-primary" />
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <h3 className="font-heading font-semibold text-gray-900 text-lg leading-tight">
             {medicine.name}
           </h3>
@@ -20,6 +20,12 @@ const MedicineCard = ({ medicine, delay = 0, onEdit, onDelete }) => {
             <Tag size={14} />
             {medicine.category}
           </p>
+          <div className="mt-2 flex items-center gap-1 text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded-md w-fit">
+            <Syringe size={12} />
+            <span className="font-medium">{medicine.dosageForm}</span>
+            <span className="text-gray-400">•</span>
+            <span>{medicine.dosageStrength}</span>
+          </div>
         </div>
       </div>
 

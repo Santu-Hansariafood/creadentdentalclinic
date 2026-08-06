@@ -117,6 +117,32 @@ const updateSW = registerSW({
   },
 });
 
+// Disable mouse wheel from changing number input values globally
+document.addEventListener(
+  "wheel",
+  (e) => {
+    const active = document.activeElement;
+
+    if (active instanceof HTMLInputElement && active.type === "number") {
+      e.preventDefault();
+    }
+  },
+  { passive: false },
+);
+
+// Disable Arrow Up / Arrow Down from changing number input values globally
+document.addEventListener("keydown", (e) => {
+  const active = document.activeElement;
+
+  if (
+    active instanceof HTMLInputElement &&
+    active.type === "number" &&
+    (e.key === "ArrowUp" || e.key === "ArrowDown")
+  ) {
+    e.preventDefault();
+  }
+});
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <HelmetProvider>

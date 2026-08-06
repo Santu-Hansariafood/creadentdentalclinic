@@ -29,6 +29,8 @@ export const GET_MEDICINES = gql`
         name
         category
         description
+        dosageForm
+        dosageStrength
       }
       totalCount
       totalPages
