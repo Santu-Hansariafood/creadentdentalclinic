@@ -278,23 +278,44 @@ export async function generatePrescriptionPDF(
 
   y = Math.max(leftY, rightY) + 6;
 
-  if (prescription.diagnosis) {
-    pdf.setFillColor(255, 249, 230);
-    drawRoundedRect(pdf, MARGIN, y, contentWidth, 14, 2);
-    pdf.setTextColor(139, 105, 20);
+  const diagnosesList =
+    prescription.diagnoses && prescription.diagnoses.length > 0
+      ? prescription.diagnoses
+      : prescription.diagnosis
+        ? [{ name: prescription.diagnosis, critical: false }]
+        : [];
+
+  if (diagnosesList.length > 0) {
+    const hasCritical = diagnosesList.some((d) => d.critical);
+    pdf.setFillColor(hasCritical ? 254 : 255, hasCritical ? 242 : 249, hasCritical ? 242 : 230);
+    drawRoundedRect(pdf, MARGIN, y, contentWidth, 14 + diagnosesList.length * 5, 2);
+    pdf.setTextColor(hasCritical ? 185 : 139, hasCritical ? 28 : 105, hasCritical ? 28 : 20);
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(9);
-    pdf.text("\u26A0  DIAGNOSIS / CLINICAL FINDINGS", MARGIN + 5, y + 6);
-    y += 9;
-    pdf.setTextColor(80, 60, 10);
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(10);
-    const diagLines = pdf.splitTextToSize(
-      text(prescription.diagnosis),
-      contentWidth - 10,
+    pdf.text(
+      `${hasCritical ? "\u26A0  " : ""}DIAGNOSIS / CLINICAL FINDINGS${hasCritical ? " (CRITICAL ATTENTION)" : ""}`,
+      MARGIN + 5,
+      y + 6,
     );
-    pdf.text(diagLines, MARGIN + 5, y + 3);
-    y += diagLines.length * 5 + 7;
+    y += 10;
+
+    diagnosesList.forEach((d) => {
+      const isCritical = !!d.critical;
+      const label = isCritical ? "[CRITICAL]  " : "\u2022  ";
+      const fullText = label + text(d.name);
+      if (isCritical) {
+        pdf.setTextColor(220, 38, 38);
+        pdf.setFont("helvetica", "bold");
+      } else {
+        pdf.setTextColor(80, 60, 10);
+        pdf.setFont("helvetica", "normal");
+      }
+      pdf.setFontSize(10);
+      const lines = pdf.splitTextToSize(fullText, contentWidth - 10);
+      pdf.text(lines, MARGIN + 5, y + 3);
+      y += lines.length * 5;
+    });
+    y += 5;
   } else {
     y += 2;
   }
@@ -318,7 +339,7 @@ export async function generatePrescriptionPDF(
 
   const tableData = (prescription.medications || []).map((med, i) => [
     String(i + 1),
-    text(med?.name),
+    text(med?.name) + (med?.dosageForm ? `\n[${med.dosageForm}]` : ""),
     text(med?.dosage),
     text(med?.frequency),
     text(med?.duration),
@@ -362,12 +383,15 @@ export async function generatePrescriptionPDF(
     alternateRowStyles: {
       fillColor: [lightR, lightG, lightB],
     },
+    bodyStyles: {
+      minCellHeight: 10,
+    },
     columnStyles: {
       0: { cellWidth: 8, halign: "center", fontStyle: "bold" },
-      1: { cellWidth: 40, fontStyle: "bold" },
-      2: { cellWidth: 22, halign: "center" },
+      1: { cellWidth: 42, fontStyle: "bold", lineHeight: 1.1 },
+      2: { cellWidth: 20, halign: "center" },
       3: { cellWidth: 27, halign: "center" },
-      4: { cellWidth: 22, halign: "center" },
+      4: { cellWidth: 20, halign: "center" },
       5: { cellWidth: "auto" },
     },
   });

@@ -176,10 +176,35 @@ const PrescriptionDocument = ({ prescription, patient }) => {
         </div>
       </div>
 
-      {prescription.diagnosis && (
-        <p className="text-sm mb-4">
-          <span className="font-bold">Diagnosis:</span> {prescription.diagnosis}
-        </p>
+      {((prescription.diagnoses?.length) || prescription.diagnosis) && (
+        <div className="mb-5">
+          <p className="font-bold text-sm mb-2 flex items-center gap-2">
+            <span className="text-primary">Diagnosis / Clinical Findings:</span>
+          </p>
+          <ul className="space-y-1.5">
+            {(prescription.diagnoses?.length
+              ? prescription.diagnoses
+              : [{ name: prescription.diagnosis, critical: false }]
+            ).map((d, i) => (
+              <li
+                key={i}
+                className={`text-sm flex items-start gap-2 ${
+                  d.critical ? "text-red-600 font-bold" : "text-gray-800"
+                }`}
+              >
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  style={{
+                    backgroundColor: d.critical ? "#dc2626" : "#007FAF",
+                  }}
+                />
+                <span>
+                  {d.critical && <span className="inline-block mr-1.5 px-1.5 py-0.5 rounded text-[10px] bg-red-100 text-red-700 border border-red-200 align-middle">CRITICAL</span>}
+                  {d.name}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       <div className="mb-6">
@@ -211,7 +236,14 @@ const PrescriptionDocument = ({ prescription, patient }) => {
                 <td className="border-r border-black px-2 py-2 text-center">
                   {index + 1}
                 </td>
-                <td className="border-r border-black px-2 py-2">{med.name}</td>
+                <td className="border-r border-black px-2 py-2">
+                  <div className="font-semibold">{med.name}</div>
+                  {med.dosageForm && (
+                    <div className="text-[11px] text-gray-500 italic">
+                      [{med.dosageForm}]
+                    </div>
+                  )}
+                </td>
                 <td className="border-r border-black px-2 py-2">
                   {med.dosage}
                 </td>

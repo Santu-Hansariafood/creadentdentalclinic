@@ -16,10 +16,17 @@ const prescriptionSchema = new mongoose.Schema(
     doctorName: { type: String, required: true },
     date: { type: Date, default: Date.now },
     diagnosis: { type: String },
+    diagnoses: [
+      {
+        name: { type: String, required: true },
+        critical: { type: Boolean, default: false },
+      },
+    ],
     medications: [
       {
         name: String,
         dosage: String,
+        dosageForm: String,
         frequency: String,
         duration: String,
         instructions: String,

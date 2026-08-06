@@ -192,9 +192,20 @@ input UpdateMedicineInput {
     remarks: String
   }
 
+  type Diagnosis {
+    name: String!
+    critical: Boolean
+  }
+
+  input DiagnosisInput {
+    name: String!
+    critical: Boolean
+  }
+
   type Medication {
     name: String
     dosage: String
+    dosageForm: String
     frequency: String
     duration: String
     instructions: String
@@ -209,6 +220,7 @@ input UpdateMedicineInput {
     doctorName: String!
     date: String!
     diagnosis: String
+    diagnoses: [Diagnosis]
     medications: [Medication]
     notes: String
     status: String
@@ -224,6 +236,7 @@ input UpdateMedicineInput {
   input MedicationInput {
     name: String
     dosage: String
+    dosageForm: String
     frequency: String
     duration: String
     instructions: String
@@ -492,6 +505,7 @@ input UpdateMedicineInput {
       doctorId: ID!,
       doctorName: String!,
       diagnosis: String,
+      diagnoses: [DiagnosisInput],
       medications: [MedicationInput],
       notes: String
     ): Prescription
@@ -504,6 +518,7 @@ input UpdateMedicineInput {
       doctorName: String,
       date: String,
       diagnosis: String,
+      diagnoses: [DiagnosisInput],
       notes: String,
       medications: [MedicationInput],
       pdfDataUri: String

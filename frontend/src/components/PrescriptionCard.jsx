@@ -1,16 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Pill,
-  Calendar,
-  FileText,
-  Download,
-  Eye,
-  Clock,
-  Stethoscope,
-  Mail,
-  Loader2,
-} from "lucide-react";
+import { AlertTriangle, Calendar, Clock, Download, Eye, FileText, Loader2, Mail, Pill, Stethoscope } from "lucide-react";
 import { formatDate } from "../utils/dateUtils";
 import { fadeIn } from "../utils/motion";
 import toast from "react-hot-toast";
@@ -127,9 +117,26 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
                     </span>
                   )}
                 </p>
-                <p className="text-sm text-gray-600 mt-1 line-clamp-1">
-                  {prescription.diagnosis}
-                </p>
+              <div className="flex items-center gap-2 flex-wrap mt-2">
+                {(prescription.diagnoses?.length
+                  ? prescription.diagnoses
+                  : prescription.diagnosis
+                    ? [{ name: prescription.diagnosis, critical: false }]
+                    : []
+                ).map((d, i) => (
+                  <span
+                    key={i}
+                    className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${
+                      d.critical
+                        ? "bg-red-100 text-red-700 border border-red-200 font-bold"
+                        : "bg-gray-100 text-gray-700 border border-gray-200"
+                    }`}
+                  >
+                    {d.critical && <AlertTriangle size={10} className="mr-1" />}
+                    {d.name}
+                  </span>
+                ))}
+              </div>
               </div>
             </div>
           </div>
