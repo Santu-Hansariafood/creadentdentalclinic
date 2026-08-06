@@ -1,4 +1,4 @@
-import { format, isValid } from "date-fns";
+import { format, isValid, parseISO, isToday, isBefore, isAfter, startOfDay, endOfDay } from "date-fns";
 
 const DATE_ONLY_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -26,6 +26,11 @@ export const parseDate = (date) => {
       );
       return isValid(d) ? d : null;
     }
+
+    const isoParsed = parseISO(trimmedDate);
+    if (isValid(isoParsed)) {
+      return isoParsed;
+    }
   }
 
   const d = new Date(date);
@@ -42,4 +47,21 @@ export const formatDateTime = (date, formatStr = "dd MMM yyyy, hh:mm a") => {
   const d = parseDate(date);
   if (!d) return "N/A";
   return format(d, formatStr);
+};
+
+export const isAppointmentPast = (date) => {
+  const d = parseDate(date);
+  if (!d) return false;
+  return isBefore(endOfDay(d), startOfDay(new Date()));
+};
+
+export const isAppointmentToday = (date) => {
+  const d = parseDate(date);
+  return d ? isToday(d) : false;
+};
+
+export const isAppointmentUpcoming = (date) => {
+  const d = parseDate(date);
+  if (!d) return false;
+  return isAfter(startOfDay(d), endOfDay(new Date()));
 };
