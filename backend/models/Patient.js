@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const patientSchema = new mongoose.Schema(
   {
+    patientId: { type: String, unique: true, index: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     name: { type: String, required: true },
     email: { type: String },
@@ -41,5 +42,15 @@ const patientSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+patientSchema.pre("save", async function (next) {
+  if (!this.patientId) {
+    const prefix = "PAT";
+    const random = Math.floor(1000 + Math.random() * 9000).toString();
+    const timestamp = Date.now().toString().slice(-4);
+    this.patientId = `${prefix}-${timestamp}${random}`;
+  }
+  next();
+});
 
 module.exports = mongoose.model("Patient", patientSchema);

@@ -100,6 +100,7 @@ input UpdateMedicineInput {
 
   type Patient {
     id: ID!
+    patientId: String
     userId: ID
     name: String!
     email: String
@@ -375,6 +376,7 @@ input UpdateMedicineInput {
     getPatient(id: ID!): Patient
     getMyPatient: Patient
     checkPatientExists(phone: String!): Boolean!
+    findPatientByNameAndPhone(name: String!, phone: String!): Patient
     getAppointments(page: Int, limit: Int, search: String, status: String): PaginatedAppointments
     getMedicalRecords: [MedicalRecord]
     getInvoices: [Invoice]

@@ -163,6 +163,7 @@ export const GET_PATIENTS = gql`
     getPatients(page: $page, limit: $limit, search: $search) {
       patients {
         id
+        patientId
         userId
         name
         email
@@ -184,6 +185,7 @@ export const GET_PATIENT = gql`
   query GetPatient($id: ID!) {
     getPatient(id: $id) {
       id
+      patientId
       name
       email
       phone
@@ -192,6 +194,51 @@ export const GET_PATIENT = gql`
       address
       bloodGroup
       status
+    }
+  }
+`;
+
+export const FIND_PATIENT_BY_NAME_AND_PHONE = gql`
+  query FindPatientByNameAndPhone($name: String!, $phone: String!) {
+    findPatientByNameAndPhone(name: $name, phone: $phone) {
+      id
+      patientId
+      userId
+      name
+      email
+      phone
+      dateOfBirth
+      gender
+      address
+      bloodGroup
+      status
+      emergencyContact {
+        name
+        relationship
+        phone
+      }
+      medicalHistory {
+        allergies
+        chronicConditions
+        medications
+        previousSurgeries
+        familyHistory
+      }
+      vitalSigns {
+        bloodPressure
+        height
+        weight
+      }
+      dentalHistory {
+        lastVisit
+        previousTreatments
+        currentIssues
+      }
+      insurance {
+        provider
+        policyNumber
+        expiryDate
+      }
     }
   }
 `;

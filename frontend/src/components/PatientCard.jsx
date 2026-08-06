@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { User, Phone, Mail, Calendar, Edit3, Trash2 } from "lucide-react";
+import { User, Phone, Mail, Calendar, Edit3, Trash2, IdCard } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 
 const PatientCard = ({ patient, delay = 0, onSelect, onEdit, onDelete }) => {
@@ -14,9 +14,17 @@ const PatientCard = ({ patient, delay = 0, onSelect, onEdit, onDelete }) => {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-heading font-semibold text-gray-900 mb-1">
-              {patient.name}
-            </h3>
+            <div>
+              <h3 className="font-heading font-semibold text-gray-900 mb-1">
+                {patient.name}
+              </h3>
+              {patient.patientId && (
+                <div className="flex items-center gap-1 text-xs text-primary bg-primary/5 px-2 py-0.5 rounded-md w-fit mb-2">
+                  <IdCard size={12} />
+                  <span className="font-mono font-medium">{patient.patientId}</span>
+                </div>
+              )}
+            </div>
             <div className="flex gap-1">
               {onEdit && (
                 <button
@@ -45,7 +53,7 @@ const PatientCard = ({ patient, delay = 0, onSelect, onEdit, onDelete }) => {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Mail size={14} />
-              <span className="truncate">{patient.email}</span>
+              <span className="truncate">{patient.email || "—"}</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Phone size={14} />
@@ -72,22 +80,6 @@ const PatientCard = ({ patient, delay = 0, onSelect, onEdit, onDelete }) => {
           <span className="text-xs text-gray-500">{patient.gender}</span>
         </div>
       </div>
-
-      {patient.dentalHistory && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="flex items-center justify-between text-xs text-gray-600">
-            <span>
-              Last Visit:{" "}
-              {new Date(patient.dentalHistory.lastVisit).toLocaleDateString()}
-            </span>
-            <span className="font-medium text-primary">
-              {patient.dentalHistory.currentIssues.length > 0
-                ? `${patient.dentalHistory.currentIssues.length} Active Issue(s)`
-                : "No Active Issues"}
-            </span>
-          </div>
-        </div>
-      )}
     </motion.div>
   );
 };

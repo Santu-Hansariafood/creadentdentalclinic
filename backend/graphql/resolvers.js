@@ -95,10 +95,14 @@ const resolvers = {
               { name: { $regex: search, $options: "i" } },
               { email: { $regex: search, $options: "i" } },
               { phone: { $regex: search, $options: "i" } },
+              { patientId: { $regex: search, $options: "i" } },
             ],
           }
         : {};
-      const patients = await Patient.find(query).skip(skip).limit(limit);
+      const patients = await Patient.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
       const totalCount = await Patient.countDocuments(query);
       return {
         patients,
@@ -113,8 +117,19 @@ const resolvers = {
       return await Patient.findOne({ userId: user._id });
     },
     checkPatientExists: async (_, { phone }) => {
-      const patient = await Patient.findOne({ phone });
-      return !!patient;
+      const exists = await Patient.exists({ phone });
+      return !!exists;
+    },
+    findPatientByNameAndPhone: async (_, { name, phone }) => {
+      const normalizedName = name.trim().toLowerCase();
+      const patient = await Patient.findOne({
+        phone,
+      }).collation({ locale: "en", strength: 2 });
+      if (!patient) return null;
+      if (patient.name.trim().toLowerCase() === normalizedName) {
+        return patient;
+      }
+      return null;
     },
     getAppointments: async (
       _,
@@ -910,6 +925,27 @@ const resolvers = {
       return await Patient.findByIdAndUpdate(id, updateData, { new: true });
     },
     deletePatient: async (_, { id }) => {
+      const patient = await Patient.findById(id);
+      if (!patient) {
+        throw new Error("Patient not found");
+      }
+
+      await Appointment.deleteMany({ patientId: patient._id });
+      await MedicalRecord.deleteMany({ patientId: patient._id });
+      await Prescription.deleteMany({ patientId: patient._id });
+      await Invoice.deleteMany({ patientId: patient._id });
+
+      if (patient.userId) {
+        await Conversation.deleteMany({
+          participants: { $elemMatch: { id: patient.userId.toString() } },
+        });
+        await ChatMessage.deleteMany({
+          $or: [{ senderId: patient.userId }, { receiverId: patient.userId }],
+        });
+        await Notification.deleteMany({ userId: patient.userId });
+        await User.findByIdAndDelete(patient.userId);
+      }
+
       await Patient.findByIdAndDelete(id);
       return true;
     },

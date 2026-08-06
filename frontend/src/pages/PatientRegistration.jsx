@@ -10,6 +10,7 @@ import {
   GET_PATIENTS,
   GET_MY_PATIENT,
   CHECK_PATIENT_EXISTS,
+  FIND_PATIENT_BY_NAME_AND_PHONE,
 } from "../graphql/queries";
 import { formatName } from "../utils/validation";
 import { useAuth } from "../context/AuthContext";
@@ -34,6 +35,9 @@ const PatientRegistration = ({
   });
 
   const [checkPatientExistsQuery] = useLazyQuery(CHECK_PATIENT_EXISTS);
+  const [findPatientByNameAndPhoneQuery] = useLazyQuery(
+    FIND_PATIENT_BY_NAME_AND_PHONE,
+  );
 
   const {
     register,
@@ -96,8 +100,8 @@ const PatientRegistration = ({
     }
   };
 
-  useEffect(() => {
-    const loadPatientData = (patientData, userData = null) => ({
+  const loadPatientDataForEdit = (patientData, userData = null) => {
+    const mapped = {
       id: patientData?.id || null,
       name: patientData?.name || userData?.name || "",
       email: patientData?.email || userData?.email || "",
@@ -122,16 +126,19 @@ const PatientRegistration = ({
       bloodPressure: patientData?.vitalSigns?.bloodPressure || "",
       height: patientData?.vitalSigns?.height || "",
       weight: patientData?.vitalSigns?.weight || "",
-    });
+    };
+    reset(mapped);
+  };
 
+  useEffect(() => {
     if (isSelfRegistration && user) {
       if (myPatientData?.getMyPatient) {
-        reset(loadPatientData(myPatientData.getMyPatient, user));
+        loadPatientDataForEdit(myPatientData.getMyPatient, user);
       } else {
-        reset(loadPatientData(null, user));
+        loadPatientDataForEdit(null, user);
       }
     } else if (initialPatient) {
-      reset(loadPatientData(initialPatient));
+      loadPatientDataForEdit(initialPatient);
     }
   }, [initialPatient, reset, isSelfRegistration, user, myPatientData]);
 
@@ -172,7 +179,6 @@ const PatientRegistration = ({
   });
 
   const handleNext = async () => {
-    // Validate step 1 fields before proceeding
     if (currentStep === 1) {
       const fieldsToValidate = [
         "name",
@@ -200,8 +206,42 @@ const PatientRegistration = ({
       return;
     }
 
+    const normalizedName = formatName(data.name);
+
+    if (!data.id && !isSelfRegistration) {
+      try {
+        const { data: lookupData } = await findPatientByNameAndPhoneQuery({
+          variables: { name: normalizedName, phone: data.phone },
+          fetchPolicy: "network-only",
+        });
+        const existing = lookupData?.findPatientByNameAndPhone;
+        if (existing) {
+          const proceed = window.confirm(
+            `A patient named "${existing.name}" with phone ${existing.phone}${
+              existing.patientId ? ` (ID: ${existing.patientId})` : ""
+            } is already registered. Would you like to edit the existing record instead?`,
+          );
+          if (proceed) {
+            loadPatientDataForEdit(existing);
+            if (existing.patientId) {
+              toast.success(
+                `Loaded existing patient record (${existing.patientId}).`,
+              );
+            } else {
+              toast.success("Loaded existing patient record.");
+            }
+            return;
+          } else {
+            return;
+          }
+        }
+      } catch (lookupErr) {
+        console.error("Duplicate patient lookup failed:", lookupErr);
+      }
+    }
+
     const formattedData = {
-      name: formatName(data.name),
+      name: normalizedName,
       email: data.email,
       phone: data.phone,
       dateOfBirth: data.dateOfBirth,
