@@ -256,9 +256,14 @@ export const CREATE_MEDICAL_RECORD = gql`
     $doctorId: ID!
     $doctorName: String!
     $date: String!
+    $visitType: String
     $diagnosis: String
     $treatment: String
     $prescriptions: [String]
+    $notes: String
+    $followUpDate: String
+    $vitalSigns: RecordVitalSignsInput
+    $attachments: [AttachmentInput]
   ) {
     createMedicalRecord(
       patientId: $patientId
@@ -266,12 +271,55 @@ export const CREATE_MEDICAL_RECORD = gql`
       doctorId: $doctorId
       doctorName: $doctorName
       date: $date
+      visitType: $visitType
       diagnosis: $diagnosis
       treatment: $treatment
       prescriptions: $prescriptions
+      notes: $notes
+      followUpDate: $followUpDate
+      vitalSigns: $vitalSigns
+      attachments: $attachments
     ) {
       id
     }
+  }
+`;
+
+export const UPDATE_MEDICAL_RECORD = gql`
+  mutation UpdateMedicalRecord(
+    $id: ID!
+    $visitType: String
+    $diagnosis: String
+    $treatment: String
+    $prescriptions: [String]
+    $notes: String
+    $followUpDate: String
+    $vitalSigns: RecordVitalSignsInput
+    $attachments: [AttachmentInput]
+  ) {
+    updateMedicalRecord(
+      id: $id
+      visitType: $visitType
+      diagnosis: $diagnosis
+      treatment: $treatment
+      prescriptions: $prescriptions
+      notes: $notes
+      followUpDate: $followUpDate
+      vitalSigns: $vitalSigns
+      attachments: $attachments
+    ) {
+      id
+      patientId
+      patientName
+      date
+      visitType
+    }
+  }
+`;
+
+export const DELETE_MEDICAL_RECORD = gql`
+  mutation DeleteMedicalRecord($id: ID!) {
+    deleteMedicalRecord(id: $id)
   }
 `;
 

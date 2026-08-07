@@ -78,12 +78,74 @@ export const GET_MEDICAL_RECORDS = gql`
   query GetMedicalRecords {
     getMedicalRecords {
       id
+      patientId
       patientName
+      doctorId
       doctorName
       date
       visitType
       diagnosis
       treatment
+      notes
+      prescriptions
+      followUpDate
+      createdAt
+      updatedAt
+      patient {
+        id
+        patientId
+        name
+        email
+        phone
+        dateOfBirth
+        gender
+        address
+        bloodGroup
+        status
+        emergencyContact {
+          name
+          relationship
+          phone
+        }
+        medicalHistory {
+          allergies
+          chronicConditions
+          medications
+          previousSurgeries
+          familyHistory
+        }
+        vitalSigns {
+          bloodPressure
+          height
+          weight
+        }
+        dentalHistory {
+          lastVisit
+          previousTreatments
+          currentIssues
+        }
+        insurance {
+          provider
+          policyNumber
+          expiryDate
+        }
+      }
+      vitalSigns {
+        bloodPressure
+        heartRate
+        temperature
+        height
+        weight
+      }
+      attachments {
+        storageKey
+        name
+        originalName
+        size
+        type
+        url
+        uploadedAt
+      }
     }
   }
 `;
