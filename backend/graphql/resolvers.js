@@ -146,6 +146,45 @@ const resolvers = {
       }
       return null;
     },
+    findPatientByNameAndEmail: async (_, { name, email }) => {
+      if (!email) return null;
+      const normalizedName = name.trim().toLowerCase();
+      const normalizedEmail = email.trim().toLowerCase();
+      const patient = await Patient.findOne({
+        email: normalizedEmail,
+      }).collation({ locale: "en", strength: 2 });
+      if (!patient) return null;
+      if (patient.name.trim().toLowerCase() === normalizedName) {
+        return patient;
+      }
+      return null;
+    },
+    findPatientsByNameOrContact: async (_, { name, email, phone }) => {
+      const normalizedName = name?.trim();
+      const normalizedEmail = email?.trim().toLowerCase();
+      const normalizedPhone = phone?.trim();
+
+      if (!normalizedName && !normalizedEmail && !normalizedPhone) return [];
+
+      const and = [];
+      if (normalizedName) {
+        and.push({
+          name: { $regex: normalizedName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" },
+        });
+      }
+      const or = [];
+      if (normalizedPhone) {
+        or.push({ phone: normalizedPhone });
+      }
+      if (normalizedEmail) {
+        or.push({ email: { $regex: `^${normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" } });
+      }
+      const query = {};
+      if (and.length) query.$and = and;
+      if (or.length) query.$or = or;
+      if (!and.length && !or.length) return [];
+      return await Patient.find(query).sort({ createdAt: -1 }).limit(10);
+    },
     getAppointments: async (
       _,
       { page = 1, limit = 10, search = "", status = "All" },
@@ -175,7 +214,7 @@ const resolvers = {
       };
     },
     getMedicalRecords: async () =>
-      await MedicalRecord.find().sort({ date: -1 }),
+      await MedicalRecord.find().sort({ date: -1 }).populate("patient"),
     getInvoices: async () => await Invoice.find().sort({ date: -1 }),
     getPrescriptions: async () => await Prescription.find().sort({ date: -1 }),
     getPaymentLedgers: async (_, { page = 1, limit = 10, search = "" }) => {
@@ -678,7 +717,25 @@ const resolvers = {
     },
     createMedicalRecord: async (_, args) => {
       const record = new MedicalRecord(args);
-      return await record.save();
+      await record.save();
+      return await record.populate("patient");
+    },
+    updateMedicalRecord: async (_, { id, ...rest }) => {
+      const allowed = ["visitType","diagnosis","treatment","prescriptions","notes","followUpDate","vitalSigns","attachments"];
+      const updateData = {};
+      for (const key of allowed) {
+        if (rest[key] !== undefined) updateData[key] = rest[key];
+      }
+      const record = await MedicalRecord.findByIdAndUpdate(
+        id,
+        { $set: updateData },
+        { new: true },
+      ).populate("patient");
+      return record;
+    },
+    deleteMedicalRecord: async (_, { id }) => {
+      const res = await MedicalRecord.findByIdAndDelete(id);
+      return !!res;
     },
     createInvoice: async (_, args) => {
       // Auto-generate invoice number if not provided

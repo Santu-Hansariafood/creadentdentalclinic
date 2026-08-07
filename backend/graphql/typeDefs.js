@@ -50,9 +50,45 @@ input UpdateMedicineInput {
     notes: String
   }
 
+  type Attachment {
+    storageKey: String!
+    name: String!
+    originalName: String
+    size: Int
+    type: String
+    url: String
+    uploadedAt: String
+  }
+
+  input AttachmentInput {
+    storageKey: String!
+    name: String!
+    originalName: String
+    size: Int
+    type: String
+    url: String
+  }
+
+  type RecordVitalSigns {
+    bloodPressure: String
+    heartRate: Int
+    temperature: String
+    height: String
+    weight: String
+  }
+
+  input RecordVitalSignsInput {
+    bloodPressure: String
+    heartRate: Int
+    temperature: String
+    height: String
+    weight: String
+  }
+
   type MedicalRecord {
     id: ID!
     patientId: ID!
+    patient: Patient
     patientName: String!
     doctorId: ID!
     doctorName: String!
@@ -62,6 +98,11 @@ input UpdateMedicineInput {
     treatment: String
     prescriptions: [String]
     notes: String
+    followUpDate: String
+    vitalSigns: RecordVitalSigns
+    attachments: [Attachment]
+    createdAt: String
+    updatedAt: String
   }
 
   type InvoiceItem {
@@ -398,6 +439,8 @@ input UpdateMedicineInput {
     getMyPatient: Patient
     checkPatientExists(phone: String!): Boolean!
     findPatientByNameAndPhone(name: String!, phone: String!): Patient
+    findPatientByNameAndEmail(name: String!, email: String!): Patient
+    findPatientsByNameOrContact(name: String, email: String, phone: String): [Patient]!
     getAppointments(page: Int, limit: Int, search: String, status: String): PaginatedAppointments
     getMedicalRecords: [MedicalRecord]
     getInvoices: [Invoice]
@@ -472,10 +515,29 @@ input UpdateMedicineInput {
       doctorId: ID!,
       doctorName: String!,
       date: String!,
+      visitType: String,
       diagnosis: String,
       treatment: String,
-      prescriptions: [String]
+      prescriptions: [String],
+      notes: String,
+      followUpDate: String,
+      vitalSigns: RecordVitalSignsInput,
+      attachments: [AttachmentInput]
     ): MedicalRecord
+
+    updateMedicalRecord(
+      id: ID!,
+      visitType: String,
+      diagnosis: String,
+      treatment: String,
+      prescriptions: [String],
+      notes: String,
+      followUpDate: String,
+      vitalSigns: RecordVitalSignsInput,
+      attachments: [AttachmentInput]
+    ): MedicalRecord
+
+    deleteMedicalRecord(id: ID!): Boolean
 
     createInvoice(
       invoiceNumber: String,

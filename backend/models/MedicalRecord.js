@@ -20,6 +20,7 @@ const medicalRecordSchema = new mongoose.Schema(
     treatment: { type: String },
     prescriptions: [String],
     notes: { type: String },
+    followUpDate: { type: Date },
     vitalSigns: {
       bloodPressure: String,
       heartRate: Number,
@@ -27,6 +28,18 @@ const medicalRecordSchema = new mongoose.Schema(
       height: String,
       weight: String,
     },
+    attachments: [
+      {
+        _id: false,
+        storageKey: { type: String, required: true },
+        name: { type: String, required: true },
+        originalName: { type: String },
+        size: { type: Number },
+        type: { type: String },
+        url: { type: String },
+        uploadedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true },
 );

@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const path = require("path");
+const fs = require("fs"); // <-- ADD THIS
 const { ApolloServer } = require("@apollo/server");
 const { expressMiddleware } = require("@apollo/server/express4");
 const connectDB = require("./config/db");
@@ -12,6 +13,8 @@ const jwt = require("jsonwebtoken");
 const User = require("./models/User");
 const socket = require("./socket");
 const authRoutes = require("./routes/authRoutes");
+const storageRoutes = require("./routes/storageRoutes");
+const storageService = require("./utils/storageService");
 const {
   startAppointmentReminderScheduler,
 } = require("./utils/appointmentNotifications");
@@ -25,7 +28,7 @@ const startServer = async () => {
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-  // Custom CORS middleware to handle both origins and subdomains
+  // Custom CORS middleware (unchanged)
   app.use((req, res, next) => {
     console.log("=== Incoming request ===");
     console.log("Method:", req.method);
@@ -38,11 +41,10 @@ const startServer = async () => {
       "https://api.creadentsmiles.com",
       "http://localhost:5173",
       "http://localhost:25001",
-      "http://localhost:3000"
+      "http://localhost:3000",
     ];
     const origin = req.headers.origin;
 
-    // Always set CORS headers for allowed origins or no origin
     if (allowedOrigins.includes(origin) || !origin) {
       res.setHeader("Access-Control-Allow-Origin", origin || "*");
       console.log("Set Access-Control-Allow-Origin to:", origin || "*");
@@ -50,8 +52,14 @@ const startServer = async () => {
       console.log("Origin not allowed:", origin);
     }
 
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, apollographql-client-name, apollographql-client-version");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS",
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, apollographql-client-name, apollographql-client-version",
+    );
     res.setHeader("Access-Control-Allow-Credentials", "true");
 
     if (req.method === "OPTIONS") {
@@ -66,14 +74,12 @@ const startServer = async () => {
 
   io.on("connection", (socket) => {
     console.log("A user connected:", socket.id);
-
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);
     });
   });
 
   await connectDB();
-
   await seedAdmin();
   startAppointmentReminderScheduler();
 
@@ -94,7 +100,6 @@ const startServer = async () => {
       context: async ({ req }) => {
         const authHeader = req.headers.authorization || "";
         const token = authHeader.split(" ")[1];
-
         let user = null;
         if (token) {
           try {
@@ -104,16 +109,56 @@ const startServer = async () => {
             console.error("Invalid token");
           }
         }
-
         return { user, io };
       },
     }),
   );
 
   app.use("/api", authRoutes);
+  app.use("/api/storage", storageRoutes);
 
-  // Serve static files from frontend build
-  const frontendBuildPath = path.join(__dirname, "../frontend/dist");
+  app.get("/files/*key", async (req, res) => {
+  try {
+    // Express 5 wildcard parameters are returned as an array
+    const rawKey = Array.isArray(req.params.key)
+      ? req.params.key.join("/")
+      : req.params.key || "";
+
+    const key = decodeURIComponent(rawKey);
+
+    if (!key) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    const uploadDir = path.resolve(storageService.localUploadDir);
+    const localFull = path.resolve(uploadDir, key);
+
+    // Prevent path traversal attacks such as ../../etc/passwd
+    if (
+      localFull !== uploadDir &&
+      !localFull.startsWith(uploadDir + path.sep)
+    ) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    if (
+      !fs.existsSync(localFull) ||
+      !fs.statSync(localFull).isFile()
+    ) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    return res.download(localFull);
+  } catch (error) {
+    console.error("File download error:", error);
+
+    return res.status(500).json({
+      error: "Unable to download file",
+    });
+  }
+});
+
+const frontendBuildPath = path.join(__dirname, "../frontend/dist");
   const hashedAssetPattern = /\.[a-z0-9]{2,8}$/i;
   const isStaticAssetRequest = (requestPath) =>
     requestPath.startsWith("/assets/") ||
@@ -155,29 +200,49 @@ const startServer = async () => {
       { loc: `${baseUrl}/login`, priority: "0.8", changefreq: "monthly" },
       { loc: `${baseUrl}/register`, priority: "0.8", changefreq: "monthly" },
       { loc: `${baseUrl}/verify-otp`, priority: "0.7", changefreq: "monthly" },
-      { loc: `${baseUrl}/privacy-policy`, priority: "0.7", changefreq: "monthly" },
-      { loc: `${baseUrl}/account-deletion-policy`, priority: "0.7", changefreq: "monthly" },
-      { loc: `${baseUrl}/terms-of-service`, priority: "0.7", changefreq: "monthly" },
-      { loc: `${baseUrl}/cookie-policy`, priority: "0.7", changefreq: "monthly" },
+      {
+        loc: `${baseUrl}/privacy-policy`,
+        priority: "0.7",
+        changefreq: "monthly",
+      },
+      {
+        loc: `${baseUrl}/account-deletion-policy`,
+        priority: "0.7",
+        changefreq: "monthly",
+      },
+      {
+        loc: `${baseUrl}/terms-of-service`,
+        priority: "0.7",
+        changefreq: "monthly",
+      },
+      {
+        loc: `${baseUrl}/cookie-policy`,
+        priority: "0.7",
+        changefreq: "monthly",
+      },
       { loc: `${baseUrl}/disclaimer`, priority: "0.7", changefreq: "monthly" },
       { loc: `${baseUrl}/careers`, priority: "0.8", changefreq: "weekly" },
     ];
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${staticPages.map(page => `  <url>
+${staticPages
+  .map(
+    (page) => `  <url>
     <loc>${page.loc}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
-  </url>`).join("\n")}
+  </url>`,
+  )
+  .join("\n")}
 </urlset>`;
 
     res.header("Content-Type", "application/xml");
     res.send(xml);
   });
 
-  // Catch-all middleware for client-side routing (avoids Express 5 path-to-regexp error)
+  // Catch‑all middleware (unchanged)
   app.use((req, res, next) => {
     if (req.method !== "GET") {
       return next();
@@ -187,13 +252,12 @@ ${staticPages.map(page => `  <url>
       req.path.startsWith("/graphql") ||
       req.path.startsWith("/api") ||
       req.path.startsWith("/health") ||
-      req.path.startsWith("/sitemap.xml")
+      req.path.startsWith("/sitemap.xml") ||
+      req.path.startsWith("/files")
     ) {
       return next();
     }
 
-    // Missing hashed assets must 404 — returning index.html causes MIME type errors
-    // when the browser tries to execute HTML as JavaScript after deploy.
     if (isStaticAssetRequest(req.path)) {
       return res.status(404).type("text/plain").send("Not found");
     }
