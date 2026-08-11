@@ -21,11 +21,11 @@ const Login = () => {
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [forgotLoading, setForgotLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, isAuthenticated, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [forgotPasswordMutation] = useMutation(FORGOT_PASSWORD);
@@ -36,17 +36,25 @@ const Login = () => {
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(loginSchema),
     mode: "onSubmit",
     defaultValues: {
-      phone: "",
+      phone: localStorage.getItem("rememberedPhone") || "",
       password: "",
     },
   });
 
   const watchPhone = watch("phone");
+
+  useEffect(() => {
+    const remembered = localStorage.getItem("rememberedPhone");
+    if (remembered) {
+      reset((f) => ({ ...f, phone: remembered }));
+    }
+  }, [reset]);
 
   useEffect(() => {
     preloadRoute("/register");
@@ -55,10 +63,24 @@ const Login = () => {
     preloadRoute("/admin/dashboard");
   }, []);
 
+  useEffect(() => {
+    if (authLoading) return;
+    if (isAuthenticated && user) {
+      const dashboards = {
+        patient: "/patient/dashboard",
+        doctor: "/doctor/dashboard",
+        admin: "/admin/dashboard",
+        employee: "/employee/dashboard",
+      };
+      const target = dashboards[user.role] || "/";
+      navigate(target, { replace: true });
+    }
+  }, [isAuthenticated, user, authLoading, navigate]);
+
   const onSubmit = async (data) => {
-    const result = await login(data.phone, data.password);
+    const result = await login(data.phone, data.password, rememberMe);
     if (result.success) {
-      navigate("/");
+      navigate("/", { replace: true });
     }
   };
 

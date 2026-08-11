@@ -6,6 +6,23 @@ import { GET_ME } from "../graphql/queries";
 
 const AuthContext = createContext();
 
+const AUTH_KEYS = ["token", "user"];
+
+const clearNonAuthCache = () => {
+  try {
+    const toKeep = {};
+    AUTH_KEYS.forEach((k) => {
+      const v = localStorage.getItem(k);
+      if (v) toKeep[k] = v;
+    });
+    localStorage.clear();
+    Object.entries(toKeep).forEach(([k, v]) => localStorage.setItem(k, v));
+    sessionStorage.clear();
+  } catch (e) {
+    console.warn("Cache clear failed:", e);
+  }
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -23,12 +40,23 @@ export const AuthProvider = ({ children }) => {
   const [loginMutation] = useMutation(LOGIN);
   const [registerMutation] = useMutation(REGISTER);
 
+  useEffect(() => {
+    clearNonAuthCache();
+    apolloClient.clearStore().catch(() => {});
+    const beforeUnloadHandler = () => {
+      clearNonAuthCache();
+    };
+    window.addEventListener("beforeunload", beforeUnloadHandler);
+    return () => window.removeEventListener("beforeunload", beforeUnloadHandler);
+  }, [apolloClient]);
+
   const {
     data: meData,
     loading: meLoading,
     error: meError,
   } = useQuery(GET_ME, {
     skip: !localStorage.getItem("token"),
+    fetchPolicy: "network-only",
   });
 
   useEffect(() => {
@@ -42,7 +70,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(meLoading);
   }, [meData, meError, meLoading]);
 
-  const login = async (phone, password) => {
+  const login = async (phone, password, rememberMe = true) => {
     
     try {
       const variables = {
@@ -59,6 +87,12 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
         localStorage.setItem("user", JSON.stringify(userData));
         localStorage.setItem("token", token);
+        if (rememberMe) {
+          localStorage.setItem("rememberedPhone", userData.phone || phone);
+        } else {
+          localStorage.removeItem("rememberedPhone");
+        }
+        apolloClient.clearStore().catch(() => {});
         toast.success(`Welcome back, ${userData.name}!`);
         return { success: true };
       }
@@ -87,6 +121,7 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
         localStorage.setItem("user", JSON.stringify(newUser));
         localStorage.setItem("token", token);
+        apolloClient.clearStore().catch(() => {});
         toast.success("Registration successful!");
         return { success: true };
       }
@@ -100,9 +135,12 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsAuthenticated(false);
     
+    const rememberedPhone = localStorage.getItem("rememberedPhone");
     localStorage.clear();
-    
     sessionStorage.clear();
+    if (rememberedPhone) {
+      localStorage.setItem("rememberedPhone", rememberedPhone);
+    }
     
     apolloClient.resetStore();
     
