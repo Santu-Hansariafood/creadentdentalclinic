@@ -10,7 +10,6 @@ import {
   GET_PATIENTS,
   GET_MY_PATIENT,
   CHECK_PATIENT_EXISTS,
-  FIND_PATIENT_BY_NAME_AND_PHONE,
 } from "../graphql/queries";
 import { formatName } from "../utils/validation";
 import { useAuth } from "../context/AuthContext";
@@ -35,15 +34,14 @@ const PatientRegistration = ({
   });
 
   const [checkPatientExistsQuery] = useLazyQuery(CHECK_PATIENT_EXISTS);
-  const [findPatientByNameAndPhoneQuery] = useLazyQuery(
-    FIND_PATIENT_BY_NAME_AND_PHONE,
-  );
 
   const {
     register,
     handleSubmit,
     reset,
     trigger,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(patientRegistrationSchema),
@@ -54,6 +52,7 @@ const PatientRegistration = ({
       email: "",
       phone: "",
       dateOfBirth: "",
+      age: "",
       gender: "",
       address: "",
       password: "",
@@ -73,6 +72,31 @@ const PatientRegistration = ({
       weight: "",
     },
   });
+
+  const calculateAgeFromDOB = (dobStr) => {
+    if (!dobStr) return "";
+    const dob = new Date(dobStr);
+    if (isNaN(dob.getTime())) return "";
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    return age >= 0 ? age.toString() : "";
+  };
+
+  const watchedDateOfBirth = watch("dateOfBirth");
+
+  useEffect(() => {
+    const calculated = calculateAgeFromDOB(watchedDateOfBirth);
+    if (calculated !== "") {
+      const currentAge = watch("age");
+      if (currentAge === "" || Number(currentAge) !== Number(calculated)) {
+        setValue("age", calculated, { shouldValidate: false });
+      }
+    }
+  }, [watchedDateOfBirth, setValue, watch]);
 
   const checkPhoneExists = async (phone) => {
     if (!phone || phone.length !== 10) {
@@ -107,6 +131,7 @@ const PatientRegistration = ({
       email: patientData?.email || userData?.email || "",
       phone: patientData?.phone || userData?.phone || "",
       dateOfBirth: patientData?.dateOfBirth || "",
+      age: patientData?.age !== undefined && patientData?.age !== null ? patientData.age.toString() : "",
       gender: patientData?.gender || "",
       address: patientData?.address || "",
       bloodGroup: patientData?.bloodGroup || "",
@@ -183,15 +208,20 @@ const PatientRegistration = ({
       const fieldsToValidate = [
         "name",
         "phone",
-        "dateOfBirth",
         "gender",
-        "address",
       ];
       if (canManagePatientPassword && isCreatingPatient) {
         fieldsToValidate.push("password", "confirmPassword");
       }
-      const isValid = await trigger(fieldsToValidate);
-      if (!isValid) return;
+      const isValidBasic = await trigger(fieldsToValidate);
+      const dobVal = watch("dateOfBirth");
+      const ageVal = watch("age");
+      const hasDobOrAge = (dobVal && dobVal.trim() !== "") || (ageVal !== "" && ageVal !== undefined && ageVal !== null);
+      if (!isValidBasic) return;
+      if (!hasDobOrAge) {
+        await trigger("dateOfBirth");
+        return;
+      }
     }
     setCurrentStep(currentStep + 1);
   };
@@ -208,53 +238,22 @@ const PatientRegistration = ({
 
     const normalizedName = formatName(data.name);
 
-    if (!data.id && !isSelfRegistration) {
-      try {
-        const { data: lookupData } = await findPatientByNameAndPhoneQuery({
-          variables: { name: normalizedName, phone: data.phone },
-          fetchPolicy: "network-only",
-        });
-        const existing = lookupData?.findPatientByNameAndPhone;
-        if (existing) {
-          const proceed = window.confirm(
-            `A patient named "${existing.name}" with phone ${existing.phone}${
-              existing.patientId ? ` (ID: ${existing.patientId})` : ""
-            } is already registered. Would you like to edit the existing record instead?`,
-          );
-          if (proceed) {
-            loadPatientDataForEdit(existing);
-            if (existing.patientId) {
-              toast.success(
-                `Loaded existing patient record (${existing.patientId}).`,
-              );
-            } else {
-              toast.success("Loaded existing patient record.");
-            }
-            return;
-          } else {
-            return;
-          }
-        }
-      } catch (lookupErr) {
-        console.error("Duplicate patient lookup failed:", lookupErr);
-      }
-    }
-
     const formattedData = {
       name: normalizedName,
-      email: data.email,
+      email: data.email && data.email.trim() !== "" ? data.email : undefined,
       phone: data.phone,
-      dateOfBirth: data.dateOfBirth,
+      dateOfBirth: data.dateOfBirth && data.dateOfBirth.trim() !== "" ? data.dateOfBirth : undefined,
+      age: (data.age !== "" && data.age !== undefined && data.age !== null) ? Number(data.age) : undefined,
       gender: data.gender,
-      address: data.address,
-      bloodGroup: data.bloodGroup,
+      address: data.address && data.address.trim() !== "" ? data.address : undefined,
+      bloodGroup: data.bloodGroup && data.bloodGroup.trim() !== "" ? data.bloodGroup : undefined,
       status: data.status,
       password: data.password?.trim() ? data.password : undefined,
       userId: isSelfRegistration && user ? user.id : undefined,
       emergencyContact:
-        data.emergencyContactName ||
-        data.emergencyContactRelation ||
-        data.emergencyContactPhone
+        (data.emergencyContactName && data.emergencyContactName.trim()) ||
+        (data.emergencyContactRelation && data.emergencyContactRelation.trim()) ||
+        (data.emergencyContactPhone && data.emergencyContactPhone.trim())
           ? {
               name: formatName(data.emergencyContactName),
               relationship: formatName(data.emergencyContactRelation),
@@ -462,7 +461,7 @@ const PatientRegistration = ({
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Date of Birth *
+                              Date of Birth <span className="text-gray-500 text-xs">(or enter Age below)</span> *
                             </label>
                             <input
                               type="date"
@@ -472,6 +471,24 @@ const PatientRegistration = ({
                             {errors.dateOfBirth && (
                               <p className="text-red-500 text-xs mt-1">
                                 {errors.dateOfBirth.message}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Age <span className="text-gray-500 text-xs">(auto-filled from DOB)</span>
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              max="150"
+                              {...register("age")}
+                              className={`input-field ${errors.age ? "border-red-500" : ""}`}
+                              placeholder="e.g., 35"
+                            />
+                            {errors.age && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {errors.age.message}
                               </p>
                             )}
                           </div>
@@ -511,13 +528,13 @@ const PatientRegistration = ({
                               <option value="AB-">AB-</option>
                               <option value="O+">O+</option>
                               <option value="O-">O-</option>
-                              <option value="N.A.">N.A</option>
+                              <option value="Unknown">Unknown</option>
                             </select>
                           </div>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Address *
+                            Address
                           </label>
                           <textarea
                             {...register("address")}
@@ -592,10 +609,13 @@ const PatientRegistration = ({
                         <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
                           Emergency Contact
                         </h2>
+                        <p className="text-sm text-gray-500 mb-4">
+                          Optional — you may skip this section if not needed.
+                        </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Contact Name *
+                              Contact Name
                             </label>
                             <input
                               type="text"
@@ -610,7 +630,7 @@ const PatientRegistration = ({
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Relationship *
+                              Relationship
                             </label>
                             <input
                               type="text"
@@ -626,7 +646,7 @@ const PatientRegistration = ({
                           </div>
                           <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Contact Phone *
+                              Contact Phone
                             </label>
                             <input
                               type="tel"
@@ -894,7 +914,7 @@ const PatientRegistration = ({
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Date of Birth *
+                          Date of Birth <span className="text-gray-500 text-xs">(or enter Age below)</span> *
                         </label>
                         <input
                           type="date"
@@ -904,6 +924,24 @@ const PatientRegistration = ({
                         {errors.dateOfBirth && (
                           <p className="text-red-500 text-xs mt-1">
                             {errors.dateOfBirth.message}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Age <span className="text-gray-500 text-xs">(auto-filled from DOB)</span>
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="150"
+                          {...register("age")}
+                          className={`input-field ${errors.age ? "border-red-500" : ""}`}
+                          placeholder="e.g., 35"
+                        />
+                        {errors.age && (
+                          <p className="text-red-500 text-xs mt-1">
+                            {errors.age.message}
                           </p>
                         )}
                       </div>
@@ -943,12 +981,13 @@ const PatientRegistration = ({
                           <option value="AB-">AB-</option>
                           <option value="O+">O+</option>
                           <option value="O-">O-</option>
+                          <option value="Unknown">Unknown</option>
                         </select>
                       </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Address *
+                        Address
                       </label>
                       <textarea
                         {...register("address")}
@@ -1026,10 +1065,13 @@ const PatientRegistration = ({
                     <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
                       Emergency Contact
                     </h2>
+                    <p className="text-sm text-gray-500 mb-4">
+                      Optional — you may skip this section if not needed.
+                    </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Contact Name *
+                          Contact Name
                         </label>
                         <input
                           type="text"
@@ -1044,7 +1086,7 @@ const PatientRegistration = ({
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Relationship *
+                          Relationship
                         </label>
                         <input
                           type="text"
@@ -1060,7 +1102,7 @@ const PatientRegistration = ({
                       </div>
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Contact Phone *
+                          Contact Phone
                         </label>
                         <input
                           type="tel"

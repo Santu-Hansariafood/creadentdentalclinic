@@ -36,7 +36,8 @@ export const CREATE_PATIENT = gql`
     $name: String!
     $email: String
     $phone: String!
-    $dateOfBirth: String!
+    $dateOfBirth: String
+    $age: Int
     $gender: String!
     $address: String
     $bloodGroup: String
@@ -54,6 +55,7 @@ export const CREATE_PATIENT = gql`
       email: $email
       phone: $phone
       dateOfBirth: $dateOfBirth
+      age: $age
       gender: $gender
       address: $address
       bloodGroup: $bloodGroup
@@ -490,6 +492,7 @@ export const UPDATE_PATIENT = gql`
     $email: String,
     $phone: String,
     $dateOfBirth: String,
+    $age: Int,
     $gender: String,
     $address: String,
     $bloodGroup: String,
@@ -507,6 +510,7 @@ export const UPDATE_PATIENT = gql`
       email: $email,
       phone: $phone,
       dateOfBirth: $dateOfBirth,
+      age: $age,
       gender: $gender,
       address: $address,
       bloodGroup: $bloodGroup,

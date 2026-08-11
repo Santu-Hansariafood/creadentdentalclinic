@@ -919,25 +919,41 @@ const resolvers = {
       return await Medicine.findByIdAndUpdate(id, { stock }, { new: true });
     },
     createPatient: async (_, args) => {
-      // Check if phone number already exists
+      if (!args.dateOfBirth && !args.age) {
+        throw new Error("Either date of birth or age is required");
+      }
+      if (args.email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(args.email)) {
+          throw new Error("Invalid email format");
+        }
+      }
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(args.phone)) {
+        throw new Error("Phone number must be 10 digits");
+      }
+      if (args.bloodGroup && !["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"].includes(args.bloodGroup)) {
+        throw new Error("Invalid blood group");
+      }
       const existingPatient = await Patient.findOne({ phone: args.phone });
       if (existingPatient) {
         throw new Error("A patient with this phone number already exists");
       }
       
-      // Check if we need to create a user
       let newUser = null;
       if (args.password) {
-        const existingUser = await User.findOne({
-          $or: [{ email: args.email }, { phone: args.phone }],
-        });
+        const userQuery = { phone: args.phone };
+        if (args.email) {
+          userQuery.$or = [{ email: args.email }, { phone: args.phone }];
+        }
+        const existingUser = await User.findOne(userQuery);
         if (existingUser) {
           throw new Error("User with this email or phone already exists");
         }
         
         newUser = await User.create({
           name: args.name,
-          email: args.email,
+          email: args.email || undefined,
           phone: args.phone,
           password: args.password,
           role: "patient",
@@ -945,11 +961,11 @@ const resolvers = {
         });
       }
 
-      // Prepare the data with proper date conversions
       const patientData = {
         ...args,
         userId: newUser ? newUser._id : undefined,
         dateOfBirth: args.dateOfBirth ? new Date(args.dateOfBirth) : undefined,
+        age: args.age ? Number(args.age) : undefined,
         dentalHistory: args.dentalHistory ? {
           ...args.dentalHistory,
           lastVisit: args.dentalHistory.lastVisit ? new Date(args.dentalHistory.lastVisit) : undefined
@@ -1096,11 +1112,11 @@ const resolvers = {
         await patientUser.save();
       }
 
-      // Prepare the data with proper date conversions
       const updateData = {
         ...args,
         userId: patient.userId,
         dateOfBirth: args.dateOfBirth ? new Date(args.dateOfBirth) : undefined,
+        age: args.age !== undefined ? Number(args.age) : undefined,
         dentalHistory: args.dentalHistory ? {
           ...args.dentalHistory,
           lastVisit: args.dentalHistory.lastVisit ? new Date(args.dentalHistory.lastVisit) : undefined
@@ -1111,7 +1127,13 @@ const resolvers = {
         } : undefined
       };
       
-      return await Patient.findByIdAndUpdate(id, updateData, { new: true });
+      Object.keys(updateData).forEach((key) => {
+        if (updateData[key] !== undefined) {
+          patient[key] = updateData[key];
+        }
+      });
+      
+      return await patient.save();
     },
     deletePatient: async (_, { id }) => {
       const patient = await Patient.findById(id);

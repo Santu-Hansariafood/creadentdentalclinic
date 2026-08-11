@@ -146,7 +146,8 @@ input UpdateMedicineInput {
     name: String!
     email: String
     phone: String!
-    dateOfBirth: String!
+    dateOfBirth: String
+    age: Int
     gender: String!
     address: String
     bloodGroup: String
@@ -592,7 +593,8 @@ input UpdateMedicineInput {
       name: String!,
       email: String,
       phone: String!,
-      dateOfBirth: String!,
+      dateOfBirth: String,
+      age: Int,
       gender: String!,
       address: String,
       bloodGroup: String,
@@ -614,6 +616,7 @@ input UpdateMedicineInput {
       email: String,
       phone: String,
       dateOfBirth: String,
+      age: Int,
       gender: String,
       address: String,
       bloodGroup: String,
