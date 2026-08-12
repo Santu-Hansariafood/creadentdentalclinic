@@ -5,7 +5,22 @@ const patientSchema = new mongoose.Schema(
     patientId: { type: String, unique: true, index: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     name: { type: String, required: true },
-    email: { type: String },
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      default: undefined,
+      set: (value) => {
+        if (value === null || value === undefined) return undefined;
+
+        const email = String(value).trim();
+        return email === "" ? undefined : email;
+      },
+      match: [
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        "Please enter a valid email address",
+      ],
+    },
     phone: { type: String, required: true, unique: true, index: true },
     dateOfBirth: { type: Date },
     age: { type: Number },
