@@ -507,15 +507,23 @@ const resolvers = {
       { user },
     ) => {
       if (role !== "patient") {
-        if (!user || user.role !== "admin") {
+        if (!user || !["admin"].includes(user.role)) {
           throw new Error(
             "Unauthorized: Only admins can register staff members",
           );
         }
+      } else if (user && !["admin", "employee", "doctor"].includes(user.role)) {
+        if (user.role !== "patient") {
+          throw new Error("Unauthorized: Insufficient permissions");
+        }
       }
 
+      const normalizedPhone = (phone || "").replace(/\D/g, "").slice(-10);
       const userExists = await User.findOne({
-        $and: [{ $or: [{ email }, { phone }] }, { role }],
+        $and: [
+          { $or: [{ email }, { phone: normalizedPhone }, { phone }] },
+          { role },
+        ],
       });
       if (userExists) {
         throw new Error(
@@ -525,7 +533,7 @@ const resolvers = {
 
       const newUser = await User.create({
         name,
-        phone,
+        phone: normalizedPhone,
         email,
         password,
         role,
@@ -533,6 +541,30 @@ const resolvers = {
         license,
         verified: true,
       });
+
+      if (newUser && role === "patient") {
+        try {
+          const existingPatient = await Patient.findOne({
+            phone: normalizedPhone,
+          });
+          if (!existingPatient) {
+            await Patient.create({
+              name,
+              phone: normalizedPhone,
+              email: email || undefined,
+              userId: newUser._id,
+              status: "Active",
+            });
+          } else if (!existingPatient.userId) {
+            existingPatient.userId = newUser._id;
+            existingPatient.name = name;
+            if (email) existingPatient.email = email;
+            await existingPatient.save();
+          }
+        } catch (patientErr) {
+          console.warn("Failed to link patient record during register:", patientErr?.message);
+        }
+      }
 
       if (newUser) {
         if (role === "patient" && !user) {
@@ -550,7 +582,14 @@ const resolvers = {
     },
 
     login: async (_, { phone, password }) => {
-      const users = await User.find({ phone });
+      const normalizedPhone = (phone || "").replace(/\D/g, "").slice(-10);
+      const userQuery = {
+        $or: [{ phone }, { phone: normalizedPhone }],
+      };
+      if (/^\S+@\S+\.\S+$/.test(phone || "")) {
+        userQuery.$or.push({ email: phone });
+      }
+      const users = await User.find(userQuery);
 
       const rolePriority = {
         admin: 4,
@@ -586,7 +625,10 @@ const resolvers = {
     },
 
     forgotPassword: async (_, { phone }) => {
-      const users = await User.find({ phone });
+      const normalizedPhone = (phone || "").replace(/\D/g, "").slice(-10);
+      const users = await User.find({
+        $or: [{ phone }, { phone: normalizedPhone }],
+      });
 
       const rolePriority = {
         admin: 4,
@@ -612,8 +654,9 @@ const resolvers = {
     },
 
     resetPassword: async (_, { phone, otp, newPassword }) => {
+      const normalizedPhone = (phone || "").replace(/\D/g, "").slice(-10);
       const users = await User.find({
-        phone,
+        $or: [{ phone }, { phone: normalizedPhone }],
         resetPasswordOTP: otp,
         resetPasswordOTPExpires: { $gt: Date.now() },
       });
@@ -659,7 +702,21 @@ const resolvers = {
       if (!user || user.role !== "admin") {
         throw new Error("Unauthorized: Only admins can update users");
       }
-      return await User.findByIdAndUpdate(id, args, { new: true });
+      const target = await User.findById(id);
+      if (!target) {
+        throw new Error("User not found");
+      }
+      const update = { ...args };
+      if (update.phone) {
+        update.phone = (update.phone || "").replace(/\D/g, "").slice(-10);
+      }
+      Object.keys(update).forEach((key) => {
+        if (update[key] !== undefined) {
+          target[key] = update[key];
+        }
+      });
+      await target.save();
+      return serializeUser(target);
     },
     
     deleteUser: async (_, { id }, { user }) => {
@@ -931,7 +988,20 @@ const resolvers = {
     updateMedicineStock: async (_, { id, stock }) => {
       return await Medicine.findByIdAndUpdate(id, { stock }, { new: true });
     },
-    createPatient: async (_, args) => {
+    createPatient: async (_, args, { user }) => {
+      const isStaff = user && ["admin", "employee", "doctor"].includes(user.role);
+      const isPatientSelf = user && user.role === "patient";
+
+      if (!isStaff && !isPatientSelf) {
+        if (user) {
+          throw new Error("Unauthorized: Insufficient permissions");
+        }
+      }
+
+      if (isPatientSelf && args.userId && args.userId !== user._id.toString()) {
+        throw new Error("Unauthorized: You can only create your own patient profile");
+      }
+
       if (!args.dateOfBirth && !args.age) {
         throw new Error("Either date of birth or age is required");
       }
@@ -941,23 +1011,27 @@ const resolvers = {
           throw new Error("Invalid email format");
         }
       }
-      const phoneRegex = /^\d{10}$/;
-      if (!phoneRegex.test(args.phone)) {
-        throw new Error("Phone number must be 10 digits");
+      const normalizedPhone = (args.phone || "").replace(/\D/g, "").slice(-10);
+      if (normalizedPhone.length !== 10) {
+        throw new Error("Phone number must contain 10 digits");
       }
       if (args.bloodGroup && !["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"].includes(args.bloodGroup)) {
         throw new Error("Invalid blood group");
       }
-      const existingPatient = await Patient.findOne({ phone: args.phone });
+      const existingPatient = await Patient.findOne({
+        $or: [{ phone: normalizedPhone }, { phone: args.phone }],
+      });
       if (existingPatient) {
         throw new Error("A patient with this phone number already exists");
       }
       
       let newUser = null;
       if (args.password) {
-        const userQuery = { phone: args.phone };
+        const userQuery = {
+          $or: [{ phone: normalizedPhone }, { phone: args.phone }],
+        };
         if (args.email) {
-          userQuery.$or = [{ email: args.email }, { phone: args.phone }];
+          userQuery.$or.push({ email: args.email });
         }
         const existingUser = await User.findOne(userQuery);
         if (existingUser) {
@@ -967,16 +1041,29 @@ const resolvers = {
         newUser = await User.create({
           name: args.name,
           email: args.email || undefined,
-          phone: args.phone,
+          phone: normalizedPhone,
           password: args.password,
           role: "patient",
           verified: true,
         });
+      } else if (isPatientSelf && !args.userId) {
+        newUser = user;
+      }
+
+      let resolvedUserId = undefined;
+      if (newUser) {
+        resolvedUserId = newUser._id;
+      } else if (args.userId) {
+        try {
+          const existingUser = await User.findById(args.userId);
+          resolvedUserId = existingUser ? existingUser._id : undefined;
+        } catch (_) {}
       }
 
       const patientData = {
         ...args,
-        userId: newUser ? newUser._id : undefined,
+        phone: normalizedPhone,
+        userId: resolvedUserId,
         dateOfBirth: args.dateOfBirth ? new Date(args.dateOfBirth) : undefined,
         age: args.age ? Number(args.age) : undefined,
         dentalHistory: args.dentalHistory ? {
@@ -990,7 +1077,19 @@ const resolvers = {
       };
       
       const patient = new Patient(patientData);
-      return await patient.save();
+      const saved = await patient.save();
+
+      if (saved.userId && saved._id) {
+        try {
+          await User.findByIdAndUpdate(saved.userId, {
+            name: saved.name,
+            phone: normalizedPhone,
+            email: saved.email || undefined,
+          });
+        } catch (_) {}
+      }
+
+      return saved;
     },
     generatePatientLogin: async (_, { patientId }, { user }) => {
       if (!user || !["admin", "employee"].includes(user.role)) {
@@ -1067,14 +1166,25 @@ const resolvers = {
         throw new Error("Unauthorized: You can only update your own patient profile");
       }
 
-      const nextPhone = args.phone || patient.phone;
+      const normalizedPhone = args.phone
+        ? (args.phone || "").replace(/\D/g, "").slice(-10)
+        : undefined;
+      const nextPhone = normalizedPhone || patient.phone;
       const nextEmail = args.email ?? patient.email;
 
-      // Check if phone number is being changed and already exists
-      if (args.phone) {
-        const existingPatient = await Patient.findOne({ 
+      if (normalizedPhone) {
+        args.phone = normalizedPhone;
+        const existingPatient = await Patient.findOne({
+          phone: normalizedPhone,
+          _id: { $ne: id },
+        });
+        if (existingPatient) {
+          throw new Error("A patient with this phone number already exists");
+        }
+      } else if (args.phone) {
+        const existingPatient = await Patient.findOne({
           phone: args.phone,
-          _id: { $ne: id }
+          _id: { $ne: id },
         });
         if (existingPatient) {
           throw new Error("A patient with this phone number already exists");
@@ -1088,13 +1198,13 @@ const resolvers = {
 
       if (args.password) {
         if (!patientUser) {
-          const existingUser = await User.findOne({
-            role: "patient",
-            $or: [
-              { phone: nextPhone },
-              ...(nextEmail ? [{ email: nextEmail }] : []),
-            ],
-          });
+          const userQuery = { role: "patient" };
+          if (nextPhone) userQuery.$or = [{ phone: nextPhone }];
+          if (nextEmail) {
+            userQuery.$or = userQuery.$or || [];
+            userQuery.$or.push({ email: nextEmail });
+          }
+          const existingUser = await User.findOne(userQuery);
 
           if (existingUser) {
             patientUser = existingUser;
@@ -1127,6 +1237,7 @@ const resolvers = {
 
       const updateData = {
         ...args,
+        phone: nextPhone,
         userId: patient.userId,
         dateOfBirth: args.dateOfBirth ? new Date(args.dateOfBirth) : undefined,
         age: args.age !== undefined ? Number(args.age) : undefined,
