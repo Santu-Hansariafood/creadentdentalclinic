@@ -62,7 +62,7 @@ const patientSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-patientSchema.pre("save", async function (next) {
+patientSchema.pre("save", async function () {
   if (!this.patientId) {
     const prefix = "PAT";
     const random = Math.floor(1000 + Math.random() * 9000).toString();
@@ -84,7 +84,6 @@ patientSchema.pre("save", async function (next) {
     approxDob.setFullYear(approxDob.getFullYear() - this.age);
     this.dateOfBirth = approxDob;
   }
-  next();
 });
 
 module.exports = mongoose.model("Patient", patientSchema);

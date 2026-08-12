@@ -99,6 +99,7 @@ const PatientRegistration = ({
   }, [watchedDateOfBirth, setValue, watch]);
 
   const checkPhoneExists = async (phone) => {
+    const email = watch("email")?.trim().toLowerCase();
     if (!phone || phone.length !== 10) {
       return;
     }
@@ -112,15 +113,43 @@ const PatientRegistration = ({
 
     try {
       const { data } = await checkPatientExistsQuery({
-        variables: { phone },
+        variables: { phone, email },
         fetchPolicy: "network-only",
       });
 
       if (data?.checkPatientExists) {
-        return "This phone number is already registered as a patient";
+        return "This phone number is already registered";
       }
     } catch (error) {
       console.error("Error checking phone number:", error);
+    }
+  };
+
+  const checkEmailExists = async (email) => {
+    const phone = watch("phone");
+    const normalizedEmail = email?.trim().toLowerCase();
+    if (!normalizedEmail) {
+      return;
+    }
+
+    if (initialPatient?.email?.toLowerCase() === normalizedEmail) {
+      return;
+    }
+    if (isSelfRegistration && myPatientData?.getMyPatient?.email?.toLowerCase() === normalizedEmail) {
+      return;
+    }
+
+    try {
+      const { data } = await checkPatientExistsQuery({
+        variables: { phone: phone?.length === 10 ? phone : undefined, email: normalizedEmail },
+        fetchPolicy: "network-only",
+      });
+
+      if (data?.checkPatientExists) {
+        return "This email address is already registered";
+      }
+    } catch (error) {
+      console.error("Error checking email:", error);
     }
   };
 
@@ -240,7 +269,10 @@ const PatientRegistration = ({
 
     const formattedData = {
       name: normalizedName,
-      email: data.email && data.email.trim() !== "" ? data.email : undefined,
+      email:
+        data.email && data.email.trim() !== ""
+          ? data.email.trim().toLowerCase()
+          : undefined,
       phone: data.phone,
       dateOfBirth: data.dateOfBirth && data.dateOfBirth.trim() !== "" ? data.dateOfBirth : undefined,
       age: (data.age !== "" && data.age !== undefined && data.age !== null) ? Number(data.age) : undefined,
@@ -426,11 +458,15 @@ const PatientRegistration = ({
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Email Address
+                              Email Address <span className="text-gray-500 text-xs">(optional)</span>
                             </label>
                             <input
                               type="email"
-                              {...register("email")}
+                              {...register("email", {
+                                validate: {
+                                  asyncCheck: checkEmailExists,
+                                },
+                              })}
                               className={`input-field ${errors.email ? "border-red-500" : ""}`}
                             />
                             {errors.email && (

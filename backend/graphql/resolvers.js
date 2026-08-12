@@ -144,9 +144,26 @@ const resolvers = {
       if (!user) throw new Error("Not authenticated");
       return await Patient.findOne({ userId: user._id });
     },
-    checkPatientExists: async (_, { phone }) => {
-      const exists = await Patient.exists({ phone });
-      return !!exists;
+    checkPatientExists: async (_, { phone, email }) => {
+      const normalizedPhone = (phone || "").replace(/\D/g, "").slice(-10);
+      const normalizedEmail = email?.trim().toLowerCase();
+
+      if (normalizedPhone.length === 10) {
+        const patientPhoneExists = await Patient.exists({ phone: normalizedPhone });
+        if (patientPhoneExists) return true;
+        const userPhoneExists = await User.exists({ phone: normalizedPhone });
+        if (userPhoneExists) return true;
+      }
+
+      if (normalizedEmail) {
+        const escapedEmail = normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const userEmailExists = await User.exists({
+          email: { $regex: `^${escapedEmail}$`, $options: "i" },
+        });
+        if (userEmailExists) return true;
+      }
+
+      return false;
     },
     findPatientByNameAndPhone: async (_, { name, phone }) => {
       const normalizedName = name.trim().toLowerCase();
@@ -519,22 +536,33 @@ const resolvers = {
       }
 
       const normalizedPhone = (phone || "").replace(/\D/g, "").slice(-10);
-      const userExists = await User.findOne({
-        $and: [
-          { $or: [{ email }, { phone: normalizedPhone }, { phone }] },
-          { role },
-        ],
-      });
+      const normalizedEmail = email?.trim().toLowerCase() || undefined;
+      if (normalizedPhone.length !== 10) {
+        throw new Error("Phone number must contain 10 digits");
+      }
+
+      const orConditions = [{ phone: normalizedPhone }];
+      if (normalizedEmail) {
+        const escapedEmail = normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        orConditions.push({ email: { $regex: `^${escapedEmail}$`, $options: "i" } });
+      }
+
+      const userExists = await User.findOne({ $or: orConditions });
       if (userExists) {
-        throw new Error(
-          `User with this email or phone already exists as a ${role}`,
-        );
+        throw new Error("User with this email or phone already exists");
+      }
+
+      const emailToStore = normalizedEmail ||
+        (role === "patient" ? `${normalizedPhone}@patient.creadent.local` : undefined);
+
+      if (!emailToStore) {
+        throw new Error("Email is required for staff registration");
       }
 
       const newUser = await User.create({
         name,
         phone: normalizedPhone,
-        email,
+        email: emailToStore,
         password,
         role,
         specialization,
@@ -1012,35 +1040,49 @@ const resolvers = {
         }
       }
       const normalizedPhone = (args.phone || "").replace(/\D/g, "").slice(-10);
+      const normalizedEmail = args.email?.trim().toLowerCase() || undefined;
       if (normalizedPhone.length !== 10) {
         throw new Error("Phone number must contain 10 digits");
       }
       if (args.bloodGroup && !["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"].includes(args.bloodGroup)) {
         throw new Error("Invalid blood group");
       }
-      const existingPatient = await Patient.findOne({
-        $or: [{ phone: normalizedPhone }, { phone: args.phone }],
-      });
-      if (existingPatient) {
+
+      const existingPatient = await Patient.findOne({ phone: normalizedPhone });
+      if (existingPatient && existingPatient.userId) {
         throw new Error("A patient with this phone number already exists");
       }
-      
+
       let newUser = null;
-      if (args.password) {
-        const userQuery = {
-          $or: [{ phone: normalizedPhone }, { phone: args.phone }],
-        };
-        if (args.email) {
-          userQuery.$or.push({ email: args.email });
+      let existingUser = null;
+      if (args.password || isPatientSelf) {
+        const userQuery = { $or: [{ phone: normalizedPhone }] };
+        if (normalizedEmail) {
+          userQuery.$or.push({ email: normalizedEmail });
         }
-        const existingUser = await User.findOne(userQuery);
-        if (existingUser) {
+        existingUser = await User.findOne(userQuery);
+      }
+
+      if (existingUser) {
+        if (existingUser.role !== "patient") {
           throw new Error("User with this email or phone already exists");
         }
-        
+
+        newUser = existingUser;
+        if (args.password) {
+          existingUser.password = args.password;
+        }
+        if (normalizedEmail && existingUser.email !== normalizedEmail) {
+          existingUser.email = normalizedEmail;
+        }
+        existingUser.name = args.name;
+        existingUser.phone = normalizedPhone;
+        existingUser.verified = true;
+        await existingUser.save();
+      } else if (args.password) {
         newUser = await User.create({
           name: args.name,
-          email: args.email || undefined,
+          email: normalizedEmail || `${normalizedPhone}@patient.creadent.local`,
           phone: normalizedPhone,
           password: args.password,
           role: "patient",

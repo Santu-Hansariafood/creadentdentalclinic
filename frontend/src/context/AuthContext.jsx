@@ -159,8 +159,13 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
+      const email = userData.email?.trim()?.toLowerCase();
+      const variables = {
+        ...userData,
+        email,
+      };
       const { data } = await registerMutation({
-        variables: { ...userData },
+        variables,
       });
 
       if (data?.register) {

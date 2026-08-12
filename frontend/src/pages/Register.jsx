@@ -104,7 +104,7 @@ const Register = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                  Email Address <span className="text-gray-500 text-xs">(optional)</span>
                 </label>
                 <div className="relative">
                   <Mail
@@ -115,7 +115,7 @@ const Register = () => {
                     type="email"
                     {...register("email")}
                     className={`input-field pl-10 ${errors.email ? "border-red-500" : ""}`}
-                    placeholder="Enter your Email ID "
+                    placeholder="Enter your Email ID"
                   />
                 </div>
                 {errors.email && (

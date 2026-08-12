@@ -23,10 +23,23 @@ const login = async (req, res) => {
 };
 
 const register = async (req, res) => {
-  const { name, phone, email, password, role, specialization, license } =
+  const { name, phone, email: rawEmail, password, role, specialization, license } =
     req.body;
+  const email = rawEmail?.trim().toLowerCase() || undefined;
+  const normalizedPhone = (phone || "").replace(/\D/g, "").slice(-10);
 
-  const userExists = await User.findOne({ $or: [{ email }, { phone }] });
+  if (normalizedPhone.length !== 10) {
+    res.status(400).json({ message: "Phone number must contain 10 digits" });
+    return;
+  }
+
+  const orConditions = [{ phone: normalizedPhone }];
+  if (email) {
+    const escapedEmail = email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    orConditions.push({ email: { $regex: `^${escapedEmail}$`, $options: "i" } });
+  }
+
+  const userExists = await User.findOne({ $or: orConditions });
 
   if (userExists) {
     res
@@ -35,10 +48,18 @@ const register = async (req, res) => {
     return;
   }
 
+  const emailToStore = email ||
+    (role === "patient" ? `${normalizedPhone}@patient.creadent.local` : undefined);
+
+  if (!emailToStore) {
+    res.status(400).json({ message: "Email is required for staff registration" });
+    return;
+  }
+
   const user = await User.create({
     name,
-    phone,
-    email,
+    phone: normalizedPhone,
+    email: emailToStore,
     password,
     role,
     specialization,

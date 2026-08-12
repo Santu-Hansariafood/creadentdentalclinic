@@ -438,7 +438,7 @@ input UpdateMedicineInput {
     getPatients(page: Int, limit: Int, search: String): PaginatedPatients
     getPatient(id: ID!): Patient
     getMyPatient: Patient
-    checkPatientExists(phone: String!): Boolean!
+    checkPatientExists(phone: String, email: String): Boolean!
     findPatientByNameAndPhone(name: String!, phone: String!): Patient
     findPatientByNameAndEmail(name: String!, email: String!): Patient
     findPatientsByNameOrContact(name: String, email: String, phone: String): [Patient]!
@@ -459,7 +459,7 @@ input UpdateMedicineInput {
     register(
       name: String!,
       phone: String!,
-      email: String!,
+      email: String,
       password: String!,
       role: String!,
       specialization: String,

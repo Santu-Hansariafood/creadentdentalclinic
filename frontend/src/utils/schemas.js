@@ -12,7 +12,14 @@ export const loginSchema = z.object({
 export const registerSchema = z
   .object({
     name: z.string().trim().min(1, "Name is required"),
-    email: z.string().trim().email("Invalid email"),
+    email: z
+      .string()
+      .trim()
+      .optional()
+      .or(z.literal(""))
+      .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+        message: "Invalid email",
+      }),
     phone: z
       .string()
       .trim()

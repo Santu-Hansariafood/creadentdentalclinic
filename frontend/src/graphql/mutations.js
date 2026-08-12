@@ -78,7 +78,7 @@ export const REGISTER = gql`
   mutation Register(
     $name: String!
     $phone: String!
-    $email: String!
+    $email: String
     $password: String!
     $role: String!
     $specialization: String
