@@ -2,7 +2,7 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const path = require("path");
-const fs = require("fs"); // <-- ADD THIS
+const fs = require("fs");
 const { ApolloServer } = require("@apollo/server");
 const { expressMiddleware } = require("@apollo/server/express4");
 const connectDB = require("./config/db");
@@ -28,7 +28,6 @@ const startServer = async () => {
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-  // Custom CORS middleware (unchanged)
   app.use((req, res, next) => {
     console.log("=== Incoming request ===");
     console.log("Method:", req.method);
@@ -119,7 +118,6 @@ const startServer = async () => {
 
   app.get("/files/*key", async (req, res) => {
   try {
-    // Express 5 wildcard parameters are returned as an array
     const rawKey = Array.isArray(req.params.key)
       ? req.params.key.join("/")
       : req.params.key || "";
@@ -133,7 +131,6 @@ const startServer = async () => {
     const uploadDir = path.resolve(storageService.localUploadDir);
     const localFull = path.resolve(uploadDir, key);
 
-    // Prevent path traversal attacks such as ../../etc/passwd
     if (
       localFull !== uploadDir &&
       !localFull.startsWith(uploadDir + path.sep)
@@ -242,7 +239,6 @@ ${staticPages
     res.send(xml);
   });
 
-  // Catch‑all middleware (unchanged)
   app.use((req, res, next) => {
     if (req.method !== "GET") {
       return next();
