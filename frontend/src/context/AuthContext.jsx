@@ -15,6 +15,8 @@ const clearNonAuthCache = () => {
       const v = localStorage.getItem(k);
       if (v) toKeep[k] = v;
     });
+    const rememberedPhone = localStorage.getItem("rememberedPhone");
+    if (rememberedPhone) toKeep["rememberedPhone"] = rememberedPhone;
     localStorage.clear();
     Object.entries(toKeep).forEach(([k, v]) => localStorage.setItem(k, v));
     sessionStorage.clear();
@@ -45,15 +47,28 @@ const isAuthError = (error) => {
       m.includes("not authorized") ||
       m.includes("invalid token") ||
       m.includes("token failed") ||
-      m.includes("no token")
+      m.includes("no token") ||
+      m.includes("user not found")
   );
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
   const apolloClient = useApolloClient();
+
+  const initialToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const initialUserStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  let initialUser = null;
+  if (initialUserStr) {
+    try {
+      initialUser = JSON.parse(initialUserStr);
+    } catch (_) {
+      initialUser = null;
+    }
+  }
+
+  const [user, setUser] = useState(initialUser);
+  const [isAuthenticated, setIsAuthenticated] = useState(Boolean(initialToken && initialUser));
+  const [loading, setLoading] = useState(!initialToken || !initialUser);
 
   const [loginMutation] = useMutation(LOGIN);
   const [registerMutation] = useMutation(REGISTER);
@@ -64,14 +79,14 @@ export const AuthProvider = ({ children }) => {
     };
     window.addEventListener("beforeunload", beforeUnloadHandler);
     return () => window.removeEventListener("beforeunload", beforeUnloadHandler);
-  }, [apolloClient]);
+  }, []);
 
   const {
     data: meData,
     loading: meLoading,
     error: meError,
   } = useQuery(GET_ME, {
-    skip: !localStorage.getItem("token"),
+    skip: !initialToken,
     fetchPolicy: "network-only",
   });
 
@@ -79,7 +94,9 @@ export const AuthProvider = ({ children }) => {
     if (meData?.me) {
       setUser(meData.me);
       setIsAuthenticated(true);
-      localStorage.setItem("user", JSON.stringify(meData.me));
+      try {
+        localStorage.setItem("user", JSON.stringify(meData.me));
+      } catch (_) {}
       setLoading(false);
       return;
     }
@@ -87,10 +104,11 @@ export const AuthProvider = ({ children }) => {
     if (meError) {
       console.warn("GET_ME error:", meError);
       if (isAuthError(meError)) {
-        const existingUser = localStorage.getItem("user");
-        const existingToken = localStorage.getItem("token");
-        if (!existingUser || !existingToken) {
+        const storedUser = localStorage.getItem("user");
+        const storedToken = localStorage.getItem("token");
+        if (!storedUser || !storedToken) {
           logout();
+          return;
         }
       }
     }
@@ -114,28 +132,27 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setIsAuthenticated(true);
         setLoading(false);
-        localStorage.setItem("user", JSON.stringify(userData));
-        localStorage.setItem("token", token);
-        if (rememberMe) {
-          localStorage.setItem("rememberedPhone", userData.phone || phone);
-        } else {
-          localStorage.removeItem("rememberedPhone");
-        }
         try {
-          await apolloClient.resetStore();
+          localStorage.setItem("user", JSON.stringify(userData));
+          localStorage.setItem("token", token);
+          if (rememberMe) {
+            localStorage.setItem("rememberedPhone", userData.phone || phone);
+          } else {
+            localStorage.removeItem("rememberedPhone");
+          }
         } catch (_) {}
         toast.success(`Welcome back, ${userData.name}!`);
         return { success: true };
       }
+      toast.error("Login failed: invalid response");
+      return { success: false };
     } catch (error) {
       console.error("Login mutation error:", error);
-      console.error("   Error details:", {
-        message: error.message,
-        graphQLErrors: error.graphQLErrors,
-        networkError: error.networkError,
-        stack: error.stack,
-      });
-      toast.error(error.message || "Login failed");
+      const msg =
+        error?.graphQLErrors?.[0]?.message ||
+        error?.message ||
+        "Login failed";
+      toast.error(msg);
       return { success: false };
     }
   };
@@ -148,19 +165,22 @@ export const AuthProvider = ({ children }) => {
 
       if (data?.register) {
         const { token, user: newUser } = data.register;
-        setUser(newUser);
-        setIsAuthenticated(true);
-        setLoading(false);
-        localStorage.setItem("user", JSON.stringify(newUser));
-        localStorage.setItem("token", token);
-        try {
-          await apolloClient.resetStore();
-        } catch (_) {}
+        if (token && newUser) {
+          setUser(newUser);
+          setIsAuthenticated(true);
+          setLoading(false);
+          try {
+            localStorage.setItem("user", JSON.stringify(newUser));
+            localStorage.setItem("token", token);
+          } catch (_) {}
+        }
         toast.success("Registration successful!");
-        return { success: true };
+        return { success: true, user: newUser };
       }
+      toast.error("Registration failed: invalid response");
+      return { success: false };
     } catch (error) {
-      toast.error(error.message || "Registration failed");
+      toast.error(error?.message || "Registration failed");
       return { success: false };
     }
   };
@@ -174,7 +194,9 @@ export const AuthProvider = ({ children }) => {
     localStorage.clear();
     sessionStorage.clear();
     if (rememberedPhone) {
-      localStorage.setItem("rememberedPhone", rememberedPhone);
+      try {
+        localStorage.setItem("rememberedPhone", rememberedPhone);
+      } catch (_) {}
     }
 
     apolloClient.clearStore().catch(() => {});

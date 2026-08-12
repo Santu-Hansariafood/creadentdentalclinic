@@ -49,18 +49,19 @@ const LoadingFallback = () => (
 const PatientRegistrationCheck = ({ children }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isPatient = user && user.role === "patient";
 
   const { data: myPatientData, loading: patientLoading } = useQuery(GET_MY_PATIENT, {
-    skip: !user || user.role !== "patient",
+    skip: !isPatient,
   });
 
   useEffect(() => {
-    if (user && user.role === "patient" && !patientLoading && !myPatientData?.getMyPatient) {
+    if (isPatient && !patientLoading && !myPatientData?.getMyPatient) {
       navigate("/patient/complete-registration");
     }
-  }, [user, myPatientData, patientLoading, navigate]);
+  }, [isPatient, myPatientData, patientLoading, navigate]);
 
-  if (user && user.role === "patient" && patientLoading) {
+  if (isPatient && patientLoading) {
     return <LoadingFallback />;
   }
 
@@ -108,7 +109,7 @@ const App = () => {
 
     if (isPublicPage) {
       preloadPublicRoutes(location.pathname);
-    } else if (isAuthenticated && user) {
+    } else if (isAuthenticated && user && user.role) {
       preloadLikelyRoutes(user.role, location.pathname);
     } else {
       preloadRoute("/login");
@@ -123,7 +124,7 @@ const App = () => {
   }
 
   const getDashboardRoute = () => {
-    if (!user) return "/login";
+    if (!user || !user.role) return "/login";
     switch (user.role) {
       case "patient":
         return "/patient/dashboard";

@@ -57,67 +57,18 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 });
 
-fetch("http://127.0.0.1:7777/event", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    sessionId: "prod-reload-loop",
-    runId: "pre-fix",
-    hypothesisId: "B",
-    location: "src/main.jsx:13",
-    msg: "[DEBUG] Main entry evaluated",
-    data: {
-      href: window.location.href,
-      readyState: document.readyState,
-    },
-    ts: Date.now(),
-  }),
-}).catch(() => {});
-
 const updateSW = registerSW({
   immediate: true,
   onNeedRefresh() {
-    fetch("http://127.0.0.1:7777/event", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId: "prod-reload-loop",
-        runId: "pre-fix",
-        hypothesisId: "A",
-        location: "src/main.jsx:31",
-        msg: "[DEBUG] Service worker requested refresh",
-        data: {
-          href: window.location.href,
-          visibilityState: document.visibilityState,
-        },
-        ts: Date.now(),
-      }),
-    }).catch(() => {});
     updateSW(true);
   },
   onOfflineReady() {
-    fetch("http://127.0.0.1:7777/event", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId: "prod-reload-loop",
-        runId: "pre-fix",
-        hypothesisId: "A",
-        location: "src/main.jsx:73",
-        msg: "[DEBUG] Service worker offline ready",
-        data: {
-          href: window.location.href,
-        },
-        ts: Date.now(),
-      }),
-    }).catch(() => {});
     toast.success("Offline support is ready.", {
       toastId: "app-offline-ready",
     });
   },
 });
 
-// Disable mouse wheel from changing number input values globally
 document.addEventListener(
   "wheel",
   (e) => {
@@ -130,7 +81,6 @@ document.addEventListener(
   { passive: false },
 );
 
-// Disable Arrow Up / Arrow Down from changing number input values globally
 document.addEventListener("keydown", (e) => {
   const active = document.activeElement;
 

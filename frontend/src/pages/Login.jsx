@@ -1,5 +1,5 @@
-import { useState, useEffect, Suspense } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Phone, Lock, Eye, EyeOff, KeyRound, ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -25,8 +25,7 @@ const Login = () => {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
-  const { login, isAuthenticated, user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
+  const { login, loading: authLoading } = useAuth();
 
   const [forgotPasswordMutation] = useMutation(FORGOT_PASSWORD);
   const [resetPasswordMutation] = useMutation(RESET_PASSWORD);
@@ -63,25 +62,8 @@ const Login = () => {
     preloadRoute("/admin/dashboard");
   }, []);
 
-  useEffect(() => {
-    if (authLoading) return;
-    if (isAuthenticated && user) {
-      const dashboards = {
-        patient: "/patient/dashboard",
-        doctor: "/doctor/dashboard",
-        admin: "/admin/dashboard",
-        employee: "/employee/dashboard",
-      };
-      const target = dashboards[user.role] || "/";
-      navigate(target, { replace: true });
-    }
-  }, [isAuthenticated, user, authLoading, navigate]);
-
   const onSubmit = async (data) => {
-    const result = await login(data.phone, data.password, rememberMe);
-    if (result.success) {
-      navigate("/", { replace: true });
-    }
+    await login(data.phone, data.password, rememberMe);
   };
 
   const handleForgotSubmit = async (e) => {
