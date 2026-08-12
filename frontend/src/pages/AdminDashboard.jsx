@@ -62,8 +62,8 @@ const AdminDashboard = () => {
   const { data: activitiesData, loading: activitiesLoading } =
     useQuery(GET_RECENT_ACTIVITIES, { variables: { limit: 10 } });
 
-  if (statsLoading || reportsLoading)
-    return <div className="p-8 text-center">Loading dashboard...</div>;
+  if (statsLoading || reportsLoading || activitiesLoading)
+    return <Preloader />;
 
   const stats = statsData?.getDashboardStats?.admin || {};
   const reports = reportsData?.getReportsData || {
