@@ -31,6 +31,24 @@ export const useAuth = () => {
   return context;
 };
 
+const isAuthError = (error) => {
+  if (!error) return false;
+  const msg = (error.message || "").toLowerCase();
+  const gqlMsgs = (error.graphQLErrors || []).map((e) =>
+    (e.message || "").toLowerCase()
+  );
+  const allMsgs = [msg, ...gqlMsgs];
+  return allMsgs.some(
+    (m) =>
+      m.includes("not authenticated") ||
+      m.includes("unauthorized") ||
+      m.includes("not authorized") ||
+      m.includes("invalid token") ||
+      m.includes("token failed") ||
+      m.includes("no token")
+  );
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -41,8 +59,6 @@ export const AuthProvider = ({ children }) => {
   const [registerMutation] = useMutation(REGISTER);
 
   useEffect(() => {
-    clearNonAuthCache();
-    apolloClient.clearStore().catch(() => {});
     const beforeUnloadHandler = () => {
       clearNonAuthCache();
     };
@@ -64,27 +80,40 @@ export const AuthProvider = ({ children }) => {
       setUser(meData.me);
       setIsAuthenticated(true);
       localStorage.setItem("user", JSON.stringify(meData.me));
-    } else if (meError) {
-      logout();
+      setLoading(false);
+      return;
     }
-    setLoading(meLoading);
+
+    if (meError) {
+      console.warn("GET_ME error:", meError);
+      if (isAuthError(meError)) {
+        const existingUser = localStorage.getItem("user");
+        const existingToken = localStorage.getItem("token");
+        if (!existingUser || !existingToken) {
+          logout();
+        }
+      }
+    }
+
+    if (!meLoading) {
+      setLoading(false);
+    }
   }, [meData, meError, meLoading]);
 
   const login = async (phone, password, rememberMe = true) => {
-    
     try {
       const variables = {
         phone: phone || "",
-        password: password || ""
+        password: password || "",
       };
-      
-      
+
       const { data } = await loginMutation({ variables });
 
       if (data?.login) {
         const { token, user: userData } = data.login;
         setUser(userData);
         setIsAuthenticated(true);
+        setLoading(false);
         localStorage.setItem("user", JSON.stringify(userData));
         localStorage.setItem("token", token);
         if (rememberMe) {
@@ -92,7 +121,9 @@ export const AuthProvider = ({ children }) => {
         } else {
           localStorage.removeItem("rememberedPhone");
         }
-        apolloClient.clearStore().catch(() => {});
+        try {
+          await apolloClient.resetStore();
+        } catch (_) {}
         toast.success(`Welcome back, ${userData.name}!`);
         return { success: true };
       }
@@ -102,7 +133,7 @@ export const AuthProvider = ({ children }) => {
         message: error.message,
         graphQLErrors: error.graphQLErrors,
         networkError: error.networkError,
-        stack: error.stack
+        stack: error.stack,
       });
       toast.error(error.message || "Login failed");
       return { success: false };
@@ -119,9 +150,12 @@ export const AuthProvider = ({ children }) => {
         const { token, user: newUser } = data.register;
         setUser(newUser);
         setIsAuthenticated(true);
+        setLoading(false);
         localStorage.setItem("user", JSON.stringify(newUser));
         localStorage.setItem("token", token);
-        apolloClient.clearStore().catch(() => {});
+        try {
+          await apolloClient.resetStore();
+        } catch (_) {}
         toast.success("Registration successful!");
         return { success: true };
       }
@@ -134,16 +168,17 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
-    
+    setLoading(false);
+
     const rememberedPhone = localStorage.getItem("rememberedPhone");
     localStorage.clear();
     sessionStorage.clear();
     if (rememberedPhone) {
       localStorage.setItem("rememberedPhone", rememberedPhone);
     }
-    
-    apolloClient.resetStore();
-    
+
+    apolloClient.clearStore().catch(() => {});
+
     toast.success("Logged out successfully");
   };
 

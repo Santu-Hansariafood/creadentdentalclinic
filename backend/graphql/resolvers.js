@@ -35,6 +35,19 @@ const toDateOnlyString = (value) => {
   return Number.isNaN(date.getTime()) ? "" : date.toISOString().split("T")[0];
 };
 
+const serializeUser = (user) => ({
+  id: user._id.toString(),
+  name: user.name,
+  email: user.email,
+  phone: user.phone,
+  role: user.role,
+  verified: user.verified,
+  specialization: user.specialization,
+  license: user.license,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt,
+});
+
 const resolvers = {
   Prescription: {
     id: (parent) => (parent.id || parent._id)?.toString(),
@@ -70,7 +83,7 @@ const resolvers = {
   Query: {
     me: async (_, __, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return user;
+      return serializeUser(user);
     },
     getUsers: async () => await User.find(),
     getUsersByRole: async (_, { role }) => await User.find({ role }),
@@ -525,11 +538,11 @@ const resolvers = {
         if (role === "patient" && !user) {
           return {
             token: generateToken(newUser._id),
-            user: newUser,
+            user: serializeUser(newUser),
           };
         }
         return {
-          user: newUser,
+          user: serializeUser(newUser),
         };
       } else {
         throw new Error("Invalid user data");
@@ -552,7 +565,7 @@ const resolvers = {
         if (await user.matchPassword(password)) {
           return {
             token: generateToken(user._id),
-            user,
+            user: serializeUser(user),
           };
         }
       }
@@ -564,7 +577,7 @@ const resolvers = {
         if (await user.matchPassword(password)) {
           return {
             token: generateToken(user._id),
-            user,
+            user: serializeUser(user),
           };
         }
       }
