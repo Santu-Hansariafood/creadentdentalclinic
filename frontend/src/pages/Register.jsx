@@ -23,7 +23,7 @@ const Register = () => {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(registerSchema),
-    mode: "onSubmit", // Only validate on form submit
+    mode: "onSubmit",
     defaultValues: {
       name: "",
       email: "",
@@ -35,7 +35,6 @@ const Register = () => {
   });
 
   const onSubmit = async (data) => {
-    // Format data before submission
     const { confirmPassword, ...submitData } = data;
     const camelCaseData = toCamelCase({
       ...submitData,

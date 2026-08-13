@@ -19,7 +19,7 @@ import toast from "react-hot-toast";
 import { format } from "date-fns";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_INVOICES, GET_MY_PATIENT, GET_PATIENTS } from "../graphql/queries";
-import { CREATE_INVOICE, GENERATE_PATIENT_LOGIN } from "../graphql/mutations";
+import { CREATE_INVOICE, GENERATE_PATIENT_LOGIN, UPDATE_INVOICE, DELETE_INVOICE } from "../graphql/mutations";
 import { generateInvoicePDF } from "../utils/pdfGenerator";
 import Preloader from "../components/Preloader";
 
@@ -59,6 +59,30 @@ const Billing = () => {
     refetchQueries: [{ query: GET_INVOICES }],
   });
   const [generatePatientLogin] = useMutation(GENERATE_PATIENT_LOGIN);
+  const [updateInvoice] = useMutation(UPDATE_INVOICE, {
+    refetchQueries: [{ query: GET_INVOICES }],
+  });
+  const [deleteInvoice] = useMutation(DELETE_INVOICE, {
+    refetchQueries: [{ query: GET_INVOICES }],
+  });
+
+  const [showEditInvoice, setShowEditInvoice] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState(null);
+  const [editInvoiceForm, setEditInvoiceForm] = useState({
+    invoiceNumber: "",
+    patientId: "",
+    patientName: "",
+    date: "",
+    dueDate: "",
+    items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
+    tax: 0,
+    discount: 0,
+    notes: "",
+    amountPaid: 0,
+    status: "Unpaid",
+  });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState(null);
 
   if (loading) return <Preloader />;
   if (error)
@@ -257,6 +281,138 @@ const Billing = () => {
     setShowPaymentModal(false);
     setSelectedInvoice(null);
     setSelectedInvoices([]);
+  };
+
+  const editSubtotal = editInvoiceForm.items.reduce(
+    (sum, item) => sum + item.total,
+    0,
+  );
+  const editTotalAmount =
+    editSubtotal + (editInvoiceForm.tax || 0) - (editInvoiceForm.discount || 0);
+
+  const handleEditItemChange = (index, field, value) => {
+    const updatedItems = [...editInvoiceForm.items];
+    if (field === "quantity" || field === "unitPrice") {
+      updatedItems[index][field] = parseFloat(value) || 0;
+      updatedItems[index].total =
+        updatedItems[index].quantity * updatedItems[index].unitPrice;
+    } else {
+      updatedItems[index][field] = value;
+    }
+    setEditInvoiceForm({ ...editInvoiceForm, items: updatedItems });
+  };
+
+  const handleEditAddItem = () => {
+    setEditInvoiceForm({
+      ...editInvoiceForm,
+      items: [
+        ...editInvoiceForm.items,
+        { description: "", quantity: 1, unitPrice: 0, total: 0 },
+      ],
+    });
+  };
+
+  const handleEditRemoveItem = (index) => {
+    const updatedItems = editInvoiceForm.items.filter((_, i) => i !== index);
+    setEditInvoiceForm({ ...editInvoiceForm, items: updatedItems });
+  };
+
+  const handleEditInvoice = (invoice) => {
+    setEditingInvoice(invoice);
+    setEditInvoiceForm({
+      invoiceNumber: invoice.invoiceNumber,
+      patientId: invoice.patientId,
+      patientName: invoice.patientName,
+      date: invoice.date ? invoice.date.split("T")[0] : format(new Date(), "yyyy-MM-dd"),
+      dueDate: invoice.dueDate ? invoice.dueDate.split("T")[0] : "",
+      items:
+        invoice.items?.length > 0
+          ? invoice.items.map((item) => ({
+              description: item.description || "",
+              quantity: item.quantity || 1,
+              unitPrice: item.unitPrice || 0,
+              total: item.total || (item.quantity || 0) * (item.unitPrice || 0),
+            }))
+          : [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
+      tax: invoice.tax || 0,
+      discount: invoice.discount || 0,
+      notes: invoice.notes || "",
+      amountPaid: invoice.amountPaid || 0,
+      status: invoice.status || "Unpaid",
+    });
+    setShowEditInvoice(true);
+  };
+
+  const handleEditPatientChange = (patientId) => {
+    const patient = patients.find((p) => p.id === patientId);
+    if (patient) {
+      setEditInvoiceForm({
+        ...editInvoiceForm,
+        patientId,
+        patientName: patient.name,
+      });
+    }
+  };
+
+  const handleUpdateInvoice = async (e) => {
+    e.preventDefault();
+    if (!editingInvoice) return;
+    try {
+      const newBalance = Math.max(
+        0,
+        editTotalAmount - (editInvoiceForm.amountPaid || 0),
+      );
+      const newStatus =
+        newBalance === 0
+          ? "Paid"
+          : (editInvoiceForm.amountPaid || 0) > 0
+            ? "Partial"
+            : "Unpaid";
+
+      await updateInvoice({
+        variables: {
+          id: editingInvoice.id,
+          invoiceNumber: editInvoiceForm.invoiceNumber,
+          patientId: editInvoiceForm.patientId,
+          patientName: editInvoiceForm.patientName,
+          date: editInvoiceForm.date,
+          dueDate: editInvoiceForm.dueDate,
+          items: editInvoiceForm.items,
+          subtotal: editSubtotal,
+          tax: editInvoiceForm.tax,
+          discount: editInvoiceForm.discount,
+          total: editTotalAmount,
+          amountPaid: editInvoiceForm.amountPaid,
+          balance: newBalance,
+          status: editInvoiceForm.status || newStatus,
+          notes: editInvoiceForm.notes,
+        },
+      });
+      toast.success("Invoice updated successfully!");
+      setShowEditInvoice(false);
+      setEditingInvoice(null);
+    } catch (err) {
+      toast.error(err.message || "Failed to update invoice");
+    }
+  };
+
+  const handleDeleteInvoice = (invoice) => {
+    setInvoiceToDelete(invoice);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteInvoice = async () => {
+    if (!invoiceToDelete) return;
+    try {
+      await deleteInvoice({
+        variables: { id: invoiceToDelete.id },
+      });
+      toast.success("Invoice deleted successfully!");
+      setShowDeleteConfirm(false);
+      setInvoiceToDelete(null);
+    } catch (err) {
+      toast.error(err.message || "Failed to delete invoice");
+    }
   };
 
   return (
@@ -886,6 +1042,14 @@ const Billing = () => {
                     invoice={invoice}
                     delay={index * 0.05}
                     onPay={user?.role !== "doctor" ? handlePayment : undefined}
+                    onEdit={
+                      user?.role === "admin" || user?.role === "employee"
+                        ? handleEditInvoice
+                        : undefined
+                    }
+                    onDelete={
+                      user?.role === "admin" ? handleDeleteInvoice : undefined
+                    }
                   />
                 </div>
               ))
@@ -921,6 +1085,393 @@ const Billing = () => {
             }}
             onSuccess={handlePaymentSuccess}
           />
+        )}
+
+        {showEditInvoice && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
+                <h2 className="text-xl font-bold">Edit Invoice</h2>
+                <button
+                  onClick={() => {
+                    setShowEditInvoice(false);
+                    setEditingInvoice(null);
+                  }}
+                  className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                >
+                  &times;
+                </button>
+              </div>
+              <form onSubmit={handleUpdateInvoice} className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Invoice Number
+                    </label>
+                    <input
+                      type="text"
+                      className="input-field"
+                      value={editInvoiceForm.invoiceNumber}
+                      onChange={(e) =>
+                        setEditInvoiceForm({
+                          ...editInvoiceForm,
+                          invoiceNumber: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Patient
+                    </label>
+                    <select
+                      className="input-field"
+                      value={editInvoiceForm.patientId}
+                      onChange={(e) => handleEditPatientChange(e.target.value)}
+                      required
+                    >
+                      <option value="">Select Patient</option>
+                      {patients.map((patient) => (
+                        <option key={patient.id} value={patient.id}>
+                          {patient.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      className="input-field"
+                      value={editInvoiceForm.date}
+                      onChange={(e) =>
+                        setEditInvoiceForm({
+                          ...editInvoiceForm,
+                          date: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Due Date
+                    </label>
+                    <input
+                      type="date"
+                      className="input-field"
+                      value={editInvoiceForm.dueDate}
+                      onChange={(e) =>
+                        setEditInvoiceForm({
+                          ...editInvoiceForm,
+                          dueDate: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tax (%)
+                    </label>
+                    <input
+                      type="number"
+                      className="input-field"
+                      value={editInvoiceForm.tax}
+                      onChange={(e) =>
+                        setEditInvoiceForm({
+                          ...editInvoiceForm,
+                          tax: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Discount
+                    </label>
+                    <input
+                      type="number"
+                      className="input-field"
+                      value={editInvoiceForm.discount}
+                      onChange={(e) =>
+                        setEditInvoiceForm({
+                          ...editInvoiceForm,
+                          discount: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Amount Paid
+                    </label>
+                    <input
+                      type="number"
+                      className="input-field"
+                      value={editInvoiceForm.amountPaid}
+                      onChange={(e) =>
+                        setEditInvoiceForm({
+                          ...editInvoiceForm,
+                          amountPaid: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Status
+                    </label>
+                    <select
+                      className="input-field"
+                      value={editInvoiceForm.status}
+                      onChange={(e) =>
+                        setEditInvoiceForm({
+                          ...editInvoiceForm,
+                          status: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="Unpaid">Unpaid</option>
+                      <option value="Partial">Partial</option>
+                      <option value="Paid">Paid</option>
+                      <option value="Overdue">Overdue</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Items
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleEditAddItem}
+                      className="text-primary hover:text-primary-dark text-sm font-medium flex items-center gap-1"
+                    >
+                      <Plus size={16} />
+                      Add Item
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {editInvoiceForm.items.map((item, index) => (
+                      <div
+                        key={index}
+                        className="grid grid-cols-12 gap-3 items-end"
+                      >
+                        <div className="col-span-5">
+                          <input
+                            type="text"
+                            placeholder="Description (e.g., Cleaning, Filling)"
+                            className="input-field"
+                            value={item.description}
+                            onChange={(e) =>
+                              handleEditItemChange(
+                                index,
+                                "description",
+                                e.target.value,
+                              )
+                            }
+                            required
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <input
+                            type="number"
+                            placeholder="Qty"
+                            className="input-field"
+                            value={item.quantity}
+                            onChange={(e) =>
+                              handleEditItemChange(
+                                index,
+                                "quantity",
+                                e.target.value,
+                              )
+                            }
+                            min="1"
+                            required
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <input
+                            type="number"
+                            placeholder="Price"
+                            className="input-field"
+                            value={item.unitPrice}
+                            onChange={(e) =>
+                              handleEditItemChange(
+                                index,
+                                "unitPrice",
+                                e.target.value,
+                              )
+                            }
+                            min="0"
+                            step="0.01"
+                            required
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-gray-900 font-medium">
+                            ₹{item.total.toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="col-span-1">
+                          {editInvoiceForm.items.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleEditRemoveItem(index)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end gap-2">
+                  <div className="flex items-center gap-4">
+                    <span className="text-gray-600">Subtotal:</span>
+                    <span className="font-medium">
+                      ₹{editSubtotal.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-gray-600">Tax:</span>
+                    <span className="font-medium">
+                      ₹{(editInvoiceForm.tax || 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-gray-600">Discount:</span>
+                    <span className="font-medium">
+                      -₹{(editInvoiceForm.discount || 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 border-t border-gray-200 pt-2">
+                    <span className="text-gray-900 font-bold">Total:</span>
+                    <span className="text-primary text-xl font-bold">
+                      ₹{editTotalAmount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-gray-600">Paid:</span>
+                    <span className="font-medium text-success">
+                      ₹{(editInvoiceForm.amountPaid || 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 border-t border-gray-200 pt-2">
+                    <span className="text-gray-900 font-bold">Balance:</span>
+                    <span
+                      className={`text-xl font-bold ${
+                        editTotalAmount - (editInvoiceForm.amountPaid || 0) > 0
+                          ? "text-danger"
+                          : "text-success"
+                      }`}
+                    >
+                      ₹
+                      {Math.max(
+                        0,
+                        editTotalAmount -
+                          (editInvoiceForm.amountPaid || 0),
+                      ).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Notes
+                  </label>
+                  <textarea
+                    className="input-field min-h-[100px]"
+                    value={editInvoiceForm.notes}
+                    onChange={(e) =>
+                      setEditInvoiceForm({
+                        ...editInvoiceForm,
+                        notes: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex gap-2 justify-end">
+                  <button
+                    type="button"
+                    className="btn-outline"
+                    onClick={() => {
+                      setShowEditInvoice(false);
+                      setEditingInvoice(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-primary">
+                    Update Invoice
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {showDeleteConfirm && invoiceToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6"
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <Trash2 size={24} className="text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Delete Invoice
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {invoiceToDelete.invoiceNumber}
+                  </p>
+                </div>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this invoice? This action
+                cannot be undone and will permanently remove the invoice
+                record for <span className="font-medium">{invoiceToDelete.patientName}</span>.
+              </p>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setInvoiceToDelete(null);
+                  }}
+                  className="btn-outline"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteInvoice}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </div>
     </Suspense>

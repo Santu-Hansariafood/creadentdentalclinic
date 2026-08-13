@@ -549,3 +549,74 @@ export const GENERATE_PATIENT_LOGIN = gql`
     }
   }
 `;
+
+export const UPDATE_INVOICE = gql`
+  mutation UpdateInvoice(
+    $id: ID!
+    $invoiceNumber: String
+    $patientId: ID
+    $patientName: String
+    $date: String
+    $dueDate: String
+    $items: [InvoiceItemInput]
+    $subtotal: Float
+    $tax: Float
+    $discount: Float
+    $total: Float
+    $balance: Float
+    $amountPaid: Float
+    $status: String
+    $paymentMethod: String
+    $paymentDate: String
+    $notes: String
+  ) {
+    updateInvoice(
+      id: $id
+      invoiceNumber: $invoiceNumber
+      patientId: $patientId
+      patientName: $patientName
+      date: $date
+      dueDate: $dueDate
+      items: $items
+      subtotal: $subtotal
+      tax: $tax
+      discount: $discount
+      total: $total
+      balance: $balance
+      amountPaid: $amountPaid
+      status: $status
+      paymentMethod: $paymentMethod
+      paymentDate: $paymentDate
+      notes: $notes
+    ) {
+      id
+      invoiceNumber
+      patientId
+      patientName
+      date
+      dueDate
+      items {
+        description
+        quantity
+        unitPrice
+        total
+      }
+      subtotal
+      tax
+      discount
+      total
+      amountPaid
+      balance
+      status
+      paymentMethod
+      paymentDate
+      notes
+    }
+  }
+`;
+
+export const DELETE_INVOICE = gql`
+  mutation DeleteInvoice($id: ID!) {
+    deleteInvoice(id: $id)
+  }
+`;

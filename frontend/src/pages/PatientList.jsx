@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { Search, Plus, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
+import Preloader from "../components/Preloader";
 import { useAuth } from "../context/AuthContext";
 
 const PatientList = () => {
@@ -75,7 +76,7 @@ const PatientList = () => {
   };
 
   if (loading && !data)
-    return <div className="p-6 text-center">Loading patients...</div>;
+    return <Preloader />;
   if (error)
     return (
       <div className="p-6 text-center text-red-500">Error: {error.message}</div>
@@ -144,9 +145,7 @@ const PatientList = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Searching patients...</p>
-        </div>
+        <Preloader />
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

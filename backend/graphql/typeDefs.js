@@ -562,6 +562,28 @@ input UpdateMedicineInput {
       paymentDate: String
     ): Invoice
 
+    updateInvoice(
+      id: ID!,
+      invoiceNumber: String,
+      patientId: ID,
+      patientName: String,
+      date: String,
+      dueDate: String,
+      items: [InvoiceItemInput],
+      subtotal: Float,
+      tax: Float,
+      discount: Float,
+      total: Float,
+      balance: Float,
+      amountPaid: Float,
+      status: String,
+      paymentMethod: String,
+      paymentDate: String,
+      notes: String
+    ): Invoice
+
+    deleteInvoice(id: ID!): Boolean
+
     createPrescription(
       patientId: ID!,
       patientName: String!,

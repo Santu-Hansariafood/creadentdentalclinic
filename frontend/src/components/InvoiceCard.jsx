@@ -6,14 +6,19 @@ import {
   IndianRupee,
   Download,
   RefreshCw,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import { formatDate } from "../utils/dateUtils";
 import toast from "react-hot-toast";
 import { generateInvoicePDF } from "../utils/pdfGenerator";
 import { format } from "date-fns";
+import { useAuth } from "../context/AuthContext";
 
-const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
+const InvoiceCard = ({ invoice, delay = 0, onPay, onEdit, onDelete }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "employee";
   const formatCurrency = (amount = 0) => `₹${Number(amount || 0).toFixed(2)}`;
 
   const statusColors = {
@@ -187,9 +192,9 @@ const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         {invoice.balance > 0 && onPay && (
-          <button onClick={() => onPay(invoice)} className="btn-primary flex-1">
+          <button onClick={() => onPay(invoice)} className="btn-primary flex-1 min-w-[120px]">
             <IndianRupee size={18} className="inline mr-2" />
             Pay {formatCurrency(invoice.balance)}
           </button>
@@ -199,7 +204,7 @@ const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
           <>
             <button
               onClick={handleDownloadReceipt}
-              className="btn-outline flex-1"
+              className="btn-outline flex-1 min-w-[120px]"
             >
               <Download size={18} className="inline mr-2" />
               Receipt
@@ -214,8 +219,31 @@ const InvoiceCard = ({ invoice, delay = 0, onPay }) => {
           </>
         )}
 
+        {isAdmin && (
+          <>
+            {onEdit && (
+              <button
+                onClick={() => onEdit(invoice)}
+                className="btn-outline"
+                title="Edit Invoice"
+              >
+                <Pencil size={18} />
+              </button>
+            )}
+            {onDelete && user?.role === "admin" && (
+              <button
+                onClick={() => onDelete(invoice)}
+                className="btn-outline text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                title="Delete Invoice"
+              >
+                <Trash2 size={18} />
+              </button>
+            )}
+          </>
+        )}
+
         {(invoice.status === "Unpaid" || invoice.status === "Partial") &&
-          !hasInstallmentPlan && (
+          !hasInstallmentPlan && isAdmin && (
             <button
               onClick={() => toast.info("Installment plan setup")}
               className="btn-outline"

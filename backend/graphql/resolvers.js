@@ -889,6 +889,58 @@ const resolvers = {
 
       return await invoice.save();
     },
+    updateInvoice: async (_, { id, ...args }, { user }) => {
+      if (!user) {
+        throw new Error("Not authenticated");
+      }
+
+      if (!["admin", "employee"].includes(user.role)) {
+        throw new Error("Unauthorized: Only admins and employees can update invoices");
+      }
+
+      const invoice = await Invoice.findById(id);
+      if (!invoice) {
+        throw new Error("Invoice not found");
+      }
+
+      const updateData = { ...args };
+
+      if (updateData.total !== undefined && updateData.amountPaid !== undefined) {
+        updateData.balance = Math.max(0, updateData.total - updateData.amountPaid);
+        updateData.status = updateData.balance === 0 ? "Paid" : updateData.amountPaid > 0 ? "Partial" : "Unpaid";
+      } else if (updateData.total !== undefined) {
+        updateData.balance = Math.max(0, updateData.total - (invoice.amountPaid || 0));
+        updateData.status = updateData.balance === 0 ? "Paid" : (invoice.amountPaid || 0) > 0 ? "Partial" : "Unpaid";
+      } else if (updateData.amountPaid !== undefined) {
+        updateData.balance = Math.max(0, invoice.total - updateData.amountPaid);
+        updateData.status = updateData.balance === 0 ? "Paid" : updateData.amountPaid > 0 ? "Partial" : "Unpaid";
+      }
+
+      const updatedInvoice = await Invoice.findByIdAndUpdate(
+        id,
+        { $set: updateData },
+        { new: true }
+      );
+
+      return updatedInvoice;
+    },
+    deleteInvoice: async (_, { id }, { user }) => {
+      if (!user) {
+        throw new Error("Not authenticated");
+      }
+
+      if (user.role !== "admin") {
+        throw new Error("Unauthorized: Only admins can delete invoices");
+      }
+
+      const invoice = await Invoice.findById(id);
+      if (!invoice) {
+        throw new Error("Invoice not found");
+      }
+
+      await Invoice.findByIdAndDelete(id);
+      return true;
+    },
     createPrescription: async (_, args) => {
       const prescription = new Prescription({
         ...args,
