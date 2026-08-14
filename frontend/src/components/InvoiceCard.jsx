@@ -8,6 +8,7 @@ import {
   RefreshCw,
   Pencil,
   Trash2,
+  MessageCircle,
 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import { formatDate } from "../utils/dateUtils";
@@ -16,7 +17,7 @@ import { generateInvoicePDF } from "../utils/pdfGenerator";
 import { format } from "date-fns";
 import { useAuth } from "../context/AuthContext";
 
-const InvoiceCard = ({ invoice, delay = 0, onPay, onEdit, onDelete }) => {
+const InvoiceCard = ({ invoice, delay = 0, onPay, onEdit, onDelete, onShareWhatsApp }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin" || user?.role === "employee";
   const formatCurrency = (amount = 0) => `₹${Number(amount || 0).toFixed(2)}`;
@@ -221,6 +222,15 @@ const InvoiceCard = ({ invoice, delay = 0, onPay, onEdit, onDelete }) => {
 
         {isAdmin && (
           <>
+            {onShareWhatsApp && (
+              <button
+                onClick={() => onShareWhatsApp(invoice)}
+                className="btn-outline text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-300"
+                title="Share via WhatsApp"
+              >
+                <MessageCircle size={18} />
+              </button>
+            )}
             {onEdit && (
               <button
                 onClick={() => onEdit(invoice)}

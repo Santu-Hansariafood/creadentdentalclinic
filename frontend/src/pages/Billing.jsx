@@ -9,6 +9,12 @@ import {
   Calendar,
   Plus,
   Trash2,
+  Loader2,
+  MessageCircle,
+  ExternalLink,
+  Copy,
+  Pencil,
+  X,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import InvoiceCard from "../components/InvoiceCard";
@@ -19,7 +25,14 @@ import toast from "react-hot-toast";
 import { format } from "date-fns";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_INVOICES, GET_MY_PATIENT, GET_PATIENTS } from "../graphql/queries";
-import { CREATE_INVOICE, GENERATE_PATIENT_LOGIN, UPDATE_INVOICE, DELETE_INVOICE } from "../graphql/mutations";
+import {
+  CREATE_INVOICE,
+  GENERATE_PATIENT_LOGIN,
+  UPDATE_INVOICE,
+  DELETE_INVOICE,
+  SEND_INVOICE_WHATSAPP,
+  SEND_LOGIN_CREDENTIALS_WHATSAPP,
+} from "../graphql/mutations";
 import { generateInvoicePDF } from "../utils/pdfGenerator";
 import Preloader from "../components/Preloader";
 
@@ -65,6 +78,8 @@ const Billing = () => {
   const [deleteInvoice] = useMutation(DELETE_INVOICE, {
     refetchQueries: [{ query: GET_INVOICES }],
   });
+  const [sendInvoiceWhatsApp] = useMutation(SEND_INVOICE_WHATSAPP);
+  const [sendLoginCredentialsWhatsApp] = useMutation(SEND_LOGIN_CREDENTIALS_WHATSAPP);
 
   const [showEditInvoice, setShowEditInvoice] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
@@ -83,6 +98,11 @@ const Billing = () => {
   });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState(null);
+  const [showWhatsAppPreview, setShowWhatsAppPreview] = useState(false);
+  const [whatsAppPreviewData, setWhatsAppPreviewData] = useState(null);
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const [sharingWhatsAppInvoice, setSharingWhatsAppInvoice] = useState(null);
+  const [sharingLoginViaWA, setSharingLoginViaWA] = useState(null);
 
   if (loading) return <Preloader />;
   if (error)
@@ -415,6 +435,111 @@ const Billing = () => {
     }
   };
 
+  const handleShareInvoiceWhatsApp = async (invoice) => {
+    setSharingWhatsAppInvoice(invoice.id);
+    try {
+      const { data } = await sendInvoiceWhatsApp({
+        variables: {
+          invoiceId: invoice.id,
+          patientId: invoice.patientId,
+        },
+      });
+      const result = data?.sendInvoiceWhatsApp;
+      if (result?.success) {
+        toast.success(
+          result.skipped
+            ? "Message ready (WhatsApp not configured on server)"
+            : `Invoice details sent via WhatsApp to ${result.patientName || "patient"}`,
+        );
+        if (result.messagePreview) {
+          setWhatsAppPreviewData({
+            title: "Invoice WhatsApp Message",
+            message: result.messagePreview,
+            phone: result.phone,
+          });
+          setShowWhatsAppPreview(true);
+        }
+      } else if (result?.skipped) {
+        setWhatsAppPreviewData({
+          title: "Invoice WhatsApp Message (Preview - Not Sent)",
+          message: result.messagePreview || "Message content",
+          phone: result.phone,
+          note: "WhatsApp not configured on server. Configure WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID.",
+        });
+        setShowWhatsAppPreview(true);
+        toast(
+          "WhatsApp not configured on server. Preview available instead.",
+          { icon: "ℹ️" },
+        );
+      } else {
+        toast.error(result?.error || "Failed to send WhatsApp message");
+      }
+    } catch (err) {
+      toast.error(err.message || "Failed to send WhatsApp message");
+    } finally {
+      setSharingWhatsAppInvoice(null);
+    }
+  };
+
+  const handleShareLoginWhatsApp = async (credentials) => {
+    if (!credentials) return;
+    setSharingLoginViaWA(credentials.patientId);
+    try {
+      const { data } = await sendLoginCredentialsWhatsApp({
+        variables: {
+          patientId: credentials.patientId,
+          patientName: credentials.patientName,
+          phone: credentials.phone,
+          password: credentials.password,
+        },
+      });
+      const result = data?.sendLoginCredentialsWhatsApp;
+      if (result?.success) {
+        toast.success(
+          result.skipped
+            ? "Login message ready (WhatsApp not configured on server)"
+            : `Login credentials sent via WhatsApp to ${credentials.patientName}`,
+        );
+        if (result.messagePreview) {
+          setWhatsAppPreviewData({
+            title: "Login Credentials WhatsApp Message",
+            message: result.messagePreview,
+            phone: result.phone,
+          });
+          setShowWhatsAppPreview(true);
+        }
+      } else if (result?.skipped) {
+        setWhatsAppPreviewData({
+          title: "Login WhatsApp Message (Preview - Not Sent)",
+          message: result.messagePreview || "Message content",
+          phone: result.phone,
+          note: "WhatsApp not configured on server. Configure WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID.",
+        });
+        setShowWhatsAppPreview(true);
+        toast(
+          "WhatsApp not configured on server. Preview available instead.",
+          { icon: "ℹ️" },
+        );
+      } else {
+        toast.error(result?.error || "Failed to send WhatsApp message");
+      }
+    } catch (err) {
+      toast.error(err.message || "Failed to send WhatsApp message");
+    } finally {
+      setSharingLoginViaWA(null);
+    }
+  };
+
+  const handleDirectWhatsAppShare = (phone, text) => {
+    const digitsOnly = (phone || "").replace(/\D/g, "").slice(-10);
+    const waPhone = digitsOnly ? `91${digitsOnly}` : "";
+    const encodedText = encodeURIComponent(text || "");
+    const waUrl = waPhone
+      ? `https://wa.me/${waPhone}?text=${encodedText}`
+      : `https://wa.me/?text=${encodedText}`;
+    window.open(waUrl, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <Suspense fallback={<Preloader />}>
       <div className="max-w-7xl mx-auto">
@@ -451,13 +576,54 @@ const Billing = () => {
             {...fadeIn("up", 0.05)}
             className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-4"
           >
-            <p className="text-sm font-semibold text-green-900">
-              Patient login generated for {generatedLogin.patientName}
-            </p>
-            <p className="text-sm text-green-800 mt-1">
-              Phone: {generatedLogin.phone} | Password:{" "}
-              {generatedLogin.password}
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-green-900">
+                  Patient login generated for {generatedLogin.patientName}
+                </p>
+                <p className="text-sm text-green-800 mt-1">
+                  Phone: {generatedLogin.phone} | Password:{" "}
+                  <span className="font-semibold">{generatedLogin.password}</span>
+                </p>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => handleShareLoginWhatsApp(generatedLogin)}
+                  disabled={sharingLoginViaWA === generatedLogin.patientId}
+                  className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  {sharingLoginViaWA === generatedLogin.patientId ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <MessageCircle size={16} />
+                  )}
+                  Send WhatsApp
+                </button>
+                <button
+                  onClick={() => {
+                    const loginMsg = `🏥 CREADENT DENTAL CLINIC\n\nDear ${generatedLogin.patientName},\n\nYour secure patient portal login:\n📱 Mobile: ${generatedLogin.phone}\n🔑 Password: ${generatedLogin.password}\n\n🔐 Login here: https://creadentsmiles.com/login\n\nAfter login, go to Billing & Payments to pay invoices.\n\nRegards,\nTeam Creadent`;
+                    handleDirectWhatsAppShare(generatedLogin.phone, loginMsg);
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 border border-green-500 text-green-700 hover:bg-green-100 rounded-lg text-sm font-medium transition-colors"
+                >
+                  <ExternalLink size={16} />
+                  Open WA
+                </button>
+                <button
+                  onClick={() => {
+                    const text = `Patient Login - ${generatedLogin.patientName}\nPhone: ${generatedLogin.phone}\nPassword: ${generatedLogin.password}\nLogin: https://creadentsmiles.com/login`;
+                    if (navigator.clipboard) {
+                      navigator.clipboard.writeText(text);
+                      toast.success("Credentials copied to clipboard");
+                    }
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 border border-green-500 text-green-700 hover:bg-green-100 rounded-lg text-sm font-medium transition-colors"
+                >
+                  <Copy size={16} />
+                  Copy
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
 
@@ -559,34 +725,78 @@ const Billing = () => {
                   Generate patient login password
                 </label>
                 {generatedLogin && (
-                  <div className="text-sm text-gray-700 space-y-1">
-                    <p>
-                      Patient:{" "}
-                      <span className="font-semibold">
-                        {generatedLogin.patientName}
-                      </span>
-                    </p>
-                    <p>
-                      Login phone:{" "}
-                      <span className="font-semibold">
-                        {generatedLogin.phone}
-                      </span>
-                    </p>
-                    <p>
-                      Generated password:{" "}
-                      <span className="font-semibold">
-                        {generatedLogin.password}
-                      </span>
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {generatedLogin.preview
-                        ? generatedLogin.userId
-                          ? "This will reset the patient's current login to the generated password."
-                          : "A new patient login will be created when the invoice is generated."
-                        : generatedLogin.newlyCreated
-                          ? "New patient login created successfully."
-                          : "Existing patient login password updated successfully."}
-                    </p>
+                  <div className="text-sm text-gray-700 space-y-2">
+                    <div className="bg-white rounded-lg p-3 border border-gray-200 space-y-1">
+                      <p>
+                        Patient:{" "}
+                        <span className="font-semibold">
+                          {generatedLogin.patientName}
+                        </span>
+                      </p>
+                      <p>
+                        Login phone:{" "}
+                        <span className="font-semibold">
+                          {generatedLogin.phone}
+                        </span>
+                      </p>
+                      <p>
+                        Generated password:{" "}
+                        <span className="font-semibold text-primary">
+                          {generatedLogin.password}
+                        </span>
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {generatedLogin.preview
+                          ? generatedLogin.userId
+                            ? "This will reset the patient's current login to the generated password."
+                            : "A new patient login will be created when the invoice is generated."
+                          : generatedLogin.newlyCreated
+                            ? "New patient login created successfully."
+                            : "Existing patient login password updated successfully."}
+                      </p>
+                    </div>
+                    {!generatedLogin.preview && (
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => handleShareLoginWhatsApp(generatedLogin)}
+                          disabled={sharingLoginViaWA === generatedLogin.patientId}
+                          className="flex-1 min-w-[180px] flex items-center justify-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg text-sm font-medium transition-colors"
+                        >
+                          {sharingLoginViaWA === generatedLogin.patientId ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <MessageCircle size={16} />
+                          )}
+                          Send Login via WhatsApp
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const loginMsg = `🏥 CREADENT DENTAL CLINIC\n\nDear ${generatedLogin.patientName},\n\nYour secure patient portal login:\n📱 Mobile: ${generatedLogin.phone}\n🔑 Password: ${generatedLogin.password}\n\n🔐 Login here: https://creadentsmiles.com/login\n\nAfter login, visit Billing & Payments to pay invoices online.\n\nRegards,\nTeam Creadent Dental Clinic`;
+                            handleDirectWhatsAppShare(generatedLogin.phone, loginMsg);
+                          }}
+                          className="flex items-center justify-center gap-2 px-3 py-2 border border-green-500 text-green-700 hover:bg-green-50 rounded-lg text-sm font-medium transition-colors"
+                          title="Open WhatsApp Web directly"
+                        >
+                          <ExternalLink size={16} />
+                          Open WA
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const text = `Patient Login for ${generatedLogin.patientName}\nPhone: ${generatedLogin.phone}\nPassword: ${generatedLogin.password}\nLogin: https://creadentsmiles.com/login`;
+                            if (navigator.clipboard) {
+                              navigator.clipboard.writeText(text);
+                              toast.success("Login credentials copied to clipboard");
+                            }
+                          }}
+                          className="flex items-center justify-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors"
+                        >
+                          <Copy size={16} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1042,6 +1252,11 @@ const Billing = () => {
                     invoice={invoice}
                     delay={index * 0.05}
                     onPay={user?.role !== "doctor" ? handlePayment : undefined}
+                    onShareWhatsApp={
+                      user?.role === "admin" || user?.role === "employee"
+                        ? handleShareInvoiceWhatsApp
+                        : undefined
+                    }
                     onEdit={
                       user?.role === "admin" || user?.role === "employee"
                         ? handleEditInvoice
@@ -1468,6 +1683,121 @@ const Billing = () => {
                   className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
                 >
                   Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {showWhatsAppPreview && whatsAppPreviewData && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="p-5 border-b border-gray-200 flex items-start justify-between sticky top-0 bg-white z-10 rounded-t-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <MessageCircle size={22} className="text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">
+                      {whatsAppPreviewData.title}
+                    </h3>
+                    {whatsAppPreviewData.phone && (
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        Recipient: +{whatsAppPreviewData.phone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowWhatsAppPreview(false);
+                    setWhatsAppPreviewData(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {whatsAppPreviewData.note && (
+                <div className="mx-5 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800">
+                    ⚠️ {whatsAppPreviewData.note}
+                  </p>
+                </div>
+              )}
+
+              <div className="p-5">
+                <div className="bg-[#e5ddd5] rounded-xl p-4 shadow-inner">
+                  <div className="bg-white rounded-xl p-4 shadow-sm max-w-full">
+                    <div className="flex items-start justify-between mb-3 pb-2 border-b border-gray-100">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                          C
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-gray-800">
+                            Creadent Dental Clinic
+                          </p>
+                          <p className="text-[10px] text-gray-400">
+                            via WhatsApp Business
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-gray-400">
+                        {new Date().toLocaleTimeString("en-IN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                    <pre className="text-sm text-gray-800 whitespace-pre-wrap break-words font-sans leading-relaxed">
+                      {whatsAppPreviewData.message}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 border-t border-gray-200 flex flex-col sm:flex-row gap-2 justify-end">
+                <button
+                  onClick={() => {
+                    handleDirectWhatsAppShare(
+                      whatsAppPreviewData.phone
+                        ? whatsAppPreviewData.phone.replace(/^91/, "").slice(-10)
+                        : "",
+                      whatsAppPreviewData.message,
+                    );
+                  }}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  <ExternalLink size={16} />
+                  Open in WhatsApp
+                </button>
+                <button
+                  onClick={() => {
+                    if (navigator.clipboard) {
+                      navigator.clipboard.writeText(whatsAppPreviewData.message);
+                      toast.success("Message copied to clipboard");
+                    }
+                  }}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors"
+                >
+                  <Copy size={16} />
+                  Copy Message
+                </button>
+                <button
+                  onClick={() => {
+                    setShowWhatsAppPreview(false);
+                    setWhatsAppPreviewData(null);
+                  }}
+                  className="flex-1 sm:flex-none px-4 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors"
+                >
+                  Close
                 </button>
               </div>
             </motion.div>

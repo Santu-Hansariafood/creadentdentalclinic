@@ -14,6 +14,10 @@ const {
   sendAppointmentBookingNotifications,
 } = require("../utils/appointmentNotifications");
 const { sendPrescriptionEmail } = require("../utils/emailService");
+const {
+  sendInvoiceWhatsApp,
+  sendLoginCredentialsWhatsApp,
+} = require("../utils/whatsappNotifications");
 
 const generatePatientPassword = (phone = "") => {
   const currentYear = new Date().getFullYear().toString();
@@ -940,6 +944,105 @@ const resolvers = {
 
       await Invoice.findByIdAndDelete(id);
       return true;
+    },
+    sendInvoiceWhatsApp: async (_, { invoiceId, patientId }, { user }) => {
+      if (!user) {
+        return {
+          success: false,
+          message: "Not authenticated",
+          error: "Not authenticated",
+        };
+      }
+
+      if (!["admin", "employee"].includes(user.role)) {
+        return {
+          success: false,
+          message: "Unauthorized: Only admins and employees can send WhatsApp messages",
+          error: "Unauthorized",
+        };
+      }
+
+      const invoice = await Invoice.findById(invoiceId);
+      if (!invoice) {
+        return {
+          success: false,
+          message: "Invoice not found",
+          error: "Invoice not found",
+        };
+      }
+
+      try {
+        const result = await sendInvoiceWhatsApp(invoice, patientId);
+        return {
+          success: result.success,
+          skipped: result.skipped,
+          message: result.success
+            ? "Invoice details sent via WhatsApp successfully"
+            : result.skipped
+              ? "WhatsApp not configured - message prepared but not sent"
+              : "Failed to send WhatsApp message",
+          phone: result.phone || "",
+          patientName: result.patient?.name || "",
+          error: result.errors?.length > 0 ? result.errors.join(" | ") : result.error || null,
+          messagePreview: result.messagePreview || "",
+        };
+      } catch (err) {
+        return {
+          success: false,
+          message: "Error sending WhatsApp message",
+          error: err?.message || String(err),
+        };
+      }
+    },
+    sendLoginCredentialsWhatsApp: async (
+      _,
+      { patientId, patientName, phone, password },
+      { user },
+    ) => {
+      if (!user) {
+        return {
+          success: false,
+          message: "Not authenticated",
+          error: "Not authenticated",
+        };
+      }
+
+      if (!["admin", "employee"].includes(user.role)) {
+        return {
+          success: false,
+          message: "Unauthorized: Only admins and employees can send WhatsApp messages",
+          error: "Unauthorized",
+        };
+      }
+
+      try {
+        const credentials = {
+          patientId,
+          patientName,
+          phone,
+          password,
+        };
+        const result = await sendLoginCredentialsWhatsApp(credentials);
+        return {
+          success: result.success,
+          skipped: result.skipped,
+          message: result.success
+            ? "Login credentials sent via WhatsApp successfully"
+            : result.skipped
+              ? "WhatsApp not configured - message prepared but not sent"
+              : "Failed to send WhatsApp message",
+          phone: result.phone || "",
+          patientName: patientName || "",
+          error: result.errors?.length > 0 ? result.errors.join(" | ") : result.error || null,
+          messagePreview: result.messagePreview || "",
+        };
+      } catch (err) {
+        return {
+          success: false,
+          message: "Error sending WhatsApp message",
+          error: err?.message || String(err),
+        };
+      }
     },
     createPrescription: async (_, args) => {
       const prescription = new Prescription({

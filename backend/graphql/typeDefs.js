@@ -298,6 +298,16 @@ input UpdateMedicineInput {
     newlyCreated: Boolean!
   }
 
+  type WhatsAppSendResult {
+    success: Boolean!
+    skipped: Boolean
+    message: String
+    phone: String
+    patientName: String
+    error: String
+    messagePreview: String
+  }
+
   type PaginatedMedicines {
     medicines: [Medicine]
     totalCount: Int
@@ -583,6 +593,15 @@ input UpdateMedicineInput {
     ): Invoice
 
     deleteInvoice(id: ID!): Boolean
+
+    sendInvoiceWhatsApp(invoiceId: ID!, patientId: ID): WhatsAppSendResult!
+
+    sendLoginCredentialsWhatsApp(
+      patientId: ID!,
+      patientName: String!,
+      phone: String!,
+      password: String!
+    ): WhatsAppSendResult!
 
     createPrescription(
       patientId: ID!,

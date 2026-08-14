@@ -620,3 +620,41 @@ export const DELETE_INVOICE = gql`
     deleteInvoice(id: $id)
   }
 `;
+
+export const SEND_INVOICE_WHATSAPP = gql`
+  mutation SendInvoiceWhatsApp($invoiceId: ID!, $patientId: ID) {
+    sendInvoiceWhatsApp(invoiceId: $invoiceId, patientId: $patientId) {
+      success
+      skipped
+      message
+      phone
+      patientName
+      error
+      messagePreview
+    }
+  }
+`;
+
+export const SEND_LOGIN_CREDENTIALS_WHATSAPP = gql`
+  mutation SendLoginCredentialsWhatsApp(
+    $patientId: ID!
+    $patientName: String!
+    $phone: String!
+    $password: String!
+  ) {
+    sendLoginCredentialsWhatsApp(
+      patientId: $patientId
+      patientName: $patientName
+      phone: $phone
+      password: $password
+    ) {
+      success
+      skipped
+      message
+      phone
+      patientName
+      error
+      messagePreview
+    }
+  }
+`;
