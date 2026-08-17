@@ -47,21 +47,22 @@ const LoadingFallback = () => (
 );
 
 const PatientRegistrationCheck = ({ children }) => {
-  const { user } = useAuth();
+  const { user, isDemoUser } = useAuth();
   const navigate = useNavigate();
   const isPatient = user && user.role === "patient";
 
   const { data: myPatientData, loading: patientLoading } = useQuery(GET_MY_PATIENT, {
-    skip: !isPatient,
+    skip: !isPatient || isDemoUser,
   });
 
   useEffect(() => {
+    if (isDemoUser) return;
     if (isPatient && !patientLoading && !myPatientData?.getMyPatient) {
       navigate("/patient/complete-registration");
     }
-  }, [isPatient, myPatientData, patientLoading, navigate]);
+  }, [isPatient, myPatientData, patientLoading, navigate, isDemoUser]);
 
-  if (isPatient && patientLoading) {
+  if (isPatient && !isDemoUser && patientLoading) {
     return <LoadingFallback />;
   }
 

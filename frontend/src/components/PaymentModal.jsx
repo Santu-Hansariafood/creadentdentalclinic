@@ -13,7 +13,7 @@ const paymentMethodOptions = [
   "Insurance",
 ];
 
-const PaymentForm = ({ invoice, onSuccess, onClose }) => {
+const PaymentForm = ({ invoice, onSuccess, onClose, isDemo = false }) => {
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
   const [amount, setAmount] = useState(invoice.balance?.toFixed(2) || "0.00");
@@ -24,22 +24,37 @@ const PaymentForm = ({ invoice, onSuccess, onClose }) => {
     e.preventDefault();
 
     setProcessing(true);
+    const numericAmount = parseFloat(amount);
+    const paymentDate = new Date().toISOString();
+    const paymentInfo = {
+      amount: numericAmount,
+      paymentMethod,
+      paymentDate,
+    };
 
     try {
-      const numericAmount = parseFloat(amount);
+      if (isDemo) {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        setSucceeded(true);
+        setTimeout(() => {
+          onSuccess(paymentInfo);
+        }, 1200);
+        return;
+      }
+
       const { data } = await recordInvoicePayment({
         variables: {
           invoiceId: invoice.id,
           amount: numericAmount,
           paymentMethod,
-          paymentDate: new Date().toISOString(),
+          paymentDate,
         },
       });
 
       if (data?.recordInvoicePayment) {
         setSucceeded(true);
         setTimeout(() => {
-          onSuccess(data.recordInvoicePayment);
+          onSuccess(paymentInfo);
         }, 1200);
       }
     } catch (err) {
@@ -168,7 +183,7 @@ const PaymentForm = ({ invoice, onSuccess, onClose }) => {
   );
 };
 
-const PaymentModal = ({ invoice, onClose, onSuccess }) => {
+const PaymentModal = ({ invoice, onClose, onSuccess, isDemo = false }) => {
   return (
     <AnimatePresence>
       <motion.div
@@ -186,9 +201,16 @@ const PaymentModal = ({ invoice, onClose, onSuccess }) => {
           className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
         >
           <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
-            <h2 className="font-heading text-2xl font-bold text-gray-900">
-              Complete Payment
-            </h2>
+            <div>
+              <h2 className="font-heading text-2xl font-bold text-gray-900">
+                Complete Payment
+              </h2>
+              {isDemo && (
+                <p className="text-xs mt-1 text-primary font-medium">
+                  Demo Mode — Payment will be recorded locally
+                </p>
+              )}
+            </div>
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -202,6 +224,7 @@ const PaymentModal = ({ invoice, onClose, onSuccess }) => {
               invoice={invoice}
               onSuccess={onSuccess}
               onClose={onClose}
+              isDemo={isDemo}
             />
           </div>
         </motion.div>

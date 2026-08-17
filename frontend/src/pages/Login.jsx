@@ -1,7 +1,7 @@
 import { useState, useEffect,Suspense } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Phone, Lock, Eye, EyeOff, KeyRound, ArrowLeft } from "lucide-react";
+import { Phone, Lock, Eye, EyeOff, KeyRound, ArrowLeft, Sparkles, User, Key } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { fadeIn } from "../utils/motion";
 import { useMutation } from "@apollo/client";
@@ -25,7 +25,7 @@ const Login = () => {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
-  const { login, loading: authLoading } = useAuth();
+  const { login, loading: authLoading, demoPatient } = useAuth();
 
   const [forgotPasswordMutation] = useMutation(FORGOT_PASSWORD);
   const [resetPasswordMutation] = useMutation(RESET_PASSWORD);
@@ -273,6 +273,37 @@ const Login = () => {
                   >
                     {isSubmitting ? "Signing in..." : "Sign In"}
                   </button>
+
+                  {demoPatient?.phone && (
+                    <div className="mt-5 rounded-xl border border-dashed border-primary/40 bg-gradient-to-br from-primary/5 to-secondary/5 p-4">
+                      <div className="flex items-center gap-2 mb-3 text-primary font-semibold text-sm">
+                        <Sparkles size={16} />
+                        Quick Demo Access
+                      </div>
+                      <div className="text-xs space-y-2 text-gray-700">
+                        <div className="flex items-center gap-2">
+                          <User size={14} className="text-gray-500" />
+                          <span className="text-gray-500">Phone:</span>
+                          <span className="font-mono font-semibold">{demoPatient.phone}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Key size={14} className="text-gray-500" />
+                          <span className="text-gray-500">Password:</span>
+                          <span className="font-mono font-semibold">{demoPatient.password}</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setValue("phone", demoPatient.phone, { shouldValidate: true });
+                          setValue("password", demoPatient.password, { shouldValidate: true });
+                        }}
+                        className="mt-3 w-full text-xs font-medium text-primary hover:text-primary/80 hover:underline"
+                      >
+                        Fill demo credentials
+                      </button>
+                    </div>
+                  )}
                 </motion.form>
               )}
 

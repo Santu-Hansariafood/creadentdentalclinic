@@ -15,6 +15,7 @@ import {
   Copy,
   Pencil,
   X,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import InvoiceCard from "../components/InvoiceCard";
@@ -32,12 +33,14 @@ import {
   DELETE_INVOICE,
   SEND_INVOICE_WHATSAPP,
   SEND_LOGIN_CREDENTIALS_WHATSAPP,
+  RECORD_INVOICE_PAYMENT,
 } from "../graphql/mutations";
 import { generateInvoicePDF } from "../utils/pdfGenerator";
 import Preloader from "../components/Preloader";
+import { invoices as mockInvoices, patients as mockPatients } from "../data/mockData";
 
 const Billing = () => {
-  const { user } = useAuth();
+  const { user, isDemoUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
@@ -49,6 +52,7 @@ const Billing = () => {
   const [showCreateInvoice, setShowCreateInvoice] = useState(false);
   const [autoGenerateLogin, setAutoGenerateLogin] = useState(true);
   const [generatedLogin, setGeneratedLogin] = useState(null);
+  const [demoInvoiceList, setDemoInvoiceList] = useState([...mockInvoices]);
   const [newInvoice, setNewInvoice] = useState({
     invoiceNumber: "",
     patientId: "",
@@ -61,13 +65,17 @@ const Billing = () => {
     notes: "",
   });
 
-  const { loading, error, data, refetch } = useQuery(GET_INVOICES);
+  const { loading, error, data, refetch } = useQuery(GET_INVOICES, {
+    skip: isDemoUser,
+  });
   const { data: patientsData } = useQuery(GET_PATIENTS, {
     variables: { page: 1, limit: 100 },
+    skip: isDemoUser,
   });
   const { data: myPatientData } = useQuery(GET_MY_PATIENT, {
-    skip: user?.role !== "patient",
+    skip: user?.role !== "patient" || isDemoUser,
   });
+  const [recordInvoicePayment] = useMutation(RECORD_INVOICE_PAYMENT);
   const [createInvoice] = useMutation(CREATE_INVOICE, {
     refetchQueries: [{ query: GET_INVOICES }],
   });
@@ -104,21 +112,27 @@ const Billing = () => {
   const [sharingWhatsAppInvoice, setSharingWhatsAppInvoice] = useState(null);
   const [sharingLoginViaWA, setSharingLoginViaWA] = useState(null);
 
-  if (loading) return <Preloader />;
-  if (error)
+  if (!isDemoUser && loading) return <Preloader />;
+  if (!isDemoUser && error)
     return (
       <div className="p-6 text-center text-red-500">Error: {error.message}</div>
     );
 
-  const allInvoices = data?.getInvoices || [];
-  const patients = patientsData?.getPatients?.patients || [];
-  const myPatient = myPatientData?.getMyPatient;
+  const allInvoices = isDemoUser
+    ? demoInvoiceList
+    : data?.getInvoices || [];
+  const patients = isDemoUser
+    ? mockPatients
+    : patientsData?.getPatients?.patients || [];
+  const myPatient = isDemoUser
+    ? { id: user?.id, ...user }
+    : myPatientData?.getMyPatient;
   const buildPatientPassword = (phone = "") =>
     `${new Date().getFullYear()}${phone.slice(-4)}`;
 
   const invoices =
     user?.role === "patient" && myPatient
-      ? allInvoices.filter((inv) => inv.patientId === myPatient.id)
+      ? allInvoices.filter((inv) => inv.patientId === myPatient.id || inv.patientId === 1)
       : allInvoices;
 
   const paymentMethods = [];
@@ -295,7 +309,41 @@ const Billing = () => {
     );
   };
 
-  const handlePaymentSuccess = async () => {
+  const handleDemoPaymentSuccess = (paymentInfo) => {
+    if (!selectedInvoice) return;
+    const paymentAmount = paymentInfo?.amount || selectedInvoice.balance;
+    const updated = demoInvoiceList.map((inv) => {
+      if (inv.id !== selectedInvoice.id) return inv;
+      const amountPaid = (inv.amountPaid || 0) + paymentAmount;
+      const total = inv.total || 0;
+      const balance = Math.max(0, total - amountPaid);
+      const status =
+        balance <= 0
+          ? "Paid"
+          : amountPaid > 0
+            ? "Partial"
+            : inv.status || "Unpaid";
+      return {
+        ...inv,
+        amountPaid,
+        balance,
+        status,
+        paymentDate: paymentInfo?.paymentDate || new Date().toISOString(),
+        paymentMethod: paymentInfo?.paymentMethod || inv.paymentMethod,
+      };
+    });
+    setDemoInvoiceList(updated);
+    toast.success("Payment recorded successfully (Demo mode).");
+    setShowPaymentModal(false);
+    setSelectedInvoice(null);
+    setSelectedInvoices([]);
+  };
+
+  const handlePaymentSuccess = async (paymentInfo) => {
+    if (isDemoUser) {
+      handleDemoPaymentSuccess(paymentInfo);
+      return;
+    }
     await refetch();
     toast.success("Payment processed successfully!");
     setShowPaymentModal(false);
@@ -1294,11 +1342,12 @@ const Billing = () => {
         {showPaymentModal && selectedInvoice && (
           <PaymentModal
             invoice={selectedInvoice}
+            isDemo={isDemoUser}
             onClose={() => {
               setShowPaymentModal(false);
               setSelectedInvoice(null);
             }}
-            onSuccess={handlePaymentSuccess}
+            onSuccess={(paymentInfo) => handlePaymentSuccess(paymentInfo)}
           />
         )}
 

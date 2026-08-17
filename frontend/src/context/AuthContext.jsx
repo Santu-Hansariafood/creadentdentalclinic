@@ -8,6 +8,39 @@ const AuthContext = createContext();
 
 const AUTH_KEYS = ["token", "user"];
 
+const DEMO_CONFIG = {
+  phone: (import.meta.env.VITE_DEMO_PATIENT_PHONE || "7029481930")
+    .toString()
+    .trim(),
+  password: (import.meta.env.VITE_DEMO_PATIENT_PASSWORD || "Demo@123").trim(),
+  name: import.meta.env.VITE_DEMO_PATIENT_NAME || "Demo Patient",
+  email: import.meta.env.VITE_DEMO_PATIENT_EMAIL || "demo.patient@creadent.com",
+};
+
+export const getDemoPatientInfo = () => ({ ...DEMO_CONFIG });
+
+const isDemoPhone = (phone = "") => {
+  const normalized = phone.toString().replace(/\D/g, "");
+  const demoNormalized = DEMO_CONFIG.phone.toString().replace(/\D/g, "");
+  return normalized === demoNormalized && normalized.length > 0;
+};
+
+const createDemoPatientUser = () => {
+  const phone = DEMO_CONFIG.phone;
+  const demoUser = {
+    id: "demo-patient-9999",
+    userId: "demo-patient-user-9999",
+    phone,
+    name: DEMO_CONFIG.name,
+    email: DEMO_CONFIG.email,
+    role: "patient",
+    verified: true,
+    isDemo: true,
+    createdAt: new Date().toISOString(),
+  };
+  return demoUser;
+};
+
 const clearNonAuthCache = () => {
   try {
     const toKeep = {};
@@ -55,8 +88,10 @@ const isAuthError = (error) => {
 export const AuthProvider = ({ children }) => {
   const apolloClient = useApolloClient();
 
-  const initialToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const initialUserStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const initialToken =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const initialUserStr =
+    typeof window !== "undefined" ? localStorage.getItem("user") : null;
   let initialUser = null;
   if (initialUserStr) {
     try {
@@ -67,7 +102,9 @@ export const AuthProvider = ({ children }) => {
   }
 
   const [user, setUser] = useState(initialUser);
-  const [isAuthenticated, setIsAuthenticated] = useState(Boolean(initialToken && initialUser));
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    Boolean(initialToken && initialUser)
+  );
   const [loading, setLoading] = useState(!initialToken || !initialUser);
 
   const [loginMutation] = useMutation(LOGIN);
@@ -81,12 +118,14 @@ export const AuthProvider = ({ children }) => {
     return () => window.removeEventListener("beforeunload", beforeUnloadHandler);
   }, []);
 
+  const isDemoSession = initialUser?.isDemo || initialToken === "demo-token";
+
   const {
     data: meData,
     loading: meLoading,
     error: meError,
   } = useQuery(GET_ME, {
-    skip: !initialToken,
+    skip: !initialToken || isDemoSession,
     fetchPolicy: "network-only",
   });
 
@@ -116,13 +155,42 @@ export const AuthProvider = ({ children }) => {
     if (!meLoading) {
       setLoading(false);
     }
-  }, [meData, meError, meLoading]);
+  }, [meData, meError, meLoading, isDemoSession]);
 
   const login = async (phone, password, rememberMe = true) => {
+    const cleanPhone = (phone || "").toString().trim();
+    const cleanPassword = (password || "").toString();
+
+    if (isDemoPhone(cleanPhone)) {
+      if (cleanPassword !== DEMO_CONFIG.password) {
+        toast.error("Invalid demo password");
+        return { success: false };
+      }
+      const demoUser = createDemoPatientUser();
+      const demoToken = "demo-token";
+      setUser(demoUser);
+      setIsAuthenticated(true);
+      setLoading(false);
+      try {
+        localStorage.setItem("user", JSON.stringify(demoUser));
+        localStorage.setItem("token", demoToken);
+        if (rememberMe) {
+          localStorage.setItem(
+            "rememberedPhone",
+            demoUser.phone || cleanPhone
+          );
+        } else {
+          localStorage.removeItem("rememberedPhone");
+        }
+      } catch (_) {}
+      toast.success(`Welcome back, ${demoUser.name}!`);
+      return { success: true };
+    }
+
     try {
       const variables = {
-        phone: phone || "",
-        password: password || "",
+        phone: cleanPhone,
+        password: cleanPassword,
       };
 
       const { data } = await loginMutation({ variables });
@@ -136,7 +204,10 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem("user", JSON.stringify(userData));
           localStorage.setItem("token", token);
           if (rememberMe) {
-            localStorage.setItem("rememberedPhone", userData.phone || phone);
+            localStorage.setItem(
+              "rememberedPhone",
+              userData.phone || cleanPhone
+            );
           } else {
             localStorage.removeItem("rememberedPhone");
           }
@@ -211,7 +282,16 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated, loading, login, register, logout }}
+      value={{
+        user,
+        isAuthenticated,
+        loading,
+        login,
+        register,
+        logout,
+        demoPatient: getDemoPatientInfo(),
+        isDemoUser: Boolean(user?.isDemo),
+      }}
     >
       {children}
     </AuthContext.Provider>
