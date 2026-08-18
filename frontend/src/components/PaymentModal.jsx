@@ -1,19 +1,20 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, CreditCard, CheckCircle, Banknote, ShieldCheck } from "lucide-react";
+import {
+  X,
+  CreditCard,
+  CheckCircle,
+  Banknote,
+  ShieldCheck,
+  Wallet,
+  ExternalLink,
+  UserCircle,
+} from "lucide-react";
 import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 import { useMutation } from "@apollo/client";
 import { RECORD_INVOICE_PAYMENT } from "../graphql/mutations";
 import ICICIPayment from "./ICICIPayment";
-
-const paymentMethodOptions = [
-  "Cash",
-  "UPI",
-  "Card",
-  "ICICI Bank",
-  "Bank Transfer",
-  "Insurance",
-];
 
 const PaymentForm = ({
   invoice,
@@ -22,10 +23,15 @@ const PaymentForm = ({
   onClose,
   isDemo = false,
 }) => {
+  const { user } = useAuth();
+  const isPatientSelfServe = user?.role === "patient";
+
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
   const [amount, setAmount] = useState(invoice.balance?.toFixed(2) || "0.00");
-  const [paymentMethod, setPaymentMethod] = useState("UPI");
+  const [paymentMethod, setPaymentMethod] = useState(
+    isPatientSelfServe ? "ICICI Bank" : "ICICI Bank",
+  );
   const [showICICIPayment, setShowICICIPayment] = useState(false);
   const [recordInvoicePayment] = useMutation(RECORD_INVOICE_PAYMENT);
 
@@ -52,6 +58,11 @@ const PaymentForm = ({
 
     if (paymentMethod === "ICICI Bank") {
       setShowICICIPayment(true);
+      return;
+    }
+
+    if (paymentMethod === "Cash" && isPatientSelfServe) {
+      toast.error("Cash payment must be recorded by clinic staff");
       return;
     }
 
@@ -113,7 +124,7 @@ const PaymentForm = ({
           Payment Successful!
         </h3>
         <p className="text-gray-600 mb-4">
-          Payment of Rs {parseFloat(amount || 0).toFixed(2)} has been recorded.
+          Payment of ₹{parseFloat(amount || 0).toFixed(2)} has been recorded.
         </p>
         <p className="text-sm text-gray-500">
           The invoice status has been updated.
@@ -126,8 +137,23 @@ const PaymentForm = ({
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <h3 className="font-heading text-xl font-semibold text-gray-900 mb-4">
-          Payment Details
+          Complete Payment
         </h3>
+
+        {isPatientSelfServe && (
+          <div className="mb-4 p-3 rounded-lg border border-primary/20 bg-primary/5 flex items-start gap-3">
+            <UserCircle size={20} className="text-primary flex-shrink-0 mt-0.5" />
+            <div className="text-xs">
+              <p className="font-semibold text-primary">
+                You are paying your own invoice
+              </p>
+              <p className="text-gray-600 mt-1">
+                Complete your payment securely through ICICI Bank Payment Gateway.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="p-4 bg-gray-50 rounded-lg mb-4">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm text-gray-600">Invoice:</span>
@@ -135,10 +161,16 @@ const PaymentForm = ({
               {invoice.invoiceNumber}
             </span>
           </div>
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm text-gray-600">Patient:</span>
+            <span className="font-medium text-gray-900">
+              {invoice.patientName}
+            </span>
+          </div>
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">Amount Due:</span>
             <span className="text-2xl font-bold text-gray-900">
-              Rs {invoice.balance.toFixed(2)}
+              ₹{(invoice.balance || 0).toFixed(2)}
             </span>
           </div>
         </div>
@@ -161,37 +193,157 @@ const PaymentForm = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 mb-3">
           Payment Method
         </label>
-        <select
-          value={paymentMethod}
-          onChange={(e) => setPaymentMethod(e.target.value)}
-          className="input-field"
-        >
-          {paymentMethodOptions.map((method) => (
-            <option key={method} value={method}>
-              {method}
-            </option>
-          ))}
-        </select>
+
+        <div className="grid grid-cols-1 gap-3">
+          <button
+            type="button"
+            onClick={() => setPaymentMethod("ICICI Bank")}
+            className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+              paymentMethod === "ICICI Bank"
+                ? "border-primary bg-primary/5 shadow-sm"
+                : "border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <div
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                    paymentMethod === "ICICI Bank"
+                      ? "bg-primary/15"
+                      : "bg-gray-100"
+                  }`}
+                >
+                  <CreditCard
+                    size={20}
+                    className={
+                      paymentMethod === "ICICI Bank"
+                        ? "text-primary"
+                        : "text-gray-500"
+                    }
+                  />
+                </div>
+                <div>
+                  <div
+                    className={`font-semibold ${
+                      paymentMethod === "ICICI Bank"
+                        ? "text-primary"
+                        : "text-gray-800"
+                    }`}
+                  >
+                    Pay Online — ICICI Bank
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Secure payment via UPI / Cards / Net Banking on ICICI&apos;s secure portal.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <ShieldCheck
+                  size={18}
+                  className={
+                    paymentMethod === "ICICI Bank"
+                      ? "text-success"
+                      : "text-gray-400"
+                  }
+                />
+                <ExternalLink
+                  size={16}
+                  className={
+                    paymentMethod === "ICICI Bank"
+                      ? "text-primary"
+                      : "text-gray-400"
+                  }
+                />
+              </div>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setPaymentMethod("Cash")}
+            disabled={isPatientSelfServe}
+            className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+              paymentMethod === "Cash"
+                ? "border-primary bg-primary/5 shadow-sm"
+                : "border-gray-200 hover:border-gray-300"
+            } ${
+              isPatientSelfServe ? "opacity-60 cursor-not-allowed" : ""
+            }`}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <div
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                    paymentMethod === "Cash" ? "bg-primary/15" : "bg-gray-100"
+                  }`}
+                >
+                  <Wallet
+                    size={20}
+                    className={
+                      paymentMethod === "Cash"
+                        ? "text-primary"
+                        : "text-gray-500"
+                    }
+                  />
+                </div>
+                <div>
+                  <div
+                    className={`font-semibold ${
+                      paymentMethod === "Cash" ? "text-primary" : "text-gray-800"
+                    }`}
+                  >
+                    Cash
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {isPatientSelfServe
+                      ? "For staff use only"
+                      : "Record an in-clinic cash payment"}
+                  </p>
+                </div>
+              </div>
+              <Banknote
+                size={18}
+                className={
+                  paymentMethod === "Cash" ? "text-primary" : "text-gray-400"
+                }
+              />
+            </div>
+          </button>
+        </div>
 
         {paymentMethod === "ICICI Bank" && (
-          <div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 flex items-start gap-3">
-            <ShieldCheck size={20} className="text-primary flex-shrink-0 mt-0.5" />
+          <div className="mt-4 p-3 rounded-lg border border-success/30 bg-success/5 flex items-start gap-3">
+            <ShieldCheck
+              size={20}
+              className="text-success flex-shrink-0 mt-0.5"
+            />
             <div className="text-xs">
-              <p className="font-semibold text-primary">
+              <p className="font-semibold text-success">
                 Secure ICICI Bank Payment Gateway
               </p>
               <p className="text-gray-600 mt-1">
-                You will be redirected to ICICI Bank&apos;s secure portal or complete via OTP. Click continue to proceed.
+                You will be redirected to ICICI Bank&apos;s secure portal to complete your payment.
               </p>
             </div>
           </div>
         )}
-        <p className="text-xs text-gray-500 mt-2">
-          Use this to record a full or partial payment immediately.
-        </p>
+
+        {paymentMethod === "Cash" && !isPatientSelfServe && (
+          <div className="mt-4 p-3 rounded-lg border border-warning/30 bg-warning/5 flex items-start gap-3">
+            <Wallet size={20} className="text-warning flex-shrink-0 mt-0.5" />
+            <div className="text-xs">
+              <p className="font-semibold text-warning">
+                Cash payment (in-clinic)
+              </p>
+              <p className="text-gray-600 mt-1">
+                Record this payment only after the patient has paid in cash at the clinic counter.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex gap-3">
@@ -207,11 +359,12 @@ const PaymentForm = ({
             </span>
           ) : paymentMethod === "ICICI Bank" ? (
             <span className="flex items-center justify-center gap-2">
-              <Banknote size={18} />
-              Continue with ICICI Bank
+              <CreditCard size={18} />
+              Continue to ICICI Bank — Pay ₹
+              {parseFloat(amount || 0).toFixed(2)}
             </span>
           ) : (
-            `Pay Rs ${parseFloat(amount || 0).toFixed(2)}`
+            `Record Cash ₹${parseFloat(amount || 0).toFixed(2)}`
           )}
         </button>
         <button
@@ -227,7 +380,7 @@ const PaymentForm = ({
       <div className="flex items-center justify-center gap-4 pt-4 border-t border-gray-200">
         <div className="flex gap-2">
           <CreditCard size={24} className="text-gray-400" />
-          <span className="text-xs text-gray-500">Recorded in billing</span>
+          <span className="text-xs text-gray-500">Recorded in billing ledger</span>
         </div>
       </div>
     </form>

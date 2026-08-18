@@ -258,7 +258,15 @@ const resolvers = {
     },
     getMedicalRecords: async () =>
       await MedicalRecord.find().sort({ date: -1 }).populate("patient"),
-    getInvoices: async () => await Invoice.find().sort({ date: -1 }),
+    getInvoices: async (_, __, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      if (user.role === "patient") {
+        const patient = await Patient.findOne({ userId: user._id });
+        if (!patient) return [];
+        return await Invoice.find({ patientId: patient._id }).sort({ date: -1 });
+      }
+      return await Invoice.find().sort({ date: -1 });
+    },
     getPrescriptions: async () => await Prescription.find().sort({ date: -1 }),
     getPaymentLedgers: async (_, { page = 1, limit = 10, search = "" }) => {
       const skip = (page - 1) * limit;
@@ -533,8 +541,16 @@ const resolvers = {
       if (!user) throw new Error("Not authenticated");
       const skip = (page - 1) * limit;
       const query = {};
+      if (user.role === "patient") {
+        const patient = await Patient.findOne({ userId: user._id });
+        if (!patient) {
+          return { transactions: [], totalCount: 0, totalPages: 0, currentPage: page };
+        }
+        query.patientId = patient._id;
+      } else if (patientId) {
+        query.patientId = patientId;
+      }
       if (invoiceId) query.invoiceId = invoiceId;
-      if (patientId) query.patientId = patientId;
       if (txnStatus) query.txnStatus = txnStatus;
       const transactions = await Transaction.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit);
       const totalCount = await Transaction.countDocuments(query);
@@ -547,7 +563,14 @@ const resolvers = {
     },
     getTransaction: async (_, { id }, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return await Transaction.findById(id);
+      const transaction = await Transaction.findById(id);
+      if (transaction && user.role === "patient") {
+        const patient = await Patient.findOne({ userId: user._id });
+        if (!patient || transaction.patientId?.toString() !== patient._id.toString()) {
+          throw new Error("Unauthorized");
+        }
+      }
+      return transaction;
     },
   },
   Mutation: {
@@ -902,6 +925,11 @@ const resolvers = {
         const patient = await Patient.findOne({ userId: user._id });
         if (!patient || invoice.patientId.toString() !== patient._id.toString()) {
           throw new Error("Unauthorized: You can only pay your own invoices");
+        }
+        if (paymentMethod && paymentMethod.toLowerCase() === "cash") {
+          throw new Error(
+            "Unauthorized: Cash payments must be recorded by clinic staff. Use ICICI Bank payment gateway to pay online.",
+          );
         }
       }
 
@@ -1517,17 +1545,41 @@ const resolvers = {
     iciciInitiateSale: async (_, { invoiceId, patientId, amount, customerEmailID, customerMobileNo, payType }, { user }) => {
       if (!user) throw new Error("Not authenticated");
       if (user.role === "doctor") throw new Error("Unauthorized: Doctors cannot initiate payments");
+
+      const invoice = await Invoice.findById(invoiceId);
+      if (!invoice) throw new Error("Invoice not found");
+      if (invoice.status === "Paid") throw new Error("Invoice is already paid");
+
+      let resolvedPatientId = patientId || invoice.patientId;
+
       if (user.role === "patient") {
         const patient = await Patient.findOne({ userId: user._id });
-        if (!patient || patient._id.toString() !== patientId.toString()) {
+        if (!patient) throw new Error("Unauthorized: Patient profile not found");
+        if (invoice.patientId?.toString() !== patient._id.toString()) {
           throw new Error("Unauthorized: You can only pay your own invoices");
         }
+        resolvedPatientId = patient._id;
       }
-      const result = await initiateSale({ invoiceId, patientId, amount, customerEmailID, customerMobileNo, payType });
+
+      const result = await initiateSale({
+        invoiceId: invoice._id,
+        patientId: resolvedPatientId,
+        amount,
+        customerEmailID,
+        customerMobileNo,
+        payType,
+      });
       return result;
     },
     iciciGenerateOTP: async (_, { transactionId, tranCtx }, { user }) => {
       if (!user) throw new Error("Not authenticated");
+      if (user.role === "patient") {
+        const patient = await Patient.findOne({ userId: user._id });
+        const transaction = await Transaction.findById(transactionId);
+        if (!patient || !transaction || transaction.patientId?.toString() !== patient._id.toString()) {
+          throw new Error("Unauthorized");
+        }
+      }
       const result = await generateOTP({ transactionId, tranCtx });
       return {
         success: result.success,
@@ -1537,6 +1589,13 @@ const resolvers = {
     },
     iciciVerifyOTP: async (_, { transactionId, tranCtx, otpValue }, { user }) => {
       if (!user) throw new Error("Not authenticated");
+      if (user.role === "patient") {
+        const patient = await Patient.findOne({ userId: user._id });
+        const transaction = await Transaction.findById(transactionId);
+        if (!patient || !transaction || transaction.patientId?.toString() !== patient._id.toString()) {
+          throw new Error("Unauthorized");
+        }
+      }
       const result = await verifyOTP({ transactionId, tranCtx, otpValue });
       return {
         success: result.success,
@@ -1546,6 +1605,13 @@ const resolvers = {
     },
     iciciAuthorize: async (_, { transactionId, tranCtx }, { user }) => {
       if (!user) throw new Error("Not authenticated");
+      if (user.role === "patient") {
+        const patient = await Patient.findOne({ userId: user._id });
+        const transaction = await Transaction.findById(transactionId);
+        if (!patient || !transaction || transaction.patientId?.toString() !== patient._id.toString()) {
+          throw new Error("Unauthorized");
+        }
+      }
       const result = await authorizeTransaction({ transactionId, tranCtx });
       return {
         success: result.success,
@@ -1555,6 +1621,22 @@ const resolvers = {
     },
     iciciGetTransactionStatus: async (_, { transactionId, merchantTxnNo }, { user }) => {
       if (!user) throw new Error("Not authenticated");
+      if (user.role === "patient") {
+        const patient = await Patient.findOne({ userId: user._id });
+        if (transactionId) {
+          const transaction = await Transaction.findById(transactionId);
+          if (!patient || !transaction || transaction.patientId?.toString() !== patient._id.toString()) {
+            throw new Error("Unauthorized");
+          }
+        } else if (merchantTxnNo) {
+          const transaction = await Transaction.findOne({ merchantTxnNo });
+          if (!patient || !transaction || transaction.patientId?.toString() !== patient._id.toString()) {
+            throw new Error("Unauthorized");
+          }
+        } else {
+          throw new Error("Either transactionId or merchantTxnNo is required");
+        }
+      }
       const result = await getTransactionStatus({ transactionId, merchantTxnNo });
       return {
         success: result.success,

@@ -471,20 +471,44 @@ const handleICICICallback = async (callbackData) => {
     return { success: false, error: "Transaction not found" };
   }
 
-  const hashValid =
-    callbackData.secureHash || callbackData.securehash
-      ? verifySecureHash(
-          callbackData,
-          ICICI_CONFIG.secretKey,
-          callbackData.secureHash || callbackData.securehash,
-        )
-      : true;
+  const receivedHash = callbackData.secureHash || callbackData.securehash;
+  let hashValid = false;
+
+  if (receivedHash) {
+    hashValid = verifySecureHash(callbackData, ICICI_CONFIG.secretKey, receivedHash);
+    if (!hashValid) {
+      console.warn(
+        "[ICICI] SECURITY: Hash mismatch for txn",
+        merchantTxnNo,
+        "| received:",
+        receivedHash,
+      );
+    } else {
+      console.log("[ICICI] Secure hash verified successfully for txn:", merchantTxnNo);
+    }
+  } else {
+    console.warn(
+      "[ICICI] No secureHash / securehash received in callback for txn:",
+      merchantTxnNo,
+      "Proceeding without hash verification. Confirm with ICICI whether a hash should be present.",
+    );
+    hashValid = true;
+  }
 
   const txnStatus =
     callbackData.txnStatus ||
     callbackData.txn_status ||
     callbackData.status ||
     transaction.txnStatus;
+
+  console.log(
+    "[ICICI] Callback status transition:",
+    transaction.txnStatus,
+    "→",
+    txnStatus,
+    "| hashValid:",
+    hashValid,
+  );
 
   const prevStatus = transaction.txnStatus;
   transaction.txnStatus = txnStatus;
@@ -518,6 +542,12 @@ const handleICICICallback = async (callbackData) => {
     !transaction.amountPaidApplied
   ) {
     invoice = await reconcilePaymentToInvoice(transaction);
+    console.log(
+      "[ICICI] Payment reconciled to invoice:",
+      invoice?._id,
+      "| applied:",
+      transaction.amountPaidApplied,
+    );
   }
 
   return {

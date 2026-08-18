@@ -117,8 +117,18 @@ const ICICIPayment = ({
         return;
       }
 
-      setStep("choose");
-      setProcessing(false);
+      const shouldAutoRedirect =
+        payType === "0" &&
+        result.redirectURI &&
+        (result.showOTPCapturePage === "N" || !result.showOTPCapturePage);
+
+      if (shouldAutoRedirect) {
+        setProcessing(false);
+        setTimeout(() => handleRedirectFlow(), 300);
+      } else {
+        setStep("choose");
+        setProcessing(false);
+      }
     } catch (err) {
       setErrorMsg(err.message || "Failed to initiate payment");
       toast.error(err.message || "Failed to initiate payment");

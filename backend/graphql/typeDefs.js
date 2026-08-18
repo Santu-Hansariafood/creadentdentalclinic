@@ -437,7 +437,7 @@ input UpdateMedicineInput {
     priority: String
   }
 
-  type ICIICISaleResponse {
+  type ICICISaleResponse {
     transactionId: ID!
     merchantTxnNo: String!
     txnStatus: String
@@ -523,6 +523,8 @@ input UpdateMedicineInput {
     refundedAmount: Float
     refundTxnNo: String
     refundStatus: String
+    amountPaidApplied: Float
+    hashVerified: Boolean
     createdAt: String
     updatedAt: String
   }
@@ -800,7 +802,7 @@ input UpdateMedicineInput {
       customerEmailID: String
       customerMobileNo: String
       payType: String
-    ): ICIICISaleResponse!
+    ): ICICISaleResponse!
 
     iciciGenerateOTP(
       transactionId: ID!

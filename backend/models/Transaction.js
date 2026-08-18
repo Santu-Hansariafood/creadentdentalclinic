@@ -44,6 +44,8 @@ const transactionSchema = new mongoose.Schema(
     refundTxnNo: { type: String },
     refundStatus: { type: String },
     secureHash: { type: String },
+    amountPaidApplied: { type: Number, default: 0 },
+    hashVerified: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
