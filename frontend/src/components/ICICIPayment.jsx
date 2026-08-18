@@ -42,7 +42,7 @@ const ICICIPayment = ({
 }) => {
   const [step, setStep] = useState("init");
   const amount = Number(invoice.balance || 0).toFixed(2);
-  const [payType, setPayType] = useState(defaultPayType);
+  const [payType] = useState(defaultPayType || "0");
   const [transactionId, setTransactionId] = useState(null);
   const [tranCtx, setTranCtx] = useState("");
   const [redirectURI, setRedirectURI] = useState("");
@@ -405,41 +405,15 @@ const ICICIPayment = ({
 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Integration Mode
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setPayType("0")}
-                    className={`p-4 rounded-lg border-2 transition-all text-left ${
-                      payType === "0"
-                        ? "border-primary bg-primary/5"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <ExternalLink size={18} className={payType === "0" ? "text-primary" : "text-gray-500"} />
-                      <span className={`font-semibold ${payType === "0" ? "text-primary" : "text-gray-700"}`}>Standard</span>
-                    </div>
-                    <p className="text-xs text-gray-500">Redirect to bank secure page</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPayType("1")}
-                    className={`p-4 rounded-lg border-2 transition-all text-left ${
-                      payType === "1"
-                        ? "border-primary bg-primary/5"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <Smartphone size={18} className={payType === "1" ? "text-primary" : "text-gray-500"} />
-                      <span className={`font-semibold ${payType === "1" ? "text-primary" : "text-gray-700"}`}>Direct</span>
-                    </div>
-                    <p className="text-xs text-gray-500">Card + OTP on this page</p>
-                  </button>
+              <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <ShieldCheck size={20} className="text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-gray-900">Secure ICICI Bank checkout</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      You will be redirected to ICICI Bank&apos;s payment page to complete the transaction securely.
+                    </p>
+                  </div>
                 </div>
               </div>
 
