@@ -180,12 +180,11 @@ const generateICICISalePayload = async ({
 };
 
 const buildICICIRedirectUrl = (redirectURI, tranCtx) => {
+  // Return the base authRedirect URL without parameters
+  // tranCtx will be POSTed as form data, not URL parameter
   if (!redirectURI) return "";
-  if (!tranCtx) return redirectURI;
-  if (redirectURI.includes("tranCtx=")) return redirectURI;
-
-  const separator = redirectURI.includes("?") ? "&" : "?";
-  return `${redirectURI}${separator}tranCtx=${encodeURIComponent(tranCtx)}`;
+  // Strip any existing query params from redirectURI
+  return redirectURI.split("?")[0];
 };
 
 const callICICIAPI = async (url, payload, headers = {}) => {

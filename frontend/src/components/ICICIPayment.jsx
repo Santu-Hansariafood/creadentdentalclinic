@@ -148,17 +148,26 @@ const ICICIPayment = ({
       return;
     }
 
-    const finalRedirectUrl = (() => {
-      if (!tranCtx) return redirectURI;
-      if (redirectURI.includes("tranCtx=")) return redirectURI;
-      const separator = redirectURI.includes("?") ? "&" : "?";
-      return `${redirectURI}${separator}tranCtx=${encodeURIComponent(tranCtx)}`;
-    })();
-
+    // ICICI authRedirect expects POST form submission with tranCtx as form field
     const redirectForm = document.createElement("form");
-    redirectForm.method = "GET";
-    redirectForm.action = finalRedirectUrl;
+    redirectForm.method = "POST";
+    redirectForm.action = redirectURI; // Base URL without params
     redirectForm.target = "_self";
+
+    // Add tranCtx as hidden form field
+    if (tranCtx) {
+      const tranCtxInput = document.createElement("input");
+      tranCtxInput.type = "hidden";
+      tranCtxInput.name = "tranCtx";
+      tranCtxInput.value = tranCtx;
+      redirectForm.appendChild(tranCtxInput);
+    }
+
+    console.log("[Payment] Submitting to ICICI authRedirect:", {
+      url: redirectURI,
+      method: "POST",
+      tranCtx: tranCtx ? "***" : "not provided",
+    });
 
     document.body.appendChild(redirectForm);
     setStep("redirect-wait");
