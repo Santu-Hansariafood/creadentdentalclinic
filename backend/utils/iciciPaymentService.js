@@ -10,37 +10,37 @@ const ICICI_CONFIG = {
   secretKey: process.env.ICICI_SECRET_KEY || "",
   currencyCode: process.env.ICICI_CURRENCY_CODE || "356",
   payType: process.env.ICICI_PAY_TYPE || "0",
-  uatBaseUrl: "https://pqpayuat.icicibank.com/tsp/pq/api/v2",
+  uatBaseUrl: "https://pgpayuat.icici.bank.in/tsp/pg/api/v2",
   prodBaseUrl: "https://pgpay.icicibank.com/pg/api/v2",
   get baseUrl() {
     return this.isUAT ? this.uatBaseUrl : this.prodBaseUrl;
   },
   get initiateSaleUrl() {
-    return `${this.baseUrl}/initiateSale`;
-  },
+  return process.env.ICICI_INITIATE_SALE_URL || `${this.baseUrl}/initiateSale`;
+},
   get generateOtpUrl() {
-    return `${this.baseUrl}/generateOTP`;
+    return process.env.ICICI_GENER_OTP_URL || `${this.baseUrl}/generateOTP`;
   },
   get verifyOtpUrl() {
     return `${this.baseUrl}/verifyOTP`;
   },
   get authorizeUrl() {
-    return `${this.baseUrl}/authorize`;
+    return process.env.ICICI_AUTHORIZE_URL || `${this.baseUrl}/authorize`;
   },
   get transactionStatusUrl() {
-    return `${this.baseUrl}/transactionStatus`;
+    return process.env.ICICI_TX_STATUS_URL || `${this.baseUrl}/transactionStatus`;
   },
   get refundUrl() {
-    return `${this.baseUrl}/refund`;
+    return process.env.ICICI_REFUND_URL || `${this.baseUrl}/refund`;
   },
   get settlementStatusUrl() {
-    return `${this.baseUrl}/settlementStatus`;
+    return process.env.ICICI_SETTLEMENT_STATUS_URL || `${this.baseUrl}/settlementStatus`;
   },
   get settlementSummaryUrl() {
-    return `${this.baseUrl}/settlementSummary`;
+    return process.env.ICICI_SETTLEMENT_SUMMARY_URL || `${this.baseUrl}/settlementSummary`;
   },
   get settlementDetailsUrl() {
-    return `${this.baseUrl}/settlementDetails`;
+    return process.env.ICICI_SETTLEMENT_DETAILS_URL || `${this.baseUrl}/settlementDetails`;
   },
   callbackUrl: process.env.ICICI_CALLBACK_URL || "",
   redirectUrl: process.env.ICICI_REDIRECT_URL || "",
