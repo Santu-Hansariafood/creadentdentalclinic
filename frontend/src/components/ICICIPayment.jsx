@@ -148,18 +148,17 @@ const ICICIPayment = ({
       return;
     }
 
-    const redirectForm = document.createElement("form");
-    redirectForm.method = "POST";
-    redirectForm.action = redirectURI;
-    redirectForm.target = "_self";
+    const finalRedirectUrl = (() => {
+      if (!tranCtx) return redirectURI;
+      if (redirectURI.includes("tranCtx=")) return redirectURI;
+      const separator = redirectURI.includes("?") ? "&" : "?";
+      return `${redirectURI}${separator}tranCtx=${encodeURIComponent(tranCtx)}`;
+    })();
 
-    if (tranCtx) {
-      const tranCtxInput = document.createElement("input");
-      tranCtxInput.type = "hidden";
-      tranCtxInput.name = "tranCtx";
-      tranCtxInput.value = tranCtx;
-      redirectForm.appendChild(tranCtxInput);
-    }
+    const redirectForm = document.createElement("form");
+    redirectForm.method = "GET";
+    redirectForm.action = finalRedirectUrl;
+    redirectForm.target = "_self";
 
     document.body.appendChild(redirectForm);
     setStep("redirect-wait");

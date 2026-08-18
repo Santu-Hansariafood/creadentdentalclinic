@@ -179,6 +179,15 @@ const generateICICISalePayload = async ({
   return payload;
 };
 
+const buildICICIRedirectUrl = (redirectURI, tranCtx) => {
+  if (!redirectURI) return "";
+  if (!tranCtx) return redirectURI;
+  if (redirectURI.includes("tranCtx=")) return redirectURI;
+
+  const separator = redirectURI.includes("?") ? "&" : "?";
+  return `${redirectURI}${separator}tranCtx=${encodeURIComponent(tranCtx)}`;
+};
+
 const callICICIAPI = async (url, payload, headers = {}) => {
   try {
     const securehash = payload.secureHash;
@@ -257,18 +266,21 @@ const initiateSale = async ({
 
   if (result.success && result.data) {
     const responseData = result.data;
-    
+    const redirectURI = responseData.redirectURI || "";
+    const tranCtx = responseData.tranCtx || "";
+    const normalizedRedirectURI = buildICICIRedirectUrl(redirectURI, tranCtx);
+
     transaction.txnStatus = responseData.txnStatus || "REQ";
     transaction.txnResponseCode = responseData.responseCode || "";
     transaction.txnResponseMsg = responseData.respDescription || "";
     transaction.pgTxnNo = responseData.pgTxnNo || "";
-    transaction.redirectURI = responseData.redirectURI || "";
-    transaction.tranCtx = responseData.tranCtx || "";
+    transaction.redirectURI = normalizedRedirectURI;
+    transaction.tranCtx = tranCtx;
     transaction.showOTPCapturePage = responseData.showOTPCapturePage || "N";
     transaction.rawResponse = responseData;
     await transaction.save();
 
-    if (!responseData.redirectURI) {
+    if (!normalizedRedirectURI) {
       return {
         transactionId: transaction._id.toString(),
         merchantTxnNo: transaction.merchantTxnNo,
@@ -280,8 +292,8 @@ const initiateSale = async ({
     return {
       transactionId: transaction._id.toString(),
       merchantTxnNo: transaction.merchantTxnNo,
-      redirectURI: responseData.redirectURI,
-      tranCtx: responseData.tranCtx,
+      redirectURI: normalizedRedirectURI,
+      tranCtx,
       pgTxnNo: responseData.pgTxnNo,
       txnStatus: responseData.txnStatus || "REQ",
       showOTPCapturePage: responseData.showOTPCapturePage || "N",
