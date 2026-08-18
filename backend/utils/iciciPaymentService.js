@@ -180,11 +180,20 @@ const generateICICISalePayload = async ({
 };
 
 const buildICICIRedirectUrl = (redirectURI, tranCtx) => {
-  // Return the base authRedirect URL without parameters
-  // tranCtx will be POSTed as form data, not URL parameter
   if (!redirectURI) return "";
-  // Strip any existing query params from redirectURI
-  return redirectURI.split("?")[0];
+
+  // ICICI Orange PG sample flow expects redirectURI to include the transaction context
+  // as a query parameter, e.g. .../authRedirect?tranCtx=XYZ
+  if (!tranCtx) return redirectURI;
+
+  const separator = redirectURI.includes("?") ? "&" : "?";
+  const hasTranCtxAlready = /(?:^|[?&])tranCtx=/.test(redirectURI);
+
+  if (hasTranCtxAlready) {
+    return redirectURI;
+  }
+
+  return `${redirectURI}${separator}tranCtx=${encodeURIComponent(tranCtx)}`;
 };
 
 const callICICIAPI = async (url, payload, headers = {}) => {

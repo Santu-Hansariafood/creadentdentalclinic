@@ -149,30 +149,20 @@ const ICICIPayment = ({
       return;
     }
 
-    // ICICI authRedirect expects POST form submission with tranCtx as form field
-    const redirectForm = document.createElement("form");
-    redirectForm.method = "POST";
-    redirectForm.action = redirectURI; // Base URL without params
-    redirectForm.target = "_self";
+    const finalRedirectUrl = (() => {
+      if (!tranCtx) return redirectURI;
+      const separator = redirectURI.includes("?") ? "&" : "?";
+      const hasTranCtx = /(?:^|[?&])tranCtx=/.test(redirectURI);
+      return hasTranCtx ? redirectURI : `${redirectURI}${separator}tranCtx=${encodeURIComponent(tranCtx)}`;
+    })();
 
-    // Add tranCtx as hidden form field
-    if (tranCtx) {
-      const tranCtxInput = document.createElement("input");
-      tranCtxInput.type = "hidden";
-      tranCtxInput.name = "tranCtx";
-      tranCtxInput.value = tranCtx;
-      redirectForm.appendChild(tranCtxInput);
-    }
-
-    console.log("[Payment] Submitting to ICICI authRedirect:", {
-      url: redirectURI,
-      method: "POST",
+    console.log("[Payment] Redirecting browser to ICICI authRedirect:", {
+      url: finalRedirectUrl,
       tranCtx: tranCtx ? "***" : "not provided",
     });
 
-    document.body.appendChild(redirectForm);
     setStep("redirect-wait");
-    redirectForm.submit();
+    window.location.href = finalRedirectUrl;
   };
 
   const handleGenerateOTP = async () => {
