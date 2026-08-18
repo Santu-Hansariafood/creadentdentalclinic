@@ -39,6 +39,7 @@ const ICICIPayment = ({
   onSuccess,
   isDemo = false,
   defaultPayType = "0",
+  autoInitiate = false,
 }) => {
   const [step, setStep] = useState("init");
   const amount = Number(invoice.balance || 0).toFixed(2);
@@ -304,12 +305,15 @@ const ICICIPayment = ({
   };
 
   useEffect(() => {
+    if (autoInitiate && step === "init" && !processing && !errorMsg) {
+      handleInitiateSale();
+    }
+  }, [autoInitiate, step, processing, errorMsg]);
+
+  useEffect(() => {
     if (step !== "redirect-wait" || !transactionId || isDemo) return;
     
-    // Status polling during redirect-wait:
-    // Only checks status, does NOT trigger success
-    // Success is triggered ONLY when browser naturally lands on /billing after ICICI redirects back
-    const maxPolls = 120; // 10 minutes max polling
+    const maxPolls = 120;
     const poll = setInterval(() => {
       if (statusPollCount >= maxPolls) {
         clearInterval(poll);

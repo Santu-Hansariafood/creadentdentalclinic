@@ -42,6 +42,7 @@ const PaymentForm = ({
         patient={patient}
         onClose={() => setShowICICIPayment(false)}
         isDemo={isDemo}
+        autoInitiate={true}
         onSuccess={(paymentInfo) => {
           setShowICICIPayment(false);
           setSucceeded(true);
