@@ -1481,7 +1481,7 @@ const Billing = () => {
           <PaymentModal
             invoice={selectedInvoice}
             patient={selectedPatientForPayment}
-            isDemo={isDemoUser}
+            isDemo={false}
             onClose={() => {
               setShowPaymentModal(false);
               setSelectedInvoice(null);

@@ -19,7 +19,7 @@ const storageService = require("./utils/storageService");
 const {
   startAppointmentReminderScheduler,
 } = require("./utils/appointmentNotifications");
-require("dotenv").config();
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const startServer = async () => {
   const app = express();

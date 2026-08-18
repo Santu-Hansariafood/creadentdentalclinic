@@ -8,38 +8,6 @@ const AuthContext = createContext();
 
 const AUTH_KEYS = ["token", "user"];
 
-const DEMO_CONFIG = {
-  phone: (import.meta.env.VITE_DEMO_PATIENT_PHONE || "7029481930")
-    .toString()
-    .trim(),
-  password: (import.meta.env.VITE_DEMO_PATIENT_PASSWORD || "Demo@123").trim(),
-  name: import.meta.env.VITE_DEMO_PATIENT_NAME || "Demo Patient",
-  email: import.meta.env.VITE_DEMO_PATIENT_EMAIL || "demo.patient@creadent.com",
-};
-
-export const getDemoPatientInfo = () => ({ ...DEMO_CONFIG });
-
-const isDemoPhone = (phone = "") => {
-  const normalized = phone.toString().replace(/\D/g, "");
-  const demoNormalized = DEMO_CONFIG.phone.toString().replace(/\D/g, "");
-  return normalized === demoNormalized && normalized.length > 0;
-};
-
-const createDemoPatientUser = () => {
-  const phone = DEMO_CONFIG.phone;
-  const demoUser = {
-    id: "demo-patient-9999",
-    userId: "demo-patient-user-9999",
-    phone,
-    name: DEMO_CONFIG.name,
-    email: DEMO_CONFIG.email,
-    role: "patient",
-    verified: true,
-    isDemo: true,
-    createdAt: new Date().toISOString(),
-  };
-  return demoUser;
-};
 
 const clearNonAuthCache = () => {
   try {
@@ -118,7 +86,7 @@ export const AuthProvider = ({ children }) => {
     return () => window.removeEventListener("beforeunload", beforeUnloadHandler);
   }, []);
 
-  const isDemoSession = initialUser?.isDemo || initialToken === "demo-token";
+  const isDemoSession = false;
 
   const {
     data: meData,
@@ -160,32 +128,6 @@ export const AuthProvider = ({ children }) => {
   const login = async (phone, password, rememberMe = true) => {
     const cleanPhone = (phone || "").toString().trim();
     const cleanPassword = (password || "").toString();
-
-    if (isDemoPhone(cleanPhone)) {
-      if (cleanPassword !== DEMO_CONFIG.password) {
-        toast.error("Invalid demo password");
-        return { success: false };
-      }
-      const demoUser = createDemoPatientUser();
-      const demoToken = "demo-token";
-      setUser(demoUser);
-      setIsAuthenticated(true);
-      setLoading(false);
-      try {
-        localStorage.setItem("user", JSON.stringify(demoUser));
-        localStorage.setItem("token", demoToken);
-        if (rememberMe) {
-          localStorage.setItem(
-            "rememberedPhone",
-            demoUser.phone || cleanPhone
-          );
-        } else {
-          localStorage.removeItem("rememberedPhone");
-        }
-      } catch (_) {}
-      toast.success(`Welcome back, ${demoUser.name}!`);
-      return { success: true };
-    }
 
     try {
       const variables = {
@@ -289,8 +231,8 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
-        demoPatient: getDemoPatientInfo(),
-        isDemoUser: Boolean(user?.isDemo),
+        demoPatient: null,
+        isDemoUser: false,
       }}
     >
       {children}

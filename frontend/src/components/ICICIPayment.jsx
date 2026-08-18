@@ -74,16 +74,6 @@ const ICICIPayment = ({
     setProcessing(true);
     setErrorMsg("");
     try {
-      if (isDemo) {
-        await new Promise((r) => setTimeout(r, 1000));
-        setTransactionId("DEMO-TXN-" + Date.now());
-        setTxnStatus("REQ");
-        setStep("choose");
-        setProcessing(false);
-        toast.success("Demo: Payment initiated. Choose a flow to continue.");
-        return;
-      }
-
       const { data } = await initiateSale({
         variables: {
           invoiceId: invoice.id,
@@ -153,16 +143,6 @@ const ICICIPayment = ({
   };
 
   const handleRedirectFlow = () => {
-    if (isDemo) {
-      setStep("redirect-wait");
-      setTimeout(() => {
-        setTxnStatus("SUC");
-        setTxnResponseMsg("Demo payment successful");
-        handlePaymentSuccess();
-      }, 2500);
-      return;
-    }
-
     if (!redirectURI) {
       toast.error("Redirect URL not available");
       return;
@@ -190,14 +170,6 @@ const ICICIPayment = ({
     setOtpVerifying(true);
     setErrorMsg("");
     try {
-      if (isDemo) {
-        await new Promise((r) => setTimeout(r, 800));
-        setOtpSent(true);
-        setStep("otp-entry");
-        toast.success("Demo: OTP has been sent to your registered mobile");
-        return;
-      }
-
       const { data } = await generateOTP({
         variables: { transactionId, tranCtx },
       });
@@ -226,18 +198,6 @@ const ICICIPayment = ({
     setOtpVerifying(true);
     setErrorMsg("");
     try {
-      if (isDemo) {
-        await new Promise((r) => setTimeout(r, 1000));
-        if (otpValue === "123456") {
-          setStep("authorize");
-          toast.success("OTP verified. Authorizing payment...");
-          handleAuthorize();
-        } else {
-          throw new Error("Demo: Invalid OTP. Use 123456");
-        }
-        return;
-      }
-
       const { data } = await verifyOTP({
         variables: { transactionId, tranCtx, otpValue },
       });
@@ -261,14 +221,6 @@ const ICICIPayment = ({
     setProcessing(true);
     setErrorMsg("");
     try {
-      if (isDemo) {
-        await new Promise((r) => setTimeout(r, 1200));
-        setTxnStatus("SUC");
-        setTxnResponseMsg("Demo payment authorized successfully");
-        handlePaymentSuccess();
-        return;
-      }
-
       const { data } = await authorizeTxn({
         variables: { transactionId, tranCtx },
       });
@@ -302,18 +254,6 @@ const ICICIPayment = ({
     setProcessing(true);
     setErrorMsg("");
     try {
-      if (isDemo) {
-        await new Promise((r) => setTimeout(r, 800));
-        setStatusPollCount((c) => c + 1);
-        if (statusPollCount >= 1) {
-          setTxnStatus("SUC");
-          handlePaymentSuccess();
-        } else {
-          toast("Still processing... check again");
-        }
-        return;
-      }
-
       const { data } = await getStatus({ variables: { transactionId } });
       const result = data?.iciciGetTransactionStatus;
       if (result?.success) {
@@ -395,11 +335,6 @@ const ICICIPayment = ({
               <p className="text-xs text-gray-500 flex items-center gap-1">
                 <Banknote size={12} />
                 Secure Payment Gateway
-                {isDemo && (
-                  <span className="ml-2 text-primary font-medium">
-                    — Demo Mode
-                  </span>
-                )}
               </p>
             </div>
           </div>
