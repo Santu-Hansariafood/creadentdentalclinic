@@ -5,83 +5,60 @@ const {
   getTransactionStatus,
 } = require("../utils/iciciPaymentService");
 
-router.post("/callback", express.json(), async (req, res) => {
-  try {
-    const callbackData = { ...(req.body || {}), ...(req.query || {}) };
-    console.log("[ICICI] Callback received:", JSON.stringify(callbackData));
+// Generic body parser for ICICI callbacks (handles both URL-encoded and JSON)
+const parseICICIBody = [express.json(), express.urlencoded({ extended: true })];
 
-    const result = await handleICICICallback(callbackData);
+// Unified callback processing handler
+const processCallback = async (req, res, isRedirect = false) => {
+  const callbackData = { ...(req.query || {}), ...(req.body || {}) };
+  console.log(
+    `[ICICI] Payload received (${isRedirect ? "Redirect" : "Webhook"}):`,
+    JSON.stringify(callbackData),
+  );
 
-    if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        error: result.error || "Callback handling failed",
-      });
-    }
+  const result = await handleICICICallback(callbackData);
 
-    return res.status(200).json({
-      success: true,
-      ...result,
-    });
-  } catch (err) {
-    console.error("[ICICI] Callback error:", err);
-    return res.status(500).json({
-      success: false,
-      error: err?.message || "Internal server error",
-    });
-  }
-});
-
-router.post("/webhook", express.json(), async (req, res) => {
-  try {
-    const callbackData = req.body || {};
-    console.log("[ICICI] Webhook received:", JSON.stringify(callbackData));
-
-    const result = await handleICICICallback(callbackData);
-
-    if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        error: result.error || "Webhook handling failed",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Webhook processed",
-      ...result,
-    });
-  } catch (err) {
-    console.error("[ICICI] Webhook error:", err);
-    return res.status(500).json({
-      success: false,
-      error: err?.message || "Internal server error",
-    });
-  }
-});
-
-router.post("/response", express.urlencoded({ extended: true }), async (req, res) => {
-  try {
-    const callbackData = { ...(req.body || {}), ...(req.query || {}) };
-    console.log("[ICICI] Response (form-encoded) received:", JSON.stringify(callbackData));
-
-    const result = await handleICICICallback(callbackData);
-
+  if (isRedirect) {
     const redirectBase = process.env.FRONTEND_URL || "http://localhost:3000";
     const status = result.transaction?.txnStatus || "ERR";
     const invoiceId = result.transaction?.invoiceId || "";
     const transactionId = result.transaction?.id || "";
+    const hashValid = result.hashValid ? "1" : "0";
 
-    const redirectUrl = `${redirectBase}/billing?paymentStatus=${status}&invoiceId=${invoiceId}&transactionId=${transactionId}&hashValid=${result.hashValid ? "1" : "0"}`;
-
+    const redirectUrl = `${redirectBase}/billing?paymentStatus=${status}&invoiceId=${invoiceId}&transactionId=${transactionId}&hashValid=${hashValid}`;
     return res.redirect(redirectUrl);
-  } catch (err) {
-    console.error("[ICICI] Response handler error:", err);
-    const redirectBase = process.env.FRONTEND_URL || "http://localhost:3000";
-    return res.redirect(`${redirectBase}/billing?paymentStatus=ERR&error=${encodeURIComponent(err?.message || "Payment failed")}`);
   }
-});
 
+  // Server-to-server Webhook / Callback response
+  if (!result.success) {
+    // Return 200 to acknowledge receipt and stop gateway retries, but mark success: false
+    return res.status(200).json({
+      success: false,
+      error: result.error || "Callback processing unverified",
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "Callback processed successfully",
+    ...result,
+  });
+};
+
+// Webhook & Server-to-Server Callback
+router.post("/callback", parseICICIBody, (req, res) =>
+  processCallback(req, res, false),
+);
+router.post("/webhook", parseICICIBody, (req, res) =>
+  processCallback(req, res, false),
+);
+
+// Browser Redirect Handlers (Accepts both GET and POST from Gateway)
+router.all("/response", parseICICIBody, (req, res) =>
+  processCallback(req, res, true),
+);
+
+// Status Query Endpoint
 router.post("/status-check", express.json(), async (req, res) => {
   try {
     const { transactionId, merchantTxnNo } = req.body || {};
@@ -103,6 +80,7 @@ router.post("/status-check", express.json(), async (req, res) => {
   }
 });
 
+// Health check endpoint
 router.get("/health", (req, res) => {
   res.status(200).json({
     status: "ok",
