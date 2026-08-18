@@ -7,43 +7,15 @@ const Patient = require("../models/Patient");
 const ICICI_CONFIG = {
   isUAT: process.env.ICICI_ENV !== "production",
   merchantId: process.env.ICICI_MERCHANT_ID || "",
+  aggregatorId: process.env.ICICI_AGGREGATOR_ID || "",
   secretKey: process.env.ICICI_SECRET_KEY || "",
   currencyCode: process.env.ICICI_CURRENCY_CODE || "356",
   payType: process.env.ICICI_PAY_TYPE || "0",
-  uatBaseUrl: "https://pgpayuat.icici.bank.in/tsp/pg/api/v2",
-  prodBaseUrl: "https://pgpay.icicibank.com/pg/api/v2",
-  get baseUrl() {
-    return this.isUAT ? this.uatBaseUrl : this.prodBaseUrl;
-  },
-  get initiateSaleUrl() {
-  return process.env.ICICI_INITIATE_SALE_URL || `${this.baseUrl}/initiateSale`;
-},
-  get generateOtpUrl() {
-    return process.env.ICICI_GENER_OTP_URL || `${this.baseUrl}/generateOTP`;
-  },
-  get verifyOtpUrl() {
-    return `${this.baseUrl}/verifyOTP`;
-  },
-  get authorizeUrl() {
-    return process.env.ICICI_AUTHORIZE_URL || `${this.baseUrl}/authorize`;
-  },
-  get transactionStatusUrl() {
-    return process.env.ICICI_TX_STATUS_URL || `${this.baseUrl}/transactionStatus`;
-  },
-  get refundUrl() {
-    return process.env.ICICI_REFUND_URL || `${this.baseUrl}/refund`;
-  },
-  get settlementStatusUrl() {
-    return process.env.ICICI_SETTLEMENT_STATUS_URL || `${this.baseUrl}/settlementStatus`;
-  },
-  get settlementSummaryUrl() {
-    return process.env.ICICI_SETTLEMENT_SUMMARY_URL || `${this.baseUrl}/settlementSummary`;
-  },
-  get settlementDetailsUrl() {
-    return process.env.ICICI_SETTLEMENT_DETAILS_URL || `${this.baseUrl}/settlementDetails`;
-  },
+  // Use environment variables from ICICI specification document
+  initiateSaleUrl: process.env.ICICI_INITIATE_SALE_URL || "https://pgpayuat.icici.bank.in/tsp/pg/api/v2/initiateSale",
+  statusCheckUrl: process.env.ICICI_STATUS_CHECK_URL || "https://pgpayuat.icici.bank.in/tsp/pg/api/command",
+  returnUrl: process.env.ICICI_RETURN_URL || "",
   callbackUrl: process.env.ICICI_CALLBACK_URL || "",
-  redirectUrl: process.env.ICICI_REDIRECT_URL || "",
 };
 
 const formatTxnDate = (date = new Date()) => {
@@ -121,13 +93,20 @@ const generateICICISalePayload = async ({
   amount,
   customerEmailID,
   customerMobileNo,
+  customerName = "",
   payType = ICICI_CONFIG.payType,
 }) => {
   const merchantTxnNo = generateMerchantTxnNo(invoiceId);
   const txnDate = formatTxnDate();
+  
+  // Optional fields for extensibility
+  const addlParam1 = "000";
+  const addlParam2 = "000";
 
+  // Payload strictly following ICICI Orange PG specification
   const payload = {
     merchantId: ICICI_CONFIG.merchantId,
+    aggregatorID: ICICI_CONFIG.aggregatorId, // Required per spec
     merchantTxnNo,
     amount: Number(amount).toFixed(2),
     currencyCode: ICICI_CONFIG.currencyCode,
@@ -135,26 +114,56 @@ const generateICICISalePayload = async ({
     txnDate,
     customerEmailID: customerEmailID || "",
     customerMobileNo: customerMobileNo || "",
+    customerName: customerName || "",
     payType,
-    ...(ICICI_CONFIG.redirectUrl
-      ? { redirectUrl: ICICI_CONFIG.redirectUrl }
-      : {}),
-    ...(ICICI_CONFIG.callbackUrl
-      ? { callbackUrl: ICICI_CONFIG.callbackUrl }
-      : {}),
-    remark1: invoiceId.toString(),
-    remark2: patientId.toString(),
+    addlParam1,
+    addlParam2,
+    returnURL: ICICI_CONFIG.returnUrl || "", // Per ICICI spec
   };
 
-  payload.secureHash = calculateSecureHashV1(payload, ICICI_CONFIG.secretKey);
+  // Hash calculation MUST follow ICICI's exact field order
+  // Order: addlParam1, addlParam2, aggregatorID, amount, currencyCode, customerEmailID, 
+  //        customerMobileNo, customerName, merchantId, merchantTxnNo, payType, returnURL, transactionType, txnDate
+  const hashFieldOrder = [
+    "addlParam1",
+    "addlParam2",
+    "aggregatorID",
+    "amount",
+    "currencyCode",
+    "customerEmailID",
+    "customerMobileNo",
+    "customerName",
+    "merchantId",
+    "merchantTxnNo",
+    "payType",
+    "returnURL",
+    "transactionType",
+    "txnDate",
+  ];
 
-  console.log("[ICICI] Payload generation details:", {
+  // Calculate secure hash per ICICI specification
+  const hashString = hashFieldOrder
+    .map((field) => String(payload[field] || ""))
+    .join("");
+
+  console.log("[ICICI] Hash Calculation Debug:");
+  console.log("[ICICI] Hash Field Order:", hashFieldOrder);
+  console.log("[ICICI] Hash String:", hashString);
+
+  payload.secureHash = crypto
+    .createHmac("sha256", ICICI_CONFIG.secretKey)
+    .update(hashString)
+    .digest("hex")
+    .toLowerCase();
+
+  console.log("[ICICI] Calculated Secure Hash:", payload.secureHash);
+  console.log("[ICICI] Payload details:", {
     merchantId: payload.merchantId,
+    aggregatorID: payload.aggregatorID,
     amount: payload.amount,
     currencyCode: payload.currencyCode,
     payType: payload.payType,
-    hasRedirectUrl: !!payload.redirectUrl,
-    hasCallbackUrl: !!payload.callbackUrl,
+    hasReturnURL: !!payload.returnURL,
     hasSecureHash: !!payload.secureHash,
   });
 
@@ -253,19 +262,19 @@ const initiateSale = async ({
   console.log("[ICICI] initiateSale result:", {
     success: result.success,
     hasRedirectURI: !!result.data?.redirectURI,
+    responseCode: result.data?.responseCode,
     txnStatus: result.data?.txnStatus,
     error: result.error,
   });
 
   if (result.success && result.data) {
     const responseData = result.data;
-    transaction.txnStatus =
-      responseData.txnStatus ||
-      (responseData.redirectURI ? "REQ" : "PENDING");
-    transaction.txnResponseCode = responseData.txnResponseCode || "";
-    transaction.txnResponseMsg = responseData.txnResponseMsg || "";
+    
+    // Store ICICI response fields in transaction
+    transaction.txnStatus = responseData.txnStatus || "REQ";
+    transaction.txnResponseCode = responseData.responseCode || "";
+    transaction.txnResponseMsg = responseData.respDescription || "";
     transaction.pgTxnNo = responseData.pgTxnNo || "";
-    transaction.authRefNo = responseData.authRefNo || "";
     transaction.redirectURI = responseData.redirectURI || "";
     transaction.tranCtx = responseData.tranCtx || "";
     transaction.showOTPCapturePage = responseData.showOTPCapturePage || "N";
@@ -273,61 +282,65 @@ const initiateSale = async ({
     await transaction.save();
 
     if (!responseData.redirectURI) {
-      console.warn("[ICICI] WARNING: No redirectURI in ICICI response");
-      console.warn("[ICICI] Full response:", responseData);
+      console.error("[ICICI] ❌ ERROR: ICICI API did not return redirectURI");
+      console.error("[ICICI] Response Code:", responseData.responseCode);
+      console.error("[ICICI] Response Description:", responseData.respDescription);
+      console.error("[ICICI] Full ICICI Response:", JSON.stringify(responseData, null, 2));
       
-      // FALLBACK FOR TESTING: If ICICI doesn't return redirectURI but response is 200, 
-      // generate a test redirect URI (only in UAT/dev)
-      if (ICICI_CONFIG.isUAT && process.env.NODE_ENV !== "production") {
-        console.warn("[ICICI] FALLBACK: Generating test redirectURI for development");
-        const testRedirectURI = `${ICICI_CONFIG.baseUrl}/testPayment?merchantTxnNo=${payload.merchantTxnNo}&amount=${payload.amount}`;
-        transaction.redirectURI = testRedirectURI;
-        transaction.tranCtx = "TEST_CONTEXT_" + Date.now();
-        await transaction.save();
-        
-        return {
-          transactionId: transaction._id.toString(),
-          merchantTxnNo: transaction.merchantTxnNo,
-          redirectURI: testRedirectURI,
-          tranCtx: transaction.tranCtx,
-          pgTxnNo: responseData.pgTxnNo || "TEST",
-          txnStatus: "REQ",
-          apiSuccess: true,
-          apiError: null,
-          warning: "Using fallback test redirectURI - ICICI API did not return one",
-        };
-      }
+      // Return error to frontend
+      return {
+        transactionId: transaction._id.toString(),
+        merchantTxnNo: transaction.merchantTxnNo,
+        apiSuccess: false,
+        apiError: `ICICI API did not return redirectURI. Code: ${responseData.responseCode}, Message: ${responseData.respDescription}`,
+      };
     }
-  } else {
-    console.error("[ICICI] API call failed:", result.error);
-    
-    // Provide detailed error message
-    let detailedError = result.error;
-    if (typeof result.error === 'object') {
-      detailedError = JSON.stringify(result.error);
-    }
-    
-    // Add helpful message based on error
-    if (result.status === 401 || result.status === 403) {
-      detailedError = `Authentication failed (${result.status}): Check ICICI_MERCHANT_ID and ICICI_SECRET_KEY`;
-    } else if (result.status === 400) {
-      detailedError = `Invalid payload (${result.status}): ${detailedError}`;
-    } else if (result.error?.includes?.("ETIMEDOUT") || result.error?.includes?.("ECONNREFUSED")) {
-      detailedError = `Network error: Cannot reach ICICI API. Check internet connection and firewall.`;
-    }
-    
-    transaction.rawResponse = { error: detailedError, apiStatus: result.status };
-    await transaction.save();
-  }
 
-  return {
-    transactionId: transaction._id.toString(),
-    merchantTxnNo: transaction.merchantTxnNo,
-    ...(result.success ? result.data : {}),
-    apiSuccess: result.success,
-    apiError: result.error || null,
-  };
+    console.log("[ICICI] ✅ SUCCESS: Received redirectURI from ICICI");
+    return {
+      transactionId: transaction._id.toString(),
+      merchantTxnNo: transaction.merchantTxnNo,
+      redirectURI: responseData.redirectURI,
+      tranCtx: responseData.tranCtx,
+      pgTxnNo: responseData.pgTxnNo,
+      txnStatus: responseData.txnStatus || "REQ",
+      showOTPCapturePage: responseData.showOTPCapturePage || "N",
+      apiSuccess: true,
+      apiError: null,
+    };
+  } else {
+    console.error("[ICICI] ❌ ERROR: API call failed");
+    console.error("[ICICI] Error:", result.error);
+    console.error("[ICICI] Status:", result.status);
+    
+    let errorMessage = result.error;
+    if (typeof result.error === "object") {
+      errorMessage = JSON.stringify(result.error);
+    }
+
+    // Provide context-specific error messages
+    if (result.status === 401 || result.status === 403) {
+      errorMessage = `❌ Authentication Failed (${result.status}): Invalid Merchant ID or Secret Key. Verify ICICI_MERCHANT_ID and ICICI_SECRET_KEY in .env`;
+    } else if (result.status === 400) {
+      errorMessage = `❌ Invalid Request Payload (${result.status}): ${errorMessage}`;
+    } else if (result.status === 500) {
+      errorMessage = `❌ ICICI Server Error (${result.status}): The payment gateway encountered an error. Please try again.`;
+    } else if (result.error?.includes?.("ETIMEDOUT") || result.error?.includes?.("ECONNREFUSED")) {
+      errorMessage = "❌ Network Error: Cannot reach ICICI API. Check internet connection and firewall.";
+    }
+
+    transaction.rawResponse = { error: errorMessage, status: result.status };
+    await transaction.save();
+
+    return {
+      transactionId: transaction._id.toString(),
+      merchantTxnNo: transaction.merchantTxnNo,
+      apiSuccess: false,
+      apiError: errorMessage,
+    };
+  }
 };
+
 
 const generateOTP = async ({ transactionId, tranCtx }) => {
   const transaction = await Transaction.findById(transactionId);
