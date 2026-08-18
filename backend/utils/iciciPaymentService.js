@@ -15,6 +15,17 @@ const ICICI_BASE_URL = process.env.ICICI_BASE_URL || (
     : "https://pgpayuat.icici.bank.in"
 );
 
+const resolveICICIUrl = (envValue, fallbackPath) => {
+  const fallback = `${ICICI_BASE_URL}${fallbackPath}`;
+  if (!envValue) return fallback;
+
+  if (isProduction && envValue.includes("pgpayuat")) {
+    return `${ICICI_BASE_URL}${fallbackPath}`;
+  }
+
+  return envValue;
+};
+
 const ICICI_CONFIG = {
   isUAT: !isProduction,
   merchantId: process.env.ICICI_MERCHANT_ID || "",
@@ -23,16 +34,16 @@ const ICICI_CONFIG = {
   currencyCode: process.env.ICICI_CURRENCY_CODE || "356",
   payType: process.env.ICICI_PAY_TYPE || "0",
   baseUrl: ICICI_BASE_URL,
-  initiateSaleUrl: process.env.ICICI_INITIATE_SALE_URL || `${ICICI_BASE_URL}/tsp/pg/api/v2/initiateSale`,
-  generateOtpUrl: process.env.ICICI_GENERATE_OTP_URL || `${ICICI_BASE_URL}/tsp/pg/api/v2/generateOTP`,
-  verifyOtpUrl: process.env.ICICI_VERIFY_OTP_URL || `${ICICI_BASE_URL}/tsp/pg/api/v2/verifyOTP`,
-  authorizeUrl: process.env.ICICI_AUTHORIZE_URL || `${ICICI_BASE_URL}/tsp/pg/api/v2/authorize`,
-  statusCheckUrl: process.env.ICICI_STATUS_CHECK_URL || `${ICICI_BASE_URL}/tsp/pg/api/command`,
-  transactionStatusUrl: process.env.ICICI_TRANSACTION_STATUS_URL || process.env.ICICI_STATUS_CHECK_URL || `${ICICI_BASE_URL}/tsp/pg/api/command`,
-  refundUrl: process.env.ICICI_REFUND_URL || `${ICICI_BASE_URL}/tsp/pg/api/v2/refund`,
-  settlementStatusUrl: process.env.ICICI_SETTLEMENT_STATUS_URL || `${ICICI_BASE_URL}/tsp/pg/api/v2/settlementStatus`,
-  settlementSummaryUrl: process.env.ICICI_SETTLEMENT_SUMMARY_URL || `${ICICI_BASE_URL}/tsp/pg/api/v2/settlementSummary`,
-  settlementDetailsUrl: process.env.ICICI_SETTLEMENT_DETAILS_URL || `${ICICI_BASE_URL}/tsp/pg/api/v2/settlementDetails`,
+  initiateSaleUrl: resolveICICIUrl(process.env.ICICI_INITIATE_SALE_URL, "/tsp/pg/api/v2/initiateSale"),
+  generateOtpUrl: resolveICICIUrl(process.env.ICICI_GENERATE_OTP_URL, "/tsp/pg/api/v2/generateOTP"),
+  verifyOtpUrl: resolveICICIUrl(process.env.ICICI_VERIFY_OTP_URL, "/tsp/pg/api/v2/verifyOTP"),
+  authorizeUrl: resolveICICIUrl(process.env.ICICI_AUTHORIZE_URL, "/tsp/pg/api/v2/authorize"),
+  statusCheckUrl: resolveICICIUrl(process.env.ICICI_STATUS_CHECK_URL, "/tsp/pg/api/command"),
+  transactionStatusUrl: resolveICICIUrl(process.env.ICICI_TRANSACTION_STATUS_URL || process.env.ICICI_STATUS_CHECK_URL, "/tsp/pg/api/command"),
+  refundUrl: resolveICICIUrl(process.env.ICICI_REFUND_URL, "/tsp/pg/api/v2/refund"),
+  settlementStatusUrl: resolveICICIUrl(process.env.ICICI_SETTLEMENT_STATUS_URL, "/tsp/pg/api/v2/settlementStatus"),
+  settlementSummaryUrl: resolveICICIUrl(process.env.ICICI_SETTLEMENT_SUMMARY_URL, "/tsp/pg/api/v2/settlementSummary"),
+  settlementDetailsUrl: resolveICICIUrl(process.env.ICICI_SETTLEMENT_DETAILS_URL, "/tsp/pg/api/v2/settlementDetails"),
   returnUrl: process.env.ICICI_RETURN_URL || process.env.ICICI_REDIRECT_URL || "",
   redirectUrl: process.env.ICICI_REDIRECT_URL || process.env.ICICI_RETURN_URL || "",
   callbackUrl: process.env.ICICI_CALLBACK_URL || "",
