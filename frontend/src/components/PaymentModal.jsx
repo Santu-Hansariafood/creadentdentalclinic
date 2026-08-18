@@ -28,7 +28,7 @@ const PaymentForm = ({
 
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
-  const [amount, setAmount] = useState(invoice.balance?.toFixed(2) || "0.00");
+  const amount = (invoice.balance || 0).toFixed(2);
   const [paymentMethod, setPaymentMethod] = useState(
     isPatientSelfServe ? "ICICI Bank" : "ICICI Bank",
   );
@@ -67,7 +67,7 @@ const PaymentForm = ({
     }
 
     setProcessing(true);
-    const numericAmount = parseFloat(amount);
+    const numericAmount = Number(invoice.balance || 0);
     const paymentDate = new Date().toISOString();
     const paymentInfo = {
       amount: numericAmount,
@@ -181,15 +181,13 @@ const PaymentForm = ({
           Payment Amount
         </label>
         <input
-          type="number"
-          min="0.01"
-          max={invoice.balance}
-          step="0.01"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="input-field"
-          required
-        />
+  type="text"
+  value={`₹${(invoice.balance || 0).toFixed(2)}`}
+  readOnly
+  aria-readonly="true"
+  className="input-field bg-gray-100 cursor-not-allowed font-semibold"
+  required
+/>
       </div>
 
       <div>

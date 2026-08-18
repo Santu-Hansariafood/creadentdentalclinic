@@ -41,7 +41,7 @@ const ICICIPayment = ({
   defaultPayType = "0",
 }) => {
   const [step, setStep] = useState("init");
-  const [amount, setAmount] = useState(invoice.balance?.toFixed(2) || "0.00");
+  const amount = Number(invoice.balance || 0).toFixed(2);
   const [payType, setPayType] = useState(defaultPayType);
   const [transactionId, setTransactionId] = useState(null);
   const [tranCtx, setTranCtx] = useState("");
@@ -63,17 +63,13 @@ const ICICIPayment = ({
   const [authorizeTxn] = useMutation(ICICI_AUTHORIZE);
   const [getStatus] = useMutation(ICICI_GET_TRANSACTION_STATUS);
 
-  const numericAmount = parseFloat(amount || "0");
+  const numericAmount = Number(invoice.balance || 0);
 
   const handleInitiateSale = async () => {
     if (!numericAmount || numericAmount <= 0) {
-      toast.error("Please enter a valid payment amount");
-      return;
-    }
-    if (numericAmount > (invoice.balance || 0)) {
-      toast.error("Amount cannot exceed the invoice balance");
-      return;
-    }
+  toast.error("Invalid invoice balance");
+  return;
+}
 
     setProcessing(true);
     setErrorMsg("");
@@ -425,15 +421,13 @@ const ICICIPayment = ({
                   Payment Amount
                 </label>
                 <input
-                  type="number"
-                  min="0.01"
-                  max={invoice.balance}
-                  step="0.01"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="input-field"
-                  required
-                />
+  type="text"
+  value={`₹${numericAmount.toFixed(2)}`}
+  readOnly
+  aria-readonly="true"
+  className="input-field bg-gray-100 cursor-not-allowed font-semibold"
+  required
+/>
               </div>
 
               <div>
