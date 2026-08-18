@@ -24,8 +24,12 @@ const processCallback = async (req, res, isRedirect = false) => {
     const invoiceId = result.transaction?.invoiceId || "";
     const transactionId = result.transaction?.id || "";
     const hashValid = result.hashValid ? "1" : "0";
+    const callbackProcessed = result.transaction?.callbackProcessed ? "1" : "0";
 
-    const redirectUrl = `${redirectBase}/billing?paymentStatus=${status}&invoiceId=${invoiceId}&transactionId=${transactionId}&hashValid=${hashValid}`;
+    // Only consider payment truly successful if callback was processed and status is SUC
+    const paymentConfirmed = (status === "SUC" && callbackProcessed === "1") ? "1" : "0";
+    const redirectUrl = `${redirectBase}/billing?paymentStatus=${status}&invoiceId=${invoiceId}&transactionId=${transactionId}&hashValid=${hashValid}&callbackProcessed=${callbackProcessed}&paymentConfirmed=${paymentConfirmed}`;
+    console.log("[ICICI] Redirecting browser to:", redirectUrl);
     return res.redirect(redirectUrl);
   }
 

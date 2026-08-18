@@ -552,10 +552,10 @@ const handleICICICallback = async (callbackData) => {
   if (receivedHash) {
     hashValid = verifySecureHash(callbackData, ICICI_CONFIG.secretKey, receivedHash);
     if (!hashValid) {
-      // hash mismatch logged only, not throwing
+      console.warn("[ICICI] Hash verification failed for txn:", merchantTxnNo);
     }
   } else {
-    // proceed without hash verification
+    // proceed without hash verification if not provided
     hashValid = true;
   }
 
@@ -587,16 +587,23 @@ const handleICICICallback = async (callbackData) => {
     callbackData.arnNo || callbackData.arn_no || transaction.arnNo;
   transaction.rawCallback = callbackData;
   transaction.hashVerified = hashValid;
+  transaction.callbackProcessed = true;
+  transaction.callbackProcessedAt = new Date();
 
   await transaction.save();
 
+  // ✅ CRITICAL: Only update invoice when ICICI confirms SUC via callback
   let invoice = null;
-  if (
-    transaction.txnStatus === "SUC" &&
-    prevStatus !== "SUC" &&
-    !transaction.amountPaidApplied
-  ) {
-    invoice = await reconcilePaymentToInvoice(transaction);
+  if (transaction.txnStatus === "SUC" && prevStatus !== "SUC") {
+    if (!transaction.amountPaidApplied) {
+      invoice = await reconcilePaymentToInvoice(transaction);
+      console.log("[ICICI] ✅ Payment SUCCESS confirmed via callback. Invoice reconciled for merchantTxnNo:", merchantTxnNo);
+    } else {
+      console.log("[ICICI] SUC status received but amount already applied for merchantTxnNo:", merchantTxnNo);
+      invoice = await Invoice.findById(transaction.invoiceId);
+    }
+  } else if (transaction.txnStatus !== "SUC") {
+    console.log("[ICICI] Callback received with status:", transaction.txnStatus, "(not successful) for merchantTxnNo:", merchantTxnNo);
   }
 
   return {
@@ -608,6 +615,7 @@ const handleICICICallback = async (callbackData) => {
       txnStatus: transaction.txnStatus,
       amount: transaction.amount,
       invoiceId: transaction.invoiceId.toString(),
+      callbackProcessed: transaction.callbackProcessed,
     },
     invoice: invoice
       ? {

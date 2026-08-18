@@ -46,6 +46,8 @@ const transactionSchema = new mongoose.Schema(
     secureHash: { type: String },
     amountPaidApplied: { type: Number, default: 0 },
     hashVerified: { type: Boolean, default: false },
+    callbackProcessed: { type: Boolean, default: false },
+    callbackProcessedAt: { type: Date },
   },
   { timestamps: true },
 );

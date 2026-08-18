@@ -260,13 +260,14 @@ const ICICIPayment = ({
         setTxnStatus(newStatus);
         setStatusPollCount((c) => c + 1);
 
-        if (newStatus === "SUC") {
-          handlePaymentSuccess();
-        } else if (newStatus === "REJ" || newStatus === "ERR") {
+        // ⚠️  CRITICAL: DO NOT mark as success during redirect flow
+        // Wait for ICICI callback to actually be received and processed
+        // Only log status updates during polling
+        if (newStatus === "REJ" || newStatus === "ERR") {
           setStep("status");
           toast.error("Payment " + (STATUS_LABELS[newStatus]?.label || "failed"));
-        } else {
-          toast("Payment status: " + (STATUS_LABELS[newStatus]?.label || newStatus));
+        } else if (newStatus !== "REQ" && newStatus !== "INITIATED") {
+          console.log("[Payment] Status update:", newStatus, "(awaiting ICICI callback confirmation)");
         }
       } else {
         throw new Error(result?.error || "Status check failed");
@@ -295,11 +296,22 @@ const ICICIPayment = ({
 
   useEffect(() => {
     if (step !== "redirect-wait" || !transactionId || isDemo) return;
+    
+    // Status polling during redirect-wait:
+    // Only checks status, does NOT trigger success
+    // Success is triggered ONLY when browser naturally lands on /billing after ICICI redirects back
+    const maxPolls = 120; // 10 minutes max polling
     const poll = setInterval(() => {
+      if (statusPollCount >= maxPolls) {
+        clearInterval(poll);
+        setErrorMsg("Payment verification timeout. Please check your email for confirmation.");
+        toast.error("Payment verification timeout");
+        return;
+      }
       handleCheckStatus();
     }, 5000);
     return () => clearInterval(poll);
-  }, [step, transactionId, isDemo]);
+  }, [step, transactionId, statusPollCount, isDemo]);
 
   const statusInfo = STATUS_LABELS[txnStatus] || {
     label: txnStatus,
