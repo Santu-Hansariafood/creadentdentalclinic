@@ -142,19 +142,39 @@ const generateICICISalePayload = async ({
   ];
 
   // Calculate secure hash per ICICI specification
-  const hashString = hashFieldOrder
+  // Try both concatenation methods - with and without pipe delimiter
+  // ICICI might use pipe-delimited concatenation
+  const hashStringNoDelimiter = hashFieldOrder
     .map((field) => String(payload[field] || ""))
     .join("");
 
-  console.log("[ICICI] Hash Calculation Debug:");
-  console.log("[ICICI] Hash Field Order:", hashFieldOrder);
-  console.log("[ICICI] Hash String:", hashString);
+  const hashStringWithPipe = hashFieldOrder
+    .map((field) => String(payload[field] || ""))
+    .join("|");
 
-  payload.secureHash = crypto
+  // Calculate hash with no delimiter (current method)
+  const hashNoDelim = crypto
     .createHmac("sha256", ICICI_CONFIG.secretKey)
-    .update(hashString)
+    .update(hashStringNoDelimiter)
     .digest("hex")
     .toLowerCase();
+
+  // Calculate hash with pipe delimiter (alternative method)
+  const hashWithPipe = crypto
+    .createHmac("sha256", ICICI_CONFIG.secretKey)
+    .update(hashStringWithPipe)
+    .digest("hex")
+    .toLowerCase();
+
+  console.log("[ICICI] Hash Calculation Debug:");
+  console.log("[ICICI] Hash Field Order:", hashFieldOrder);
+  console.log("[ICICI] Hash String (no delimiter):", hashStringNoDelimiter.substring(0, 100) + "...");
+  console.log("[ICICI] Hash String (with pipes):", hashStringWithPipe.substring(0, 100) + "...");
+  console.log("[ICICI] Calculated Hash (no delim):", hashNoDelim);
+  console.log("[ICICI] Calculated Hash (with pipes):", hashWithPipe);
+
+  // Use hash without delimiter as primary (most common)
+  payload.secureHash = hashNoDelim;
 
   console.log("[ICICI] Calculated Secure Hash:", payload.secureHash);
   console.log("[ICICI] Payload details:", {
@@ -172,17 +192,21 @@ const generateICICISalePayload = async ({
 
 const callICICIAPI = async (url, payload, headers = {}) => {
   try {
-    const jsonString = JSON.stringify(payload);
-    const securehash = calculateSecureHashV2(jsonString, ICICI_CONFIG.secretKey);
+    // Use the hash already calculated in the payload (per ICICI spec field order)
+    // Do NOT recalculate - ICICI expects consistent hash calculation
+    const securehash = payload.secureHash;
 
     console.log("[ICICI API] Request URL:", url);
-    console.log("[ICICI API] Payload:", payload);
-    console.log("[ICICI API] Secure Hash:", securehash);
+    console.log("[ICICI API] Payload Keys:", Object.keys(payload).join(", "));
+    console.log("[ICICI API] Merchant ID:", payload.merchantId);
+    console.log("[ICICI API] Aggregator ID:", payload.aggregatorID);
+    console.log("[ICICI API] Amount:", payload.amount);
+    console.log("[ICICI API] Secure Hash (from payload):", securehash);
 
     const response = await axios.post(url, payload, {
       headers: {
         "Content-Type": "application/json",
-        securehash,
+        securehash: securehash,
         ...headers,
       },
       timeout: 60000,
