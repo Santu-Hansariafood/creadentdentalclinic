@@ -1,27 +1,59 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, CreditCard, CheckCircle } from "lucide-react";
+import { X, CreditCard, CheckCircle, Banknote, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import { useMutation } from "@apollo/client";
 import { RECORD_INVOICE_PAYMENT } from "../graphql/mutations";
+import ICICIPayment from "./ICICIPayment";
 
 const paymentMethodOptions = [
   "Cash",
   "UPI",
   "Card",
+  "ICICI Bank",
   "Bank Transfer",
   "Insurance",
 ];
 
-const PaymentForm = ({ invoice, onSuccess, onClose, isDemo = false }) => {
+const PaymentForm = ({
+  invoice,
+  patient,
+  onSuccess,
+  onClose,
+  isDemo = false,
+}) => {
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
   const [amount, setAmount] = useState(invoice.balance?.toFixed(2) || "0.00");
   const [paymentMethod, setPaymentMethod] = useState("UPI");
+  const [showICICIPayment, setShowICICIPayment] = useState(false);
   const [recordInvoicePayment] = useMutation(RECORD_INVOICE_PAYMENT);
+
+  if (showICICIPayment && paymentMethod === "ICICI Bank") {
+    return (
+      <ICICIPayment
+        invoice={invoice}
+        patient={patient}
+        onClose={() => setShowICICIPayment(false)}
+        isDemo={isDemo}
+        onSuccess={(paymentInfo) => {
+          setShowICICIPayment(false);
+          setSucceeded(true);
+          setTimeout(() => {
+            onSuccess(paymentInfo);
+          }, 1200);
+        }}
+      />
+    );
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (paymentMethod === "ICICI Bank") {
+      setShowICICIPayment(true);
+      return;
+    }
 
     setProcessing(true);
     const numericAmount = parseFloat(amount);
@@ -143,6 +175,20 @@ const PaymentForm = ({ invoice, onSuccess, onClose, isDemo = false }) => {
             </option>
           ))}
         </select>
+
+        {paymentMethod === "ICICI Bank" && (
+          <div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 flex items-start gap-3">
+            <ShieldCheck size={20} className="text-primary flex-shrink-0 mt-0.5" />
+            <div className="text-xs">
+              <p className="font-semibold text-primary">
+                Secure ICICI Bank Payment Gateway
+              </p>
+              <p className="text-gray-600 mt-1">
+                You will be redirected to ICICI Bank&apos;s secure portal or complete via OTP. Click continue to proceed.
+              </p>
+            </div>
+          </div>
+        )}
         <p className="text-xs text-gray-500 mt-2">
           Use this to record a full or partial payment immediately.
         </p>
@@ -158,6 +204,11 @@ const PaymentForm = ({ invoice, onSuccess, onClose, isDemo = false }) => {
             <span className="flex items-center justify-center gap-2">
               <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
               Processing...
+            </span>
+          ) : paymentMethod === "ICICI Bank" ? (
+            <span className="flex items-center justify-center gap-2">
+              <Banknote size={18} />
+              Continue with ICICI Bank
             </span>
           ) : (
             `Pay Rs ${parseFloat(amount || 0).toFixed(2)}`
@@ -183,7 +234,13 @@ const PaymentForm = ({ invoice, onSuccess, onClose, isDemo = false }) => {
   );
 };
 
-const PaymentModal = ({ invoice, onClose, onSuccess, isDemo = false }) => {
+const PaymentModal = ({
+  invoice,
+  patient,
+  onClose,
+  onSuccess,
+  isDemo = false,
+}) => {
   return (
     <AnimatePresence>
       <motion.div
@@ -222,6 +279,7 @@ const PaymentModal = ({ invoice, onClose, onSuccess, isDemo = false }) => {
           <div className="p-6">
             <PaymentForm
               invoice={invoice}
+              patient={patient}
               onSuccess={onSuccess}
               onClose={onClose}
               isDemo={isDemo}

@@ -437,6 +437,103 @@ input UpdateMedicineInput {
     priority: String
   }
 
+  type ICIICISaleResponse {
+    transactionId: ID!
+    merchantTxnNo: String!
+    txnStatus: String
+    txnResponseCode: String
+    txnResponseMsg: String
+    pgTxnNo: String
+    authRefNo: String
+    redirectURI: String
+    tranCtx: String
+    showOTPCapturePage: String
+    apiSuccess: Boolean
+    apiError: String
+  }
+
+  type ICICIGenericResponse {
+    success: Boolean!
+    data: String
+    error: String
+  }
+
+  type ICICITransactionStatus {
+    success: Boolean!
+    data: String
+    error: String
+    transaction: ICICITransactionSummary
+  }
+
+  type ICICITransactionSummary {
+    id: ID!
+    merchantTxnNo: String!
+    txnStatus: String
+    amount: Float
+    invoiceId: ID!
+  }
+
+  type ICICICallbackResponse {
+    success: Boolean!
+    hashValid: Boolean
+    transaction: ICICITransactionSummary
+    invoice: ICICIReconciledInvoice
+    error: String
+  }
+
+  type ICICIReconciledInvoice {
+    id: ID!
+    status: String
+    balance: Float
+    amountPaid: Float
+  }
+
+  type ICICIRefundResponse {
+    success: Boolean!
+    refundTxnNo: String
+    refundAmount: Float
+    data: String
+    error: String
+  }
+
+  type Transaction {
+    id: ID!
+    invoiceId: ID!
+    patientId: ID!
+    merchantTxnNo: String!
+    amount: Float!
+    currencyCode: String
+    transactionType: String
+    txnDate: String
+    customerEmailID: String
+    customerMobileNo: String
+    payType: String
+    txnStatus: String
+    txnResponseCode: String
+    txnResponseMsg: String
+    pgTxnNo: String
+    authRefNo: String
+    arnNo: String
+    showOTPCapturePage: String
+    otpGenerated: Boolean
+    otpVerified: Boolean
+    authorized: Boolean
+    settlementDate: String
+    settlementStatus: String
+    refundedAmount: Float
+    refundTxnNo: String
+    refundStatus: String
+    createdAt: String
+    updatedAt: String
+  }
+
+  type PaginatedTransactions {
+    transactions: [Transaction]
+    totalCount: Int
+    totalPages: Int
+    currentPage: Int
+  }
+
   type Query {
     me: User
     getUsers: [User]
@@ -463,6 +560,8 @@ input UpdateMedicineInput {
     getChatMessages(conversationId: ID!): [ChatMessage]
     getNotifications: [Notification]
     getRecentActivities(limit: Int): [Activity]
+    getTransactions(page: Int, limit: Int, invoiceId: ID, patientId: ID, txnStatus: String): PaginatedTransactions
+    getTransaction(id: ID!): Transaction
   }
 
   type Mutation {
@@ -693,6 +792,42 @@ input UpdateMedicineInput {
       dueAmount: Float!,
       remarks: String
     ): PaymentLedger
+
+    iciciInitiateSale(
+      invoiceId: ID!
+      patientId: ID!
+      amount: Float!
+      customerEmailID: String
+      customerMobileNo: String
+      payType: String
+    ): ICIICISaleResponse!
+
+    iciciGenerateOTP(
+      transactionId: ID!
+      tranCtx: String
+    ): ICICIGenericResponse!
+
+    iciciVerifyOTP(
+      transactionId: ID!
+      tranCtx: String
+      otpValue: String!
+    ): ICICIGenericResponse!
+
+    iciciAuthorize(
+      transactionId: ID!
+      tranCtx: String
+    ): ICICIGenericResponse!
+
+    iciciGetTransactionStatus(
+      transactionId: ID
+      merchantTxnNo: String
+    ): ICICITransactionStatus!
+
+    iciciProcessRefund(
+      transactionId: ID!
+      refundAmount: Float!
+      reason: String
+    ): ICICIRefundResponse!
   }
 `;
 

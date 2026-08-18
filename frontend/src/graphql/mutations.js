@@ -658,3 +658,204 @@ export const SEND_LOGIN_CREDENTIALS_WHATSAPP = gql`
     }
   }
 `;
+
+export const ICICI_INITIATE_SALE = gql`
+  mutation ICICIInitiateSale(
+    $invoiceId: ID!
+    $patientId: ID!
+    $amount: Float!
+    $customerEmailID: String
+    $customerMobileNo: String
+    $payType: String
+  ) {
+    iciciInitiateSale(
+      invoiceId: $invoiceId
+      patientId: $patientId
+      amount: $amount
+      customerEmailID: $customerEmailID
+      customerMobileNo: $customerMobileNo
+      payType: $payType
+    ) {
+      transactionId
+      merchantTxnNo
+      txnStatus
+      txnResponseCode
+      txnResponseMsg
+      pgTxnNo
+      authRefNo
+      redirectURI
+      tranCtx
+      showOTPCapturePage
+      apiSuccess
+      apiError
+    }
+  }
+`;
+
+export const ICICI_GENERATE_OTP = gql`
+  mutation ICICIGenerateOTP($transactionId: ID!, $tranCtx: String) {
+    iciciGenerateOTP(transactionId: $transactionId, tranCtx: $tranCtx) {
+      success
+      data
+      error
+    }
+  }
+`;
+
+export const ICICI_VERIFY_OTP = gql`
+  mutation ICICIVerifyOTP(
+    $transactionId: ID!
+    $tranCtx: String
+    $otpValue: String!
+  ) {
+    iciciVerifyOTP(
+      transactionId: $transactionId
+      tranCtx: $tranCtx
+      otpValue: $otpValue
+    ) {
+      success
+      data
+      error
+    }
+  }
+`;
+
+export const ICICI_AUTHORIZE = gql`
+  mutation ICICIAuthorize($transactionId: ID!, $tranCtx: String) {
+    iciciAuthorize(transactionId: $transactionId, tranCtx: $tranCtx) {
+      success
+      data
+      error
+    }
+  }
+`;
+
+export const ICICI_GET_TRANSACTION_STATUS = gql`
+  mutation ICICIGetTransactionStatus(
+    $transactionId: ID
+    $merchantTxnNo: String
+  ) {
+    iciciGetTransactionStatus(
+      transactionId: $transactionId
+      merchantTxnNo: $merchantTxnNo
+    ) {
+      success
+      data
+      error
+      transaction {
+        id
+        merchantTxnNo
+        txnStatus
+        amount
+        invoiceId
+      }
+    }
+  }
+`;
+
+export const ICICI_PROCESS_REFUND = gql`
+  mutation ICICIProcessRefund(
+    $transactionId: ID!
+    $refundAmount: Float!
+    $reason: String
+  ) {
+    iciciProcessRefund(
+      transactionId: $transactionId
+      refundAmount: $refundAmount
+      reason: $reason
+    ) {
+      success
+      refundTxnNo
+      refundAmount
+      data
+      error
+    }
+  }
+`;
+
+export const GET_TRANSACTIONS = gql`
+  query GetTransactions(
+    $page: Int
+    $limit: Int
+    $invoiceId: ID
+    $patientId: ID
+    $txnStatus: String
+  ) {
+    getTransactions(
+      page: $page
+      limit: $limit
+      invoiceId: $invoiceId
+      patientId: $patientId
+      txnStatus: $txnStatus
+    ) {
+      transactions {
+        id
+        invoiceId
+        patientId
+        merchantTxnNo
+        amount
+        currencyCode
+        transactionType
+        txnDate
+        customerEmailID
+        customerMobileNo
+        payType
+        txnStatus
+        txnResponseCode
+        txnResponseMsg
+        pgTxnNo
+        authRefNo
+        arnNo
+        showOTPCapturePage
+        otpGenerated
+        otpVerified
+        authorized
+        settlementDate
+        settlementStatus
+        refundedAmount
+        refundTxnNo
+        refundStatus
+        createdAt
+        updatedAt
+      }
+      totalCount
+      totalPages
+      currentPage
+    }
+  }
+`;
+
+export const GET_TRANSACTION = gql`
+  query GetTransaction($id: ID!) {
+    getTransaction(id: $id) {
+      id
+      invoiceId
+      patientId
+      merchantTxnNo
+      amount
+      currencyCode
+      transactionType
+      txnDate
+      customerEmailID
+      customerMobileNo
+      payType
+      txnStatus
+      txnResponseCode
+      txnResponseMsg
+      pgTxnNo
+      authRefNo
+      arnNo
+      showOTPCapturePage
+      otpGenerated
+      otpVerified
+      authorized
+      settlementDate
+      settlementStatus
+      refundedAmount
+      refundTxnNo
+      refundStatus
+      createdAt
+      updatedAt
+    }
+  }
+`;

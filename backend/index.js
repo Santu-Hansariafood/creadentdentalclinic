@@ -14,6 +14,7 @@ const User = require("./models/User");
 const socket = require("./socket");
 const authRoutes = require("./routes/authRoutes");
 const storageRoutes = require("./routes/storageRoutes");
+const iciciPaymentRoutes = require("./routes/iciciPaymentRoutes");
 const storageService = require("./utils/storageService");
 const {
   startAppointmentReminderScheduler,
@@ -115,6 +116,7 @@ const startServer = async () => {
 
   app.use("/api", authRoutes);
   app.use("/api/storage", storageRoutes);
+  app.use("/api/icici", iciciPaymentRoutes);
 
   app.get("/files/*key", async (req, res) => {
   try {

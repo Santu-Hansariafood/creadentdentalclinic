@@ -1,4 +1,4 @@
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   CreditCard,
@@ -16,6 +16,8 @@ import {
   Pencil,
   X,
   Sparkles,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import InvoiceCard from "../components/InvoiceCard";
@@ -111,6 +113,60 @@ const Billing = () => {
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
   const [sharingWhatsAppInvoice, setSharingWhatsAppInvoice] = useState(null);
   const [sharingLoginViaWA, setSharingLoginViaWA] = useState(null);
+  const [selectedPatientForPayment, setSelectedPatientForPayment] = useState(null);
+  const [iciciCallbackNotice, setIciciCallbackNotice] = useState(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentStatus = params.get("paymentStatus");
+    const invoiceId = params.get("invoiceId");
+    const transactionId = params.get("transactionId");
+    const hashValid = params.get("hashValid");
+    const error = params.get("error");
+
+    if (paymentStatus && (invoiceId || transactionId)) {
+      const statusLabels = {
+        SUC: "Payment completed successfully!",
+        REJ: "Payment was rejected by the bank.",
+        ERR: "Payment encountered an error.",
+        REQ: "Payment is still being processed.",
+        PENDING: "Payment is pending completion.",
+      };
+      const statusIcon = paymentStatus === "SUC" ? "success" : paymentStatus === "REQ" || paymentStatus === "PENDING" ? "info" : "error";
+      const message =
+        statusLabels[paymentStatus] ||
+        (error ? decodeURIComponent(error) : "Payment status received from ICICI Bank.");
+
+      setIciciCallbackNotice({
+        status: paymentStatus,
+        invoiceId,
+        transactionId,
+        hashValid: hashValid === "1",
+        message,
+        icon: statusIcon,
+      });
+
+      if (statusIcon === "success") {
+        toast.success(message);
+      } else if (statusIcon === "info") {
+        toast(message, { icon: "ℹ️" });
+      } else {
+        toast.error(message);
+      }
+
+      refetch?.().catch(() => {});
+
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("paymentStatus");
+      cleanUrl.searchParams.delete("invoiceId");
+      cleanUrl.searchParams.delete("transactionId");
+      cleanUrl.searchParams.delete("hashValid");
+      cleanUrl.searchParams.delete("error");
+      window.history.replaceState({}, document.title, cleanUrl.toString());
+
+      setTimeout(() => setIciciCallbackNotice(null), 12000);
+    }
+  }, [refetch]);
 
   if (!isDemoUser && loading) return <Preloader />;
   if (!isDemoUser && error)
@@ -271,6 +327,8 @@ const Billing = () => {
 
       if (shouldPayNow && createdInvoice) {
         setSelectedInvoice(createdInvoice);
+        const patient = patients.find((p) => p.id === createdInvoice.patientId) || myPatient || null;
+        setSelectedPatientForPayment(patient);
         setShowPaymentModal(true);
       }
 
@@ -282,6 +340,12 @@ const Billing = () => {
 
   const handlePayment = (invoice) => {
     setSelectedInvoice(invoice);
+    const patient = patients.find(
+      (p) =>
+        p.id === invoice.patientId ||
+        (myPatient && myPatient.id === invoice.patientId),
+    ) || myPatient || null;
+    setSelectedPatientForPayment(patient);
     setShowPaymentModal(true);
   };
 
@@ -337,6 +401,7 @@ const Billing = () => {
     setShowPaymentModal(false);
     setSelectedInvoice(null);
     setSelectedInvoices([]);
+    setSelectedPatientForPayment(null);
   };
 
   const handlePaymentSuccess = async (paymentInfo) => {
@@ -349,6 +414,7 @@ const Billing = () => {
     setShowPaymentModal(false);
     setSelectedInvoice(null);
     setSelectedInvoices([]);
+    setSelectedPatientForPayment(null);
   };
 
   const editSubtotal = editInvoiceForm.items.reduce(
@@ -591,6 +657,78 @@ const Billing = () => {
   return (
     <Suspense fallback={<Preloader />}>
       <div className="max-w-7xl mx-auto">
+        {iciciCallbackNotice && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`mb-6 rounded-xl border p-4 flex items-start gap-3 ${
+              iciciCallbackNotice.status === "SUC"
+                ? "border-green-200 bg-green-50"
+                : iciciCallbackNotice.status === "REQ" || iciciCallbackNotice.status === "PENDING"
+                  ? "border-blue-200 bg-blue-50"
+                  : "border-red-200 bg-red-50"
+            }`}
+          >
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                iciciCallbackNotice.status === "SUC"
+                  ? "bg-green-100"
+                  : iciciCallbackNotice.status === "REQ" || iciciCallbackNotice.status === "PENDING"
+                    ? "bg-blue-100"
+                    : "bg-red-100"
+              }`}
+            >
+              {iciciCallbackNotice.status === "SUC" ? (
+                <CheckCircle size={18} className="text-green-700" />
+              ) : iciciCallbackNotice.status === "REQ" || iciciCallbackNotice.status === "PENDING" ? (
+                <Loader2 size={18} className="text-blue-700 animate-spin" />
+              ) : (
+                <AlertCircle size={18} className="text-red-700" />
+              )}
+            </div>
+            <div className="flex-1">
+              <p
+                className={`font-semibold text-sm ${
+                  iciciCallbackNotice.status === "SUC"
+                    ? "text-green-900"
+                    : iciciCallbackNotice.status === "REQ" || iciciCallbackNotice.status === "PENDING"
+                      ? "text-blue-900"
+                      : "text-red-900"
+                }`}
+              >
+                ICICI Bank Payment — Status: {iciciCallbackNotice.status}
+              </p>
+              <p className="text-sm text-gray-700 mt-1">
+                {iciciCallbackNotice.message}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-500">
+                {iciciCallbackNotice.invoiceId && (
+                  <span>Invoice: {String(iciciCallbackNotice.invoiceId).slice(-8)}</span>
+                )}
+                {iciciCallbackNotice.transactionId && (
+                  <span>Txn: {String(iciciCallbackNotice.transactionId).slice(-10)}</span>
+                )}
+                {typeof iciciCallbackNotice.hashValid === "boolean" && (
+                  <span>
+                    Secure Hash:{" "}
+                    <span className={iciciCallbackNotice.hashValid ? "text-green-700 font-medium" : "text-red-700 font-medium"}>
+                      {iciciCallbackNotice.hashValid ? "Verified" : "Mismatch"}
+                    </span>
+                  </span>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIciciCallbackNotice(null)}
+              className="p-1 hover:bg-white/50 rounded text-gray-500"
+              aria-label="Dismiss"
+            >
+              <X size={18} />
+            </button>
+          </motion.div>
+        )}
+
         <motion.div
           {...fadeIn("down")}
           className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
@@ -1342,10 +1480,12 @@ const Billing = () => {
         {showPaymentModal && selectedInvoice && (
           <PaymentModal
             invoice={selectedInvoice}
+            patient={selectedPatientForPayment}
             isDemo={isDemoUser}
             onClose={() => {
               setShowPaymentModal(false);
               setSelectedInvoice(null);
+              setSelectedPatientForPayment(null);
             }}
             onSuccess={(paymentInfo) => handlePaymentSuccess(paymentInfo)}
           />

@@ -9,6 +9,7 @@ const PaymentLedger = require("../models/PaymentLedger");
 const Conversation = require("../models/Conversation");
 const ChatMessage = require("../models/ChatMessage");
 const Notification = require("../models/Notification");
+const Transaction = require("../models/Transaction");
 const generateToken = require("../utils/generateToken");
 const {
   sendAppointmentBookingNotifications,
@@ -18,6 +19,14 @@ const {
   sendInvoiceWhatsApp,
   sendLoginCredentialsWhatsApp,
 } = require("../utils/whatsappNotifications");
+const {
+  initiateSale,
+  generateOTP,
+  verifyOTP,
+  authorizeTransaction,
+  getTransactionStatus,
+  processRefund,
+} = require("../utils/iciciPaymentService");
 
 const generatePatientPassword = (phone = "") => {
   const currentYear = new Date().getFullYear().toString();
@@ -519,6 +528,26 @@ const resolvers = {
       // Sort by timestamp descending and limit
       activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       return activities.slice(0, limit);
+    },
+    getTransactions: async (_, { page = 1, limit = 10, invoiceId, patientId, txnStatus }, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      const skip = (page - 1) * limit;
+      const query = {};
+      if (invoiceId) query.invoiceId = invoiceId;
+      if (patientId) query.patientId = patientId;
+      if (txnStatus) query.txnStatus = txnStatus;
+      const transactions = await Transaction.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit);
+      const totalCount = await Transaction.countDocuments(query);
+      return {
+        transactions,
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        currentPage: page,
+      };
+    },
+    getTransaction: async (_, { id }, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      return await Transaction.findById(id);
     },
   },
   Mutation: {
@@ -1484,6 +1513,63 @@ const resolvers = {
     addPaymentLedger: async (_, args) => {
       const ledger = new PaymentLedger(args);
       return await ledger.save();
+    },
+    iciciInitiateSale: async (_, { invoiceId, patientId, amount, customerEmailID, customerMobileNo, payType }, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      if (user.role === "doctor") throw new Error("Unauthorized: Doctors cannot initiate payments");
+      if (user.role === "patient") {
+        const patient = await Patient.findOne({ userId: user._id });
+        if (!patient || patient._id.toString() !== patientId.toString()) {
+          throw new Error("Unauthorized: You can only pay your own invoices");
+        }
+      }
+      const result = await initiateSale({ invoiceId, patientId, amount, customerEmailID, customerMobileNo, payType });
+      return result;
+    },
+    iciciGenerateOTP: async (_, { transactionId, tranCtx }, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      const result = await generateOTP({ transactionId, tranCtx });
+      return {
+        success: result.success,
+        data: result.data ? JSON.stringify(result.data) : null,
+        error: result.error ? (typeof result.error === "string" ? result.error : JSON.stringify(result.error)) : null,
+      };
+    },
+    iciciVerifyOTP: async (_, { transactionId, tranCtx, otpValue }, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      const result = await verifyOTP({ transactionId, tranCtx, otpValue });
+      return {
+        success: result.success,
+        data: result.data ? JSON.stringify(result.data) : null,
+        error: result.error ? (typeof result.error === "string" ? result.error : JSON.stringify(result.error)) : null,
+      };
+    },
+    iciciAuthorize: async (_, { transactionId, tranCtx }, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      const result = await authorizeTransaction({ transactionId, tranCtx });
+      return {
+        success: result.success,
+        data: result.data ? JSON.stringify(result.data) : null,
+        error: result.error ? (typeof result.error === "string" ? result.error : JSON.stringify(result.error)) : null,
+      };
+    },
+    iciciGetTransactionStatus: async (_, { transactionId, merchantTxnNo }, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      const result = await getTransactionStatus({ transactionId, merchantTxnNo });
+      return {
+        success: result.success,
+        data: result.data ? JSON.stringify(result.data) : null,
+        error: result.error ? (typeof result.error === "string" ? result.error : JSON.stringify(result.error)) : null,
+        transaction: result.transaction || null,
+      };
+    },
+    iciciProcessRefund: async (_, { transactionId, refundAmount, reason }, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      if (!["admin"].includes(user.role)) {
+        throw new Error("Unauthorized: Only admins can process refunds");
+      }
+      const result = await processRefund({ transactionId, refundAmount, reason });
+      return result;
     },
   },
 };
