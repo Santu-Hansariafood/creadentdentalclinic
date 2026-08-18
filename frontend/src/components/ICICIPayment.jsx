@@ -106,10 +106,30 @@ const ICICIPayment = ({
       setTxnStatus(result.txnStatus || "INITIATED");
       setTxnResponseMsg(result.txnResponseMsg || "");
 
+      console.log("[Payment] Initiate Sale Response:", {
+        transactionId: result.transactionId,
+        redirectURI: result.redirectURI,
+        apiSuccess: result.apiSuccess,
+        apiError: result.apiError,
+        txnStatus: result.txnStatus,
+      });
+
       if (!result.apiSuccess) {
-        setErrorMsg(result.apiError || "Failed to initiate payment");
-        toast.error(result.apiError || "Failed to initiate payment");
+        const errorMsg = result.apiError 
+          ? (typeof result.apiError === 'string' ? result.apiError : JSON.stringify(result.apiError))
+          : "Failed to initiate payment";
+        setErrorMsg(errorMsg);
+        toast.error(errorMsg);
         setProcessing(false);
+        return;
+      }
+
+      if (!result.redirectURI) {
+        const errorMsg = "ICICI API did not return redirect URL. " + (result.apiError ? `Server error: ${typeof result.apiError === 'string' ? result.apiError : 'Check console'}` : "Please try again");
+        setErrorMsg(errorMsg);
+        toast.error(errorMsg);
+        setProcessing(false);
+        console.error("[Payment] No redirectURI in response:", result);
         return;
       }
 

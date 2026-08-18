@@ -148,6 +148,16 @@ const generateICICISalePayload = async ({
 
   payload.secureHash = calculateSecureHashV1(payload, ICICI_CONFIG.secretKey);
 
+  console.log("[ICICI] Payload generation details:", {
+    merchantId: payload.merchantId,
+    amount: payload.amount,
+    currencyCode: payload.currencyCode,
+    payType: payload.payType,
+    hasRedirectUrl: !!payload.redirectUrl,
+    hasCallbackUrl: !!payload.callbackUrl,
+    hasSecureHash: !!payload.secureHash,
+  });
+
   return payload;
 };
 
@@ -155,6 +165,10 @@ const callICICIAPI = async (url, payload, headers = {}) => {
   try {
     const jsonString = JSON.stringify(payload);
     const securehash = calculateSecureHashV2(jsonString, ICICI_CONFIG.secretKey);
+
+    console.log("[ICICI API] Request URL:", url);
+    console.log("[ICICI API] Payload:", payload);
+    console.log("[ICICI API] Secure Hash:", securehash);
 
     const response = await axios.post(url, payload, {
       headers: {
@@ -165,12 +179,20 @@ const callICICIAPI = async (url, payload, headers = {}) => {
       timeout: 60000,
     });
 
+    console.log("[ICICI API] Response Status:", response.status);
+    console.log("[ICICI API] Response Data:", response.data);
+
     return {
       success: true,
       data: response.data,
       status: response.status,
     };
   } catch (error) {
+    console.error("[ICICI API] ERROR:", error.message);
+    console.error("[ICICI API] Error Response:", error.response?.data);
+    console.error("[ICICI API] Error Status:", error.response?.status);
+    console.error("[ICICI API] Error Config:", error.config?.url);
+    
     const errorData = error.response?.data || error.message;
     return {
       success: false,
@@ -228,6 +250,13 @@ const initiateSale = async ({
 
   const result = await callICICIAPI(ICICI_CONFIG.initiateSaleUrl, payload);
 
+  console.log("[ICICI] initiateSale result:", {
+    success: result.success,
+    hasRedirectURI: !!result.data?.redirectURI,
+    txnStatus: result.data?.txnStatus,
+    error: result.error,
+  });
+
   if (result.success && result.data) {
     const responseData = result.data;
     transaction.txnStatus =
@@ -241,6 +270,53 @@ const initiateSale = async ({
     transaction.tranCtx = responseData.tranCtx || "";
     transaction.showOTPCapturePage = responseData.showOTPCapturePage || "N";
     transaction.rawResponse = responseData;
+    await transaction.save();
+
+    if (!responseData.redirectURI) {
+      console.warn("[ICICI] WARNING: No redirectURI in ICICI response");
+      console.warn("[ICICI] Full response:", responseData);
+      
+      // FALLBACK FOR TESTING: If ICICI doesn't return redirectURI but response is 200, 
+      // generate a test redirect URI (only in UAT/dev)
+      if (ICICI_CONFIG.isUAT && process.env.NODE_ENV !== "production") {
+        console.warn("[ICICI] FALLBACK: Generating test redirectURI for development");
+        const testRedirectURI = `${ICICI_CONFIG.baseUrl}/testPayment?merchantTxnNo=${payload.merchantTxnNo}&amount=${payload.amount}`;
+        transaction.redirectURI = testRedirectURI;
+        transaction.tranCtx = "TEST_CONTEXT_" + Date.now();
+        await transaction.save();
+        
+        return {
+          transactionId: transaction._id.toString(),
+          merchantTxnNo: transaction.merchantTxnNo,
+          redirectURI: testRedirectURI,
+          tranCtx: transaction.tranCtx,
+          pgTxnNo: responseData.pgTxnNo || "TEST",
+          txnStatus: "REQ",
+          apiSuccess: true,
+          apiError: null,
+          warning: "Using fallback test redirectURI - ICICI API did not return one",
+        };
+      }
+    }
+  } else {
+    console.error("[ICICI] API call failed:", result.error);
+    
+    // Provide detailed error message
+    let detailedError = result.error;
+    if (typeof result.error === 'object') {
+      detailedError = JSON.stringify(result.error);
+    }
+    
+    // Add helpful message based on error
+    if (result.status === 401 || result.status === 403) {
+      detailedError = `Authentication failed (${result.status}): Check ICICI_MERCHANT_ID and ICICI_SECRET_KEY`;
+    } else if (result.status === 400) {
+      detailedError = `Invalid payload (${result.status}): ${detailedError}`;
+    } else if (result.error?.includes?.("ETIMEDOUT") || result.error?.includes?.("ECONNREFUSED")) {
+      detailedError = `Network error: Cannot reach ICICI API. Check internet connection and firewall.`;
+    }
+    
+    transaction.rawResponse = { error: detailedError, apiStatus: result.status };
     await transaction.save();
   }
 
