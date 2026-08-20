@@ -10,6 +10,10 @@ const MedicalRecord = require("../models/MedicalRecord");
 const User = require("../models/User");
 
 const tmpDir = fs.existsSync(os.tmpdir()) ? os.tmpdir() : path.join(__dirname, "..", "uploads", "_tmp");
+const maxUploadSizeMb = Number(process.env.UPLOAD_MAX_FILE_SIZE_MB || 50);
+const maxUploadSizeBytes = Number.isFinite(maxUploadSizeMb) && maxUploadSizeMb > 0
+  ? maxUploadSizeMb * 1024 * 1024
+  : 50 * 1024 * 1024;
 if (!fs.existsSync(tmpDir)) {
   try { fs.mkdirSync(tmpDir, { recursive: true }); } catch (e) {}
 }
@@ -26,8 +30,20 @@ const upload = multer({
       cb(null, `${ts}_${rnd}_${clean}`);
     },
   }),
-  limits: { fileSize: 50 * 1024 * 1024 },
+  limits: { fileSize: maxUploadSizeBytes },
 });
+
+const parseUpload = (req, res, next) => {
+  upload.array("files")(req, res, (error) => {
+    if (!error) return next();
+    if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
+      return res.status(413).json({
+        error: `Each file must be ${maxUploadSizeMb} MB or smaller`,
+      });
+    }
+    return res.status(400).json({ error: error.message || "Invalid upload" });
+  });
+};
 
 const requireAuth = async (req, res, next) => {
   try {
@@ -52,7 +68,7 @@ const requireAuth = async (req, res, next) => {
 router.post(
   "/upload",
   requireAuth,
-  upload.array("files"),
+  parseUpload,
   async (req, res) => {
     try {
       const { patientId, recordId } = req.body;
