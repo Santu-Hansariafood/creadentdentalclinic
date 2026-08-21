@@ -21,6 +21,17 @@ import {
 import toast from "react-hot-toast";
 import api from "../api/axios";
 
+const FILE_API_ORIGIN = import.meta.env.VITE_API_URL
+  ? new URL(import.meta.env.VITE_API_URL, window.location.origin).origin
+  : window.location.hostname === "creadentsmiles.com" || window.location.hostname === "www.creadentsmiles.com"
+    ? "https://api.creadentsmiles.com"
+    : "";
+
+const resolveFileUrl = (url) => {
+  if (!url || !FILE_API_ORIGIN || !String(url).startsWith("/files/")) return url;
+  return `${FILE_API_ORIGIN}${url}`;
+};
+
 const fileTypeIcon = (type, name) => {
   const n = (name || "").toLowerCase();
   const t = (type || "").toLowerCase();
@@ -46,8 +57,8 @@ const getAttachmentUrl = (att) => {
     const token = localStorage.getItem("token");
     return `/api/storage/proxy?url=${encodeURIComponent(att.url)}${token ? `&token=${encodeURIComponent(token)}` : ""}`;
   }
-  if (att.url) return att.url;
-  if (att.storageKey) return `/files/${encodeURIComponent(att.storageKey)}`;
+  if (att.url) return resolveFileUrl(att.url);
+  if (att.storageKey) return resolveFileUrl(`/files/${encodeURIComponent(att.storageKey)}`);
   return "";
 };
 

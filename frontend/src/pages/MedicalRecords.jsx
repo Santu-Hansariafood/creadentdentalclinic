@@ -37,6 +37,17 @@ import Preloader from "../components/Preloader";
 import MedicalRecordViewer from "../components/MedicalRecordViewer";
 import api from "../api/axios";
 
+const FILE_API_ORIGIN = import.meta.env.VITE_API_URL
+  ? new URL(import.meta.env.VITE_API_URL, window.location.origin).origin
+  : window.location.hostname === "creadentsmiles.com" || window.location.hostname === "www.creadentsmiles.com"
+    ? "https://api.creadentsmiles.com"
+    : "";
+
+const resolveFileUrl = (url) => {
+  if (!url || !FILE_API_ORIGIN || !String(url).startsWith("/files/")) return url;
+  return `${FILE_API_ORIGIN}${url}`;
+};
+
 const fileTypeIcon = (type, name) => {
   const n = (name || "").toLowerCase();
   const t = (type || "").toLowerCase();
@@ -68,13 +79,13 @@ const isPdfFile = (f) =>
   /\.pdf$/i.test(f?.name || f?.originalName || "");
 
 const getPreviewUrl = (f) => {
-  const url = f.previewUrl || f.url;
+  const url = resolveFileUrl(f.previewUrl || f.url);
   if (url && /^https:\/\/spacebyte\.in\//i.test(url)) {
     const token = localStorage.getItem("token");
     return `/api/storage/proxy?url=${encodeURIComponent(url)}${token ? `&token=${encodeURIComponent(token)}` : ""}`;
   }
   if (url) return url;
-  return f.storageKey ? `/files/${encodeURIComponent(f.storageKey)}` : "";
+  return f.storageKey ? resolveFileUrl(`/files/${encodeURIComponent(f.storageKey)}`) : "";
 };
 
 const CustomCombobox = ({
@@ -190,7 +201,7 @@ const RecordForm = ({
     record?.attachments?.map((a) => ({
       ...a,
       status: "saved",
-      previewUrl: a.url || (a.storageKey ? `/files/${encodeURIComponent(a.storageKey)}` : ""),
+      previewUrl: resolveFileUrl(a.url) || (a.storageKey ? resolveFileUrl(`/files/${encodeURIComponent(a.storageKey)}`) : ""),
     })) || [];
 
   const [patientId, setPatientId] = useState(initialPatient);
@@ -407,7 +418,7 @@ const RecordForm = ({
           return {
             ...up,
             status: "saved",
-            previewUrl: up.url || (up.storageKey ? `/files/${encodeURIComponent(up.storageKey)}` : ""),
+            previewUrl: resolveFileUrl(up.url) || (up.storageKey ? resolveFileUrl(`/files/${encodeURIComponent(up.storageKey)}`) : ""),
           };
         }
         return a;

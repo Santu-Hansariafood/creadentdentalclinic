@@ -12,7 +12,11 @@ const SPACEBYTE_ENDPOINT = (
 const SPACEBYTE = {
   ENDPOINT: SPACEBYTE_ENDPOINT,
 
-  API_TOKEN: process.env.SPACEBYTE_API_TOKEN || "",
+  API_TOKEN:
+    process.env.SPACEBYTE_API_TOKEN ||
+    process.env.SPACEBYTE_ACCESS_KEY ||
+    process.env.SPACEBITE_ACCESS_KEY ||
+    "",
 
   PARENT_ID: process.env.SPACEBYTE_PARENT_ID || "",
 
@@ -114,6 +118,7 @@ const getAuthHeaders = () => {
   return {
     Accept: "application/json",
     Authorization: `Bearer ${SPACEBYTE.API_TOKEN}`,
+    "X-API-Key": SPACEBYTE.API_TOKEN,
   };
 };
 
@@ -199,7 +204,7 @@ const uploadToSpaceByte = async (file, storageKey = "") => {
   }
 
   const originalName = sanitizeName(
-    file.originalname || file.name || path.basename(storageKey) || "file",
+    path.basename(storageKey) || file.originalname || file.name || "file",
   );
 
   const mimeType = file.mimetype || "application/octet-stream";
@@ -312,34 +317,22 @@ const uploadFile = async ({ file, storageKey }) => {
     throw new Error("File is required");
   }
 
-  ensureLocalDir(storageKey);
-  const fullPath = path.join(localUploadDir, storageKey);
-  const sourcePath = file.path || file.tempFilePath;
-  if (file.buffer && Buffer.isBuffer(file.buffer)) {
-    fs.writeFileSync(fullPath, file.buffer);
-  } else if (sourcePath) {
-    fs.copyFileSync(sourcePath, fullPath);
-  } else {
-    throw new Error("Uploaded file data is missing");
+  if (!isSpaceByteConfigured) {
+    throw new Error("SpaceByte storage is not configured. Set SPACEBYTE_API_TOKEN or SPACEBYTE_ACCESS_KEY.");
   }
 
-  if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
-    throw new Error("Uploaded file was not saved");
-  }
-
-  const size = fs.statSync(fullPath).size;
-  if (file.size > 0 && size !== file.size) {
-    throw new Error("Uploaded file was saved incompletely");
-  }
+  const result = await uploadToSpaceByte(file, storageKey);
+  const uploaded = result.uploaded || {};
 
   return {
-    storageKey,
-    name: path.basename(storageKey),
+    storageKey: uploaded.storageKey || storageKey,
+    name: uploaded.name || uploaded.originalName || path.basename(storageKey),
     originalName: file.originalname || file.name || path.basename(storageKey),
-    size,
-    type: file.mimetype || "application/octet-stream",
-    url: `/files/${encodeURIComponent(storageKey)}`,
-    uploadedAt: new Date().toISOString(),
+    size: uploaded.size ?? file.size ?? 0,
+    type: uploaded.type || file.mimetype || "application/octet-stream",
+    url: result.url,
+    fileEntryId: result.fileEntryId,
+    uploadedAt: uploaded.uploadedAt || new Date().toISOString(),
   };
 };
 
