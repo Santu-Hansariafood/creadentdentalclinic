@@ -19,6 +19,7 @@ import {
   Heart,
   Paperclip,
   AlertCircle,
+  AlertTriangle,
   Shield,
   Check,
 } from "lucide-react";
