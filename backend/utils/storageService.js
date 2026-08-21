@@ -143,9 +143,17 @@ const uploadFile = async ({ file, storageKey }) => {
     fs.writeFileSync(fullPath, file.buffer);
   } else if (file.path || file.tempFilePath) {
     fs.copyFileSync(file.path || file.tempFilePath, fullPath);
+  } else {
+    throw new Error("Uploaded file data is missing");
   }
 
-  const size = file.size || (fs.existsSync(fullPath) ? fs.statSync(fullPath).size : 0);
+  if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
+    throw new Error("Uploaded file was not saved");
+  }
+  const size = fs.statSync(fullPath).size;
+  if (file.size > 0 && size !== file.size) {
+    throw new Error("Uploaded file was saved incompletely");
+  }
   return {
     storageKey,
     name: path.basename(storageKey),
