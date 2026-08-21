@@ -793,8 +793,8 @@ const RecordForm = ({
                     </button>
                   </div>
                   <div className="p-3">
-                    <p className="text-sm font-medium text-gray-900 truncate" title={att.originalName || att.name}>
-                      {att.originalName || att.name || "Document"}
+                    <p className="text-sm font-medium text-gray-900 truncate" title={att.name || att.originalName}>
+                      {att.name || att.originalName || "Document"}
                     </p>
                     <div className="flex items-center justify-between mt-1.5 text-xs text-gray-500">
                       <span>{formatSize(att.size)}</span>

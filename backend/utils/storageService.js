@@ -35,15 +35,43 @@ const humanSize = (bytes) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
-const buildStorageKey = (patientId, recordId = "records", originalName = "file", patientName = "") => {
+const buildStorageKey = (
+  patientId,
+  recordId = "records",
+  originalName = "file",
+  patientName = "",
+  documentNumber = 1,
+) => {
   const safePatient = sanitizeName(
     String(patientName || "").trim() || patientId || "unknown",
   ).slice(0, 80);
   const safeRecord = sanitizeName(recordId || "records");
   const safeName = sanitizeName(originalName);
-  const ts = Date.now();
-  const rand = Math.floor(Math.random() * 10000);
-  return `${safePatient}/${safeRecord}/${ts}_${rand}_${safeName}`;
+  const safeNumber = Number.isInteger(documentNumber) && documentNumber > 0
+    ? documentNumber
+    : 1;
+  return `${safePatient}/${safeRecord}/${safePatient}_${safeNumber}_${safeName}`;
+};
+
+const getNextDocumentNumber = (patientName, patientId = "unknown") => {
+  const safePatient = sanitizeName(String(patientName || "").trim() || patientId).slice(0, 80);
+  const patientDir = path.join(localUploadDir, safePatient);
+  if (!fs.existsSync(patientDir)) return 1;
+
+  let highest = 0;
+  const visit = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const entryPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        visit(entryPath);
+        continue;
+      }
+      const match = entry.name.match(new RegExp(`^${safePatient}_(\\d+)_`));
+      if (match) highest = Math.max(highest, Number(match[1]));
+    }
+  };
+  visit(patientDir);
+  return highest + 1;
 };
 
 const ensureLocalDir = (key) => {
@@ -158,6 +186,7 @@ module.exports = {
   sanitizeName,
   humanSize,
   buildStorageKey,
+  getNextDocumentNumber,
   uploadFile,
   getPresignedUrl,
   fetchProviderFile,

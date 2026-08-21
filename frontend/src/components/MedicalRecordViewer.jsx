@@ -55,13 +55,17 @@ const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentsError, setAttachmentsError] = useState("");
+  const [selectedAttachment, setSelectedAttachment] = useState(null);
 
   useEffect(() => {
     if (!record) return;
     if (record?.attachments?.length) {
-      setAttachments(record.attachments.map((a) => ({ ...a, url: getAttachmentUrl(a) })));
+      const initialAttachments = record.attachments.map((a) => ({ ...a, url: getAttachmentUrl(a) }));
+      setAttachments(initialAttachments);
+      setSelectedAttachment(initialAttachments[0] || null);
     } else {
       setAttachments([]);
+      setSelectedAttachment(null);
     }
     if (record?.id) {
       setLoadingAttachments(true);
@@ -88,6 +92,7 @@ const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
         if (data && Array.isArray(data.attachments)) {
           const withUrls = data.attachments.map((a) => ({ ...a, url: getAttachmentUrl(a) }));
           setAttachments(withUrls);
+          setSelectedAttachment(withUrls[0] || null);
         } else if (lastErr) {
           const reason =
             lastErr?.response?.data?.error ||
@@ -113,6 +118,10 @@ const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
     if (att.type && att.type.startsWith("image")) return true;
     return /\.(png|jpe?g|gif|webp|bmp)$/i.test(att.originalName || att.name || "");
   };
+
+  const isPdf = (att) =>
+    Boolean(att?.type?.toLowerCase().includes("pdf")) ||
+    /\.pdf$/i.test(att?.originalName || att?.name || "");
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -404,9 +413,9 @@ const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
                         <div className="min-w-0 flex-1">
                           <p
                             className="text-sm font-semibold text-gray-900 truncate"
-                            title={att.originalName || att.name}
+                            title={att.name || att.originalName}
                           >
-                            {att.originalName || att.name || "Document"}
+                            {att.name || att.originalName || "Document"}
                           </p>
                           <div className="text-xs text-gray-500 mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                             <span>{formatSize(att.size)}</span>
@@ -437,9 +446,9 @@ const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
                         {url && (
                           <div className="flex items-center gap-1 flex-shrink-0">
                             <button
-                              onClick={() => openAttachment(att)}
-                              className="text-primary hover:text-primary/80 p-1.5 hover:bg-primary/5 rounded"
-                              title="View / Open"
+                              onClick={() => setSelectedAttachment(att)}
+                              className={`text-primary hover:text-primary/80 p-1.5 hover:bg-primary/5 rounded ${selectedAttachment?.storageKey === att.storageKey ? "bg-primary/10" : ""}`}
+                              title="View file"
                             >
                               <Eye size={16} />
                             </button>
@@ -447,7 +456,7 @@ const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
                               href={url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              download={att.originalName || att.name}
+                              download={att.name || att.originalName}
                               onClick={(e) => e.stopPropagation()}
                               className="text-gray-500 hover:text-gray-700 p-1.5 hover:bg-gray-100 rounded"
                               title="Download"
@@ -460,6 +469,50 @@ const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
                     </div>
                   );
                 })}
+              </div>
+            )}
+            {selectedAttachment && getAttachmentUrl(selectedAttachment) && (
+              <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                <div className="px-3 py-2 border-b border-gray-200 bg-white flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {selectedAttachment.name || selectedAttachment.originalName || "Selected file"}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAttachment(null)}
+                    className="text-gray-500 hover:text-gray-800 p-1 rounded"
+                    title="Close preview"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+                {isImage(selectedAttachment) ? (
+                  <div className="p-3 flex justify-center max-h-[32rem] overflow-auto">
+                    <img
+                      src={getAttachmentUrl(selectedAttachment)}
+                      alt={selectedAttachment.originalName || selectedAttachment.name || "Uploaded file"}
+                      className="max-w-full max-h-[30rem] object-contain rounded"
+                    />
+                  </div>
+                ) : isPdf(selectedAttachment) ? (
+                  <iframe
+                    src={getAttachmentUrl(selectedAttachment)}
+                    title={selectedAttachment.originalName || "PDF preview"}
+                    className="w-full h-[32rem] bg-white"
+                  />
+                ) : (
+                  <div className="p-8 text-center">
+                    <div className="text-5xl mb-3">{fileTypeIcon(selectedAttachment.type, selectedAttachment.originalName || selectedAttachment.name)}</div>
+                    <p className="text-sm text-gray-600 mb-3">This file type cannot be previewed here.</p>
+                    <button
+                      type="button"
+                      onClick={() => openAttachment(selectedAttachment)}
+                      className="btn-primary inline-flex items-center gap-2"
+                    >
+                      <Eye size={15} /> Open File
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

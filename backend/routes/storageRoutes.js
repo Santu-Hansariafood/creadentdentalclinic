@@ -169,6 +169,8 @@ router.post(
           },
         });
       }
+      const patientName = req.body?.patientName || "";
+      const firstDocumentNumber = storageService.getNextDocumentNumber(patientName, patientId);
       const outcomes = await Promise.all(files.map(async (f) => {
         console.log("[STORAGE-UPLOAD] processing file:", {
           originalname: f.originalname,
@@ -180,7 +182,8 @@ router.post(
           patientId,
           recordId || "medical-records",
           f.originalname || f.name || "file",
-          req.body?.patientName || "",
+          patientName,
+          firstDocumentNumber + files.indexOf(f),
         );
         try {
           const meta = await storageService.uploadFile({ file: f, storageKey });
