@@ -212,6 +212,7 @@ router.post(
         success: failed.length === 0,
         attachments,
         failed,
+        error: failed.length ? failed.map((item) => item.error).join("; ") : undefined,
       });
     } catch (e) {
       console.error("[STORAGE-UPLOAD] ERROR:", e);

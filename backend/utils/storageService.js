@@ -271,7 +271,20 @@ const uploadToSpaceByte = async (file, storageKey = "") => {
     );
   }
 
-  if (payload?.success !== true) {
+  const attachments = Array.isArray(payload?.attachments)
+    ? payload.attachments
+    : payload?.file
+      ? [payload.file]
+      : payload?.data?.file
+        ? [payload.data.file]
+        : payload?.data?.attachments || [];
+  const responseSucceeded =
+    payload?.success === true ||
+    payload?.success === "true" ||
+    String(payload?.status || "").toLowerCase() === "success" ||
+    attachments.length > 0;
+
+  if (!responseSucceeded) {
     throw new Error(
       `SpaceByte upload was not successful: ${getSpaceByteError(
         payload,
@@ -280,17 +293,13 @@ const uploadToSpaceByte = async (file, storageKey = "") => {
     );
   }
 
-  const attachments = Array.isArray(payload.attachments)
-    ? payload.attachments
-    : [];
-
   if (!attachments.length) {
     throw new Error("SpaceByte upload succeeded but returned no attachment");
   }
 
   const uploaded = attachments[0];
 
-  const url = uploaded?.url || uploaded?.downloadUrl || uploaded?.link || "";
+  const url = uploaded?.url || uploaded?.downloadUrl || uploaded?.link || uploaded?.path || "";
 
   if (!url) {
     throw new Error("SpaceByte upload succeeded but returned no file URL");

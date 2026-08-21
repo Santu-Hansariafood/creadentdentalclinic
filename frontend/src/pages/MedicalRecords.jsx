@@ -442,6 +442,7 @@ const RecordForm = ({
     } catch (e) {
       const msg =
         e?.response?.data?.error ||
+        e?.response?.data?.failed?.map((item) => item.error).filter(Boolean).join("; ") ||
         e?.response?.data?.message ||
         e?.message ||
         "Upload failed";
