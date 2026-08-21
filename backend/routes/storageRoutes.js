@@ -169,24 +169,21 @@ router.post(
           },
         });
       }
-      const patientName = req.body?.patientName || "";
-      const firstDocumentNumber = storageService.getNextDocumentNumber(patientName, patientId);
-      const outcomes = await Promise.all(files.map(async (f, fileIndex) => {
+      const patientName = req.body?.patientName || patientId;
+      const patientFolder = `medical-records/${patientName}`;
+      const outcomes = await Promise.all(files.map(async (f) => {
         console.log("[STORAGE-UPLOAD] processing file:", {
           originalname: f.originalname,
           size: f.size,
           mimetype: f.mimetype,
           path: f.path,
         });
-        const storageKey = storageService.buildStorageKey(
-          patientId,
-          recordId || "medical-records",
-          f.originalname || f.name || "file",
-          patientName,
-          firstDocumentNumber + fileIndex,
-        );
         try {
-          const meta = await storageService.uploadFile({ file: f, storageKey });
+          const meta = await storageService.uploadFile({
+            file: f,
+            folder: patientFolder,
+            fileName: f.originalname || f.name || "file",
+          });
           console.log("[STORAGE-UPLOAD] uploaded:", {
             originalname: f.originalname,
             storageKey: meta.storageKey,
