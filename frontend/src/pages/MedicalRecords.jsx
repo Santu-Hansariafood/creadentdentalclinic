@@ -225,9 +225,9 @@ const RecordForm = ({
     return obj;
   };
 
-  const preparePayloadAttachments = () => {
-    const saved = attachments.filter((a) => Boolean(a.storageKey) || Boolean(a.url));
-    const skipped = attachments.length - saved.length;
+  const preparePayloadAttachments = (source = attachments) => {
+    const saved = source.filter((a) => Boolean(a.storageKey) || Boolean(a.url));
+    const skipped = source.length - saved.length;
     if (skipped > 0) {
       toast(
         (t) => (
@@ -297,10 +297,10 @@ const RecordForm = ({
   };
 
   const uploadPending = async () => {
-    if (uploadable.length === 0) return [];
+    if (uploadable.length === 0) return attachments;
     if (!patientId) {
       toast.error("Please select a patient before uploading documents");
-      return [];
+      return attachments;
     }
 
     // Validate file objects BEFORE sending — bail out early with clear error
@@ -318,7 +318,7 @@ const RecordForm = ({
         "File objects lost — please re-add the files to the record and try uploading again",
         { duration: 6000 },
       );
-      return [];
+      return attachments;
     }
 
     setUploading(true);
@@ -399,7 +399,7 @@ const RecordForm = ({
         return a;
       });
       setAttachments(newAttachments);
-      return uploaded;
+      return newAttachments;
     } catch (e) {
       const msg =
         e?.response?.data?.error ||
@@ -407,7 +407,7 @@ const RecordForm = ({
         e?.message ||
         "Upload failed";
       toast.error("Failed to upload documents: " + msg, { duration: 6000 });
-      return [];
+      return attachments;
     } finally {
       setUploading(false);
     }
@@ -419,7 +419,7 @@ const RecordForm = ({
       toast.error("Please select a patient");
       return;
     }
-    await uploadPending();
+    const uploadedAttachments = await uploadPending();
     const vitalSigns = buildVitalSigns();
     onSubmit({
       mode,
@@ -431,7 +431,7 @@ const RecordForm = ({
       notes,
       followUpDate,
       vitalSigns,
-      attachments: preparePayloadAttachments(),
+      attachments: preparePayloadAttachments(uploadedAttachments),
       record,
       selectedPatient,
     });
