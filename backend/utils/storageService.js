@@ -110,6 +110,8 @@ const getErrorMessage = (data, status) => {
     data.error ||
     data.detail ||
     data.title ||
+    data.errors?.[0]?.message ||
+    data.errors?.[0] ||
     "SpaceByte request failed"
   );
 };

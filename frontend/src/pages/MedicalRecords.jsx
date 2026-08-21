@@ -403,6 +403,14 @@ const RecordForm = ({
         throw lastErr || new Error("Upload endpoint not available");
       }
 
+      if (Array.isArray(data.failed) && data.failed.length > 0) {
+        const failureMessage =
+          data.error ||
+          data.failed.map((item) => item.error || item.name).filter(Boolean).join("; ") ||
+          "The file could not be uploaded";
+        throw new Error(failureMessage);
+      }
+
       const uploaded = data.attachments || [];
       const remainingUploads = [...uploaded];
       const newAttachments = [...attachments].map((a) => {
@@ -447,7 +455,7 @@ const RecordForm = ({
         e?.message ||
         "Upload failed";
       toast.error("Failed to upload documents: " + msg, { duration: 6000 });
-      return attachments;
+      return null;
     } finally {
       setUploading(false);
     }
@@ -460,6 +468,7 @@ const RecordForm = ({
       return;
     }
     const uploadedAttachments = await uploadPending();
+    if (uploadedAttachments === null) return;
     const vitalSigns = buildVitalSigns();
     onSubmit({
       mode,
