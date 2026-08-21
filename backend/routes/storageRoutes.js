@@ -96,6 +96,25 @@ const requireAuth = async (req, res, next) => {
   }
 };
 
+router.get("/proxy", (req, res, next) => {
+  if (!req.headers.authorization && req.query.token) {
+    req.headers.authorization = `Bearer ${req.query.token}`;
+  }
+  return requireAuth(req, res, next);
+}, async (req, res) => {
+  try {
+    const providerResponse = await storageService.fetchProviderFile(req.query.url);
+    const contentType = providerResponse.headers.get("content-type");
+    const contentLength = providerResponse.headers.get("content-length");
+    if (contentType) res.setHeader("Content-Type", contentType);
+    if (contentLength) res.setHeader("Content-Length", contentLength);
+    res.setHeader("Cache-Control", "private, max-age=300");
+    return require("stream").Readable.fromWeb(providerResponse.body).pipe(res);
+  } catch (e) {
+    return res.status(404).json({ error: e.message || "File unavailable" });
+  }
+});
+
 router.post(
   "/upload",
   requireAuth,

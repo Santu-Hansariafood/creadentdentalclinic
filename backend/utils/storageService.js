@@ -135,6 +135,24 @@ const getPresignedUrl = async (storageKey, expiresInSeconds = 86400) => {
   return `/files/${encodeURIComponent(storageKey)}`;
 };
 
+const fetchProviderFile = async (rawUrl) => {
+  const url = new URL(rawUrl);
+  const endpoint = new URL(SPACEBITE.ENDPOINT);
+  if (url.protocol !== "https:" || url.hostname !== endpoint.hostname) {
+    throw new Error("Invalid storage file URL");
+  }
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${SPACEBITE.ACCESS_KEY}`,
+      "X-API-Key": SPACEBITE.ACCESS_KEY,
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`Storage file request failed (${response.status})`);
+  }
+  return response;
+};
+
 module.exports = {
   SPACEBITE,
   isSpaceBiteConfigured,
@@ -144,4 +162,5 @@ module.exports = {
   buildStorageKey,
   uploadFile,
   getPresignedUrl,
+  fetchProviderFile,
 };

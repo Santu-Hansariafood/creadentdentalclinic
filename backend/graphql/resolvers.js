@@ -67,7 +67,7 @@ const serializeAttachment = async (att) => {
   const obj = att && att.toObject ? att.toObject() : { ...att };
   const storageKey = obj.storageKey;
   let url = obj.url || null;
-  if (storageKey) {
+  if (!url && storageKey) {
     try {
       url = await storageService.getPresignedUrl(storageKey);
     } catch (_) {

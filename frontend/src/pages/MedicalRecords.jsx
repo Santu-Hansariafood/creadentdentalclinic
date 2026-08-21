@@ -62,8 +62,12 @@ const isImageFile = (f) => {
 };
 
 const getPreviewUrl = (f) => {
-  if (f.previewUrl) return f.previewUrl;
-  if (f.url) return f.url;
+  const url = f.previewUrl || f.url;
+  if (url && /^https:\/\/spacebyte\.in\//i.test(url)) {
+    const token = localStorage.getItem("token");
+    return `/api/storage/proxy?url=${encodeURIComponent(url)}${token ? `&token=${encodeURIComponent(token)}` : ""}`;
+  }
+  if (url) return url;
   return f.storageKey ? `/files/${encodeURIComponent(f.storageKey)}` : "";
 };
 
