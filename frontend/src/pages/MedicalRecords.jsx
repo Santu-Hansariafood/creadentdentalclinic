@@ -318,149 +318,173 @@ const RecordForm = ({
   };
 
   const uploadPending = async () => {
-    if (uploadable.length === 0) return attachments;
-    if (!patientId) {
-      toast.error("Please select a patient before uploading documents");
-      return attachments;
-    }
+  if (uploadable.length === 0) {
+    return attachments;
+  }
 
-    // Validate file objects BEFORE sending — bail out early with clear error
-    const withFiles = uploadable.filter((a) => a.file instanceof File || a.file instanceof Blob);
-    if (withFiles.length === 0) {
-      const diagnostics = uploadable.map((a, i) => ({
-        i,
-        hasFile: Boolean(a.file),
-        fileType: a.file ? Object.prototype.toString.call(a.file) : "—",
-        fileName: a.file?.name || a.name || a.originalName,
-        status: a.status,
-      }));
-      console.error("[UPLOAD] No valid File/Blob objects found:", diagnostics);
-      toast.error(
-        "File objects lost — please re-add the files to the record and try uploading again",
-        { duration: 6000 },
+  if (!patientId) {
+    toast.error("Please select a patient before uploading documents");
+    return attachments;
+  }
+
+  const withFiles = uploadable.filter(
+    (a) => a.file instanceof File || a.file instanceof Blob
+  );
+
+  if (withFiles.length === 0) {
+    toast.error(
+      "File objects are no longer available. Please re-add the files."
+    );
+    return attachments;
+  }
+
+  setUploading(true);
+
+  try {
+    const form = new FormData();
+
+    withFiles.forEach((attachment) => {
+      const file = attachment.file;
+
+      form.append(
+        "files",
+        file,
+        file.name ||
+          attachment.originalName ||
+          attachment.name ||
+          "file"
       );
-      return attachments;
+    });
+
+    form.append("patientId", patientId);
+    form.append("recordId", isEdit ? record.id : "pending-new");
+
+    if (selectedPatient?.name) {
+      form.append("patientName", selectedPatient.name);
     }
 
-    setUploading(true);
-    try {
-      const form = new FormData();
-      withFiles.forEach((a) => {
-        console.log("[UPLOAD] Appending file:", {
-          name: a.file.name,
-          size: a.file.size,
-          type: a.file.type,
-        });
-        form.append("files", a.file, a.file.name || a.originalName || a.name || "file");
-      });
-      form.append("patientId", patientId);
-      form.append("recordId", isEdit ? record.id : "pending-new");
-      if (selectedPatient?.name) {
-        form.append("patientName", selectedPatient.name);
+    const response = await api.post(
+      "/api/storage/upload",
+      form,
+      {
+        timeout: 180000,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    const data = response.data || {};
+
+    if (Array.isArray(data.failed) && data.failed.length > 0) {
+      const failedNames = data.failed
+        .map((item) => item.name || item.originalName)
+        .filter(Boolean)
+        .join(", ");
+
+      toast.error(
+        `Some files failed to upload${
+          failedNames ? `: ${failedNames}` : ""
+        }`,
+        { duration: 8000 }
+      );
+    }
+
+    if (!Array.isArray(data.attachments)) {
+      throw new Error(
+        data.error || "Upload API returned an invalid response"
+      );
+    }
+
+    const uploaded = data.attachments;
+
+    const remainingUploads = [...uploaded];
+
+    const newAttachments = attachments.map((attachment) => {
+      if (attachment.status !== "pending") {
+        return attachment;
       }
 
-      // Debug: enumerate everything in FormData so we can confirm payload in console
-      if (typeof form.entries === "function") {
-        const dump = [];
-        for (const [k, v] of form.entries()) {
-          dump.push({
-            key: k,
-            type: typeof v,
-            isFile: v instanceof File,
-            name: v?.name,
-            size: v?.size,
-            value: typeof v === "string" ? v : `[File ${v?.name || ""}]`,
-          });
-        }
-        console.log("[UPLOAD] FormData contents:", dump);
+      const uploadIndex = remainingUploads.findIndex(
+        (uploadedFile) =>
+          uploadedFile.originalName ===
+          (attachment.file?.name ||
+            attachment.originalName ||
+            attachment.name)
+      );
+
+      if (uploadIndex < 0) {
+        return attachment;
       }
 
-      // Try multiple endpoint paths in order (handles different reverse-proxy configurations)
-      const candidatePaths = [
-        "/api/storage/upload",
-        "/storage/upload",
-        "/graphql/storage/upload",
-      ];
-      let data = null;
-      let lastErr = null;
-      for (const urlPath of candidatePaths) {
+      const uploadedFile = remainingUploads.splice(uploadIndex, 1)[0];
+
+      if (attachment.previewUrl && attachment.file) {
         try {
-          const res = await api.post(urlPath, form, { timeout: 180000 });
-          data = res.data || {};
-          console.log("[UPLOAD] success on path:", urlPath, data);
-          break;
-        } catch (e) {
-          const status = e?.response?.status;
-          lastErr = e;
-          console.warn("[UPLOAD] path failed:", urlPath, "status:", status, "msg:", e?.message);
-          // 404 → try next path; anything else → rethrow (e.g. 401, 413, 500)
-          if (status !== 404) {
-            throw e;
-          }
-        }
-      }
-      if (!data) {
-        throw lastErr || new Error("Upload endpoint not available");
+          URL.revokeObjectURL(attachment.previewUrl);
+        } catch {}
       }
 
-      if (Array.isArray(data.failed) && data.failed.length > 0) {
-        const failureMessage =
-          data.error ||
-          data.failed.map((item) => item.error || item.name).filter(Boolean).join("; ") ||
-          "The file could not be uploaded";
-        throw new Error(failureMessage);
-      }
+      return {
+        ...uploadedFile,
+        status: "saved",
+        previewUrl:
+          resolveFileUrl(uploadedFile.url) ||
+          (uploadedFile.storageKey
+            ? resolveFileUrl(
+                `/files/${encodeURIComponent(
+                  uploadedFile.storageKey
+                )}`
+              )
+            : ""),
+      };
+    });
 
-      const uploaded = data.attachments || [];
-      const remainingUploads = [...uploaded];
-      const newAttachments = [...attachments].map((a) => {
-        if (a.status === "pending") {
-          const uploadIndex = remainingUploads.findIndex(
-            (up) => up.originalName === (a.file?.name || a.originalName || a.name),
-          );
-          const up = uploadIndex >= 0 ? remainingUploads.splice(uploadIndex, 1)[0] : null;
-          if (!up) return a;
-          if (a?.previewUrl && a?.file) {
-            try { URL.revokeObjectURL(a.previewUrl); } catch {}
-          }
-          return {
-            ...up,
-            status: "saved",
-            previewUrl: resolveFileUrl(up.url) || (up.storageKey ? resolveFileUrl(`/files/${encodeURIComponent(up.storageKey)}`) : ""),
-          };
-        }
-        return a;
-      });
-      if (Array.isArray(data.failed) && data.failed.length > 0) {
-        const failedNames = data.failed.map((item) => item.name).filter(Boolean).join(", ");
-        toast.error(
-          `${data.failed.length} file${data.failed.length === 1 ? "" : "s"} could not be uploaded${failedNames ? `: ${failedNames}` : ""}`,
-          { duration: 8000 },
-        );
+    setAttachments(newAttachments);
+
+    if (selectedPreview) {
+      const previewName =
+        selectedPreview.file?.name ||
+        selectedPreview.originalName ||
+        selectedPreview.name;
+
+      const replacement = newAttachments.find(
+        (attachment) =>
+          attachment.originalName === previewName
+      );
+
+      if (replacement) {
+        setSelectedPreview(replacement);
       }
-      if (selectedPreview) {
-        const previewName = selectedPreview.file?.name || selectedPreview.originalName || selectedPreview.name;
-        const replacement = newAttachments.find(
-          (attachment) => attachment.originalName === previewName,
-        );
-        if (replacement) setSelectedPreview(replacement);
-      }
-      setAttachments(newAttachments);
-      return newAttachments;
-    } catch (e) {
-      const msg =
-        e?.response?.data?.error ||
-        e?.response?.data?.failed?.map((item) => item.error).filter(Boolean).join("; ") ||
-        e?.response?.data?.message ||
-        e?.message ||
-        "Upload failed";
-      toast.error("Failed to upload documents: " + msg, { duration: 6000 });
-      return null;
-    } finally {
-      setUploading(false);
     }
-  };
 
+    toast.success(
+      `${uploaded.length} file${
+        uploaded.length === 1 ? "" : "s"
+      } uploaded successfully`
+    );
+
+    return newAttachments;
+  } catch (error) {
+    console.error("Medical record upload failed:", error);
+
+    const serverMessage =
+      error?.response?.data?.error ||
+      error?.response?.data?.message ||
+      error?.response?.data?.detail;
+
+    toast.error(
+      `Failed to upload documents: ${
+        serverMessage || error.message || "Upload failed"
+      }`,
+      { duration: 8000 }
+    );
+
+    return null;
+  } finally {
+    setUploading(false);
+  }
+};
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!patientId) {
