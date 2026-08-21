@@ -19,6 +19,7 @@
     "concurrently": "^9.2.1"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "motion": "^12.40.0"
