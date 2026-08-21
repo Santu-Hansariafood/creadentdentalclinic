@@ -51,7 +51,9 @@ const buildStoragePath = ({ folder = "files", fileName = "file" }) => {
 
 const getHeaders = () => {
   if (!SPACEBYTE.API_TOKEN) {
-    throw new Error("SPACEBYTE_API_TOKEN is not configured");
+    throw new Error(
+      "SPACEBYTE_API_TOKEN is not configured. Add the API key from SpaceByte API settings.",
+    );
   }
 
   return {
@@ -135,6 +137,9 @@ const extractUploadedFile = (data) => {
   if (data.data) {
     return data.data;
   }
+  if (data.url || data.downloadUrl || data.link || data.path) {
+    return data;
+  }
   return null;
 };
 
@@ -185,6 +190,8 @@ const uploadFile = async ({
 
   if (destination) {
     form.append("relativePath", destination);
+    form.append("path", destination);
+    form.append("folder", path.dirname(destination));
   }
 
   const controller = new AbortController();
@@ -216,6 +223,12 @@ const uploadFile = async ({
 
   const data = await parseResponse(response);
 
+  console.log("[SPACEBYTE-UPLOAD] response:", {
+    status: response.status,
+    ok: response.ok,
+    body: data,
+  });
+
   if (!response.ok) {
     throw new Error(
       `SpaceByte upload failed (${response.status}): ${getErrorMessage(
@@ -238,6 +251,12 @@ const uploadFile = async ({
   const fileEntryId =
     uploaded.fileEntryId || uploaded.id || uploaded._id || null;
 
+  if (!url && !fileEntryId) {
+    throw new Error(
+      "SpaceByte returned success without a file URL or file ID",
+    );
+  }
+
   return {
     success: true,
 
@@ -251,7 +270,7 @@ const uploadFile = async ({
 
     storageKey: uploaded.storageKey || uploaded.path || destination,
 
-    url,
+    url: url || `${SPACEBYTE.ENDPOINT}/file-entries/${encodeURIComponent(fileEntryId)}`,
 
     size: uploaded.size ?? file.size ?? buffer.length,
 
