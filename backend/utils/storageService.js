@@ -1,24 +1,17 @@
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
 const SPACEBITE = {
-  ENDPOINT: process.env.SPACEBYTE_S3_ENDPOINT || process.env.SPACEBYTE_ENDPOINT || "",
+  ENDPOINT: process.env.SPACEBYTE_ENDPOINT || "",
   ACCESS_KEY: process.env.SPACEBYTE_ACCESS_KEY || process.env.SPACEBITE_ACCESS_KEY || "",
   SECRET_KEY: process.env.SPACEBYTE_SECRET_KEY || process.env.SPACEBITE_SECRET_KEY || "",
   BUCKET: process.env.SPACEBYTE_BUCKET || process.env.SPACEBITE_BUCKET || "Creadent",
   REGION: process.env.SPACEBYTE_REGION || process.env.SPACEBITE_REGION || "auto",
   BASE_URL: process.env.SPACEBYTE_BASE_URL || process.env.SPACEBITE_BASE_URL || "",
+  PARENT_ID: process.env.SPACEBYTE_PARENT_ID || "",
 };
 
-const AWS = (() => {
-  try {
-    return require("@aws-sdk/client-s3");
-  } catch (e) {
-    return null;
-  }
-})();
-
 const fs = require("fs");
-const path = require("path");
 
 const localUploadDir = path.join(__dirname, "..", "uploads");
 if (!fs.existsSync(localUploadDir)) {
@@ -26,25 +19,7 @@ if (!fs.existsSync(localUploadDir)) {
 }
 
 const isSpaceBiteConfigured =
-  !!SPACEBITE.ENDPOINT && !!SPACEBITE.ACCESS_KEY && !!SPACEBITE.SECRET_KEY && !!AWS;
-
-let s3Client = null;
-if (isSpaceBiteConfigured) {
-  try {
-    s3Client = new AWS.S3Client({
-      endpoint: SPACEBITE.ENDPOINT,
-      region: SPACEBITE.REGION,
-      credentials: {
-        accessKeyId: SPACEBITE.ACCESS_KEY,
-        secretAccessKey: SPACEBITE.SECRET_KEY,
-      },
-      forcePathStyle: true,
-    });
-  } catch (e) {
-    console.warn("Failed to initialize SpaceBite client:", e.message);
-    s3Client = null;
-  }
-}
+  !!SPACEBITE.ENDPOINT && !!SPACEBITE.ACCESS_KEY;
 
 const sanitizeName = (name = "file") =>
   name
@@ -79,44 +54,59 @@ const ensureLocalDir = (key) => {
   }
 };
 
-const createPrivateUrl = async (storageKey) => {
-  if (s3Client && AWS && AWS.GetObjectCommand) {
-    try {
-      const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-      const command = new AWS.GetObjectCommand({
-        Bucket: SPACEBITE.BUCKET,
-        Key: storageKey,
-      });
-      return await getSignedUrl(s3Client, command, { expiresIn: 86400 });
-    } catch (e) {
-      console.warn("Failed to create SpaceBite download URL:", e.message);
-    }
+const providerUploadUrl = () => `${SPACEBITE.ENDPOINT.replace(/\/$/, "")}/uploads`;
+
+const getProviderFile = (payload) =>
+  payload?.fileEntry || payload?.file || payload?.data?.file || payload?.upload || payload?.data || payload;
+
+const uploadToSpaceByte = async (file) => {
+  const bytes = file.buffer && Buffer.isBuffer(file.buffer)
+    ? file.buffer
+    : await fs.promises.readFile(file.path || file.tempFilePath);
+  const form = new FormData();
+  form.append("file", new Blob([bytes], {
+    type: file.mimetype || "application/octet-stream",
+  }), file.originalname || file.name || "file");
+  if (SPACEBITE.PARENT_ID) form.append("parentId", SPACEBITE.PARENT_ID);
+
+  const response = await fetch(providerUploadUrl(), {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${SPACEBITE.ACCESS_KEY}`,
+      "X-API-Key": SPACEBITE.ACCESS_KEY,
+    },
+    body: form,
+  });
+  const text = await response.text();
+  let payload;
+  try { payload = text ? JSON.parse(text) : {}; } catch (_) { payload = { message: text }; }
+  if (!response.ok) {
+    const detail = payload?.message || payload?.error || `HTTP ${response.status}`;
+    throw new Error(`SpaceByte upload failed (${response.status}): ${detail}`);
   }
-  return `/files/${encodeURIComponent(storageKey)}`;
+
+  const uploaded = getProviderFile(payload);
+  const rawUrl = uploaded?.url || uploaded?.downloadUrl || uploaded?.path || uploaded?.link;
+  const url = rawUrl && /^https?:\/\//i.test(rawUrl)
+    ? rawUrl
+    : rawUrl
+      ? `${SPACEBITE.ENDPOINT.replace(/\/api\/v1\/?$/, "")}/${String(rawUrl).replace(/^\//, "")}`
+      : "";
+  if (!url) throw new Error("SpaceByte upload returned no file URL");
+  return { payload, uploaded, url };
 };
 
 const uploadFile = async ({ file, storageKey }) => {
-  if (isSpaceBiteConfigured && s3Client) {
-    let body;
-    if (file.buffer && Buffer.isBuffer(file.buffer)) {
-      body = file.buffer;
-    } else {
-      body = fs.createReadStream(file.path || file.tempFilePath);
-    }
-    const command = new AWS.PutObjectCommand({
-      Bucket: SPACEBITE.BUCKET,
-      Key: storageKey,
-      Body: body,
-      ContentType: file.mimetype || "application/octet-stream",
-    });
-    await s3Client.send(command);
+  if (isSpaceBiteConfigured) {
+    const result = await uploadToSpaceByte(file);
+    const uploaded = result.uploaded || {};
     return {
       storageKey,
-      name: path.basename(storageKey),
+      name: uploaded.name || uploaded.file_name || uploaded.originalName || file.originalname || path.basename(storageKey),
       originalName: file.originalname || file.name || path.basename(storageKey),
-      size: file.size,
-      type: file.mimetype || "application/octet-stream",
-      url: await createPrivateUrl(storageKey),
+      size: uploaded.size || uploaded.file_size || file.size,
+      type: uploaded.mimeType || uploaded.mimetype || uploaded.mime || file.mimetype || "application/octet-stream",
+      url: result.url,
       uploadedAt: new Date().toISOString(),
     };
   }
@@ -142,18 +132,6 @@ const uploadFile = async ({ file, storageKey }) => {
 };
 
 const getPresignedUrl = async (storageKey, expiresInSeconds = 86400) => {
-  if (isSpaceBiteConfigured && s3Client && AWS && AWS.GetObjectCommand) {
-    try {
-      const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-      const command = new AWS.GetObjectCommand({
-        Bucket: SPACEBITE.BUCKET,
-        Key: storageKey,
-      });
-      return await getSignedUrl(s3Client, command, { expiresIn: expiresInSeconds });
-    } catch (e) {
-      return `/files/${encodeURIComponent(storageKey)}`;
-    }
-  }
   return `/files/${encodeURIComponent(storageKey)}`;
 };
 

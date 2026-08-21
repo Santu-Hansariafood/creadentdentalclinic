@@ -1,7 +1,9 @@
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
+
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
-const path = require("path");
 const fs = require("fs");
 const { ApolloServer } = require("@apollo/server");
 const { expressMiddleware } = require("@apollo/server/express4");
@@ -19,8 +21,6 @@ const storageService = require("./utils/storageService");
 const {
   startAppointmentReminderScheduler,
 } = require("./utils/appointmentNotifications");
-require("dotenv").config({ path: path.join(__dirname, ".env") });
-
 const startServer = async () => {
   const app = express();
   const httpServer = http.createServer(app);
