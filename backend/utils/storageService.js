@@ -6,16 +6,22 @@ require("dotenv").config({
   path: path.join(__dirname, "..", ".env"),
 });
 
+const SPACEBYTE_ENDPOINT = (
+  process.env.SPACEBYTE_ENDPOINT || "https://spacebyte.in/api/v1"
+).replace(/\/+$/, "");
+
 const SPACEBYTE = {
-  ENDPOINT: (
-    process.env.SPACEBYTE_ENDPOINT || "https://spacebyte.in/api/v1"
-  ).replace(/\/+$/, ""),
+  ENDPOINT: SPACEBYTE_ENDPOINT,
 
   API_TOKEN: process.env.SPACEBYTE_API_TOKEN || "",
 
   PARENT_ID: process.env.SPACEBYTE_PARENT_ID || "",
 
   UPLOAD_TIMEOUT_MS: Number(process.env.SPACEBYTE_UPLOAD_TIMEOUT_MS || 120000),
+
+  MAX_FILE_SIZE_BYTES: Number(
+    process.env.SPACEBYTE_MAX_FILE_SIZE_BYTES || 50 * 1024 * 1024,
+  ),
 };
 
 const isSpaceByteConfigured = Boolean(
@@ -30,18 +36,21 @@ const sanitizeName = (name = "file") =>
     .replace(/^[-_.]+|[-_.]+$/g, "") || "file";
 
 const humanSize = (bytes = 0) => {
-  if (!Number.isFinite(Number(bytes)) || Number(bytes) <= 0) {
+  const value = Number(bytes);
+
+  if (!Number.isFinite(value) || value <= 0) {
     return "0 B";
   }
 
   const sizes = ["B", "KB", "MB", "GB", "TB"];
+
   const index = Math.min(
-    Math.floor(Math.log(Number(bytes)) / Math.log(1024)),
+    Math.floor(Math.log(value) / Math.log(1024)),
     sizes.length - 1,
   );
 
   return `${parseFloat(
-    (Number(bytes) / Math.pow(1024, index)).toFixed(2),
+    (value / Math.pow(1024, index)).toFixed(2),
   )} ${sizes[index]}`;
 };
 
@@ -70,10 +79,16 @@ const getNextDocumentNumber = async () => 1;
 
 const getUploadUrl = () => `${SPACEBYTE.ENDPOINT}/uploads`;
 
-const getAuthHeaders = () => ({
-  Accept: "application/json",
-  Authorization: `Bearer ${SPACEBYTE.API_TOKEN}`,
-});
+const getAuthHeaders = () => {
+  if (!SPACEBYTE.API_TOKEN) {
+    throw new Error("SPACEBYTE_API_TOKEN is not configured");
+  }
+
+  return {
+    Accept: "application/json",
+    Authorization: `Bearer ${SPACEBYTE.API_TOKEN}`,
+  };
+};
 
 const readFileBuffer = async (file) => {
   if (file?.buffer && Buffer.isBuffer(file.buffer)) {
@@ -105,6 +120,25 @@ const parseResponse = async (response) => {
   }
 };
 
+const getSpaceByteError = (payload, status) => {
+  if (!payload) {
+    return `HTTP ${status}`;
+  }
+
+  if (typeof payload === "string") {
+    return payload;
+  }
+
+  return (
+    payload.message ||
+    payload.error ||
+    payload.detail ||
+    payload.title ||
+    payload.errors?.[0]?.message ||
+    `HTTP ${status}`
+  );
+};
+
 const normalizeRelativePath = (storageKey) => {
   if (!storageKey) {
     return "";
@@ -125,6 +159,16 @@ const uploadToSpaceByte = async (file, storageKey = "") => {
 
   if (!bytes.length) {
     throw new Error("Uploaded file is empty");
+  }
+
+  if (bytes.length > SPACEBYTE.MAX_FILE_SIZE_BYTES) {
+    throw new Error(
+      `File size ${humanSize(
+        bytes.length,
+      )} exceeds the maximum allowed size of ${humanSize(
+        SPACEBYTE.MAX_FILE_SIZE_BYTES,
+      )}`,
+    );
   }
 
   const originalName = sanitizeName(
@@ -187,20 +231,20 @@ const uploadToSpaceByte = async (file, storageKey = "") => {
   const payload = await parseResponse(response);
 
   if (!response.ok) {
-    const detail =
-      payload?.message ||
-      payload?.error ||
-      payload?.detail ||
-      `HTTP ${response.status}`;
-
-    throw new Error(`SpaceByte upload failed (${response.status}): ${detail}`);
+    throw new Error(
+      `SpaceByte upload failed (${response.status}): ${getSpaceByteError(
+        payload,
+        response.status,
+      )}`,
+    );
   }
 
   if (payload?.success !== true) {
     throw new Error(
-      payload?.message ||
-        payload?.error ||
-        "SpaceByte upload was not successful",
+      `SpaceByte upload was not successful: ${getSpaceByteError(
+        payload,
+        response.status,
+      )}`,
     );
   }
 
@@ -324,34 +368,27 @@ const fetchProviderFile = async (rawUrl) => {
 
   const endpoint = new URL(SPACEBYTE.ENDPOINT);
 
-  if (url.protocol !== "https:" || url.hostname !== endpoint.hostname) {
+  if (
+    url.protocol !== endpoint.protocol ||
+    url.hostname !== endpoint.hostname ||
+    url.port !== endpoint.port
+  ) {
     throw new Error("Invalid storage file URL");
   }
 
-  if (!SPACEBYTE.API_TOKEN) {
-    throw new Error("SPACEBYTE_API_TOKEN is not configured");
-  }
-
-  let response;
-
-  try {
-    response = await fetch(url, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-  } catch (error) {
-    throw new Error(
-      `Storage file request failed: ${error?.message || "Network error"}`,
-    );
-  }
+  const response = await fetch(url, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
 
   if (!response.ok) {
     const payload = await parseResponse(response);
 
     throw new Error(
-      `Storage file request failed (${response.status}): ${
-        payload?.message || payload?.error || "Unknown error"
-      }`,
+      `Storage file request failed (${response.status}): ${getSpaceByteError(
+        payload,
+        response.status,
+      )}`,
     );
   }
 
