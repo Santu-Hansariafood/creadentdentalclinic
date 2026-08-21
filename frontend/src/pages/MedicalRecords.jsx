@@ -257,7 +257,6 @@ const RecordForm = ({
       size: a.size ? Number(a.size) : undefined,
       type: a.type || "",
       url: a.url || null,
-      uploadedAt: a.uploadedAt || null,
     }));
   };
 
