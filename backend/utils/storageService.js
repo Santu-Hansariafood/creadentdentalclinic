@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 require("dotenv").config({
   path: path.join(__dirname, "..", ".env"),
 });
@@ -20,9 +21,19 @@ const SPACEBYTE = {
     Number(process.env.SPACEBYTE_MAX_FILE_SIZE_BYTES) || 50 * 1024 * 1024,
 };
 
+const allowedSpaceByteHosts = new Set([
+  new URL(SPACEBYTE.ENDPOINT).hostname,
+  ...(process.env.SPACEBYTE_BASE_URL
+    ? [new URL(process.env.SPACEBYTE_BASE_URL).hostname]
+    : []),
+]);
+
 const isConfigured = () => {
   return Boolean(SPACEBYTE.ENDPOINT && SPACEBYTE.API_TOKEN);
 };
+
+const localUploadDir = path.join(__dirname, "..", "uploads");
+fs.mkdirSync(localUploadDir, { recursive: true });
 
 const sanitizeName = (name = "file") => {
   return (
@@ -305,7 +316,7 @@ const downloadFile = async (fileUrl) => {
 
   const endpoint = new URL(SPACEBYTE.ENDPOINT);
 
-  if (url.hostname !== endpoint.hostname) {
+  if (!allowedSpaceByteHosts.has(url.hostname)) {
     throw new Error("Invalid SpaceByte file host");
   }
 
@@ -340,6 +351,26 @@ const getFileById = async (fileEntryId) => {
   return downloadFile(url);
 };
 
+const saveLocalFile = async (file, storagePath) => {
+  const localPath = path.join(localUploadDir, storagePath);
+  fs.mkdirSync(path.dirname(localPath), { recursive: true });
+  const buffer = await getFileBuffer(file);
+  fs.writeFileSync(localPath, buffer);
+  if (!fs.existsSync(localPath) || fs.statSync(localPath).size !== buffer.length) {
+    throw new Error("Local file save failed");
+  }
+  return {
+    success: true,
+    name: path.basename(storagePath),
+    originalName: file.originalname || file.name || path.basename(storagePath),
+    storageKey: storagePath,
+    url: `/files/${encodeURIComponent(storagePath)}`,
+    size: buffer.length,
+    type: file.mimetype || "application/octet-stream",
+    uploadedAt: new Date().toISOString(),
+  };
+};
+
 const getPresignedUrl = async (storageKey, expiresInSeconds = 86400, fileEntryId, storedUrl) => {
   void expiresInSeconds;
   if (storedUrl) return storedUrl;
@@ -353,10 +384,12 @@ const fetchProviderFile = downloadFile;
 
 module.exports = {
   SPACEBYTE,
+  localUploadDir,
   isConfigured,
   sanitizeName,
   buildStoragePath,
   uploadFile,
+  saveLocalFile,
   downloadFile,
   getFileById,
   getPresignedUrl,

@@ -80,7 +80,7 @@ const isPdfFile = (f) =>
 
 const getPreviewUrl = (f) => {
   const url = resolveFileUrl(f.previewUrl || f.url);
-  if (url && /^https:\/\/spacebyte\.in\//i.test(url)) {
+  if (url && /^https:\/\/[^/]*spacebyte\.(?:in|com)\//i.test(url)) {
     const token = localStorage.getItem("token");
     return `/api/storage/proxy?url=${encodeURIComponent(url)}${token ? `&token=${encodeURIComponent(token)}` : ""}`;
   }

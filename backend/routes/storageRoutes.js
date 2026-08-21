@@ -179,11 +179,25 @@ router.post(
           path: f.path,
         });
         try {
-          const meta = await storageService.uploadFile({
-            file: f,
-            folder: patientFolder,
-            fileName: f.originalname || f.name || "file",
-          });
+          let meta;
+          try {
+            meta = await storageService.uploadFile({
+              file: f,
+              folder: patientFolder,
+              fileName: f.originalname || f.name || "file",
+            });
+          } catch (spaceByteError) {
+            console.error("[SPACEBYTE-UPLOAD] falling back to local storage:", spaceByteError.message);
+            meta = await storageService.saveLocalFile(
+              f,
+              storageService.buildStoragePath({
+                folder: patientFolder,
+                fileName: f.originalname || f.name || "file",
+              }),
+            );
+            meta.storageProvider = "local-fallback";
+            meta.providerError = spaceByteError.message;
+          }
           console.log("[STORAGE-UPLOAD] uploaded:", {
             originalname: f.originalname,
             storageKey: meta.storageKey,

@@ -53,7 +53,7 @@ const formatSize = (bytes) => {
 
 const getAttachmentUrl = (att) => {
   if (!att) return "";
-  if (att.url && /^https:\/\/spacebyte\.in\//i.test(att.url)) {
+  if (att.url && /^https:\/\/[^/]*spacebyte\.(?:in|com)\//i.test(att.url)) {
     const token = localStorage.getItem("token");
     return `/api/storage/proxy?url=${encodeURIComponent(att.url)}${token ? `&token=${encodeURIComponent(token)}` : ""}`;
   }
