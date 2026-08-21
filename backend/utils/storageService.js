@@ -1,6 +1,5 @@
 const path = require("path");
 const fs = require("fs");
-const crypto = require("crypto");
 
 require("dotenv").config({
   path: path.join(__dirname, "..", ".env"),
@@ -27,6 +26,11 @@ const SPACEBYTE = {
 const isSpaceByteConfigured = Boolean(
   SPACEBYTE.ENDPOINT && SPACEBYTE.API_TOKEN,
 );
+
+const localUploadDir = path.join(__dirname, "..", "uploads");
+if (!fs.existsSync(localUploadDir)) {
+  fs.mkdirSync(localUploadDir, { recursive: true });
+}
 
 const sanitizeName = (name = "file") =>
   String(name)
@@ -75,7 +79,30 @@ const buildStorageKey = (
   return `${safePatient}/${safeRecord}/${safePatient}_${safeNumber}_${safeName}`;
 };
 
-const getNextDocumentNumber = async () => 1;
+const getNextDocumentNumber = (patientName, patientId = "unknown") => {
+  const safePatient = sanitizeName(String(patientName || "").trim() || patientId).slice(0, 80);
+  const patientDir = path.join(localUploadDir, safePatient);
+  if (!fs.existsSync(patientDir)) return 1;
+
+  let highest = 0;
+  const visit = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const entryPath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        visit(entryPath);
+        continue;
+      }
+      const match = entry.name.match(new RegExp(`^${safePatient}_(\\d+)_`));
+      if (match) highest = Math.max(highest, Number(match[1]));
+    }
+  };
+  visit(patientDir);
+  return highest + 1;
+};
+
+const ensureLocalDir = (storageKey) => {
+  fs.mkdirSync(path.join(localUploadDir, path.dirname(storageKey)), { recursive: true });
+};
 
 const getUploadUrl = () => `${SPACEBYTE.ENDPOINT}/uploads`;
 
@@ -285,41 +312,34 @@ const uploadFile = async ({ file, storageKey }) => {
     throw new Error("File is required");
   }
 
-  if (!isSpaceByteConfigured) {
-    throw new Error(
-      "SpaceByte storage is not configured. Set SPACEBYTE_API_TOKEN.",
-    );
+  ensureLocalDir(storageKey);
+  const fullPath = path.join(localUploadDir, storageKey);
+  const sourcePath = file.path || file.tempFilePath;
+  if (file.buffer && Buffer.isBuffer(file.buffer)) {
+    fs.writeFileSync(fullPath, file.buffer);
+  } else if (sourcePath) {
+    fs.copyFileSync(sourcePath, fullPath);
+  } else {
+    throw new Error("Uploaded file data is missing");
   }
 
-  const result = await uploadToSpaceByte(file, storageKey);
+  if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
+    throw new Error("Uploaded file was not saved");
+  }
 
-  const uploaded = result.uploaded || {};
+  const size = fs.statSync(fullPath).size;
+  if (file.size > 0 && size !== file.size) {
+    throw new Error("Uploaded file was saved incompletely");
+  }
 
   return {
-    storageKey: uploaded.storageKey || storageKey || crypto.randomUUID(),
-
-    name:
-      uploaded.name ||
-      uploaded.originalName ||
-      file.originalname ||
-      file.name ||
-      path.basename(storageKey || "file"),
-
-    originalName:
-      uploaded.originalName ||
-      file.originalname ||
-      file.name ||
-      path.basename(storageKey || "file"),
-
-    size: uploaded.size ?? file.size ?? 0,
-
-    type: uploaded.type || file.mimetype || "application/octet-stream",
-
-    url: result.url,
-
-    fileEntryId: result.fileEntryId,
-
-    uploadedAt: uploaded.uploadedAt || new Date().toISOString(),
+    storageKey,
+    name: path.basename(storageKey),
+    originalName: file.originalname || file.name || path.basename(storageKey),
+    size,
+    type: file.mimetype || "application/octet-stream",
+    url: `/files/${encodeURIComponent(storageKey)}`,
+    uploadedAt: new Date().toISOString(),
   };
 };
 
@@ -339,18 +359,8 @@ const getPresignedUrl = async (
   fileEntryId = null,
   storedUrl = null,
 ) => {
-  void storageKey;
   void expiresInSeconds;
-
-  if (storedUrl) {
-    return storedUrl;
-  }
-
-  if (fileEntryId) {
-    return getSpaceByteFileUrl(fileEntryId);
-  }
-
-  return null;
+  return storedUrl || `/files/${encodeURIComponent(storageKey)}`;
 };
 
 const fetchProviderFile = async (rawUrl) => {
@@ -398,6 +408,7 @@ const fetchProviderFile = async (rawUrl) => {
 module.exports = {
   SPACEBYTE,
   isSpaceByteConfigured,
+  localUploadDir,
   sanitizeName,
   humanSize,
   buildStorageKey,
