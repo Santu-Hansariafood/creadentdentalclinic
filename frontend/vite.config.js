@@ -129,6 +129,10 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           ws: true,
         },
+        "/files": {
+          target: env.VITE_API_URL || "http://localhost:25000",
+          changeOrigin: true,
+        },
       },
     },
     preview: {

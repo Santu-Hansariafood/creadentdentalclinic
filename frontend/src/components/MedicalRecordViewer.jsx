@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   Eye,
   Shield,
+  Loader2,
 } from "lucide-react";
 
 const fileTypeIcon = (type, name) => {
@@ -37,19 +38,61 @@ const formatSize = (bytes) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
+const getAttachmentUrl = (att) => {
+  if (!att) return "";
+  if (att.url) return att.url;
+  if (att.storageKey) return `/files/${encodeURIComponent(att.storageKey)}`;
+  return "";
+};
+
 const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
   const patient = record?.patient || null;
   const [attachments, setAttachments] = useState([]);
+  const [loadingAttachments, setLoadingAttachments] = useState(false);
+  const [attachmentsError, setAttachmentsError] = useState("");
 
   useEffect(() => {
-    setAttachments(record?.attachments || []);
+    if (!record) return;
+    if (record?.attachments?.length) {
+      setAttachments(record.attachments.map((a) => ({ ...a, url: getAttachmentUrl(a) })));
+    } else {
+      setAttachments([]);
+    }
+    if (record?.id) {
+      setLoadingAttachments(true);
+      setAttachmentsError("");
+      const token = localStorage.getItem("token");
+      fetch(`/api/storage/record-attachments/${encodeURIComponent(record.id)}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+        .then(async (r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        })
+        .then((data) => {
+          if (Array.isArray(data.attachments)) {
+            const withUrls = data.attachments.map((a) => ({ ...a, url: getAttachmentUrl(a) }));
+            setAttachments(withUrls);
+          }
+        })
+        .catch((e) => {
+          setAttachmentsError(e.message || "Could not refresh attachment URLs");
+        })
+        .finally(() => setLoadingAttachments(false));
+    }
   }, [record]);
 
   if (!record) return null;
 
   const openAttachment = (att) => {
-    const url = att?.url || (att?.storageKey ? `/files/${encodeURIComponent(att.storageKey)}` : "");
+    const url = getAttachmentUrl(att);
     if (url) window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const isImage = (att) => {
+    if (!att) return false;
+    if (att.type && att.type.startsWith("image")) return true;
+    return /\.(png|jpe?g|gif|webp|bmp)$/i.test(att.originalName || att.name || "");
   };
 
   return (
@@ -282,51 +325,122 @@ const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
           )}
 
           <div className="bg-white border border-gray-200 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                 <FileText size={16} className="text-primary" />
                 Uploaded Documents & Reports
                 <span className="text-xs bg-gray-100 text-gray-600 rounded px-2 py-0.5">
                   {attachments.length} file{attachments.length === 1 ? "" : "s"}
                 </span>
+                {loadingAttachments && (
+                  <span className="text-xs bg-blue-50 text-blue-700 rounded px-2 py-0.5 flex items-center gap-1">
+                    <Loader2 size={11} className="animate-spin" /> Refreshing
+                  </span>
+                )}
               </h3>
+              {attachmentsError && (
+                <p className="text-xs text-amber-600 flex items-center gap-1">
+                  <AlertTriangle size={12} /> {attachmentsError}
+                </p>
+              )}
             </div>
             {attachments.length === 0 ? (
               <div className="text-center text-sm text-gray-500 py-8 bg-gray-50 rounded-lg">
                 No documents uploaded for this record yet.
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {attachments.map((att, idx) => (
-                  <div key={att.storageKey || idx} className="border border-gray-200 rounded-lg p-3 flex items-center gap-3 hover:border-primary/40 hover:bg-primary/5 transition-colors">
-                    <span className="text-3xl flex-shrink-0">{fileTypeIcon(att.type, att.originalName || att.name)}</span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 truncate" title={att.originalName || att.name}>
-                        {att.originalName || att.name || "Document"}
-                      </p>
-                      <div className="text-xs text-gray-500 flex items-center gap-2">
-                        <span>{formatSize(att.size)}</span>
-                        {att.uploadedAt && (
-                          <span>• {new Date(att.uploadedAt).toLocaleDateString()}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {attachments.map((att, idx) => {
+                  const url = getAttachmentUrl(att);
+                  const img = isImage(att);
+                  return (
+                    <div
+                      key={att.storageKey || att.url || idx}
+                      className="border border-gray-200 rounded-lg overflow-hidden hover:border-primary/40 transition-colors"
+                    >
+                      {img && url ? (
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block h-44 bg-gray-50 overflow-hidden"
+                        >
+                          <img
+                            src={url}
+                            alt={att.originalName || att.name || "Image"}
+                            className="w-full h-full object-cover hover:scale-[1.02] transition-transform"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                              e.currentTarget.parentElement.innerHTML =
+                                `<div class="w-full h-full flex items-center justify-center text-5xl">${fileTypeIcon(att.type, att.originalName || att.name)}</div>`;
+                            }}
+                          />
+                        </a>
+                      ) : (
+                        <div className="h-24 bg-gradient-to-br from-gray-50 to-white flex items-center justify-center">
+                          <span className="text-5xl">{fileTypeIcon(att.type, att.originalName || att.name)}</span>
+                        </div>
+                      )}
+                      <div className="p-3 flex items-start gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p
+                            className="text-sm font-semibold text-gray-900 truncate"
+                            title={att.originalName || att.name}
+                          >
+                            {att.originalName || att.name || "Document"}
+                          </p>
+                          <div className="text-xs text-gray-500 mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                            <span>{formatSize(att.size)}</span>
+                            {att.uploadedAt && (
+                              <>
+                                <span>•</span>
+                                <span>
+                                  {new Date(att.uploadedAt).toLocaleString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
+                              </>
+                            )}
+                            {att.type && (
+                              <>
+                                <span>•</span>
+                                <span className="truncate max-w-[120px]" title={att.type}>
+                                  {att.type.split("/").pop()}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        {url && (
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <button
+                              onClick={() => openAttachment(att)}
+                              className="text-primary hover:text-primary/80 p-1.5 hover:bg-primary/5 rounded"
+                              title="View / Open"
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              download={att.originalName || att.name}
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-gray-500 hover:text-gray-700 p-1.5 hover:bg-gray-100 rounded"
+                              title="Download"
+                            >
+                              <Download size={16} />
+                            </a>
+                          </div>
                         )}
                       </div>
                     </div>
-                    <button
-                      onClick={() => openAttachment(att)}
-                      className="text-primary hover:text-primary/80 p-1.5 hover:bg-white rounded"
-                      title="View / Download"
-                    >
-                      <Eye size={16} />
-                    </button>
-                    <button
-                      onClick={() => openAttachment(att)}
-                      className="text-gray-500 hover:text-gray-700 p-1.5 hover:bg-white rounded"
-                      title="Download"
-                    >
-                      <Download size={16} />
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

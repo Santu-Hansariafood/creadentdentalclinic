@@ -11,6 +11,7 @@ const ChatMessage = require("../models/ChatMessage");
 const Notification = require("../models/Notification");
 const Transaction = require("../models/Transaction");
 const generateToken = require("../utils/generateToken");
+const storageService = require("../utils/storageService");
 const {
   sendAppointmentBookingNotifications,
 } = require("../utils/appointmentNotifications");
@@ -61,7 +62,80 @@ const serializeUser = (user) => ({
   updatedAt: user.updatedAt,
 });
 
+const serializeAttachment = async (att) => {
+  if (!att) return null;
+  const obj = att && att.toObject ? att.toObject() : { ...att };
+  const storageKey = obj.storageKey;
+  let url = obj.url || null;
+  if (storageKey) {
+    try {
+      url = await storageService.getPresignedUrl(storageKey);
+    } catch (_) {
+      url = url || `/files/${encodeURIComponent(storageKey)}`;
+    }
+  }
+  return {
+    storageKey: obj.storageKey,
+    name: obj.name,
+    originalName: obj.originalName || obj.name,
+    size: obj.size,
+    type: obj.type,
+    url,
+    uploadedAt: obj.uploadedAt ? new Date(obj.uploadedAt).toISOString() : null,
+  };
+};
+
+const serializeAttachments = async (attachments) => {
+  if (!Array.isArray(attachments)) return [];
+  const results = [];
+  for (const att of attachments) {
+    const s = await serializeAttachment(att);
+    if (s) results.push(s);
+  }
+  return results;
+};
+
 const resolvers = {
+  MedicalRecord: {
+    id: (parent) => (parent.id || parent._id)?.toString(),
+    patientId: (parent) => (parent.patientId?._id || parent.patientId)?.toString?.() ?? parent.patientId,
+    doctorId: (parent) => (parent.doctorId?._id || parent.doctorId)?.toString?.() ?? parent.doctorId,
+    date: (parent) => toIsoDateString(parent.date),
+    followUpDate: (parent) => (parent.followUpDate ? toIsoDateString(parent.followUpDate) : null),
+    createdAt: (parent) => (parent.createdAt ? new Date(parent.createdAt).toISOString() : null),
+    updatedAt: (parent) => (parent.updatedAt ? new Date(parent.updatedAt).toISOString() : null),
+    attachments: async (parent) => await serializeAttachments(parent.attachments),
+    patient: async (parent) => {
+      try {
+        let p = parent.patient;
+        if (!p && parent.patientId) {
+          p = await Patient.findById(parent.patientId);
+        }
+        if (!p) return null;
+        const po = p.toObject ? p.toObject() : { ...p };
+        return {
+          ...po,
+          id: (po._id || po.id)?.toString?.() ?? po.id,
+          userId: po.userId?.toString?.() ?? po.userId,
+          dateOfBirth: toDateOnlyString(po.dateOfBirth),
+          dentalHistory: po.dentalHistory
+            ? {
+                ...po.dentalHistory,
+                lastVisit: toDateOnlyString(po.dentalHistory.lastVisit),
+              }
+            : null,
+          insurance: po.insurance
+            ? {
+                ...po.insurance,
+                expiryDate: toDateOnlyString(po.insurance.expiryDate),
+              }
+            : null,
+        };
+      } catch (_) {
+        return null;
+      }
+    },
+  },
   Prescription: {
     id: (parent) => (parent.id || parent._id)?.toString(),
     date: (parent) => toIsoDateString(parent.date),
@@ -84,14 +158,20 @@ const resolvers = {
     id: (parent) => (parent.id || parent._id)?.toString(),
     dateOfBirth: (parent) => toDateOnlyString(parent.dateOfBirth),
     userId: (parent) => parent.userId?.toString(),
-    dentalHistory: (parent) => parent.dentalHistory ? {
-      ...parent.dentalHistory,
-      lastVisit: toDateOnlyString(parent.dentalHistory.lastVisit)
-    } : null,
-    insurance: (parent) => parent.insurance ? {
-      ...parent.insurance,
-      expiryDate: toDateOnlyString(parent.insurance.expiryDate)
-    } : null,
+    dentalHistory: (parent) =>
+      parent.dentalHistory
+        ? {
+            ...parent.dentalHistory,
+            lastVisit: toDateOnlyString(parent.dentalHistory.lastVisit),
+          }
+        : null,
+    insurance: (parent) =>
+      parent.insurance
+        ? {
+            ...parent.insurance,
+            expiryDate: toDateOnlyString(parent.insurance.expiryDate),
+          }
+        : null,
   },
   Query: {
     me: async (_, __, { user }) => {
@@ -162,14 +242,19 @@ const resolvers = {
       const normalizedEmail = email?.trim().toLowerCase();
 
       if (normalizedPhone.length === 10) {
-        const patientPhoneExists = await Patient.exists({ phone: normalizedPhone });
+        const patientPhoneExists = await Patient.exists({
+          phone: normalizedPhone,
+        });
         if (patientPhoneExists) return true;
         const userPhoneExists = await User.exists({ phone: normalizedPhone });
         if (userPhoneExists) return true;
       }
 
       if (normalizedEmail) {
-        const escapedEmail = normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escapedEmail = normalizedEmail.replace(
+          /[.*+?^${}()|[\]\\]/g,
+          "\\$&",
+        );
         const userEmailExists = await User.exists({
           email: { $regex: `^${escapedEmail}$`, $options: "i" },
         });
@@ -212,7 +297,10 @@ const resolvers = {
       const and = [];
       if (normalizedName) {
         and.push({
-          name: { $regex: normalizedName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" },
+          name: {
+            $regex: normalizedName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+            $options: "i",
+          },
         });
       }
       const or = [];
@@ -220,7 +308,12 @@ const resolvers = {
         or.push({ phone: normalizedPhone });
       }
       if (normalizedEmail) {
-        or.push({ email: { $regex: `^${normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" } });
+        or.push({
+          email: {
+            $regex: `^${normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+            $options: "i",
+          },
+        });
       }
       const query = {};
       if (and.length) query.$and = and;
@@ -263,7 +356,9 @@ const resolvers = {
       if (user.role === "patient") {
         const patient = await Patient.findOne({ userId: user._id });
         if (!patient) return [];
-        return await Invoice.find({ patientId: patient._id }).sort({ date: -1 });
+        return await Invoice.find({ patientId: patient._id }).sort({
+          date: -1,
+        });
       }
       return await Invoice.find().sort({ date: -1 });
     },
@@ -390,7 +485,6 @@ const resolvers = {
         count: typeCount[type],
       }));
 
-      // Patient demographics by age group
       const patients = await Patient.find();
       const ageGroups = {
         "0-18": 0,
@@ -421,7 +515,6 @@ const resolvers = {
         count: ageGroups[ageGroup],
       }));
 
-      // Treatment success (using medical records)
       const medicalRecords = await MedicalRecord.find();
       const treatmentCounts = {};
 
@@ -472,79 +565,100 @@ const resolvers = {
     },
     getRecentActivities: async (_, { limit = 10 }) => {
       // Fetch recent records from all collections
-      const patients = await Patient.find().sort({ createdAt: -1 }).limit(limit);
-      const appointments = await Appointment.find().sort({ createdAt: -1 }).limit(limit);
-      const prescriptions = await Prescription.find().sort({ createdAt: -1 }).limit(limit);
-      const medicines = await Medicine.find().sort({ createdAt: -1 }).limit(limit);
-      const medicalRecords = await MedicalRecord.find().sort({ createdAt: -1 }).limit(limit);
-      const invoices = await Invoice.find().sort({ createdAt: -1 }).limit(limit);
-      const paymentLedgers = await PaymentLedger.find().sort({ createdAt: -1 }).limit(limit);
+      const patients = await Patient.find()
+        .sort({ createdAt: -1 })
+        .limit(limit);
+      const appointments = await Appointment.find()
+        .sort({ createdAt: -1 })
+        .limit(limit);
+      const prescriptions = await Prescription.find()
+        .sort({ createdAt: -1 })
+        .limit(limit);
+      const medicines = await Medicine.find()
+        .sort({ createdAt: -1 })
+        .limit(limit);
+      const medicalRecords = await MedicalRecord.find()
+        .sort({ createdAt: -1 })
+        .limit(limit);
+      const invoices = await Invoice.find()
+        .sort({ createdAt: -1 })
+        .limit(limit);
+      const paymentLedgers = await PaymentLedger.find()
+        .sort({ createdAt: -1 })
+        .limit(limit);
 
-      // Format all into activity objects
       const activities = [
-        ...patients.map(p => ({
+        ...patients.map((p) => ({
           id: p._id.toString(),
-          type: 'patient',
-          action: 'New patient registered',
+          type: "patient",
+          action: "New patient registered",
           user: p.name,
-          timestamp: p.createdAt
+          timestamp: p.createdAt,
         })),
-        ...appointments.map(a => ({
+        ...appointments.map((a) => ({
           id: a._id.toString(),
-          type: 'appointment',
-          action: 'Appointment scheduled',
+          type: "appointment",
+          action: "Appointment scheduled",
           user: a.patientName,
-          timestamp: a.createdAt
+          timestamp: a.createdAt,
         })),
-        ...prescriptions.map(p => ({
+        ...prescriptions.map((p) => ({
           id: p._id.toString(),
-          type: 'prescription',
-          action: 'New prescription created',
+          type: "prescription",
+          action: "New prescription created",
           user: p.patientName,
-          timestamp: p.createdAt
+          timestamp: p.createdAt,
         })),
-        ...medicines.map(m => ({
+        ...medicines.map((m) => ({
           id: m._id.toString(),
-          type: 'medicine',
-          action: 'New medicine added',
+          type: "medicine",
+          action: "New medicine added",
           user: m.name,
-          timestamp: m.createdAt
+          timestamp: m.createdAt,
         })),
-        ...medicalRecords.map(r => ({
+        ...medicalRecords.map((r) => ({
           id: r._id.toString(),
-          type: 'medical_record',
-          action: 'Medical record updated',
+          type: "medical_record",
+          action: "Medical record updated",
           user: r.patientName,
-          timestamp: r.createdAt
+          timestamp: r.createdAt,
         })),
-        ...invoices.map(i => ({
+        ...invoices.map((i) => ({
           id: i._id.toString(),
-          type: 'invoice',
-          action: 'Invoice generated',
+          type: "invoice",
+          action: "Invoice generated",
           user: i.patientName,
-          timestamp: i.createdAt
+          timestamp: i.createdAt,
         })),
-        ...paymentLedgers.map(l => ({
+        ...paymentLedgers.map((l) => ({
           id: l._id.toString(),
-          type: 'payment',
-          action: 'Payment ledger entry added',
+          type: "payment",
+          action: "Payment ledger entry added",
           user: l.lorryNo,
-          timestamp: l.createdAt
-        }))
+          timestamp: l.createdAt,
+        })),
       ];
 
-      // Sort by timestamp descending and limit
       activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       return activities.slice(0, limit);
     },
-    getTransactions: async (_, { page = 1, limit = 10, invoiceId, patientId, txnStatus }, { user }) => {
+    getTransactions: async (
+      _,
+      { page = 1, limit = 10, invoiceId, patientId, txnStatus },
+      { user },
+    ) => {
       if (!user) throw new Error("Not authenticated");
       const skip = (page - 1) * limit;
       const query = {};
       if (user.role === "patient") {
         const patient = await Patient.findOne({ userId: user._id });
         if (!patient) {
-          return { transactions: [], totalCount: 0, totalPages: 0, currentPage: page };
+          return {
+            transactions: [],
+            totalCount: 0,
+            totalPages: 0,
+            currentPage: page,
+          };
         }
         query.patientId = patient._id;
       } else if (patientId) {
@@ -552,7 +666,10 @@ const resolvers = {
       }
       if (invoiceId) query.invoiceId = invoiceId;
       if (txnStatus) query.txnStatus = txnStatus;
-      const transactions = await Transaction.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit);
+      const transactions = await Transaction.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
       const totalCount = await Transaction.countDocuments(query);
       return {
         transactions,
@@ -566,7 +683,10 @@ const resolvers = {
       const transaction = await Transaction.findById(id);
       if (transaction && user.role === "patient") {
         const patient = await Patient.findOne({ userId: user._id });
-        if (!patient || transaction.patientId?.toString() !== patient._id.toString()) {
+        if (
+          !patient ||
+          transaction.patientId?.toString() !== patient._id.toString()
+        ) {
           throw new Error("Unauthorized");
         }
       }
@@ -599,8 +719,13 @@ const resolvers = {
 
       const orConditions = [{ phone: normalizedPhone }];
       if (normalizedEmail) {
-        const escapedEmail = normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        orConditions.push({ email: { $regex: `^${escapedEmail}$`, $options: "i" } });
+        const escapedEmail = normalizedEmail.replace(
+          /[.*+?^${}()|[\]\\]/g,
+          "\\$&",
+        );
+        orConditions.push({
+          email: { $regex: `^${escapedEmail}$`, $options: "i" },
+        });
       }
 
       const userExists = await User.findOne({ $or: orConditions });
@@ -608,8 +733,11 @@ const resolvers = {
         throw new Error("User with this email or phone already exists");
       }
 
-      const emailToStore = normalizedEmail ||
-        (role === "patient" ? `${normalizedPhone}@patient.creadent.local` : undefined);
+      const emailToStore =
+        normalizedEmail ||
+        (role === "patient"
+          ? `${normalizedPhone}@patient.creadent.local`
+          : undefined);
 
       if (!emailToStore) {
         throw new Error("Email is required for staff registration");
@@ -646,7 +774,10 @@ const resolvers = {
             await existingPatient.save();
           }
         } catch (patientErr) {
-          console.warn("Failed to link patient record during register:", patientErr?.message);
+          console.warn(
+            "Failed to link patient record during register:",
+            patientErr?.message,
+          );
         }
       }
 
@@ -772,16 +903,16 @@ const resolvers = {
       const medicine = new Medicine(args);
       return await medicine.save();
     },
-    
+
     updateMedicine: async (_, { id, ...args }) => {
       return await Medicine.findByIdAndUpdate(id, args, { new: true });
     },
-    
+
     deleteMedicine: async (_, { id }) => {
       await Medicine.findByIdAndDelete(id);
       return true;
     },
-    
+
     updateUser: async (_, { id, ...args }, { user }) => {
       if (!user || user.role !== "admin") {
         throw new Error("Unauthorized: Only admins can update users");
@@ -802,7 +933,7 @@ const resolvers = {
       await target.save();
       return serializeUser(target);
     },
-    
+
     deleteUser: async (_, { id }, { user }) => {
       if (!user || user.role !== "admin") {
         throw new Error("Unauthorized: Only admins can delete users");
@@ -810,7 +941,7 @@ const resolvers = {
       await User.findByIdAndDelete(id);
       return true;
     },
-    
+
     createAppointment: async (_, args, { io }) => {
       const appointment = new Appointment(args);
       const savedAppointment = await appointment.save();
@@ -841,7 +972,10 @@ const resolvers = {
         new: true,
       });
 
-      if (updatedAppointment && Object.keys(appointmentNotificationReset).length > 0) {
+      if (
+        updatedAppointment &&
+        Object.keys(appointmentNotificationReset).length > 0
+      ) {
         updatedAppointment.reminderOneDaySentAt =
           appointmentNotificationReset.reminderOneDaySentAt;
         updatedAppointment.reminderOneHourSentAt =
@@ -875,7 +1009,16 @@ const resolvers = {
       return await record.populate("patient");
     },
     updateMedicalRecord: async (_, { id, ...rest }) => {
-      const allowed = ["visitType","diagnosis","treatment","prescriptions","notes","followUpDate","vitalSigns","attachments"];
+      const allowed = [
+        "visitType",
+        "diagnosis",
+        "treatment",
+        "prescriptions",
+        "notes",
+        "followUpDate",
+        "vitalSigns",
+        "attachments",
+      ];
       const updateData = {};
       for (const key of allowed) {
         if (rest[key] !== undefined) updateData[key] = rest[key];
@@ -896,8 +1039,10 @@ const resolvers = {
       let invoiceNumber = args.invoiceNumber;
       if (!invoiceNumber) {
         const lastInvoice = await Invoice.findOne().sort({ createdAt: -1 });
-        const nextNumber = lastInvoice ? parseInt(lastInvoice.invoiceNumber.replace('INV-', '')) + 1 : 1;
-        invoiceNumber = `INV-${String(nextNumber).padStart(4, '0')}`;
+        const nextNumber = lastInvoice
+          ? parseInt(lastInvoice.invoiceNumber.replace("INV-", "")) + 1
+          : 1;
+        invoiceNumber = `INV-${String(nextNumber).padStart(4, "0")}`;
       }
       const invoice = new Invoice({
         ...args,
@@ -907,7 +1052,11 @@ const resolvers = {
       });
       return await invoice.save();
     },
-    recordInvoicePayment: async (_, { invoiceId, amount, paymentMethod, paymentDate }, { user }) => {
+    recordInvoicePayment: async (
+      _,
+      { invoiceId, amount, paymentMethod, paymentDate },
+      { user },
+    ) => {
       if (!user) {
         throw new Error("Not authenticated");
       }
@@ -923,7 +1072,10 @@ const resolvers = {
 
       if (user.role === "patient") {
         const patient = await Patient.findOne({ userId: user._id });
-        if (!patient || invoice.patientId.toString() !== patient._id.toString()) {
+        if (
+          !patient ||
+          invoice.patientId.toString() !== patient._id.toString()
+        ) {
           throw new Error("Unauthorized: You can only pay your own invoices");
         }
         if (paymentMethod && paymentMethod.toLowerCase() === "cash") {
@@ -956,7 +1108,9 @@ const resolvers = {
       }
 
       if (!["admin", "employee"].includes(user.role)) {
-        throw new Error("Unauthorized: Only admins and employees can update invoices");
+        throw new Error(
+          "Unauthorized: Only admins and employees can update invoices",
+        );
       }
 
       const invoice = await Invoice.findById(id);
@@ -966,21 +1120,45 @@ const resolvers = {
 
       const updateData = { ...args };
 
-      if (updateData.total !== undefined && updateData.amountPaid !== undefined) {
-        updateData.balance = Math.max(0, updateData.total - updateData.amountPaid);
-        updateData.status = updateData.balance === 0 ? "Paid" : updateData.amountPaid > 0 ? "Partial" : "Unpaid";
+      if (
+        updateData.total !== undefined &&
+        updateData.amountPaid !== undefined
+      ) {
+        updateData.balance = Math.max(
+          0,
+          updateData.total - updateData.amountPaid,
+        );
+        updateData.status =
+          updateData.balance === 0
+            ? "Paid"
+            : updateData.amountPaid > 0
+              ? "Partial"
+              : "Unpaid";
       } else if (updateData.total !== undefined) {
-        updateData.balance = Math.max(0, updateData.total - (invoice.amountPaid || 0));
-        updateData.status = updateData.balance === 0 ? "Paid" : (invoice.amountPaid || 0) > 0 ? "Partial" : "Unpaid";
+        updateData.balance = Math.max(
+          0,
+          updateData.total - (invoice.amountPaid || 0),
+        );
+        updateData.status =
+          updateData.balance === 0
+            ? "Paid"
+            : (invoice.amountPaid || 0) > 0
+              ? "Partial"
+              : "Unpaid";
       } else if (updateData.amountPaid !== undefined) {
         updateData.balance = Math.max(0, invoice.total - updateData.amountPaid);
-        updateData.status = updateData.balance === 0 ? "Paid" : updateData.amountPaid > 0 ? "Partial" : "Unpaid";
+        updateData.status =
+          updateData.balance === 0
+            ? "Paid"
+            : updateData.amountPaid > 0
+              ? "Partial"
+              : "Unpaid";
       }
 
       const updatedInvoice = await Invoice.findByIdAndUpdate(
         id,
         { $set: updateData },
-        { new: true }
+        { new: true },
       );
 
       return updatedInvoice;
@@ -1014,7 +1192,8 @@ const resolvers = {
       if (!["admin", "employee"].includes(user.role)) {
         return {
           success: false,
-          message: "Unauthorized: Only admins and employees can send WhatsApp messages",
+          message:
+            "Unauthorized: Only admins and employees can send WhatsApp messages",
           error: "Unauthorized",
         };
       }
@@ -1040,7 +1219,10 @@ const resolvers = {
               : "Failed to send WhatsApp message",
           phone: result.phone || "",
           patientName: result.patient?.name || "",
-          error: result.errors?.length > 0 ? result.errors.join(" | ") : result.error || null,
+          error:
+            result.errors?.length > 0
+              ? result.errors.join(" | ")
+              : result.error || null,
           messagePreview: result.messagePreview || "",
         };
       } catch (err) {
@@ -1067,7 +1249,8 @@ const resolvers = {
       if (!["admin", "employee"].includes(user.role)) {
         return {
           success: false,
-          message: "Unauthorized: Only admins and employees can send WhatsApp messages",
+          message:
+            "Unauthorized: Only admins and employees can send WhatsApp messages",
           error: "Unauthorized",
         };
       }
@@ -1090,7 +1273,10 @@ const resolvers = {
               : "Failed to send WhatsApp message",
           phone: result.phone || "",
           patientName: patientName || "",
-          error: result.errors?.length > 0 ? result.errors.join(" | ") : result.error || null,
+          error:
+            result.errors?.length > 0
+              ? result.errors.join(" | ")
+              : result.error || null,
           messagePreview: result.messagePreview || "",
         };
       } catch (err) {
@@ -1177,9 +1363,7 @@ const resolvers = {
 
       const safePatientName = patientName || "Patient";
       const filenameParts = safePatientName.replace(/[^a-zA-Z0-9]/g, "_");
-      const dateForFile = date
-        ? new Date(date)
-        : new Date();
+      const dateForFile = date ? new Date(date) : new Date();
       const dateStr =
         String(dateForFile.getDate()).padStart(2, "0") +
         String(dateForFile.getMonth() + 1).padStart(2, "0") +
@@ -1229,7 +1413,8 @@ const resolvers = {
       return await Medicine.findByIdAndUpdate(id, { stock }, { new: true });
     },
     createPatient: async (_, args, { user }) => {
-      const isStaff = user && ["admin", "employee", "doctor"].includes(user.role);
+      const isStaff =
+        user && ["admin", "employee", "doctor"].includes(user.role);
       const isPatientSelf = user && user.role === "patient";
 
       if (!isStaff && !isPatientSelf) {
@@ -1239,7 +1424,9 @@ const resolvers = {
       }
 
       if (isPatientSelf && args.userId && args.userId !== user._id.toString()) {
-        throw new Error("Unauthorized: You can only create your own patient profile");
+        throw new Error(
+          "Unauthorized: You can only create your own patient profile",
+        );
       }
 
       if (!args.dateOfBirth && !args.age) {
@@ -1256,7 +1443,12 @@ const resolvers = {
       if (normalizedPhone.length !== 10) {
         throw new Error("Phone number must contain 10 digits");
       }
-      if (args.bloodGroup && !["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"].includes(args.bloodGroup)) {
+      if (
+        args.bloodGroup &&
+        !["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"].includes(
+          args.bloodGroup,
+        )
+      ) {
         throw new Error("Invalid blood group");
       }
 
@@ -1320,16 +1512,24 @@ const resolvers = {
         userId: resolvedUserId,
         dateOfBirth: args.dateOfBirth ? new Date(args.dateOfBirth) : undefined,
         age: args.age ? Number(args.age) : undefined,
-        dentalHistory: args.dentalHistory ? {
-          ...args.dentalHistory,
-          lastVisit: args.dentalHistory.lastVisit ? new Date(args.dentalHistory.lastVisit) : undefined
-        } : undefined,
-        insurance: args.insurance ? {
-          ...args.insurance,
-          expiryDate: args.insurance.expiryDate ? new Date(args.insurance.expiryDate) : undefined
-        } : undefined
+        dentalHistory: args.dentalHistory
+          ? {
+              ...args.dentalHistory,
+              lastVisit: args.dentalHistory.lastVisit
+                ? new Date(args.dentalHistory.lastVisit)
+                : undefined,
+            }
+          : undefined,
+        insurance: args.insurance
+          ? {
+              ...args.insurance,
+              expiryDate: args.insurance.expiryDate
+                ? new Date(args.insurance.expiryDate)
+                : undefined,
+            }
+          : undefined,
       };
-      
+
       const patient = new Patient(patientData);
       const saved = await patient.save();
 
@@ -1347,7 +1547,9 @@ const resolvers = {
     },
     generatePatientLogin: async (_, { patientId }, { user }) => {
       if (!user || !["admin", "employee"].includes(user.role)) {
-        throw new Error("Unauthorized: Only admins and employees can generate patient logins");
+        throw new Error(
+          "Unauthorized: Only admins and employees can generate patient logins",
+        );
       }
 
       const patient = await Patient.findById(patientId);
@@ -1392,7 +1594,10 @@ const resolvers = {
         newlyCreated = true;
       }
 
-      if (!patient.userId || patient.userId.toString() !== patientUser._id.toString()) {
+      if (
+        !patient.userId ||
+        patient.userId.toString() !== patientUser._id.toString()
+      ) {
         patient.userId = patientUser._id;
         await patient.save();
       }
@@ -1416,8 +1621,13 @@ const resolvers = {
         throw new Error("Patient not found");
       }
 
-      if (user.role === "patient" && patient.userId?.toString() !== user._id.toString()) {
-        throw new Error("Unauthorized: You can only update your own patient profile");
+      if (
+        user.role === "patient" &&
+        patient.userId?.toString() !== user._id.toString()
+      ) {
+        throw new Error(
+          "Unauthorized: You can only update your own patient profile",
+        );
       }
 
       const normalizedPhone = args.phone
@@ -1495,22 +1705,30 @@ const resolvers = {
         userId: patient.userId,
         dateOfBirth: args.dateOfBirth ? new Date(args.dateOfBirth) : undefined,
         age: args.age !== undefined ? Number(args.age) : undefined,
-        dentalHistory: args.dentalHistory ? {
-          ...args.dentalHistory,
-          lastVisit: args.dentalHistory.lastVisit ? new Date(args.dentalHistory.lastVisit) : undefined
-        } : undefined,
-        insurance: args.insurance ? {
-          ...args.insurance,
-          expiryDate: args.insurance.expiryDate ? new Date(args.insurance.expiryDate) : undefined
-        } : undefined
+        dentalHistory: args.dentalHistory
+          ? {
+              ...args.dentalHistory,
+              lastVisit: args.dentalHistory.lastVisit
+                ? new Date(args.dentalHistory.lastVisit)
+                : undefined,
+            }
+          : undefined,
+        insurance: args.insurance
+          ? {
+              ...args.insurance,
+              expiryDate: args.insurance.expiryDate
+                ? new Date(args.insurance.expiryDate)
+                : undefined,
+            }
+          : undefined,
       };
-      
+
       Object.keys(updateData).forEach((key) => {
         if (updateData[key] !== undefined) {
           patient[key] = updateData[key];
         }
       });
-      
+
       return await patient.save();
     },
     deletePatient: async (_, { id }) => {
@@ -1542,9 +1760,21 @@ const resolvers = {
       const ledger = new PaymentLedger(args);
       return await ledger.save();
     },
-    iciciInitiateSale: async (_, { invoiceId, patientId, amount, customerEmailID, customerMobileNo, payType }, { user }) => {
+    iciciInitiateSale: async (
+      _,
+      {
+        invoiceId,
+        patientId,
+        amount,
+        customerEmailID,
+        customerMobileNo,
+        payType,
+      },
+      { user },
+    ) => {
       if (!user) throw new Error("Not authenticated");
-      if (user.role === "doctor") throw new Error("Unauthorized: Doctors cannot initiate payments");
+      if (user.role === "doctor")
+        throw new Error("Unauthorized: Doctors cannot initiate payments");
 
       const invoice = await Invoice.findById(invoiceId);
       if (!invoice) throw new Error("Invoice not found");
@@ -1554,7 +1784,8 @@ const resolvers = {
 
       if (user.role === "patient") {
         const patient = await Patient.findOne({ userId: user._id });
-        if (!patient) throw new Error("Unauthorized: Patient profile not found");
+        if (!patient)
+          throw new Error("Unauthorized: Patient profile not found");
         if (invoice.patientId?.toString() !== patient._id.toString()) {
           throw new Error("Unauthorized: You can only pay your own invoices");
         }
@@ -1576,7 +1807,11 @@ const resolvers = {
       if (user.role === "patient") {
         const patient = await Patient.findOne({ userId: user._id });
         const transaction = await Transaction.findById(transactionId);
-        if (!patient || !transaction || transaction.patientId?.toString() !== patient._id.toString()) {
+        if (
+          !patient ||
+          !transaction ||
+          transaction.patientId?.toString() !== patient._id.toString()
+        ) {
           throw new Error("Unauthorized");
         }
       }
@@ -1584,15 +1819,27 @@ const resolvers = {
       return {
         success: result.success,
         data: result.data ? JSON.stringify(result.data) : null,
-        error: result.error ? (typeof result.error === "string" ? result.error : JSON.stringify(result.error)) : null,
+        error: result.error
+          ? typeof result.error === "string"
+            ? result.error
+            : JSON.stringify(result.error)
+          : null,
       };
     },
-    iciciVerifyOTP: async (_, { transactionId, tranCtx, otpValue }, { user }) => {
+    iciciVerifyOTP: async (
+      _,
+      { transactionId, tranCtx, otpValue },
+      { user },
+    ) => {
       if (!user) throw new Error("Not authenticated");
       if (user.role === "patient") {
         const patient = await Patient.findOne({ userId: user._id });
         const transaction = await Transaction.findById(transactionId);
-        if (!patient || !transaction || transaction.patientId?.toString() !== patient._id.toString()) {
+        if (
+          !patient ||
+          !transaction ||
+          transaction.patientId?.toString() !== patient._id.toString()
+        ) {
           throw new Error("Unauthorized");
         }
       }
@@ -1600,7 +1847,11 @@ const resolvers = {
       return {
         success: result.success,
         data: result.data ? JSON.stringify(result.data) : null,
-        error: result.error ? (typeof result.error === "string" ? result.error : JSON.stringify(result.error)) : null,
+        error: result.error
+          ? typeof result.error === "string"
+            ? result.error
+            : JSON.stringify(result.error)
+          : null,
       };
     },
     iciciAuthorize: async (_, { transactionId, tranCtx }, { user }) => {
@@ -1608,7 +1859,11 @@ const resolvers = {
       if (user.role === "patient") {
         const patient = await Patient.findOne({ userId: user._id });
         const transaction = await Transaction.findById(transactionId);
-        if (!patient || !transaction || transaction.patientId?.toString() !== patient._id.toString()) {
+        if (
+          !patient ||
+          !transaction ||
+          transaction.patientId?.toString() !== patient._id.toString()
+        ) {
           throw new Error("Unauthorized");
         }
       }
@@ -1616,41 +1871,72 @@ const resolvers = {
       return {
         success: result.success,
         data: result.data ? JSON.stringify(result.data) : null,
-        error: result.error ? (typeof result.error === "string" ? result.error : JSON.stringify(result.error)) : null,
+        error: result.error
+          ? typeof result.error === "string"
+            ? result.error
+            : JSON.stringify(result.error)
+          : null,
       };
     },
-    iciciGetTransactionStatus: async (_, { transactionId, merchantTxnNo }, { user }) => {
+    iciciGetTransactionStatus: async (
+      _,
+      { transactionId, merchantTxnNo },
+      { user },
+    ) => {
       if (!user) throw new Error("Not authenticated");
       if (user.role === "patient") {
         const patient = await Patient.findOne({ userId: user._id });
         if (transactionId) {
           const transaction = await Transaction.findById(transactionId);
-          if (!patient || !transaction || transaction.patientId?.toString() !== patient._id.toString()) {
+          if (
+            !patient ||
+            !transaction ||
+            transaction.patientId?.toString() !== patient._id.toString()
+          ) {
             throw new Error("Unauthorized");
           }
         } else if (merchantTxnNo) {
           const transaction = await Transaction.findOne({ merchantTxnNo });
-          if (!patient || !transaction || transaction.patientId?.toString() !== patient._id.toString()) {
+          if (
+            !patient ||
+            !transaction ||
+            transaction.patientId?.toString() !== patient._id.toString()
+          ) {
             throw new Error("Unauthorized");
           }
         } else {
           throw new Error("Either transactionId or merchantTxnNo is required");
         }
       }
-      const result = await getTransactionStatus({ transactionId, merchantTxnNo });
+      const result = await getTransactionStatus({
+        transactionId,
+        merchantTxnNo,
+      });
       return {
         success: result.success,
         data: result.data ? JSON.stringify(result.data) : null,
-        error: result.error ? (typeof result.error === "string" ? result.error : JSON.stringify(result.error)) : null,
+        error: result.error
+          ? typeof result.error === "string"
+            ? result.error
+            : JSON.stringify(result.error)
+          : null,
         transaction: result.transaction || null,
       };
     },
-    iciciProcessRefund: async (_, { transactionId, refundAmount, reason }, { user }) => {
+    iciciProcessRefund: async (
+      _,
+      { transactionId, refundAmount, reason },
+      { user },
+    ) => {
       if (!user) throw new Error("Not authenticated");
       if (!["admin"].includes(user.role)) {
         throw new Error("Unauthorized: Only admins can process refunds");
       }
-      const result = await processRefund({ transactionId, refundAmount, reason });
+      const result = await processRefund({
+        transactionId,
+        refundAmount,
+        reason,
+      });
       return result;
     },
   },

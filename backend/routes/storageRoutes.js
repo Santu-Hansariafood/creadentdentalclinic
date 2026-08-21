@@ -129,6 +129,13 @@ router.get("/record-attachments/:recordId", requireAuth, async (req, res) => {
   try {
     const record = await MedicalRecord.findById(req.params.recordId);
     if (!record) return res.status(404).json({ error: "Record not found" });
+    if (req.user.role === "patient") {
+      const Patient = require("../models/Patient");
+      const patient = await Patient.findOne({ userId: req.user._id });
+      if (!patient || String(patient._id) !== String(record.patientId)) {
+        return res.status(403).json({ error: "Permission denied" });
+      }
+    }
     const list = Array.isArray(record.attachments) ? record.attachments : [];
     const withUrls = [];
     for (const att of list) {

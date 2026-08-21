@@ -23,8 +23,15 @@ const login = async (req, res) => {
 };
 
 const register = async (req, res) => {
-  const { name, phone, email: rawEmail, password, role, specialization, license } =
-    req.body;
+  const {
+    name,
+    phone,
+    email: rawEmail,
+    password,
+    role,
+    specialization,
+    license,
+  } = req.body;
   const email = rawEmail?.trim().toLowerCase() || undefined;
   const normalizedPhone = (phone || "").replace(/\D/g, "").slice(-10);
 
@@ -36,7 +43,9 @@ const register = async (req, res) => {
   const orConditions = [{ phone: normalizedPhone }];
   if (email) {
     const escapedEmail = email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    orConditions.push({ email: { $regex: `^${escapedEmail}$`, $options: "i" } });
+    orConditions.push({
+      email: { $regex: `^${escapedEmail}$`, $options: "i" },
+    });
   }
 
   const userExists = await User.findOne({ $or: orConditions });
@@ -48,11 +57,16 @@ const register = async (req, res) => {
     return;
   }
 
-  const emailToStore = email ||
-    (role === "patient" ? `${normalizedPhone}@patient.creadent.local` : undefined);
+  const emailToStore =
+    email ||
+    (role === "patient"
+      ? `${normalizedPhone}@patient.creadent.local`
+      : undefined);
 
   if (!emailToStore) {
-    res.status(400).json({ message: "Email is required for staff registration" });
+    res
+      .status(400)
+      .json({ message: "Email is required for staff registration" });
     return;
   }
 
