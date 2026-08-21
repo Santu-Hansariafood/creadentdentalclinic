@@ -34,6 +34,7 @@ import {
 } from "../graphql/mutations";
 import Preloader from "../components/Preloader";
 import MedicalRecordViewer from "../components/MedicalRecordViewer";
+import api from "../api/axios";
 
 const fileTypeIcon = (type, name) => {
   const n = (name || "").toLowerCase();
@@ -279,17 +280,11 @@ const RecordForm = ({
       form.append("patientId", patientId);
       form.append("recordId", isEdit ? record.id : "pending-new");
 
-      const headers = {};
-      const token = localStorage.getItem("token");
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const res = await fetch("/api/storage/upload", {
-        method: "POST",
-        headers,
-        body: form,
+      const res = await api.post("/api/storage/upload", form, {
+        timeout: 120000,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Upload failed");
+
+      const data = res.data || {};
       const uploaded = data.attachments || [];
       let i = 0;
       const newAttachments = [...attachments].map((a) => {
@@ -309,7 +304,12 @@ const RecordForm = ({
       setAttachments(newAttachments);
       return uploaded;
     } catch (e) {
-      toast.error("Failed to upload documents: " + e.message);
+      const msg =
+        e?.response?.data?.error ||
+        e?.response?.data?.message ||
+        e?.message ||
+        "Upload failed";
+      toast.error("Failed to upload documents: " + msg);
       return [];
     } finally {
       setUploading(false);

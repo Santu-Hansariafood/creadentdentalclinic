@@ -70,17 +70,37 @@ router.post(
   requireAuth,
   parseUpload,
   async (req, res) => {
+    console.log("[STORAGE-UPLOAD] hit:", {
+      method: req.method,
+      path: req.path,
+      originalUrl: req.originalUrl,
+      user: req.user?._id ? String(req.user._id) : "NO_USER",
+      role: req.user?.role,
+      patientId: req.body?.patientId,
+      recordId: req.body?.recordId,
+      filesCount: req.files?.length || 0,
+      contentLength: req.headers["content-length"],
+      contentType: req.headers["content-type"],
+    });
     try {
       const { patientId, recordId } = req.body;
       if (!patientId) {
+        console.log("[STORAGE-UPLOAD] missing patientId");
         return res.status(400).json({ error: "patientId is required" });
       }
       const files = req.files || [];
       if (files.length === 0) {
+        console.log("[STORAGE-UPLOAD] no files received");
         return res.status(400).json({ error: "No files provided" });
       }
       const results = [];
       for (const f of files) {
+        console.log("[STORAGE-UPLOAD] processing file:", {
+          originalname: f.originalname,
+          size: f.size,
+          mimetype: f.mimetype,
+          path: f.path,
+        });
         const storageKey = storageService.buildStorageKey(
           patientId,
           recordId || "medical-records",
@@ -90,17 +110,22 @@ router.post(
           file: f,
           storageKey,
         });
+        console.log("[STORAGE-UPLOAD] uploaded:", {
+          storageKey: meta.storageKey,
+          url: meta.url,
+        });
         results.push(meta);
         try {
           if (f.path) fs.unlinkSync(f.path);
         } catch (_) {}
       }
+      console.log("[STORAGE-UPLOAD] success:", results.length, "file(s)");
       return res.json({
         success: true,
         attachments: results,
       });
     } catch (e) {
-      console.error("Upload error:", e);
+      console.error("[STORAGE-UPLOAD] ERROR:", e);
       return res.status(500).json({ error: e.message || "Upload failed" });
     }
   },

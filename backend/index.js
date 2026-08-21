@@ -26,8 +26,18 @@ const startServer = async () => {
   const httpServer = http.createServer(app);
   const PORT = process.env.PORT || 25000;
 
-  app.use(express.json({ limit: "10mb" }));
-  app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+  app.use(cors());
+  app.use(express.json({ limit: "50mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+  // Mount storage routes FIRST so uploads are never caught by other middlewares
+  app.use("/api/storage", (req, res, next) => {
+    console.log("[STORAGE-MOUNT] method=%s path=%s originalUrl=%s", req.method, req.path, req.originalUrl);
+    next();
+  }, storageRoutes);
+
+  app.use("/api", authRoutes);
+  app.use("/api/icici", iciciPaymentRoutes);
 
   app.use((req, res, next) => {
     console.log("=== Incoming request ===");
@@ -115,8 +125,15 @@ const startServer = async () => {
   );
 
   app.use("/api", authRoutes);
-  app.use("/api/storage", storageRoutes);
   app.use("/api/icici", iciciPaymentRoutes);
+
+  // Debug: ensure storage route is mounted
+  app.use((req, res, next) => {
+    if (req.path.startsWith("/api/")) {
+      console.log("[API-DEBUG] path=%s method=%s", req.path, req.method);
+    }
+    next();
+  });
 
   app.get("/files/*key", async (req, res) => {
   try {
@@ -265,6 +282,8 @@ ${staticPages
   });
 
   app.use((req, res) => {
+    console.log("[404-ROUTE-NOT-FOUND] method=%s path=%s originalUrl=%s contentType=%s",
+      req.method, req.path, req.originalUrl, req.headers["content-type"]);
     res.status(404).json({ message: "Route not found" });
   });
 
