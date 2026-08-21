@@ -18,6 +18,7 @@ import {
   Shield,
   Loader2,
 } from "lucide-react";
+import api from "../api/axios";
 
 const fileTypeIcon = (type, name) => {
   const n = (name || "").toLowerCase();
@@ -61,24 +62,38 @@ const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
     if (record?.id) {
       setLoadingAttachments(true);
       setAttachmentsError("");
-      const token = localStorage.getItem("token");
-      fetch(`/api/storage/record-attachments/${encodeURIComponent(record.id)}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
-        .then(async (r) => {
-          if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          return r.json();
-        })
-        .then((data) => {
-          if (Array.isArray(data.attachments)) {
-            const withUrls = data.attachments.map((a) => ({ ...a, url: getAttachmentUrl(a) }));
-            setAttachments(withUrls);
+      (async () => {
+        const candidates = [
+          `/api/storage/record-attachments/${encodeURIComponent(record.id)}`,
+          `/storage/record-attachments/${encodeURIComponent(record.id)}`,
+          `/graphql/storage/record-attachments/${encodeURIComponent(record.id)}`,
+        ];
+        let data = null;
+        let lastErr = null;
+        for (const p of candidates) {
+          try {
+            const res = await api.get(p, { timeout: 30000 });
+            data = res.data;
+            break;
+          } catch (e) {
+            lastErr = e;
+            const status = e?.response?.status;
+            if (status !== 404) break;
           }
-        })
-        .catch((e) => {
-          setAttachmentsError(e.message || "Could not refresh attachment URLs");
-        })
-        .finally(() => setLoadingAttachments(false));
+        }
+        if (data && Array.isArray(data.attachments)) {
+          const withUrls = data.attachments.map((a) => ({ ...a, url: getAttachmentUrl(a) }));
+          setAttachments(withUrls);
+        } else if (lastErr) {
+          const reason =
+            lastErr?.response?.data?.error ||
+            lastErr?.response?.data?.message ||
+            lastErr?.message ||
+            "Could not refresh attachment URLs";
+          setAttachmentsError(reason);
+        }
+        setLoadingAttachments(false);
+      })();
     }
   }, [record]);
 

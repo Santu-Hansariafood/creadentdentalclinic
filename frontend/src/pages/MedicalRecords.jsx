@@ -221,12 +221,36 @@ const RecordForm = ({
   };
 
   const preparePayloadAttachments = () => {
-    return attachments.map((a) => ({
-      storageKey: a.storageKey,
+    const saved = attachments.filter((a) => Boolean(a.storageKey) || Boolean(a.url));
+    const skipped = attachments.length - saved.length;
+    if (skipped > 0) {
+      toast(
+        (t) => (
+          <div className="flex items-start gap-2">
+            <AlertTriangle size={18} className="text-amber-500 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-gray-800">
+              <b>{skipped} file{skipped === 1 ? "" : "s"}</b> could not be uploaded and were
+              skipped. The record will be created without them. You can edit the record
+              after save and retry uploads.
+            </div>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="ml-1 text-gray-400 hover:text-gray-700"
+              aria-label="Close"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        ),
+        { icon: null, duration: 8000 },
+      );
+    }
+    return saved.map((a) => ({
+      storageKey: a.storageKey || "",
       name: a.name,
       originalName: a.originalName || a.name,
-      size: a.size,
-      type: a.type,
+      size: a.size ? Number(a.size) : undefined,
+      type: a.type || "",
       url: a.url || null,
       uploadedAt: a.uploadedAt || null,
     }));
@@ -279,12 +303,38 @@ const RecordForm = ({
       uploadable.forEach((a) => form.append("files", a.file));
       form.append("patientId", patientId);
       form.append("recordId", isEdit ? record.id : "pending-new");
+      if (selectedPatient?.name) {
+        form.append("patientName", selectedPatient.name);
+      }
 
-      const res = await api.post("/api/storage/upload", form, {
-        timeout: 120000,
-      });
+      // Try multiple endpoint paths in order (handles different reverse-proxy configurations)
+      const candidatePaths = [
+        "/api/storage/upload",
+        "/storage/upload",
+        "/graphql/storage/upload",
+      ];
+      let data = null;
+      let lastErr = null;
+      for (const urlPath of candidatePaths) {
+        try {
+          const res = await api.post(urlPath, form, { timeout: 120000 });
+          data = res.data || {};
+          console.log("[UPLOAD] success on path:", urlPath, data);
+          break;
+        } catch (e) {
+          const status = e?.response?.status;
+          lastErr = e;
+          console.warn("[UPLOAD] path failed:", urlPath, "status:", status, "msg:", e?.message);
+          // 404 → try next path; anything else → rethrow (e.g. 401, 413, 500)
+          if (status !== 404) {
+            throw e;
+          }
+        }
+      }
+      if (!data) {
+        throw lastErr || new Error("Upload endpoint not available");
+      }
 
-      const data = res.data || {};
       const uploaded = data.attachments || [];
       let i = 0;
       const newAttachments = [...attachments].map((a) => {
@@ -868,9 +918,15 @@ const MedicalRecords = () => {
       setShowCreateForm(false);
       setEditingRecord(null);
     } catch (e) {
+      const reason =
+        e?.graphQLErrors?.map((x) => x.message).join("; ") ||
+        e?.networkError?.result?.errors?.map((x) => x.message).join("; ") ||
+        e?.message ||
+        "unknown error";
       toast.error(
-        mode === "create" ? "Failed to create record" : "Failed to update record" +
-          ": " + e.message,
+        (mode === "create" ? "Failed to create record" : "Failed to update record") +
+          ": " + reason,
+        { duration: 6000 },
       );
     }
   };

@@ -105,6 +105,7 @@ router.post(
           patientId,
           recordId || "medical-records",
           f.originalname || f.name || "file",
+          req.body?.patientName || "",
         );
         const meta = await storageService.uploadFile({
           file: f,

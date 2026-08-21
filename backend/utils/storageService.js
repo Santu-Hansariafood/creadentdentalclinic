@@ -59,13 +59,17 @@ const humanSize = (bytes) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
-const buildStorageKey = (patientId, recordId = "records", originalName = "file") => {
+const buildStorageKey = (patientId, recordId = "records", originalName = "file", patientName = "") => {
   const safePatient = sanitizeName(patientId || "unknown");
   const safeRecord = sanitizeName(recordId || "records");
   const safeName = sanitizeName(originalName);
+  let namePrefix = "";
+  if (patientName && String(patientName).trim()) {
+    namePrefix = sanitizeName(patientName).slice(0, 40) + "_";
+  }
   const ts = Date.now();
   const rand = Math.floor(Math.random() * 10000);
-  return `medical-records/${safePatient}/${safeRecord}/${ts}_${rand}_${safeName}`;
+  return `medical-records/${safePatient}/${safeRecord}/${namePrefix}${ts}_${rand}_${safeName}`;
 };
 
 const ensureLocalDir = (key) => {

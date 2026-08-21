@@ -30,11 +30,19 @@ const startServer = async () => {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-  // Mount storage routes FIRST so uploads are never caught by other middlewares
-  app.use("/api/storage", (req, res, next) => {
-    console.log("[STORAGE-MOUNT] method=%s path=%s originalUrl=%s", req.method, req.path, req.originalUrl);
+  const storageRoutesLogger = (prefix) => (req, res, next) => {
+    console.log("[STORAGE-MOUNT:%s] method=%s path=%s originalUrl=%s",
+      prefix, req.method, req.path, req.originalUrl);
     next();
-  }, storageRoutes);
+  };
+
+  // Mount storage routes at SEVERAL prefixes for reverse-proxy compatibility:
+  // 1. /api/storage       – canonical REST path
+  // 2. /storage           – fallback if /api prefix is stripped by proxy
+  // 3. /graphql/storage   – fallback if proxy only forwards /graphql path
+  app.use("/api/storage", storageRoutesLogger("api"), storageRoutes);
+  app.use("/storage", storageRoutesLogger("root"), storageRoutes);
+  app.use("/graphql/storage", storageRoutesLogger("gql"), storageRoutes);
 
   app.use("/api", authRoutes);
   app.use("/api/icici", iciciPaymentRoutes);
@@ -266,6 +274,7 @@ ${staticPages
     if (
       req.path.startsWith("/graphql") ||
       req.path.startsWith("/api") ||
+      req.path.startsWith("/storage") ||
       req.path.startsWith("/health") ||
       req.path.startsWith("/sitemap.xml") ||
       req.path.startsWith("/files")
