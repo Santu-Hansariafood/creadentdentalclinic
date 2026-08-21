@@ -36,16 +36,14 @@ const humanSize = (bytes) => {
 };
 
 const buildStorageKey = (patientId, recordId = "records", originalName = "file", patientName = "") => {
-  const safePatient = sanitizeName(patientId || "unknown");
+  const safePatient = sanitizeName(
+    String(patientName || "").trim() || patientId || "unknown",
+  ).slice(0, 80);
   const safeRecord = sanitizeName(recordId || "records");
   const safeName = sanitizeName(originalName);
-  let namePrefix = "";
-  if (patientName && String(patientName).trim()) {
-    namePrefix = sanitizeName(patientName).slice(0, 40) + "_";
-  }
   const ts = Date.now();
   const rand = Math.floor(Math.random() * 10000);
-  return `medical-records/${safePatient}/${safeRecord}/${namePrefix}${ts}_${rand}_${safeName}`;
+  return `${safePatient}/${safeRecord}/${ts}_${rand}_${safeName}`;
 };
 
 const ensureLocalDir = (key) => {
@@ -111,20 +109,6 @@ const uploadToSpaceByte = async (file) => {
 };
 
 const uploadFile = async ({ file, storageKey }) => {
-  if (isSpaceBiteConfigured) {
-    const result = await uploadToSpaceByte(file);
-    const uploaded = result.uploaded || {};
-    return {
-      storageKey,
-      name: uploaded.name || uploaded.file_name || uploaded.originalName || file.originalname || path.basename(storageKey),
-      originalName: file.originalname || file.name || path.basename(storageKey),
-      size: uploaded.size || uploaded.file_size || file.size,
-      type: uploaded.mimeType || uploaded.mimetype || uploaded.mime || file.mimetype || "application/octet-stream",
-      url: result.url,
-      uploadedAt: new Date().toISOString(),
-    };
-  }
-
   ensureLocalDir(storageKey);
   const fullPath = path.join(localUploadDir, storageKey);
   if (file.buffer && Buffer.isBuffer(file.buffer)) {
