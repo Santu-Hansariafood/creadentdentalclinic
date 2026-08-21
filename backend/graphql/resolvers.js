@@ -350,7 +350,7 @@ const resolvers = {
       };
     },
     getMedicalRecords: async () =>
-      await MedicalRecord.find().sort({ date: -1 }).populate("patient"),
+      await MedicalRecord.find().sort({ date: -1 }),
     getInvoices: async (_, __, { user }) => {
       if (!user) throw new Error("Not authenticated");
       if (user.role === "patient") {
@@ -1006,7 +1006,7 @@ const resolvers = {
     createMedicalRecord: async (_, args) => {
       const record = new MedicalRecord(args);
       await record.save();
-      return await record.populate("patient");
+      return record;
     },
     updateMedicalRecord: async (_, { id, ...rest }) => {
       const allowed = [
@@ -1027,7 +1027,7 @@ const resolvers = {
         id,
         { $set: updateData },
         { new: true },
-      ).populate("patient");
+      );
       return record;
     },
     deleteMedicalRecord: async (_, { id }) => {
