@@ -9,6 +9,7 @@ const SPACEBITE = {
   REGION: process.env.SPACEBYTE_REGION || process.env.SPACEBITE_REGION || "auto",
   BASE_URL: process.env.SPACEBYTE_BASE_URL || process.env.SPACEBITE_BASE_URL || "",
   PARENT_ID: process.env.SPACEBYTE_PARENT_ID || "",
+  UPLOAD_TIMEOUT_MS: Number(process.env.SPACEBYTE_UPLOAD_TIMEOUT_MS || 120000),
 };
 
 const fs = require("fs");
@@ -69,14 +70,27 @@ const uploadToSpaceByte = async (file) => {
   }), file.originalname || file.name || "file");
   if (SPACEBITE.PARENT_ID) form.append("parentId", SPACEBITE.PARENT_ID);
 
-  const response = await fetch(providerUploadUrl(), {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${SPACEBITE.ACCESS_KEY}`,
-      "X-API-Key": SPACEBITE.ACCESS_KEY,
-    },
-    body: form,
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), SPACEBITE.UPLOAD_TIMEOUT_MS);
+  let response;
+  try {
+    response = await fetch(providerUploadUrl(), {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${SPACEBITE.ACCESS_KEY}`,
+        "X-API-Key": SPACEBITE.ACCESS_KEY,
+      },
+      body: form,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error(`SpaceByte upload timed out after ${Math.round(SPACEBITE.UPLOAD_TIMEOUT_MS / 1000)} seconds`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
   const text = await response.text();
   let payload;
   try { payload = text ? JSON.parse(text) : {}; } catch (_) { payload = { message: text }; }

@@ -169,8 +169,7 @@ router.post(
           },
         });
       }
-      const results = [];
-      for (const f of files) {
+      const outcomes = await Promise.all(files.map(async (f) => {
         console.log("[STORAGE-UPLOAD] processing file:", {
           originalname: f.originalname,
           size: f.size,
@@ -183,23 +182,33 @@ router.post(
           f.originalname || f.name || "file",
           req.body?.patientName || "",
         );
-        const meta = await storageService.uploadFile({
-          file: f,
-          storageKey,
-        });
-        console.log("[STORAGE-UPLOAD] uploaded:", {
-          storageKey: meta.storageKey,
-          url: meta.url,
-        });
-        results.push(meta);
         try {
-          if (f.path) fs.unlinkSync(f.path);
-        } catch (_) {}
-      }
-      console.log("[STORAGE-UPLOAD] success:", results.length, "file(s)");
-      return res.json({
-        success: true,
-        attachments: results,
+          const meta = await storageService.uploadFile({ file: f, storageKey });
+          console.log("[STORAGE-UPLOAD] uploaded:", {
+            originalname: f.originalname,
+            storageKey: meta.storageKey,
+            url: meta.url,
+          });
+          return { status: "fulfilled", value: meta };
+        } catch (error) {
+          console.error("[STORAGE-UPLOAD] file failed:", f.originalname, error.message);
+          return {
+            status: "rejected",
+            reason: { name: f.originalname || "file", error: error.message || "Upload failed" },
+          };
+        } finally {
+          try {
+            if (f.path) fs.unlinkSync(f.path);
+          } catch (_) {}
+        }
+      }));
+      const attachments = outcomes.filter((item) => item.status === "fulfilled").map((item) => item.value);
+      const failed = outcomes.filter((item) => item.status === "rejected").map((item) => item.reason);
+      console.log("[STORAGE-UPLOAD] complete:", { uploaded: attachments.length, failed: failed.length });
+      return res.status(failed.length ? (attachments.length ? 207 : 502) : 200).json({
+        success: failed.length === 0,
+        attachments,
+        failed,
       });
     } catch (e) {
       console.error("[STORAGE-UPLOAD] ERROR:", e);

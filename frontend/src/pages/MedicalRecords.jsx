@@ -364,7 +364,7 @@ const RecordForm = ({
       let lastErr = null;
       for (const urlPath of candidatePaths) {
         try {
-          const res = await api.post(urlPath, form, { timeout: 120000 });
+          const res = await api.post(urlPath, form, { timeout: 180000 });
           data = res.data || {};
           console.log("[UPLOAD] success on path:", urlPath, data);
           break;
@@ -383,10 +383,14 @@ const RecordForm = ({
       }
 
       const uploaded = data.attachments || [];
-      let i = 0;
+      const remainingUploads = [...uploaded];
       const newAttachments = [...attachments].map((a) => {
         if (a.status === "pending") {
-          const up = uploaded[i++] || a;
+          const uploadIndex = remainingUploads.findIndex(
+            (up) => up.originalName === (a.file?.name || a.originalName || a.name),
+          );
+          const up = uploadIndex >= 0 ? remainingUploads.splice(uploadIndex, 1)[0] : null;
+          if (!up) return a;
           if (a?.previewUrl && a?.file) {
             try { URL.revokeObjectURL(a.previewUrl); } catch {}
           }
@@ -398,6 +402,13 @@ const RecordForm = ({
         }
         return a;
       });
+      if (Array.isArray(data.failed) && data.failed.length > 0) {
+        const failedNames = data.failed.map((item) => item.name).filter(Boolean).join(", ");
+        toast.error(
+          `${data.failed.length} file${data.failed.length === 1 ? "" : "s"} could not be uploaded${failedNames ? `: ${failedNames}` : ""}`,
+          { duration: 8000 },
+        );
+      }
       setAttachments(newAttachments);
       return newAttachments;
     } catch (e) {
