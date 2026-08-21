@@ -297,14 +297,56 @@ const RecordForm = ({
       toast.error("Please select a patient before uploading documents");
       return [];
     }
+
+    // Validate file objects BEFORE sending — bail out early with clear error
+    const withFiles = uploadable.filter((a) => a.file instanceof File || a.file instanceof Blob);
+    if (withFiles.length === 0) {
+      const diagnostics = uploadable.map((a, i) => ({
+        i,
+        hasFile: Boolean(a.file),
+        fileType: a.file ? Object.prototype.toString.call(a.file) : "—",
+        fileName: a.file?.name || a.name || a.originalName,
+        status: a.status,
+      }));
+      console.error("[UPLOAD] No valid File/Blob objects found:", diagnostics);
+      toast.error(
+        "File objects lost — please re-add the files to the record and try uploading again",
+        { duration: 6000 },
+      );
+      return [];
+    }
+
     setUploading(true);
     try {
       const form = new FormData();
-      uploadable.forEach((a) => form.append("files", a.file));
+      withFiles.forEach((a) => {
+        console.log("[UPLOAD] Appending file:", {
+          name: a.file.name,
+          size: a.file.size,
+          type: a.file.type,
+        });
+        form.append("files", a.file, a.file.name || a.originalName || a.name || "file");
+      });
       form.append("patientId", patientId);
       form.append("recordId", isEdit ? record.id : "pending-new");
       if (selectedPatient?.name) {
         form.append("patientName", selectedPatient.name);
+      }
+
+      // Debug: enumerate everything in FormData so we can confirm payload in console
+      if (typeof form.entries === "function") {
+        const dump = [];
+        for (const [k, v] of form.entries()) {
+          dump.push({
+            key: k,
+            type: typeof v,
+            isFile: v instanceof File,
+            name: v?.name,
+            size: v?.size,
+            value: typeof v === "string" ? v : `[File ${v?.name || ""}]`,
+          });
+        }
+        console.log("[UPLOAD] FormData contents:", dump);
       }
 
       // Try multiple endpoint paths in order (handles different reverse-proxy configurations)
@@ -359,7 +401,7 @@ const RecordForm = ({
         e?.response?.data?.message ||
         e?.message ||
         "Upload failed";
-      toast.error("Failed to upload documents: " + msg);
+      toast.error("Failed to upload documents: " + msg, { duration: 6000 });
       return [];
     } finally {
       setUploading(false);

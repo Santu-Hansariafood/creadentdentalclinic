@@ -27,22 +27,24 @@ const startServer = async () => {
   const PORT = process.env.PORT || 25000;
 
   app.use(cors());
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
+  // Mount storage routes BEFORE body parsers so multer can consume the raw multipart stream.
+  // Express body parsers consume request streams that are needed for multer to parse files.
+  // Also mount at multiple prefixes so it works with whatever prefix the reverse proxy forwards.
   const storageRoutesLogger = (prefix) => (req, res, next) => {
-    console.log("[STORAGE-MOUNT:%s] method=%s path=%s originalUrl=%s",
-      prefix, req.method, req.path, req.originalUrl);
+    console.log("[STORAGE-MOUNT:%s] method=%s path=%s originalUrl=%s ct=%s cl=%s",
+      prefix, req.method, req.path, req.originalUrl,
+      req.headers["content-type"] || "?",
+      req.headers["content-length"] || "?");
     next();
   };
-
-  // Mount storage routes at SEVERAL prefixes for reverse-proxy compatibility:
-  // 1. /api/storage       – canonical REST path
-  // 2. /storage           – fallback if /api prefix is stripped by proxy
-  // 3. /graphql/storage   – fallback if proxy only forwards /graphql path
   app.use("/api/storage", storageRoutesLogger("api"), storageRoutes);
   app.use("/storage", storageRoutesLogger("root"), storageRoutes);
   app.use("/graphql/storage", storageRoutesLogger("gql"), storageRoutes);
+
+  // Body parsers (JSON/urlencoded) — run ONLY after storage routes so multer sees raw stream
+  app.use(express.json({ limit: "50mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
   app.use("/api", authRoutes);
   app.use("/api/icici", iciciPaymentRoutes);

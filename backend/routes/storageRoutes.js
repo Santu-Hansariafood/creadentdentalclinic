@@ -34,8 +34,39 @@ const upload = multer({
 });
 
 const parseUpload = (req, res, next) => {
-  upload.array("files")(req, res, (error) => {
-    if (!error) return next();
+  const ct = req.headers["content-type"] || "";
+  console.log("[PARSE-UPLOAD] Before multer: ct=%s cl=%s", ct, req.headers["content-length"]);
+  if (!/multipart\/form-data/i.test(ct)) {
+    console.warn("[PARSE-UPLOAD] Content-type is NOT multipart/form-data — multer will find no files.");
+  }
+  // Accept "files" array or "file" single so legacy clients work too
+  upload.fields([
+    { name: "files", maxCount: 20 },
+    { name: "file", maxCount: 10 },
+    { name: "files[]", maxCount: 20 },
+    { name: "documents", maxCount: 20 },
+  ])(req, res, (error) => {
+    // Flatten to req.files array (like array() behavior) so rest of the code is unchanged
+    if (!error) {
+      const flat = [];
+      const obj = req.files || {};
+      if (Array.isArray(obj)) {
+        req.files = obj;
+      } else {
+        for (const key of Object.keys(obj)) {
+          for (const f of obj[key]) {
+            f.fieldname = f.fieldname || key;
+            flat.push(f);
+          }
+        }
+        req.files = flat;
+      }
+      console.log("[PARSE-UPLOAD] After multer: fileCount=%d fileFields=%s",
+        (req.files || []).length,
+        Object.keys(obj || {}).join(","));
+      return next();
+    }
+    console.error("[PARSE-UPLOAD] Multer error:", error);
     if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
       return res.status(413).json({
         error: `Each file must be ${maxUploadSizeMb} MB or smaller`,
@@ -78,7 +109,19 @@ router.post(
       role: req.user?.role,
       patientId: req.body?.patientId,
       recordId: req.body?.recordId,
+      patientName: req.body?.patientName,
       filesCount: req.files?.length || 0,
+      files: (req.files || []).map((f, idx) => ({
+        idx,
+        fieldname: f.fieldname,
+        originalname: f.originalname,
+        encoding: f.encoding,
+        mimetype: f.mimetype,
+        size: f.size,
+        bytesOnDisk: f.path && require("fs").existsSync(f.path) ? require("fs").statSync(f.path).size : 0,
+      })),
+      bodyKeys: Object.keys(req.body || {}),
+      body: req.body,
       contentLength: req.headers["content-length"],
       contentType: req.headers["content-type"],
     });
@@ -90,8 +133,22 @@ router.post(
       }
       const files = req.files || [];
       if (files.length === 0) {
-        console.log("[STORAGE-UPLOAD] no files received");
-        return res.status(400).json({ error: "No files provided" });
+        console.log("[STORAGE-UPLOAD] FATAL no files received after multer parse - raw body inspection:");
+        // Log buffer size via streams if possible
+        console.log("[STORAGE-UPLOAD] Headers at upload:", JSON.stringify({
+          "content-type": req.headers["content-type"],
+          "content-length": req.headers["content-length"],
+          "transfer-encoding": req.headers["transfer-encoding"],
+          "content-disposition": req.headers["content-disposition"],
+        }, null, 2));
+        return res.status(400).json({
+          error: "No files provided",
+          debug: {
+            body: req.body,
+            contentType: req.headers["content-type"],
+            contentLength: req.headers["content-length"],
+          },
+        });
       }
       const results = [];
       for (const f of files) {
