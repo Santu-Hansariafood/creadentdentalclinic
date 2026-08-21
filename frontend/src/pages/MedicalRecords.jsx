@@ -40,7 +40,7 @@ import api from "../api/axios";
 const fileTypeIcon = (type, name) => {
   const n = (name || "").toLowerCase();
   const t = (type || "").toLowerCase();
-  if (t.startsWith("image") || /\.(png|jpe?g|gif|webp|bmp)$/.test(n)) return "🖼️";
+  if (t.startsWith("image") || /\.(avif|bmp|gif|heic|heif|ico|jpe?g|jp2|jpf|jpm|jpx|png|svg|tif?f|webp)$/.test(n)) return "🖼️";
   if (t.includes("pdf") || n.endsWith(".pdf")) return "📕";
   if (t.includes("word") || /\.(docx?|rtf)$/.test(n)) return "📘";
   if (t.includes("sheet") || /\.(xlsx?|csv|ods)$/.test(n)) return "📗";
@@ -58,8 +58,14 @@ const formatSize = (bytes) => {
 
 const isImageFile = (f) => {
   if (f.type && f.type.startsWith("image")) return true;
-  return /\.(png|jpe?g|gif|webp|bmp)$/i.test(f.name || f.originalName || "");
+  return /\.(avif|bmp|gif|heic|heif|ico|jpe?g|jp2|jpf|jpm|jpx|png|svg|tif?f|webp)$/i.test(
+    f.name || f.originalName || "",
+  );
 };
+
+const isPdfFile = (f) =>
+  Boolean(f?.type?.toLowerCase().includes("pdf")) ||
+  /\.pdf$/i.test(f?.name || f?.originalName || "");
 
 const getPreviewUrl = (f) => {
   const url = f.previewUrl || f.url;
@@ -210,6 +216,7 @@ const RecordForm = ({
   const [attachments, setAttachments] = useState(initialAttachments);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [selectedPreview, setSelectedPreview] = useState(null);
   const fileInputRef = useState(null)[0];
 
   const selectedPatient = patientOptions.find((p) => p.id === patientId) || null;
@@ -280,6 +287,10 @@ const RecordForm = ({
       };
     });
     setAttachments((prev) => [...prev, ...withMeta]);
+    if (!selectedPreview) {
+      const firstPreviewable = withMeta.find((file) => isImageFile(file) || isPdfFile(file));
+      if (firstPreviewable) setSelectedPreview(firstPreviewable);
+    }
   };
 
   const handleFileChange = (e) => {
@@ -799,22 +810,55 @@ const RecordForm = ({
                     <div className="flex items-center justify-between mt-1.5 text-xs text-gray-500">
                       <span>{formatSize(att.size)}</span>
                       {previewUrl && (
-                        <a
-                          href={previewUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPreview(att);
+                          }}
                           className="text-primary hover:underline flex items-center gap-0.5"
                         >
                           <Eye size={11} />
                           Preview
-                        </a>
+                        </button>
                       )}
                     </div>
                   </div>
                 </div>
               );
             })}
+          </div>
+        )}
+        {selectedPreview && getPreviewUrl(selectedPreview) && (
+          <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+            <div className="px-3 py-2 border-b border-gray-200 bg-white flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-gray-900 truncate">
+                {selectedPreview.name || selectedPreview.originalName || "Preview"}
+              </p>
+              <button
+                type="button"
+                onClick={() => setSelectedPreview(null)}
+                className="text-gray-500 hover:text-gray-800 p-1 rounded"
+                title="Close preview"
+              >
+                <X size={15} />
+              </button>
+            </div>
+            {isImageFile(selectedPreview) ? (
+              <div className="p-3 flex justify-center max-h-[32rem] overflow-auto">
+                <img
+                  src={getPreviewUrl(selectedPreview)}
+                  alt={selectedPreview.name || selectedPreview.originalName || "Image preview"}
+                  className="max-w-full max-h-[30rem] object-contain rounded"
+                />
+              </div>
+            ) : isPdfFile(selectedPreview) ? (
+              <iframe
+                src={getPreviewUrl(selectedPreview)}
+                title={selectedPreview.name || "PDF preview"}
+                className="w-full h-[32rem] bg-white"
+              />
+            ) : null}
           </div>
         )}
       </div>

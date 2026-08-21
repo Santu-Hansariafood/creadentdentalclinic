@@ -23,7 +23,7 @@ import api from "../api/axios";
 const fileTypeIcon = (type, name) => {
   const n = (name || "").toLowerCase();
   const t = (type || "").toLowerCase();
-  if (t.startsWith("image") || /\.(png|jpe?g|gif|webp|bmp)$/.test(n)) return "🖼️";
+  if (t.startsWith("image") || /\.(avif|bmp|gif|heic|heif|ico|jpe?g|jp2|jpf|jpm|jpx|png|svg|tif?f|webp)$/.test(n)) return "🖼️";
   if (t.includes("pdf") || n.endsWith(".pdf")) return "📕";
   if (t.includes("word") || /\.(docx?|rtf)$/.test(n)) return "📘";
   if (t.includes("sheet") || /\.(xlsx?|csv|ods)$/.test(n)) return "📗";
@@ -116,7 +116,9 @@ const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
   const isImage = (att) => {
     if (!att) return false;
     if (att.type && att.type.startsWith("image")) return true;
-    return /\.(png|jpe?g|gif|webp|bmp)$/i.test(att.originalName || att.name || "");
+    return /\.(avif|bmp|gif|heic|heif|ico|jpe?g|jp2|jpf|jpm|jpx|png|svg|tif?f|webp)$/i.test(
+      att.originalName || att.name || "",
+    );
   };
 
   const isPdf = (att) =>
@@ -387,10 +389,9 @@ const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
                       className="border border-gray-200 rounded-lg overflow-hidden hover:border-primary/40 transition-colors"
                     >
                       {img && url ? (
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          type="button"
+                          onClick={() => setSelectedAttachment(att)}
                           className="block h-44 bg-gray-50 overflow-hidden"
                         >
                           <img
@@ -403,7 +404,7 @@ const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
                                 `<div class="w-full h-full flex items-center justify-center text-5xl">${fileTypeIcon(att.type, att.originalName || att.name)}</div>`;
                             }}
                           />
-                        </a>
+                        </button>
                       ) : (
                         <div className="h-24 bg-gradient-to-br from-gray-50 to-white flex items-center justify-center">
                           <span className="text-5xl">{fileTypeIcon(att.type, att.originalName || att.name)}</span>
