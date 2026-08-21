@@ -126,7 +126,7 @@ router.post(
       contentType: req.headers["content-type"],
     });
     try {
-      const { patientId, recordId } = req.body;
+      const { patientId, recordId } = req.body || {};
       if (!patientId) {
         console.log("[STORAGE-UPLOAD] missing patientId");
         return res.status(400).json({ error: "patientId is required" });
