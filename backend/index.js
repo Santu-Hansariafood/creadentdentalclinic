@@ -174,7 +174,9 @@ const startServer = async () => {
       return res.status(404).json({ error: "Not found" });
     }
 
-    return res.download(localFull);
+    res.type(path.extname(localFull));
+    res.setHeader("Content-Disposition", "inline");
+    return res.sendFile(localFull);
   } catch (error) {
     console.error("File download error:", error);
 

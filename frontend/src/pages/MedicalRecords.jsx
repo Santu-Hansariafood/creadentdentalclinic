@@ -273,7 +273,7 @@ const RecordForm = ({
     const withMeta = arr.map((f) => {
       const isImg = isImageFile(f);
       let previewUrl = "";
-      if (isImg && typeof URL !== "undefined") {
+      if ((isImg || isPdfFile(f)) && typeof URL !== "undefined") {
         try { previewUrl = URL.createObjectURL(f); } catch {}
       }
       return {
@@ -418,6 +418,13 @@ const RecordForm = ({
           `${data.failed.length} file${data.failed.length === 1 ? "" : "s"} could not be uploaded${failedNames ? `: ${failedNames}` : ""}`,
           { duration: 8000 },
         );
+      }
+      if (selectedPreview) {
+        const previewName = selectedPreview.file?.name || selectedPreview.originalName || selectedPreview.name;
+        const replacement = newAttachments.find(
+          (attachment) => attachment.originalName === previewName,
+        );
+        if (replacement) setSelectedPreview(replacement);
       }
       setAttachments(newAttachments);
       return newAttachments;

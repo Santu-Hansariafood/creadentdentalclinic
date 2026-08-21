@@ -18,6 +18,7 @@ import {
   Shield,
   Loader2,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import api from "../api/axios";
 
 const fileTypeIcon = (type, name) => {
@@ -111,6 +112,28 @@ const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
   const openAttachment = (att) => {
     const url = getAttachmentUrl(att);
     if (url) window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const downloadAttachment = async (att) => {
+    const url = getAttachmentUrl(att);
+    if (!url) return;
+    try {
+      const response = await api.get(url, { responseType: "blob", timeout: 60000 });
+      const contentType = response.headers["content-type"] || "";
+      if (!contentType || contentType.includes("application/json") || contentType.includes("text/html")) {
+        throw new Error("The stored file is unavailable or invalid");
+      }
+      const objectUrl = URL.createObjectURL(response.data);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = att.name || att.originalName || "attachment";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      toast.error(error?.response?.data?.error || error.message || "Unable to download file");
+    }
   };
 
   const isImage = (att) => {
@@ -453,17 +476,17 @@ const MedicalRecordViewer = ({ record, onClose, onEdit, onDelete }) => {
                             >
                               <Eye size={16} />
                             </button>
-                            <a
-                              href={url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              download={att.name || att.originalName}
-                              onClick={(e) => e.stopPropagation()}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                downloadAttachment(att);
+                              }}
                               className="text-gray-500 hover:text-gray-700 p-1.5 hover:bg-gray-100 rounded"
                               title="Download"
                             >
                               <Download size={16} />
-                            </a>
+                            </button>
                           </div>
                         )}
                       </div>
