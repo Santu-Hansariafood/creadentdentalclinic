@@ -180,6 +180,68 @@ const startServer = async () => {
 });
 
 const frontendBuildPath = path.join(__dirname, "../frontend/dist");
+  const publicSeo = {
+    "/": {
+      title: "Best Dental Clinic in Salt Lake Kolkata | Creadent Dental Clinic",
+      description: "Looking for the best dental clinic in Salt Lake, Kolkata? Creadent Dental Clinic offers expert dentists, root canal treatment, dental implants, braces, teeth whitening, and family dental care.",
+    },
+    "/about-us": {
+      title: "About Us | Best Dental Clinic in Salt Lake Kolkata",
+      description: "Learn about Creadent Dental Clinic in Salt Lake, Kolkata, our patient-first approach, and our commitment to modern, dependable dental care.",
+    },
+    "/contact-us": {
+      title: "Contact Us | Creadent Dental Clinic Salt Lake Kolkata",
+      description: "Contact Creadent Dental Clinic in Salt Lake, Kolkata for appointments, payment support, and patient enquiries.",
+    },
+    "/google-reviews": {
+      title: "Google Reviews | Creadent Dental Clinic Salt Lake Kolkata",
+      description: "Read Google reviews for Creadent Dental Clinic in Salt Lake, Kolkata, and share your experience with our dental team.",
+    },
+    "/privacy-policy": {
+      title: "Privacy Policy | Creadent Dental Clinic Kolkata",
+      description: "Read the privacy policy for Creadent Dental Clinic to understand how we securely handle patient, visitor, and payment information.",
+    },
+    "/terms-and-conditions": {
+      title: "Terms and Conditions | Creadent Dental Clinic",
+      description: "Review the terms and conditions for using the Creadent Dental Clinic website, online booking, and payment processing services.",
+    },
+    "/refund-policy": {
+      title: "Refund Policy | Creadent Dental Clinic",
+      description: "Read the refund policy for Creadent Dental Clinic to understand how online payment refunds and transaction reversals are handled.",
+    },
+    "/cancellation-policy": {
+      title: "Cancellation Policy | Creadent Dental Clinic",
+      description: "Read the cancellation policy for Creadent Dental Clinic appointments and online payments.",
+    },
+  };
+  const escapeHtml = (value) =>
+    value.replace(/[&<>'"]/g, (character) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "'": "&#39;",
+      '"': "&quot;",
+    })[character]);
+  const renderPublicSeoHtml = (requestPath) => {
+    const seo = publicSeo[requestPath];
+    const html = fs.readFileSync(path.join(frontendBuildPath, "index.html"), "utf8");
+    if (!seo) return html;
+
+    const title = escapeHtml(seo.title);
+    const description = escapeHtml(seo.description);
+    const canonical = `https://creadentsmiles.com${requestPath}`;
+    return html
+      .replace(/<title>[^<]*<\/title>/i, `<title>${title}</title>`)
+      .replace(/(<meta name="title" content=")[^"]*(")/i, `$1${title}$2`)
+      .replace(/(<meta name="description" content=")[^"]*(")/i, `$1${description}$2`)
+      .replace(/(<meta property="og:url" content=")[^"]*(")/i, `$1${canonical}$2`)
+      .replace(/(<meta property="og:title" content=")[^"]*(")/i, `$1${title}$2`)
+      .replace(/(<meta property="og:description" content=")[^"]*(")/i, `$1${description}$2`)
+      .replace(/(<meta name="twitter:url" content=")[^"]*(")/i, `$1${canonical}$2`)
+      .replace(/(<meta name="twitter:title" content=")[^"]*(")/i, `$1${title}$2`)
+      .replace(/(<meta name="twitter:description" content=")[^"]*(")/i, `$1${description}$2`)
+      .replace(/(<link rel="canonical" href=")[^"]*(")/i, `$1${canonical}$2`);
+  };
   const hashedAssetPattern = /\.[a-z0-9]{2,8}$/i;
   const isStaticAssetRequest = (requestPath) =>
     requestPath.startsWith("/assets/") ||
@@ -216,34 +278,11 @@ const frontendBuildPath = path.join(__dirname, "../frontend/dist");
     const baseUrl = process.env.SITE_URL || "https://creadentsmiles.com";
     const today = new Date().toISOString().split("T")[0];
 
-    const staticPages = [
-      { loc: `${baseUrl}/`, priority: "1.0", changefreq: "daily" },
-      { loc: `${baseUrl}/login`, priority: "0.8", changefreq: "monthly" },
-      { loc: `${baseUrl}/register`, priority: "0.8", changefreq: "monthly" },
-      { loc: `${baseUrl}/verify-otp`, priority: "0.7", changefreq: "monthly" },
-      {
-        loc: `${baseUrl}/privacy-policy`,
-        priority: "0.7",
-        changefreq: "monthly",
-      },
-      {
-        loc: `${baseUrl}/account-deletion-policy`,
-        priority: "0.7",
-        changefreq: "monthly",
-      },
-      {
-        loc: `${baseUrl}/terms-of-service`,
-        priority: "0.7",
-        changefreq: "monthly",
-      },
-      {
-        loc: `${baseUrl}/cookie-policy`,
-        priority: "0.7",
-        changefreq: "monthly",
-      },
-      { loc: `${baseUrl}/disclaimer`, priority: "0.7", changefreq: "monthly" },
-      { loc: `${baseUrl}/careers`, priority: "0.8", changefreq: "weekly" },
-    ];
+    const staticPages = Object.keys(publicSeo).map((pagePath) => ({
+      loc: `${baseUrl}${pagePath}`,
+      priority: pagePath === "/" ? "1.0" : pagePath === "/about-us" || pagePath === "/contact-us" ? "0.9" : "0.7",
+      changefreq: pagePath === "/" || pagePath === "/google-reviews" ? "weekly" : "monthly",
+    }));
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -284,6 +323,9 @@ ${staticPages
     }
 
     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    if (publicSeo[req.path]) {
+      return res.type("html").send(renderPublicSeoHtml(req.path));
+    }
     return res.sendFile(path.join(frontendBuildPath, "index.html"));
   });
 
