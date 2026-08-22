@@ -551,10 +551,10 @@ input UpdateMedicineInput {
     findPatientByNameAndPhone(name: String!, phone: String!): Patient
     findPatientByNameAndEmail(name: String!, email: String!): Patient
     findPatientsByNameOrContact(name: String, email: String, phone: String): [Patient]!
-    getAppointments(page: Int, limit: Int, search: String, status: String): PaginatedAppointments
-    getMedicalRecords: [MedicalRecord]
-    getInvoices: [Invoice]
-    getPrescriptions: [Prescription]
+    getAppointments(page: Int, limit: Int, search: String, status: String, patientId: ID): PaginatedAppointments
+    getMedicalRecords(patientId: ID): [MedicalRecord]
+    getInvoices(patientId: ID): [Invoice]
+    getPrescriptions(patientId: ID): [Prescription]
     getPaymentLedgers(page: Int, limit: Int, search: String): PaginatedPaymentLedgers
     getDashboardStats: DashboardStats
     getReportsData: ReportsData

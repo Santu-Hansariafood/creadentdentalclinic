@@ -51,21 +51,27 @@ export const GET_APPOINTMENTS = gql`
     $limit: Int
     $search: String
     $status: String
+    $patientId: ID
   ) {
     getAppointments(
       page: $page
       limit: $limit
       search: $search
       status: $status
+      patientId: $patientId
     ) {
       appointments {
         id
+        patientId
         patientName
+        doctorId
         doctorName
         date
         time
         type
         status
+        reason
+        notes
       }
       totalCount
       totalPages
@@ -75,8 +81,8 @@ export const GET_APPOINTMENTS = gql`
 `;
 
 export const GET_MEDICAL_RECORDS = gql`
-  query GetMedicalRecords {
-    getMedicalRecords {
+  query GetMedicalRecords($patientId: ID) {
+    getMedicalRecords(patientId: $patientId) {
       id
       patientId
       patientName
@@ -151,8 +157,8 @@ export const GET_MEDICAL_RECORDS = gql`
 `;
 
 export const GET_INVOICES = gql`
-  query GetInvoices {
-    getInvoices {
+  query GetInvoices($patientId: ID) {
+    getInvoices(patientId: $patientId) {
       id
       invoiceNumber
       patientId
@@ -180,8 +186,8 @@ export const GET_INVOICES = gql`
 `;
 
 export const GET_PRESCRIPTIONS = gql`
-  query GetPrescriptions {
-    getPrescriptions {
+  query GetPrescriptions($patientId: ID) {
+    getPrescriptions(patientId: $patientId) {
       id
       patientId
       patientName
@@ -196,12 +202,18 @@ export const GET_PRESCRIPTIONS = gql`
         address
         bloodGroup
       }
+      doctorId
       doctorName
       date
       diagnosis
+      diagnoses {
+        name
+        critical
+      }
       medications {
         name
         dosage
+        dosageForm
         frequency
         duration
         instructions
@@ -260,14 +272,43 @@ export const GET_PATIENT = gql`
     getPatient(id: $id) {
       id
       patientId
+      userId
       name
       email
       phone
       dateOfBirth
+      age
       gender
       address
       bloodGroup
       status
+      emergencyContact {
+        name
+        relationship
+        phone
+      }
+      medicalHistory {
+        allergies
+        chronicConditions
+        medications
+        previousSurgeries
+        familyHistory
+      }
+      vitalSigns {
+        bloodPressure
+        height
+        weight
+      }
+      dentalHistory {
+        lastVisit
+        previousTreatments
+        currentIssues
+      }
+      insurance {
+        provider
+        policyNumber
+        expiryDate
+      }
     }
   }
 `;

@@ -326,12 +326,15 @@ const resolvers = {
     },
     getAppointments: async (
       _,
-      { page = 1, limit = 10, search = "", status = "All" },
+      { page = 1, limit = 10, search = "", status = "All", patientId },
     ) => {
       const skip = (page - 1) * limit;
       const query = {};
       if (status && status !== "All") {
         query.status = status;
+      }
+      if (patientId) {
+        query.patientId = patientId;
       }
       if (search) {
         query.$or = [
@@ -352,20 +355,30 @@ const resolvers = {
         currentPage: page,
       };
     },
-    getMedicalRecords: async () =>
-      await MedicalRecord.find().sort({ date: -1 }),
-    getInvoices: async (_, __, { user }) => {
+    getMedicalRecords: async (_, { patientId }) => {
+      const query = {};
+      if (patientId) query.patientId = patientId;
+      return await MedicalRecord.find(query).sort({ date: -1 });
+    },
+    getInvoices: async (_, { patientId }, { user }) => {
       if (!user) throw new Error("Not authenticated");
+      const query = {};
       if (user.role === "patient") {
         const patient = await Patient.findOne({ userId: user._id });
         if (!patient) return [];
-        return await Invoice.find({ patientId: patient._id }).sort({
-          date: -1,
-        });
+        query.patientId = patient._id;
+      } else if (patientId) {
+        query.patientId = patientId;
       }
-      return await Invoice.find().sort({ date: -1 });
+      return await Invoice.find(query).sort({
+        date: -1,
+      });
     },
-    getPrescriptions: async () => await Prescription.find().sort({ date: -1 }),
+    getPrescriptions: async (_, { patientId }) => {
+      const query = {};
+      if (patientId) query.patientId = patientId;
+      return await Prescription.find(query).sort({ date: -1 });
+    },
     getPaymentLedgers: async (_, { page = 1, limit = 10, search = "" }) => {
       const skip = (page - 1) * limit;
       const paymentLedgers = await PaymentLedger.find()
