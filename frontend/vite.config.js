@@ -26,7 +26,12 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: "autoUpdate",
-        includeAssets: ["favicon.svg", "robots.txt", "sitemap.xml"],
+        includeAssets: [
+          "favicon.svg",
+          "robots.txt",
+          "sitemap.xml",
+          ".well-known/security.txt",
+        ],
         manifest: {
           name: "Creadent Dental Clinic",
           short_name: "Creadent",
