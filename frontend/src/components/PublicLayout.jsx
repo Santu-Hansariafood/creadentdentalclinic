@@ -15,29 +15,29 @@ const PublicLayout = ({ children }) => {
       <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <Link to="/" className="flex min-w-0 items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 sm:h-12 sm:w-12">
                 <img
                   src="/logo/logo.png"
                   alt={`${site.name} logo`}
                   className="h-8 w-8 object-contain"
                 />
               </div>
-              <div>
-                <p className="font-heading text-lg font-semibold text-gray-900">
+              <div className="min-w-0">
+                <p className="truncate font-heading text-base font-semibold text-gray-900 sm:text-lg">
                   {site.name}
                 </p>
-                <p className="text-sm text-gray-600">{site.tagline}</p>
+                <p className="truncate text-xs text-gray-600 sm:text-sm">{site.tagline}</p>
               </div>
             </Link>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <a
                 href={site.phoneHref}
-                className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/15"
+                className="inline-flex min-w-0 items-center gap-2 rounded-full bg-primary/10 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/15 sm:text-sm"
               >
                 <Phone size={16} />
-                {site.phoneDisplay}
+                <span className="truncate">{site.phoneDisplay}</span>
               </a>
 
               {isAuthenticated ? (
@@ -57,7 +57,7 @@ const PublicLayout = ({ children }) => {
             </div>
           </div>
 
-          <nav className="flex flex-wrap gap-2">
+          <nav className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
             {pages.map((page) => {
               const isActive = location.pathname === page.path;
 
@@ -65,7 +65,7 @@ const PublicLayout = ({ children }) => {
                 <Link
                   key={page.slug}
                   to={page.path}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                    className={`shrink-0 whitespace-nowrap rounded-full px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
                     isActive
                       ? "bg-primary text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-primary/10 hover:text-primary"

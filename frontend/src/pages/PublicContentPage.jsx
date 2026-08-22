@@ -158,18 +158,18 @@ const PublicContentPage = ({ pageSlug }) => {
         <section className="relative overflow-hidden border-b border-gray-100 bg-gradient-to-br from-slate-900 via-primary/90 to-cyan-800 text-white">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-black/30 pointer-events-none" />
 
-          <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+          <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8 lg:py-28">
             <div className="max-w-3xl">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-md border border-white/20 shadow-sm">
                 <Sparkles size={14} className="text-cyan-300 animate-pulse" />
                 {page.badge}
               </span>
 
-              <h1 className="mt-6 font-heading text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl text-white">
+              <h1 className="mt-6 break-words font-heading text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
                 {page.title}
               </h1>
 
-              <div className="mt-4 inline-block overflow-hidden whitespace-nowrap border-r-2 border-cyan-400 pr-2 font-mono text-xs sm:text-sm text-cyan-200 animate-[typing_4s_steps(40,end),blink-caret_.75s_step-end_infinite]">
+              <div className="mt-4 max-w-full border-r-2 border-cyan-400 pr-2 font-mono text-xs text-cyan-200 sm:text-sm">
                 Advanced Healthcare • Trusted Dental Excellence in Salt Lake,
                 Kolkata
               </div>
@@ -299,16 +299,16 @@ const PublicContentPage = ({ pageSlug }) => {
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-4">
+                <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4 lg:w-auto">
                   {renderCtaLink(
                     page.cta.primaryHref,
                     page.cta.primaryLabel,
-                    "rounded-full bg-white px-8 py-4 text-sm font-bold text-primary shadow-xl transition-all hover:-translate-y-0.5 hover:bg-cyan-50 hover:text-cyan-900",
+                    "w-full rounded-full bg-white px-5 py-3 text-center text-sm font-bold text-primary shadow-xl transition-all hover:-translate-y-0.5 hover:bg-cyan-50 hover:text-cyan-900 sm:w-auto sm:px-8 sm:py-4",
                   )}
                   {renderCtaLink(
                     page.cta.secondaryHref,
                     page.cta.secondaryLabel,
-                    "rounded-full border-2 border-white/60 bg-white/5 backdrop-blur-sm px-8 py-4 text-sm font-bold text-white transition-all hover:bg-white/20 hover:border-white",
+                    "w-full rounded-full border-2 border-white/60 bg-white/5 px-5 py-3 text-center text-sm font-bold text-white backdrop-blur-sm transition-all hover:bg-white/20 hover:border-white sm:w-auto sm:px-8 sm:py-4",
                   )}
                 </div>
               </div>
