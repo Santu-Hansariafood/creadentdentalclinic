@@ -39,7 +39,10 @@ import {
 } from "../graphql/mutations";
 import { generateInvoicePDF } from "../utils/pdfGenerator";
 import Preloader from "../components/Preloader";
-import { invoices as mockInvoices, patients as mockPatients } from "../data/mockData";
+import {
+  invoices as mockInvoices,
+  patients as mockPatients,
+} from "../data/mockData";
 
 const Billing = () => {
   const { user, isDemoUser } = useAuth();
@@ -89,7 +92,9 @@ const Billing = () => {
     refetchQueries: [{ query: GET_INVOICES }],
   });
   const [sendInvoiceWhatsApp] = useMutation(SEND_INVOICE_WHATSAPP);
-  const [sendLoginCredentialsWhatsApp] = useMutation(SEND_LOGIN_CREDENTIALS_WHATSAPP);
+  const [sendLoginCredentialsWhatsApp] = useMutation(
+    SEND_LOGIN_CREDENTIALS_WHATSAPP,
+  );
 
   const [showEditInvoice, setShowEditInvoice] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
@@ -113,7 +118,8 @@ const Billing = () => {
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
   const [sharingWhatsAppInvoice, setSharingWhatsAppInvoice] = useState(null);
   const [sharingLoginViaWA, setSharingLoginViaWA] = useState(null);
-  const [selectedPatientForPayment, setSelectedPatientForPayment] = useState(null);
+  const [selectedPatientForPayment, setSelectedPatientForPayment] =
+    useState(null);
   const [iciciCallbackNotice, setIciciCallbackNotice] = useState(null);
 
   useEffect(() => {
@@ -132,10 +138,17 @@ const Billing = () => {
         REQ: "Payment is still being processed.",
         PENDING: "Payment is pending completion.",
       };
-      const statusIcon = paymentStatus === "SUC" ? "success" : paymentStatus === "REQ" || paymentStatus === "PENDING" ? "info" : "error";
+      const statusIcon =
+        paymentStatus === "SUC"
+          ? "success"
+          : paymentStatus === "REQ" || paymentStatus === "PENDING"
+            ? "info"
+            : "error";
       const message =
         statusLabels[paymentStatus] ||
-        (error ? decodeURIComponent(error) : "Payment status received from ICICI Bank.");
+        (error
+          ? decodeURIComponent(error)
+          : "Payment status received from ICICI Bank.");
 
       setIciciCallbackNotice({
         status: paymentStatus,
@@ -174,9 +187,7 @@ const Billing = () => {
       <div className="p-6 text-center text-red-500">Error: {error.message}</div>
     );
 
-  const allInvoices = isDemoUser
-    ? demoInvoiceList
-    : data?.getInvoices || [];
+  const allInvoices = isDemoUser ? demoInvoiceList : data?.getInvoices || [];
   const patients = isDemoUser
     ? mockPatients
     : patientsData?.getPatients?.patients || [];
@@ -188,7 +199,9 @@ const Billing = () => {
 
   const invoices =
     user?.role === "patient" && myPatient
-      ? allInvoices.filter((inv) => inv.patientId === myPatient.id || inv.patientId === 1)
+      ? allInvoices.filter(
+          (inv) => inv.patientId === myPatient.id || inv.patientId === 1,
+        )
       : allInvoices;
 
   const paymentMethods = [];
@@ -327,7 +340,10 @@ const Billing = () => {
 
       if (shouldPayNow && createdInvoice) {
         setSelectedInvoice(createdInvoice);
-        const patient = patients.find((p) => p.id === createdInvoice.patientId) || myPatient || null;
+        const patient =
+          patients.find((p) => p.id === createdInvoice.patientId) ||
+          myPatient ||
+          null;
         setSelectedPatientForPayment(patient);
         setShowPaymentModal(true);
       }
@@ -340,11 +356,14 @@ const Billing = () => {
 
   const handlePayment = (invoice) => {
     setSelectedInvoice(invoice);
-    const patient = patients.find(
-      (p) =>
-        p.id === invoice.patientId ||
-        (myPatient && myPatient.id === invoice.patientId),
-    ) || myPatient || null;
+    const patient =
+      patients.find(
+        (p) =>
+          p.id === invoice.patientId ||
+          (myPatient && myPatient.id === invoice.patientId),
+      ) ||
+      myPatient ||
+      null;
     setSelectedPatientForPayment(patient);
     setShowPaymentModal(true);
   };
@@ -457,7 +476,9 @@ const Billing = () => {
       invoiceNumber: invoice.invoiceNumber,
       patientId: invoice.patientId,
       patientName: invoice.patientName,
-      date: invoice.date ? invoice.date.split("T")[0] : format(new Date(), "yyyy-MM-dd"),
+      date: invoice.date
+        ? invoice.date.split("T")[0]
+        : format(new Date(), "yyyy-MM-dd"),
       dueDate: invoice.dueDate ? invoice.dueDate.split("T")[0] : "",
       items:
         invoice.items?.length > 0
@@ -581,10 +602,9 @@ const Billing = () => {
           note: "WhatsApp not configured on server. Configure WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID.",
         });
         setShowWhatsAppPreview(true);
-        toast(
-          "WhatsApp not configured on server. Preview available instead.",
-          { icon: "ℹ️" },
-        );
+        toast("WhatsApp not configured on server. Preview available instead.", {
+          icon: "ℹ️",
+        });
       } else {
         toast.error(result?.error || "Failed to send WhatsApp message");
       }
@@ -630,10 +650,9 @@ const Billing = () => {
           note: "WhatsApp not configured on server. Configure WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID.",
         });
         setShowWhatsAppPreview(true);
-        toast(
-          "WhatsApp not configured on server. Preview available instead.",
-          { icon: "ℹ️" },
-        );
+        toast("WhatsApp not configured on server. Preview available instead.", {
+          icon: "ℹ️",
+        });
       } else {
         toast.error(result?.error || "Failed to send WhatsApp message");
       }
@@ -664,7 +683,8 @@ const Billing = () => {
             className={`mb-6 rounded-xl border p-4 flex items-start gap-3 ${
               iciciCallbackNotice.status === "SUC"
                 ? "border-green-200 bg-green-50"
-                : iciciCallbackNotice.status === "REQ" || iciciCallbackNotice.status === "PENDING"
+                : iciciCallbackNotice.status === "REQ" ||
+                    iciciCallbackNotice.status === "PENDING"
                   ? "border-blue-200 bg-blue-50"
                   : "border-red-200 bg-red-50"
             }`}
@@ -673,14 +693,16 @@ const Billing = () => {
               className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                 iciciCallbackNotice.status === "SUC"
                   ? "bg-green-100"
-                  : iciciCallbackNotice.status === "REQ" || iciciCallbackNotice.status === "PENDING"
+                  : iciciCallbackNotice.status === "REQ" ||
+                      iciciCallbackNotice.status === "PENDING"
                     ? "bg-blue-100"
                     : "bg-red-100"
               }`}
             >
               {iciciCallbackNotice.status === "SUC" ? (
                 <CheckCircle size={18} className="text-green-700" />
-              ) : iciciCallbackNotice.status === "REQ" || iciciCallbackNotice.status === "PENDING" ? (
+              ) : iciciCallbackNotice.status === "REQ" ||
+                iciciCallbackNotice.status === "PENDING" ? (
                 <Loader2 size={18} className="text-blue-700 animate-spin" />
               ) : (
                 <AlertCircle size={18} className="text-red-700" />
@@ -691,7 +713,8 @@ const Billing = () => {
                 className={`font-semibold text-sm ${
                   iciciCallbackNotice.status === "SUC"
                     ? "text-green-900"
-                    : iciciCallbackNotice.status === "REQ" || iciciCallbackNotice.status === "PENDING"
+                    : iciciCallbackNotice.status === "REQ" ||
+                        iciciCallbackNotice.status === "PENDING"
                       ? "text-blue-900"
                       : "text-red-900"
                 }`}
@@ -703,15 +726,25 @@ const Billing = () => {
               </p>
               <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-500">
                 {iciciCallbackNotice.invoiceId && (
-                  <span>Invoice: {String(iciciCallbackNotice.invoiceId).slice(-8)}</span>
+                  <span>
+                    Invoice: {String(iciciCallbackNotice.invoiceId).slice(-8)}
+                  </span>
                 )}
                 {iciciCallbackNotice.transactionId && (
-                  <span>Txn: {String(iciciCallbackNotice.transactionId).slice(-10)}</span>
+                  <span>
+                    Txn: {String(iciciCallbackNotice.transactionId).slice(-10)}
+                  </span>
                 )}
                 {typeof iciciCallbackNotice.hashValid === "boolean" && (
                   <span>
                     Secure Hash:{" "}
-                    <span className={iciciCallbackNotice.hashValid ? "text-green-700 font-medium" : "text-red-700 font-medium"}>
+                    <span
+                      className={
+                        iciciCallbackNotice.hashValid
+                          ? "text-green-700 font-medium"
+                          : "text-red-700 font-medium"
+                      }
+                    >
                       {iciciCallbackNotice.hashValid ? "Verified" : "Mismatch"}
                     </span>
                   </span>
@@ -769,7 +802,9 @@ const Billing = () => {
                 </p>
                 <p className="text-sm text-green-800 mt-1">
                   Phone: {generatedLogin.phone} | Password:{" "}
-                  <span className="font-semibold">{generatedLogin.password}</span>
+                  <span className="font-semibold">
+                    {generatedLogin.password}
+                  </span>
                 </p>
               </div>
               <div className="flex gap-2 flex-wrap">
@@ -945,8 +980,12 @@ const Billing = () => {
                       <div className="flex gap-2 flex-wrap">
                         <button
                           type="button"
-                          onClick={() => handleShareLoginWhatsApp(generatedLogin)}
-                          disabled={sharingLoginViaWA === generatedLogin.patientId}
+                          onClick={() =>
+                            handleShareLoginWhatsApp(generatedLogin)
+                          }
+                          disabled={
+                            sharingLoginViaWA === generatedLogin.patientId
+                          }
                           className="flex-1 min-w-[180px] flex items-center justify-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg text-sm font-medium transition-colors"
                         >
                           {sharingLoginViaWA === generatedLogin.patientId ? (
@@ -960,7 +999,10 @@ const Billing = () => {
                           type="button"
                           onClick={() => {
                             const loginMsg = `🏥 CREADENT DENTAL CLINIC\n\nDear ${generatedLogin.patientName},\n\nYour secure patient portal login:\n📱 Mobile: ${generatedLogin.phone}\n🔑 Password: ${generatedLogin.password}\n\n🔐 Login here: https://creadentsmiles.com/login\n\nAfter login, visit Billing & Payments to pay invoices online.\n\nRegards,\nTeam Creadent Dental Clinic`;
-                            handleDirectWhatsAppShare(generatedLogin.phone, loginMsg);
+                            handleDirectWhatsAppShare(
+                              generatedLogin.phone,
+                              loginMsg,
+                            );
                           }}
                           className="flex items-center justify-center gap-2 px-3 py-2 border border-green-500 text-green-700 hover:bg-green-50 rounded-lg text-sm font-medium transition-colors"
                           title="Open WhatsApp Web directly"
@@ -974,7 +1016,9 @@ const Billing = () => {
                             const text = `Patient Login for ${generatedLogin.patientName}\nPhone: ${generatedLogin.phone}\nPassword: ${generatedLogin.password}\nLogin: https://creadentsmiles.com/login`;
                             if (navigator.clipboard) {
                               navigator.clipboard.writeText(text);
-                              toast.success("Login credentials copied to clipboard");
+                              toast.success(
+                                "Login credentials copied to clipboard",
+                              );
                             }
                           }}
                           className="flex items-center justify-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors"
@@ -1788,8 +1832,7 @@ const Billing = () => {
                       ₹
                       {Math.max(
                         0,
-                        editTotalAmount -
-                          (editInvoiceForm.amountPaid || 0),
+                        editTotalAmount - (editInvoiceForm.amountPaid || 0),
                       ).toFixed(2)}
                     </span>
                   </div>
@@ -1853,9 +1896,12 @@ const Billing = () => {
                 </div>
               </div>
               <p className="text-gray-600 mb-6">
-                Are you sure you want to delete this invoice? This action
-                cannot be undone and will permanently remove the invoice
-                record for <span className="font-medium">{invoiceToDelete.patientName}</span>.
+                Are you sure you want to delete this invoice? This action cannot
+                be undone and will permanently remove the invoice record for{" "}
+                <span className="font-medium">
+                  {invoiceToDelete.patientName}
+                </span>
+                .
               </p>
               <div className="flex gap-2 justify-end">
                 <button
@@ -1957,7 +2003,9 @@ const Billing = () => {
                   onClick={() => {
                     handleDirectWhatsAppShare(
                       whatsAppPreviewData.phone
-                        ? whatsAppPreviewData.phone.replace(/^91/, "").slice(-10)
+                        ? whatsAppPreviewData.phone
+                            .replace(/^91/, "")
+                            .slice(-10)
                         : "",
                       whatsAppPreviewData.message,
                     );
@@ -1970,7 +2018,9 @@ const Billing = () => {
                 <button
                   onClick={() => {
                     if (navigator.clipboard) {
-                      navigator.clipboard.writeText(whatsAppPreviewData.message);
+                      navigator.clipboard.writeText(
+                        whatsAppPreviewData.message,
+                      );
                       toast.success("Message copied to clipboard");
                     }
                   }}

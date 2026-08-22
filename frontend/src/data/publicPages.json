@@ -254,6 +254,60 @@
       }
     },
     {
+      "slug": "google-reviews",
+      "path": "/google-reviews",
+      "label": "Google reviews",
+      "badge": "Patient Feedback",
+      "title": "Google Reviews | Creadent Dental Clinic",
+      "heroDescription": "Read feedback from our patients on Google and share your own experience with Creadent Dental Clinic.",
+      "seo": {
+        "title": "Google Reviews | Creadent Dental Clinic Salt Lake Kolkata",
+        "description": "Read Google reviews for Creadent Dental Clinic in Salt Lake, Kolkata, and share your experience with our dental team.",
+        "keywords": "Creadent Dental Clinic Google reviews, dental clinic reviews Salt Lake Kolkata, dentist reviews Bidhannagar"
+      },
+      "highlights": [
+        {
+          "icon": "shield",
+          "label": "Verified profile",
+          "value": "Read real patient feedback on our Google Business profile",
+          "href": "https://www.google.com/search?sca_esv=eed109301477b38c&authuser=0&hl=en&gl=in&output=search&q=Creadent&ludocid=3495056172186083733&lsig=AB86z5XjgcXiZv-kwyUA9q8TFFnD&ved=1i%3A3%2Ct%3A109124%2Ce%3A2%2Cp%3AZDGJarOzI7SaseMPwN-jgAU%3A89"
+        },
+        {
+          "icon": "building",
+          "label": "Our clinic",
+          "value": "BD-85, Salt Lake Rd, AD Block, Sector 1, Bidhannagar, Kolkata 700064"
+        },
+        {
+          "icon": "phone",
+          "label": "Appointments",
+          "value": "+91 62923 00343",
+          "href": "tel:+916292300343"
+        }
+      ],
+      "sections": [
+        {
+          "title": "Read our Google reviews",
+          "paragraphs": [
+            "Visit our official Google Business profile to read the latest patient reviews, see clinic information, and learn more about the Creadent Dental Clinic experience."
+          ]
+        },
+        {
+          "title": "Share your experience",
+          "paragraphs": [
+            "Your feedback helps our dental team improve and helps other patients make an informed choice. Open our Google profile and select the option to write a review."
+          ]
+        }
+      ],
+      "cta": {
+        "title": "Visit our Google profile",
+        "description": "Read patient feedback or share your own experience with Creadent Dental Clinic.",
+        "primaryLabel": "Read Google Reviews",
+        "primaryHref": "https://www.google.com/search?sca_esv=eed109301477b38c&authuser=0&hl=en&gl=in&output=search&q=Creadent&ludocid=3495056172186083733&lsig=AB86z5XjgcXiZv-kwyUA9q8TFFnD&ved=1i%3A3%2Ct%3A109124%2Ce%3A2%2Cp%3AZDGJarOzI7SaseMPwN-jgAU%3A89",
+        "secondaryLabel": "Give a Review",
+        "secondaryHref": "https://www.google.com/search?sca_esv=eed109301477b38c&authuser=0&hl=en&gl=in&output=search&q=Creadent&ludocid=3495056172186083733&lsig=AB86z5XjgcXiZv-kwyUA9q8TFFnD&ved=1i%3A3%2Ct%3A109124%2Ce%3A2%2Cp%3AZDGJarOzI7SaseMPwN-jgAU%3A89"
+      }
+    },
+    {
       "slug": "privacy-policy",
       "path": "/privacy-policy",
       "label": "Privacy policy",

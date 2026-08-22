@@ -123,8 +123,11 @@ const Appointments = () => {
       </div>
     );
 
-  const { appointments = [], totalPages = 1, totalCount = 0 } =
-    dataApts?.getAppointments || {};
+  const {
+    appointments = [],
+    totalPages = 1,
+    totalCount = 0,
+  } = dataApts?.getAppointments || {};
   const doctors = dataDoctors?.getUsersByRole || [];
   const patients = dataPatients?.getPatients?.patients || [];
 
@@ -132,7 +135,9 @@ const Appointments = () => {
     (a) =>
       isAppointmentToday(a.date) ||
       isAppointmentUpcoming(a.date) ||
-      (!isAppointmentPast(a.date) && a.status !== "Completed" && a.status !== "Cancelled"),
+      (!isAppointmentPast(a.date) &&
+        a.status !== "Completed" &&
+        a.status !== "Cancelled"),
   );
 
   const previousAppointments = appointments.filter((a) =>
@@ -169,7 +174,10 @@ const Appointments = () => {
   }
 
   const groupedDisplayCount =
-    displayUpcoming.length + displayPreviousDone.length + displayPreviousNotDone.length + displayPreviousCancelled.length;
+    displayUpcoming.length +
+    displayPreviousDone.length +
+    displayPreviousNotDone.length +
+    displayPreviousCancelled.length;
 
   const handleBookingChange = (e) => {
     setBookingData({ ...bookingData, [e.target.name]: e.target.value });
@@ -385,9 +393,7 @@ const Appointments = () => {
                       {patients.map((patient) => (
                         <option key={patient.id} value={patient.id}>
                           {patient.name}
-                          {patient.patientId
-                            ? ` (${patient.patientId})`
-                            : ""}
+                          {patient.patientId ? ` (${patient.patientId})` : ""}
                         </option>
                       ))}
                     </select>
@@ -665,7 +671,10 @@ const Appointments = () => {
               </h2>
               <span className="ml-auto text-xs font-medium px-3 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
                 {displayPreviousCancelled.length}{" "}
-                {displayPreviousCancelled.length === 1 ? "appointment" : "appointments"} cancelled
+                {displayPreviousCancelled.length === 1
+                  ? "appointment"
+                  : "appointments"}{" "}
+                cancelled
               </span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -691,9 +700,7 @@ const Appointments = () => {
               No appointments found
             </h3>
             <p className="text-gray-600 mb-4">
-              {searchTerm ||
-              filterStatus !== "All" ||
-              groupTab !== "all"
+              {searchTerm || filterStatus !== "All" || groupTab !== "all"
                 ? "Try adjusting your search, filter, or group tab"
                 : "You don't have any appointments yet"}
             </p>

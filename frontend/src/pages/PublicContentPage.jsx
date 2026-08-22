@@ -131,6 +131,17 @@ const PublicContentPage = ({ pageSlug }) => {
   const structuredData = [webPageSchema, breadcrumbSchema, dentistSchema];
   if (faqSchema) structuredData.push(faqSchema);
 
+  const renderCtaLink = (href, label, className) =>
+    href.startsWith("http") ? (
+      <a href={href} target="_blank" rel="noreferrer" className={className}>
+        {label}
+      </a>
+    ) : (
+      <Link to={href} className={className}>
+        {label}
+      </Link>
+    );
+
   return (
     <Suspense fallback={<Preloader />}>
       <ScrollToTop />
@@ -289,18 +300,16 @@ const PublicContentPage = ({ pageSlug }) => {
                 </div>
 
                 <div className="flex flex-wrap gap-4">
-                  <Link
-                    to={page.cta.primaryHref}
-                    className="rounded-full bg-white px-8 py-4 text-sm font-bold text-primary shadow-xl transition-all hover:-translate-y-0.5 hover:bg-cyan-50 hover:text-cyan-900"
-                  >
-                    {page.cta.primaryLabel}
-                  </Link>
-                  <Link
-                    to={page.cta.secondaryHref}
-                    className="rounded-full border-2 border-white/60 bg-white/5 backdrop-blur-sm px-8 py-4 text-sm font-bold text-white transition-all hover:bg-white/20 hover:border-white"
-                  >
-                    {page.cta.secondaryLabel}
-                  </Link>
+                  {renderCtaLink(
+                    page.cta.primaryHref,
+                    page.cta.primaryLabel,
+                    "rounded-full bg-white px-8 py-4 text-sm font-bold text-primary shadow-xl transition-all hover:-translate-y-0.5 hover:bg-cyan-50 hover:text-cyan-900",
+                  )}
+                  {renderCtaLink(
+                    page.cta.secondaryHref,
+                    page.cta.secondaryLabel,
+                    "rounded-full border-2 border-white/60 bg-white/5 backdrop-blur-sm px-8 py-4 text-sm font-bold text-white transition-all hover:bg-white/20 hover:border-white",
+                  )}
                 </div>
               </div>
             </div>

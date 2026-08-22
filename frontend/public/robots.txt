@@ -6,6 +6,9 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /admin/
+Disallow: /doctor/
+Disallow: /employee/
+Disallow: /patient/
 Disallow: /login
 Disallow: /register
 Disallow: /dashboard/
