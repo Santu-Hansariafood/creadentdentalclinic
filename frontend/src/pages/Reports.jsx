@@ -2,19 +2,16 @@ import { motion } from "framer-motion";
 import { fadeIn } from "../utils/motion";
 import { Suspense } from "react";
 import Preloader from "../components/Preloader";
+import PageHeader from "../components/PageHeader";
 
 const Reports = () => {
   return (
     <Suspense fallback={<Preloader />}>
       <div className="max-w-7xl mx-auto">
-        <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-            Reports
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600">
-            View and manage clinical and financial reports.
-          </p>
-        </motion.div>
+        <PageHeader
+          title="Reports"
+          subtitle="View and manage clinical and financial reports."
+        />
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
           <p className="text-gray-500">Reports module is coming soon.</p>
         </div>

@@ -21,6 +21,7 @@ import StaffRegistration from "./StaffRegistration";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Preloader from "../components/Preloader";
+import PageHeader from "../components/PageHeader";
 
 const StaffList = () => {
   const [page, setPage] = useState(1);
@@ -82,27 +83,21 @@ const StaffList = () => {
   return (
     <Suspense fallback={<Preloader />}>
       <div className="max-w-7xl mx-auto">
-        <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                Staff List
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600">
-                View and manage staff members.
-              </p>
-            </div>
-            {user?.role === "admin" && (
+        <PageHeader
+          title="Staff List"
+          subtitle="View and manage staff members."
+          action={
+            user?.role === "admin" && (
               <Link
                 to="/admin/staff-registration"
-                className="btn-primary flex items-center gap-2 self-start md:self-center"
+                className="btn-primary flex items-center gap-2"
               >
                 <Plus size={20} />
                 Add Staff
               </Link>
-            )}
-          </div>
-        </motion.div>
+            )
+          }
+        />
 
         <div className="mb-8">
           <div className="relative max-w-md">

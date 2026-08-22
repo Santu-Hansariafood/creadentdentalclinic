@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import DashboardCard from "../components/DashboardCard";
+import PageHeader from "../components/PageHeader";
 import AppointmentCard from "../components/AppointmentCard";
 import { fadeIn, staggerContainer } from "../utils/motion";
 import { useQuery } from "@apollo/client";
@@ -56,14 +57,10 @@ const PatientDashboard = () => {
           nofollow={true}
           url="/patient/dashboard"
         />
-        <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user.name}!
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600">
-            Here's an overview of your dental health
-          </p>
-        </motion.div>
+        <PageHeader
+          title={`Welcome back, ${user.name}!`}
+          subtitle="Here's an overview of your dental health"
+        />
 
         <motion.div
           variants={staggerContainer}

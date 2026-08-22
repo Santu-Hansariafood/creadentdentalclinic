@@ -21,6 +21,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema } from "../utils/schemas";
 import Preloader from "../components/Preloader";
+import PageHeader from "../components/PageHeader";
 
 const StaffRegistration = ({ initialStaff, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -379,14 +380,10 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
   return (
     <Suspense fallback={<Preloader />}>
       <div className="max-w-4xl mx-auto">
-        <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-            Staff Registration
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600">
-            Add new staff members to the clinic system
-          </p>
-        </motion.div>
+        <PageHeader
+          title="Staff Registration"
+          subtitle="Add new staff members to the clinic system"
+        />
 
         <motion.div {...fadeIn("up", 0.2)} className="card">
           <FormContent />

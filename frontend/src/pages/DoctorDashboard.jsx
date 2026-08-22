@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Calendar, Users, FileText, Clock, TrendingUp } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import DashboardCard from "../components/DashboardCard";
+import PageHeader from "../components/PageHeader";
 import AppointmentCard from "../components/AppointmentCard";
 import PatientCard from "../components/PatientCard";
 import { fadeIn, staggerContainer } from "../utils/motion";
@@ -49,14 +50,10 @@ const DoctorDashboard = () => {
           nofollow={true}
           url="/doctor/dashboard"
         />
-        <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-            Good morning, {user.name}!
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600">
-            Here's your schedule and patient overview for today
-          </p>
-        </motion.div>
+        <PageHeader
+          title={`Good morning, ${user.name}!`}
+          subtitle="Here's your schedule and patient overview for today"
+        />
 
         <motion.div
           variants={staggerContainer}

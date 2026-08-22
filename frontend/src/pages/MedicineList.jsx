@@ -12,6 +12,7 @@ import { DELETE_MEDICINE } from "../graphql/mutations";
 import Pagination from "../components/Pagination";
 import toast from "react-hot-toast";
 import Preloader from "../components/Preloader";
+import PageHeader from "../components/PageHeader";
 
 const MedicineList = () => {
   const { user } = useAuth();
@@ -69,17 +70,11 @@ const MedicineList = () => {
   return (
     <Suspense fallback={<Preloader />}>
       <div className="max-w-7xl mx-auto">
-        <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                Medicine Inventory
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600">
-                View and manage clinic medication stock
-              </p>
-            </div>
-            {(user.role === "admin" || user.role === "doctor") && (
+        <PageHeader
+          title="Medicine Inventory"
+          subtitle="View and manage clinic medication stock"
+          action={
+            (user.role === "admin" || user.role === "doctor") && (
               <Link
                 to={`/${user.role}/medicine-registration`}
                 className="btn-primary flex items-center gap-2 self-start md:self-center"
@@ -87,9 +82,9 @@ const MedicineList = () => {
                 <Plus size={20} />
                 Add Medicine
               </Link>
-            )}
-          </div>
-        </motion.div>
+            )
+          }
+        />
 
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">

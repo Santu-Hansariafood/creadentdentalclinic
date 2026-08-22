@@ -10,6 +10,7 @@ import {
   Loader,
 } from "lucide-react";
 import DashboardCard from "../components/DashboardCard";
+import PageHeader from "../components/PageHeader";
 import { fadeIn, staggerContainer } from "../utils/motion";
 import {
   BarChart,
@@ -85,14 +86,10 @@ const EmployeeDashboard = () => {
         url="/employee/dashboard"
       />
       <div className="max-w-7xl mx-auto">
-        <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-            Employee Dashboard
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600">
-            Comprehensive overview of clinic operations and analytics
-          </p>
-        </motion.div>
+        <PageHeader
+          title="Employee Dashboard"
+          subtitle="Comprehensive overview of clinic operations and analytics"
+        />
 
         <motion.div
           variants={staggerContainer}

@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import Preloader from "../components/Preloader";
 import { useAuth } from "../context/AuthContext";
+import PageHeader from "../components/PageHeader";
 
 const PatientList = () => {
   const { user } = useAuth();
@@ -91,29 +92,22 @@ const PatientList = () => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-              Patient List
-            </h1>
-            <p className="text-sm sm:text-base text-gray-600">
-              View and manage patient records.
-              {totalCount > 0 && (
-                <span className="inline-flex items-center gap-1.5 ml-2 px-2.5 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium">
-                  <Users size={12} />
-                  {totalCount} total {totalCount === 1 ? "patient" : "patients"}
-                  {debouncedSearch && (
-                    <>
-                      {" "}
-                      • matching "{debouncedSearch}"
-                    </>
-                  )}
-                </span>
-              )}
-            </p>
-          </div>
-          {user &&
+      <PageHeader
+        title="Patient List"
+        subtitle={
+          <>
+            View and manage patient records.
+            {totalCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 ml-2 px-2.5 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium">
+                <Users size={12} />
+                {totalCount} total {totalCount === 1 ? "patient" : "patients"}
+                {debouncedSearch && <> {" "}• matching "{debouncedSearch}"</>}
+              </span>
+            )}
+          </>
+        }
+        action={
+          user &&
             (user.role === "admin" ||
               user.role === "doctor" ||
               user.role === "employee") && (
@@ -124,9 +118,9 @@ const PatientList = () => {
                 <Plus size={20} />
                 Add Patient
               </Link>
-            )}
-        </div>
-      </motion.div>
+            )
+        }
+      />
 
       <div className="mb-8">
         <div className="relative max-w-md">

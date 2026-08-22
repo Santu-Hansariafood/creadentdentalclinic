@@ -39,6 +39,7 @@ import {
 } from "../graphql/mutations";
 import { generateInvoicePDF } from "../utils/pdfGenerator";
 import Preloader from "../components/Preloader";
+import PageHeader from "../components/PageHeader";
 import {
   invoices as mockInvoices,
   patients as mockPatients,
@@ -762,33 +763,28 @@ const Billing = () => {
           </motion.div>
         )}
 
-        <motion.div
-          {...fadeIn("down")}
-          className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-        >
-          <div>
-            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-              Billing & Payments
-            </h1>
-            <p className="text-sm sm:text-base text-gray-600">
-              {user?.role === "patient"
-                ? "View your invoices and payment history"
-                : "Manage invoices, payments, and financial records"}
-            </p>
-          </div>
-          {user?.role === "admin" && (
-            <button
-              onClick={() => {
-                setGeneratedLogin(null);
-                setShowCreateInvoice(true);
-              }}
-              className="btn-primary flex items-center gap-2 self-start sm:self-auto"
-            >
-              <Plus size={20} />
-              Create Invoice
-            </button>
-          )}
-        </motion.div>
+        <PageHeader
+          title="Billing & Payments"
+          subtitle={
+            user?.role === "patient"
+              ? "View your invoices and payment history"
+              : "Manage invoices, payments, and financial records"
+          }
+          action={
+            user?.role === "admin" && (
+              <button
+                onClick={() => {
+                  setGeneratedLogin(null);
+                  setShowCreateInvoice(true);
+                }}
+                className="btn-primary flex items-center gap-2"
+              >
+                <Plus size={20} />
+                Create Invoice
+              </button>
+            )
+          }
+        />
 
         {generatedLogin && !generatedLogin.preview && (
           <motion.div

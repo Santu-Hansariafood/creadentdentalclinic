@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { patientRegistrationSchema } from "../utils/schemas";
 import Preloader from "../components/Preloader";
+import PageHeader from "../components/PageHeader";
 
 const PatientRegistration = ({
   initialPatient = null,
@@ -838,16 +839,14 @@ const PatientRegistration = ({
           </div>
         ) : (
           <>
-            <motion.div {...fadeIn("down")} className="mb-6 sm:mb-8">
-              <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                {initialPatient ? "Edit Patient" : "Patient Registration"}
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600">
-                {initialPatient
+            <PageHeader
+              title={initialPatient ? "Edit Patient" : "Patient Registration"}
+              subtitle={
+                initialPatient
                   ? "Update patient information"
-                  : "Complete the form to register a new patient"}
-              </p>
-            </motion.div>
+                  : "Complete the form to register a new patient"
+              }
+            />
 
             <div className="mb-8 overflow-x-auto pb-4 sm:pb-0">
               <div className="flex items-center justify-between min-w-[600px] sm:min-w-0">

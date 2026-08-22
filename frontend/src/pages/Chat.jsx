@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { useQuery } from "@apollo/client";
 import { GET_CONVERSATIONS, GET_CHAT_MESSAGES } from "../graphql/queries";
 import Preloader from "../components/Preloader";
+import PageHeader from "../components/PageHeader";
 
 const Chat = () => {
   const { user } = useAuth();
@@ -54,14 +55,10 @@ const Chat = () => {
   return (
     <Suspense fallback={<Preloader />}>
       <div className="max-w-7xl mx-auto">
-        <motion.div {...fadeIn("down")} className="mb-4 sm:mb-6">
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-            Messages
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600">
-            Communicate with your healthcare team
-          </p>
-        </motion.div>
+        <PageHeader
+          title="Messages"
+          subtitle="Communicate with your healthcare team"
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
           <motion.div
