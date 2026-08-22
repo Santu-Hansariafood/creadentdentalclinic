@@ -124,6 +124,8 @@ const Login = () => {
       <SEO
         title="Login to Creadent Dental Clinic | Book Appointment"
         description="Login to Creadent Dental Clinic to book appointments, view records, and manage your dental care."
+        noindex
+        nofollow
       />
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 p-4">
         <motion.div {...fadeIn("up")} className="w-full max-w-md">

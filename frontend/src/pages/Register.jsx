@@ -53,6 +53,8 @@ const Register = () => {
       <SEO
         title="Register at Creadent Dental Clinic | Patient Sign Up"
         description="Create an account at Creadent Dental Clinic to book appointments, access dental records, and receive personalized care."
+        noindex
+        nofollow
       />
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 p-4">
         <motion.div {...fadeIn("up")} className="w-full max-w-md">

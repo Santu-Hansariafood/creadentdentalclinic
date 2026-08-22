@@ -5,6 +5,7 @@ import { Shield, ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { fadeIn } from "../utils/motion";
 import Preloader from "../components/Preloader";
+import SEO from "../components/SEO";
 
 const OTPVerification = () => {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -64,6 +65,12 @@ const OTPVerification = () => {
 
   return (
     <Suspense fallback={<Preloader />}>
+      <SEO
+        title="Verify Your Account | Creadent Dental Clinic"
+        description="Verify your Creadent Dental Clinic account."
+        noindex
+        nofollow
+      />
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 p-4">
         <motion.div {...fadeIn("up")} className="w-full max-w-md">
           <button
