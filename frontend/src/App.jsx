@@ -40,12 +40,6 @@ const StaffList = lazy(() => import("./pages/StaffList"));
 const PaymentLedger = lazy(() => import("./pages/PaymentLedger"));
 const Settings = lazy(() => import("./pages/Settings"));
 
-const LoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-[60vh]">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-  </div>
-);
-
 const PatientRegistrationCheck = ({ children }) => {
   const { user, isDemoUser } = useAuth();
   const navigate = useNavigate();
@@ -63,7 +57,7 @@ const PatientRegistrationCheck = ({ children }) => {
   }, [isPatient, myPatientData, patientLoading, navigate, isDemoUser]);
 
   if (isPatient && !isDemoUser && patientLoading) {
-    return <LoadingFallback />;
+    return <Preloader />;
   }
 
   return children;
@@ -75,17 +69,9 @@ const App = () => {
   const location = useLocation();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [initialLoad, setInitialLoad] = useState(true);
   const publicRoutePaths = publicContent.pages.map((page) => page.path);
   const isPublicPage = publicRoutePaths.includes(location.pathname);
   const showDashboardChrome = isAuthenticated && !isPublicPage;
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setInitialLoad(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -120,7 +106,7 @@ const App = () => {
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  if (initialLoad || authLoading) {
+  if (authLoading) {
     return <Preloader />;
   }
 
@@ -153,7 +139,7 @@ const App = () => {
           className={`flex-1 transition-all duration-300 ${showDashboardChrome ? "lg:ml-64 mt-16" : ""}`}
         >
           <div className={isPublicPage ? "" : "p-4 sm:p-6 lg:p-8"}>
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<Preloader />}>
               <Routes>
                 {publicContent.pages.map((page) => (
                   <Route
