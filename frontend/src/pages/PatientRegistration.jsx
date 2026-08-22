@@ -136,13 +136,19 @@ const PatientRegistration = ({
     if (initialPatient?.email?.toLowerCase() === normalizedEmail) {
       return;
     }
-    if (isSelfRegistration && myPatientData?.getMyPatient?.email?.toLowerCase() === normalizedEmail) {
+    if (
+      isSelfRegistration &&
+      myPatientData?.getMyPatient?.email?.toLowerCase() === normalizedEmail
+    ) {
       return;
     }
 
     try {
       const { data } = await checkPatientExistsQuery({
-        variables: { phone: phone?.length === 10 ? phone : undefined, email: normalizedEmail },
+        variables: {
+          phone: phone?.length === 10 ? phone : undefined,
+          email: normalizedEmail,
+        },
         fetchPolicy: "network-only",
       });
 
@@ -161,7 +167,10 @@ const PatientRegistration = ({
       email: patientData?.email || userData?.email || "",
       phone: patientData?.phone || userData?.phone || "",
       dateOfBirth: patientData?.dateOfBirth || "",
-      age: patientData?.age !== undefined && patientData?.age !== null ? patientData.age.toString() : "",
+      age:
+        patientData?.age !== undefined && patientData?.age !== null
+          ? patientData.age.toString()
+          : "",
       gender: patientData?.gender || "",
       address: patientData?.address || "",
       bloodGroup: patientData?.bloodGroup || "",
@@ -235,18 +244,16 @@ const PatientRegistration = ({
 
   const handleNext = async () => {
     if (currentStep === 1) {
-      const fieldsToValidate = [
-        "name",
-        "phone",
-        "gender",
-      ];
+      const fieldsToValidate = ["name", "phone", "gender"];
       if (canManagePatientPassword && isCreatingPatient) {
         fieldsToValidate.push("password", "confirmPassword");
       }
       const isValidBasic = await trigger(fieldsToValidate);
       const dobVal = watch("dateOfBirth");
       const ageVal = watch("age");
-      const hasDobOrAge = (dobVal && dobVal.trim() !== "") || (ageVal !== "" && ageVal !== undefined && ageVal !== null);
+      const hasDobOrAge =
+        (dobVal && dobVal.trim() !== "") ||
+        (ageVal !== "" && ageVal !== undefined && ageVal !== null);
       if (!isValidBasic) return;
       if (!hasDobOrAge) {
         await trigger("dateOfBirth");
@@ -275,17 +282,28 @@ const PatientRegistration = ({
           ? data.email.trim().toLowerCase()
           : undefined,
       phone: data.phone,
-      dateOfBirth: data.dateOfBirth && data.dateOfBirth.trim() !== "" ? data.dateOfBirth : undefined,
-      age: (data.age !== "" && data.age !== undefined && data.age !== null) ? Number(data.age) : undefined,
+      dateOfBirth:
+        data.dateOfBirth && data.dateOfBirth.trim() !== ""
+          ? data.dateOfBirth
+          : undefined,
+      age:
+        data.age !== "" && data.age !== undefined && data.age !== null
+          ? Number(data.age)
+          : undefined,
       gender: data.gender,
-      address: data.address && data.address.trim() !== "" ? data.address : undefined,
-      bloodGroup: data.bloodGroup && data.bloodGroup.trim() !== "" ? data.bloodGroup : undefined,
+      address:
+        data.address && data.address.trim() !== "" ? data.address : undefined,
+      bloodGroup:
+        data.bloodGroup && data.bloodGroup.trim() !== ""
+          ? data.bloodGroup
+          : undefined,
       status: data.status,
       password: data.password?.trim() ? data.password : undefined,
       userId: isSelfRegistration && user ? user.id : undefined,
       emergencyContact:
         (data.emergencyContactName && data.emergencyContactName.trim()) ||
-        (data.emergencyContactRelation && data.emergencyContactRelation.trim()) ||
+        (data.emergencyContactRelation &&
+          data.emergencyContactRelation.trim()) ||
         (data.emergencyContactPhone && data.emergencyContactPhone.trim())
           ? {
               name: formatName(data.emergencyContactName),
@@ -362,21 +380,63 @@ const PatientRegistration = ({
     { number: 3, title: "Medical History", icon: Heart },
   ];
 
+  const renderSteps = () => (
+    <div className="flex items-center justify-between flex-nowrap">
+      {steps.map((step, index) => {
+        const Icon = step.icon;
+        return (
+          <div key={step.number} className="flex items-center flex-1">
+            <div className="flex flex-col items-center flex-1">
+              <div
+                className={`w-8 h-8 sm:w-10 md:w-12 rounded-full flex items-center justify-center transition-all ${
+                  currentStep >= step.number
+                    ? "bg-primary text-white shadow-md scale-110 sm:scale-100"
+                    : "bg-gray-200 text-gray-500"
+                }`}
+              >
+                <Icon
+                  size={16}
+                  className="sm:w-[18px] sm:h-[18px] md:w-5 md:h-5"
+                />
+              </div>
+              <p
+                className={`text-[8px] sm:text-[10px] md:text-xs mt-1 sm:mt-2 text-center whitespace-nowrap ${
+                  currentStep >= step.number
+                    ? "text-primary font-medium"
+                    : "text-gray-500"
+                }`}
+              >
+                {step.title}
+              </p>
+            </div>
+            {index < steps.length - 1 && (
+              <div
+                className={`h-1 flex-1 mx-0.5 sm:mx-1 md:mx-2 transition-all ${
+                  currentStep > step.number ? "bg-primary" : "bg-gray-200"
+                }`}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
     <Suspense fallback={<Preloader />}>
-      <div className={onClose ? "" : "max-w-4xl mx-auto"}>
+      <div className={onClose ? "" : "max-w-4xl mx-auto px-4 sm:px-6"}>
         {onClose ? (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4">
             <motion.div
               {...fadeIn("up", 0.1)}
               className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white">
+              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
                 <div>
-                  <h2 className="font-heading text-xl sm:text-2xl font-bold text-gray-900">
+                  <h2 className="font-heading text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
                     {initialPatient ? "Edit Patient" : "Patient Registration"}
                   </h2>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">
                     {initialPatient
                       ? "Update patient information"
                       : "Complete the form to register a new patient"}
@@ -386,59 +446,17 @@ const PatientRegistration = ({
                   onClick={onClose}
                   className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <X size={24} />
+                  <X size={20} className="sm:w-6 sm:h-6" />
                 </button>
               </div>
-              <div className="p-6">
-                <div className="mb-8 overflow-x-auto pb-4 sm:pb-0">
-                  <div className="flex items-center justify-between min-w-[600px] sm:min-w-0">
-                    {steps.map((step, index) => {
-                      const Icon = step.icon;
-                      return (
-                        <div
-                          key={step.number}
-                          className="flex items-center flex-1"
-                        >
-                          <div className="flex flex-col items-center flex-1">
-                            <div
-                              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
-                                currentStep >= step.number
-                                  ? "bg-primary text-white shadow-md scale-110 sm:scale-100"
-                                  : "bg-gray-200 text-gray-500"
-                              }`}
-                            >
-                              <Icon size={18} />
-                            </div>
-                            <p
-                              className={`text-[10px] sm:text-xs mt-2 text-center whitespace-nowrap ${
-                                currentStep >= step.number
-                                  ? "text-primary font-medium"
-                                  : "text-gray-500"
-                              }`}
-                            >
-                              {step.title}
-                            </p>
-                          </div>
-                          {index < steps.length - 1 && (
-                            <div
-                              className={`h-1 flex-1 mx-1 sm:mx-2 transition-all ${
-                                currentStep > step.number
-                                  ? "bg-primary"
-                                  : "bg-gray-200"
-                              }`}
-                            />
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+              <div className="p-4 sm:p-6">
+                <div className="mb-6 sm:mb-8">{renderSteps()}</div>
 
-                <motion.div {...fadeIn("up", 0.2)} className="card">
+                <motion.div {...fadeIn("up", 0.2)} className="card p-4 sm:p-6">
                   <form onSubmit={handleSubmit(onSubmit)} noValidate>
                     {currentStep === 1 && (
                       <div className="space-y-4">
-                        <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
+                        <h2 className="font-heading text-lg sm:text-xl font-semibold text-gray-900 mb-4">
                           Personal Information
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -459,7 +477,10 @@ const PatientRegistration = ({
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Email Address <span className="text-gray-500 text-xs">(optional)</span>
+                              Email Address{" "}
+                              <span className="text-gray-500 text-xs">
+                                (optional)
+                              </span>
                             </label>
                             <input
                               type="email"
@@ -498,7 +519,11 @@ const PatientRegistration = ({
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Date of Birth <span className="text-gray-500 text-xs">(or enter Age below)</span> *
+                              Date of Birth{" "}
+                              <span className="text-gray-500 text-xs">
+                                (or enter Age below)
+                              </span>{" "}
+                              *
                             </label>
                             <input
                               type="date"
@@ -513,7 +538,10 @@ const PatientRegistration = ({
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Age <span className="text-gray-500 text-xs">(auto-filled from DOB)</span>
+                              Age{" "}
+                              <span className="text-gray-500 text-xs">
+                                (auto-filled from DOB)
+                              </span>
                             </label>
                             <input
                               type="number"
@@ -643,7 +671,7 @@ const PatientRegistration = ({
 
                     {currentStep === 2 && (
                       <div className="space-y-4">
-                        <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
+                        <h2 className="font-heading text-lg sm:text-xl font-semibold text-gray-900 mb-4">
                           Emergency Contact
                         </h2>
                         <p className="text-sm text-gray-500 mb-4">
@@ -703,7 +731,7 @@ const PatientRegistration = ({
 
                     {currentStep === 3 && (
                       <div className="space-y-4">
-                        <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
+                        <h2 className="font-heading text-lg sm:text-xl font-semibold text-gray-900 mb-4">
                           Medical History
                         </h2>
                         <div>
@@ -765,7 +793,7 @@ const PatientRegistration = ({
                           <h3 className="font-medium text-gray-900 mb-3">
                             Vital Signs (Baseline)
                           </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Blood Pressure
@@ -804,12 +832,12 @@ const PatientRegistration = ({
                       </div>
                     )}
 
-                    <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+                    <div className="flex flex-col sm:flex-row justify-between mt-8 pt-6 border-t border-gray-200 gap-3 sm:gap-0">
                       {currentStep > 1 && (
                         <button
                           type="button"
                           onClick={handlePrevious}
-                          className="btn-outline"
+                          className="btn-outline w-full sm:w-auto order-2 sm:order-1"
                         >
                           Previous
                         </button>
@@ -818,14 +846,14 @@ const PatientRegistration = ({
                         <button
                           type="button"
                           onClick={handleNext}
-                          className="btn-primary ml-auto"
+                          className="btn-primary w-full sm:w-auto ml-auto order-1 sm:order-2"
                         >
                           Next
                         </button>
                       ) : (
                         <button
                           type="submit"
-                          className="btn-primary ml-auto"
+                          className="btn-primary w-full sm:w-auto ml-auto order-1 sm:order-2"
                           disabled={isSubmitting}
                         >
                           Complete Registration
@@ -848,52 +876,13 @@ const PatientRegistration = ({
               }
             />
 
-            <div className="mb-8 overflow-x-auto pb-4 sm:pb-0">
-              <div className="flex items-center justify-between min-w-[600px] sm:min-w-0">
-                {steps.map((step, index) => {
-                  const Icon = step.icon;
-                  return (
-                    <div key={step.number} className="flex items-center flex-1">
-                      <div className="flex flex-col items-center flex-1">
-                        <div
-                          className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
-                            currentStep >= step.number
-                              ? "bg-primary text-white shadow-md scale-110 sm:scale-100"
-                              : "bg-gray-200 text-gray-500"
-                          }`}
-                        >
-                          <Icon size={18} />
-                        </div>
-                        <p
-                          className={`text-[10px] sm:text-xs mt-2 text-center whitespace-nowrap ${
-                            currentStep >= step.number
-                              ? "text-primary font-medium"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          {step.title}
-                        </p>
-                      </div>
-                      {index < steps.length - 1 && (
-                        <div
-                          className={`h-1 flex-1 mx-1 sm:mx-2 transition-all ${
-                            currentStep > step.number
-                              ? "bg-primary"
-                              : "bg-gray-200"
-                          }`}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <div className="mb-6 sm:mb-8">{renderSteps()}</div>
 
-            <motion.div {...fadeIn("up", 0.2)} className="card">
+            <motion.div {...fadeIn("up", 0.2)} className="card p-4 sm:p-6">
               <form onSubmit={handleSubmit(onSubmit)} noValidate>
                 {currentStep === 1 && (
                   <div className="space-y-4">
-                    <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
+                    <h2 className="font-heading text-lg sm:text-xl font-semibold text-gray-900 mb-4">
                       Personal Information
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -949,7 +938,11 @@ const PatientRegistration = ({
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Date of Birth <span className="text-gray-500 text-xs">(or enter Age below)</span> *
+                          Date of Birth{" "}
+                          <span className="text-gray-500 text-xs">
+                            (or enter Age below)
+                          </span>{" "}
+                          *
                         </label>
                         <input
                           type="date"
@@ -964,7 +957,10 @@ const PatientRegistration = ({
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Age <span className="text-gray-500 text-xs">(auto-filled from DOB)</span>
+                          Age{" "}
+                          <span className="text-gray-500 text-xs">
+                            (auto-filled from DOB)
+                          </span>
                         </label>
                         <input
                           type="number"
@@ -1097,7 +1093,7 @@ const PatientRegistration = ({
 
                 {currentStep === 2 && (
                   <div className="space-y-4">
-                    <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
+                    <h2 className="font-heading text-lg sm:text-xl font-semibold text-gray-900 mb-4">
                       Emergency Contact
                     </h2>
                     <p className="text-sm text-gray-500 mb-4">
@@ -1157,7 +1153,7 @@ const PatientRegistration = ({
 
                 {currentStep === 3 && (
                   <div className="space-y-4">
-                    <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
+                    <h2 className="font-heading text-lg sm:text-xl font-semibold text-gray-900 mb-4">
                       Medical History
                     </h2>
                     <div>
@@ -1219,7 +1215,7 @@ const PatientRegistration = ({
                       <h3 className="font-medium text-gray-900 mb-3">
                         Vital Signs (Baseline)
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Blood Pressure
@@ -1258,12 +1254,12 @@ const PatientRegistration = ({
                   </div>
                 )}
 
-                <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row justify-between mt-8 pt-6 border-t border-gray-200 gap-3 sm:gap-0">
                   {currentStep > 1 && (
                     <button
                       type="button"
                       onClick={handlePrevious}
-                      className="btn-outline"
+                      className="btn-outline w-full sm:w-auto order-2 sm:order-1"
                     >
                       Previous
                     </button>
@@ -1272,14 +1268,14 @@ const PatientRegistration = ({
                     <button
                       type="button"
                       onClick={handleNext}
-                      className="btn-primary ml-auto"
+                      className="btn-primary w-full sm:w-auto ml-auto order-1 sm:order-2"
                     >
                       Next
                     </button>
                   ) : (
                     <button
                       type="submit"
-                      className="btn-primary ml-auto"
+                      className="btn-primary w-full sm:w-auto ml-auto order-1 sm:order-2"
                       disabled={isSubmitting}
                     >
                       Complete Registration
