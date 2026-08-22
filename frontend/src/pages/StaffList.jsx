@@ -29,6 +29,7 @@ const StaffList = () => {
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [viewingStaff, setViewingStaff] = useState(null);
   const { user } = useAuth();
+  const staffPerPage = 9;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -71,6 +72,11 @@ const StaffList = () => {
       member.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       member.email.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       member.phone.includes(debouncedSearch),
+  );
+  const totalPages = Math.ceil(filteredStaff.length / staffPerPage);
+  const paginatedStaff = filteredStaff.slice(
+    (page - 1) * staffPerPage,
+    page * staffPerPage,
   );
 
   return (
@@ -119,7 +125,7 @@ const StaffList = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredStaff.map((staff, index) => (
+              {paginatedStaff.map((staff, index) => (
                 <motion.div
                   key={staff.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -194,6 +200,12 @@ const StaffList = () => {
                 </p>
               </div>
             )}
+
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </>
         )}
         {viewingStaff && (
