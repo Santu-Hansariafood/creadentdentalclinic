@@ -87,7 +87,7 @@ const AppointmentCard = ({
           <Calendar size={16} className="text-primary shrink-0" />
           <div className="flex flex-col">
             <span className="font-semibold text-gray-900">
-              {formatDate(appointment.date, "EEEE, MMMM do, yyyy")}
+              {formatDate(appointment.date, "dd/MM/yyyy")}
             </span>
             {today && (
               <span className="text-[11px] text-primary font-medium">

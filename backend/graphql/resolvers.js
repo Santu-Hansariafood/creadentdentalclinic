@@ -96,6 +96,9 @@ const serializeAttachments = async (attachments) => {
 };
 
 const resolvers = {
+  Appointment: {
+    date: (parent) => toIsoDateString(parent.date),
+  },
   MedicalRecord: {
     id: (parent) => (parent.id || parent._id)?.toString(),
     patientId: (parent) => (parent.patientId?._id || parent.patientId)?.toString?.() ?? parent.patientId,
