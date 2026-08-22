@@ -81,11 +81,11 @@ const PublicLayout = ({ children }) => {
 
       <main>{children}</main>
 
-      <footer className="border-t border-gray-200 bg-white">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.2fr_1fr_1fr] lg:px-8">
-          <div className="space-y-4">
+      <footer className="border-t border-gray-200 bg-slate-950 text-white">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr] lg:gap-12 lg:px-8 lg:py-10">
+          <div className="space-y-4 md:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15">
                 <img
                   src="/logo/logo.png"
                   alt={`${site.name} logo`}
@@ -93,28 +93,28 @@ const PublicLayout = ({ children }) => {
                 />
               </div>
               <div>
-                <p className="font-heading text-lg font-semibold text-gray-900">
+                <p className="font-heading text-lg font-semibold text-white">
                   {site.name}
                 </p>
-                <p className="text-sm text-gray-600">{site.tagline}</p>
+                <p className="text-sm text-slate-300">{site.tagline}</p>
               </div>
             </div>
 
-            <p className="max-w-xl text-sm leading-6 text-gray-600">
+            <p className="max-w-xl text-sm leading-6 text-slate-300">
               {site.description}
             </p>
           </div>
 
           <div>
-            <h2 className="font-heading text-base font-semibold text-gray-900">
+            <h2 className="font-heading text-base font-semibold text-white">
               Quick links
             </h2>
-            <div className="mt-4 flex flex-col gap-3 text-sm">
+            <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               {pages.map((page) => (
                 <Link
                   key={page.slug}
                   to={page.path}
-                  className="text-gray-600 transition-colors hover:text-primary"
+                  className="truncate text-slate-300 transition-colors hover:text-cyan-300"
                 >
                   {page.label}
                 </Link>
@@ -123,29 +123,34 @@ const PublicLayout = ({ children }) => {
           </div>
 
           <div>
-            <h2 className="font-heading text-base font-semibold text-gray-900">
+            <h2 className="font-heading text-base font-semibold text-white">
               Contact
             </h2>
-            <div className="mt-4 space-y-3 text-sm text-gray-600">
+            <div className="mt-4 space-y-2.5 text-sm text-slate-300">
               <a
                 href={site.phoneHref}
-                className="flex items-start gap-3 transition-colors hover:text-primary"
+                className="flex items-start gap-3 transition-colors hover:text-cyan-300"
               >
-                <Phone className="mt-0.5 text-primary" size={16} />
+                <Phone className="mt-0.5 shrink-0 text-cyan-300" size={16} />
                 <span>{site.phoneDisplay}</span>
               </a>
               <a
                 href={site.emailHref}
-                className="flex items-start gap-3 break-all transition-colors hover:text-primary"
+                className="flex items-start gap-3 break-all transition-colors hover:text-cyan-300"
               >
-                <Mail className="mt-0.5 text-primary" size={16} />
+                <Mail className="mt-0.5 shrink-0 text-cyan-300" size={16} />
                 <span>{site.email}</span>
               </a>
               <div className="flex items-start gap-3">
-                <MapPin className="mt-0.5 text-primary" size={16} />
+                <MapPin className="mt-0.5 shrink-0 text-cyan-300" size={16} />
                 <span>{site.addressLines.join(", ")}</span>
               </div>
             </div>
+          </div>
+        </div>
+        <div className="border-t border-white/10">
+          <div className="mx-auto max-w-7xl px-4 py-4 text-center text-xs text-slate-400 sm:px-6 lg:px-8 lg:text-left">
+            © {new Date().getFullYear()} {site.name} · Trusted dental care in Salt Lake, Kolkata · All rights reserved.
           </div>
         </div>
       </footer>
