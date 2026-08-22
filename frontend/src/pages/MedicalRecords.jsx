@@ -35,6 +35,7 @@ import {
 } from "../graphql/mutations";
 import Preloader from "../components/Preloader";
 import MedicalRecordViewer from "../components/MedicalRecordViewer";
+import Pagination from "../components/Pagination";
 import api from "../api/axios";
 
 const FILE_API_ORIGIN = import.meta.env.VITE_API_URL
@@ -954,6 +955,8 @@ const MedicalRecords = () => {
   const [editingRecord, setEditingRecord] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [viewerRecord, setViewerRecord] = useState(null);
+  const [page, setPage] = useState(1);
+  const recordsPerPage = 9;
 
   const { loading, error, data } = useQuery(GET_MEDICAL_RECORDS, {
     fetchPolicy: "network-only",
@@ -997,6 +1000,11 @@ const MedicalRecords = () => {
     const matchesType = filterType === "All" || rec.visitType === filterType;
     return matchesSearch && matchesType;
   });
+  const totalPages = Math.ceil(filteredRecords.length / recordsPerPage);
+  const paginatedRecords = filteredRecords.slice(
+    (page - 1) * recordsPerPage,
+    page * recordsPerPage,
+  );
 
   const handleOpenCreate = () => {
     setEditingRecord(null);
@@ -1162,7 +1170,10 @@ const MedicalRecords = () => {
                 type="text"
                 placeholder="Search by patient, phone, ID, diagnosis, or treatment..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setPage(1);
+                }}
                 className="input-field pl-10"
               />
             </div>
@@ -1170,7 +1181,10 @@ const MedicalRecords = () => {
               <Filter size={20} className="text-gray-600" />
               <select
                 value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
+                onChange={(e) => {
+                  setFilterType(e.target.value);
+                  setPage(1);
+                }}
                 className="input-field"
               >
                 <option value="All">All Visit Types</option>
@@ -1194,8 +1208,8 @@ const MedicalRecords = () => {
           animate="animate"
           className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
         >
-          {filteredRecords.length > 0 ? (
-            filteredRecords.map((record, index) => (
+          {paginatedRecords.length > 0 ? (
+            paginatedRecords.map((record, index) => (
               <motion.div
                 key={record.id}
                 {...fadeIn("up", index * 0.05)}
@@ -1332,6 +1346,12 @@ const MedicalRecords = () => {
             </motion.div>
           )}
         </motion.div>
+
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
 
         {viewerRecord && (
           <MedicalRecordViewer
