@@ -32,6 +32,9 @@ import {
   Users,
   XCircle,
   Paperclip,
+  ChevronLeft,
+  List,
+  FileSearch,
 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import { useQuery } from "@apollo/client";
@@ -233,6 +236,7 @@ const Reports = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [selectedAttachment, setSelectedAttachment] = useState(null);
+  const [showMobileView, setShowMobileView] = useState("list");
   const limit = 20;
 
   useEffect(() => {
@@ -370,7 +374,7 @@ const Reports = () => {
 
   return (
     <Suspense fallback={<Preloader />}>
-      <div className="max-w-[1600px] mx-auto">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
         <PageHeader
           title="Reports"
           subtitle={
@@ -391,30 +395,159 @@ const Reports = () => {
           }
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-4 xl:col-span-3">
-            <motion.div {...fadeIn("up", 0.05)} className="card sticky top-4">
-              <div className="mb-4">
+        {/* ========== TOP Search Bar (user request: always on top, not sidebar) ========== */}
+        <motion.div {...fadeIn("up", 0.03)} className="mb-6">
+          <div className="card p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex-1 min-w-0">
+                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                  Find Patient
+                </label>
                 <div className="relative">
-                  <Search
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                    size={18}
+                  <FileSearch
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-primary"
+                    size={20}
                   />
                   <input
                     type="text"
-                    placeholder="Search patients..."
-                    className="input-field pl-9 !py-2 text-sm"
+                    placeholder="Search by patient name, phone number, or patient ID…"
+                    className="input-field pl-11 !py-3 text-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
+                  {searchTerm && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchTerm("");
+                        setDebouncedSearch("");
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                      aria-label="Clear search"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
                 </div>
               </div>
 
-              <div className="space-y-2 max-h-[calc(100vh-220px)] overflow-y-auto pr-1 -mr-1">
+              {/* Mobile quick-navigation: toggle list vs detail */}
+              <div className="flex items-center justify-between sm:hidden gap-2 w-full">
+                <button
+                  type="button"
+                  onClick={() => setShowMobileView("list")}
+                  className={`flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                    showMobileView === "list" || !selectedPatient
+                      ? "bg-primary text-white shadow-sm"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  <List size={16} />
+                  Patient List
+                </button>
+                <button
+                  type="button"
+                  onClick={() => selectedPatient && setShowMobileView("detail")}
+                  disabled={!selectedPatient}
+                  className={`flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                    showMobileView === "detail" && selectedPatient
+                      ? "bg-primary text-white shadow-sm"
+                      : selectedPatient
+                        ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        : "bg-gray-50 text-gray-400 cursor-not-allowed border border-dashed border-gray-200"
+                  }`}
+                >
+                  <FileText size={16} />
+                  Report
+                  {!selectedPatient && (
+                    <span className="text-[10px] uppercase tracking-wide opacity-70 ml-1">
+                      select first
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Selected patient pill (quick header context) when applicable */}
+            {selectedPatient && (
+              <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/5 border border-primary/20 text-sm text-gray-700">
+                  <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center flex-shrink-0">
+                    <User size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 truncate">
+                      {selectedPatient.name}
+                    </p>
+                    {selectedPatient.patientId && (
+                      <p className="text-xs text-primary font-mono">
+                        {selectedPatient.patientId}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="hidden sm:block text-xs text-gray-500">
+                  {selectedPatient.phone}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedPatient(null);
+                    setSelectedAttachment(null);
+                  }}
+                  className="sm:ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  <X size={12} />
+                  Clear selection
+                </button>
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* ========== Responsive Grid ========== */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          {/* ======= Patient List column ======= */}
+          <div
+            className={`${
+              // Mobile: show conditionally based on tab
+              showMobileView === "detail" && selectedPatient
+                ? "hidden"
+                : ""
+            } md:block md:col-span-4 lg:col-span-4 xl:col-span-3`}
+          >
+            <motion.div
+              {...fadeIn("up", 0.05)}
+              className="card md:sticky md:top-4 overflow-hidden"
+            >
+              <div className="px-4 py-3 sm:px-5 sm:py-4 border-b border-gray-100 flex items-center justify-between gap-2 bg-gray-50/50">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                    <Users size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-heading font-semibold text-gray-900 text-sm truncate">
+                      All Patients
+                    </h3>
+                    <p className="text-[11px] text-gray-500 truncate">
+                      Tap a patient to open report
+                    </p>
+                  </div>
+                </div>
+                {totalCount > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[2rem] h-6 px-2 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                    {totalCount}
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-2 max-h-[calc(100vh-320px)] md:max-h-[calc(100vh-260px)] overflow-y-auto p-3 sm:p-4">
                 {patientsLoading && patients.length === 0 ? (
-                  <div className="py-8 text-center">
-                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="text-xs text-gray-400 mt-3">Loading patients…</p>
+                  <div className="py-12 text-center">
+                    <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-xs text-gray-400 mt-4">
+                      Loading patients…
+                    </p>
                   </div>
                 ) : patients.length === 0 ? (
                   <EmptyState
@@ -436,6 +569,14 @@ const Reports = () => {
                       onClick={(pat) => {
                         setSelectedPatient(pat);
                         setSelectedAttachment(null);
+                        if (
+                          typeof window !== "undefined" &&
+                          window.matchMedia("(max-width: 767px)").matches
+                        ) {
+                          setShowMobileView("detail");
+                          // Scroll to top of report
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }
                       }}
                     />
                   ))
@@ -443,7 +584,7 @@ const Reports = () => {
               </div>
 
               {patients.length > 0 && (
-                <div className="pt-4 mt-4 border-t border-gray-100">
+                <div className="px-4 py-3 sm:px-5 sm:py-4 border-t border-gray-100 bg-gray-50/30">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-gray-500">
                     <span>
                       Page {currentPage} of {totalPages}
@@ -451,7 +592,15 @@ const Reports = () => {
                     <Pagination
                       currentPage={page}
                       totalPages={totalPages}
-                      onPageChange={setPage}
+                      onPageChange={(p) => {
+                        setPage(p);
+                        if (
+                          typeof window !== "undefined" &&
+                          window.matchMedia("(max-width: 767px)").matches
+                        ) {
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }
+                      }}
                     />
                   </div>
                 </div>
@@ -459,23 +608,47 @@ const Reports = () => {
             </motion.div>
           </div>
 
-          <div className="lg:col-span-8 xl:col-span-9">
+          {/* ======= Patient Detail column ======= */}
+          <div
+            className={`${
+              showMobileView === "list" && selectedPatient
+                ? "hidden"
+                : ""
+            } md:block md:col-span-8 lg:col-span-8 xl:col-span-9`}
+          >
+            {/* Mobile-only: Back button when viewing detail */}
+            {selectedPatient && showMobileView === "detail" && (
+              <motion.div
+                {...fadeIn("up", 0.02)}
+                className="mb-4 md:hidden"
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowMobileView("list")}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+                >
+                  <ChevronLeft size={16} />
+                  Back to patient list
+                </button>
+              </motion.div>
+            )}
+
             {!patient ? (
               <motion.div
                 {...fadeIn("up", 0.1)}
-                className="card text-center py-16 lg:py-24"
+                className="card text-center py-12 lg:py-20"
               >
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-5">
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
                   <ClipboardList size={36} className="text-primary" />
                 </div>
                 <h2 className="font-heading text-2xl font-bold text-gray-900 mb-2">
                   Select a Patient
                 </h2>
                 <p className="text-gray-600 max-w-md mx-auto">
-                  Choose a patient from the list on the left to view their
-                  complete clinical report, including visit history,
-                  prescriptions, attachments, payment details, and upcoming
-                  appointments.
+                  Use the search bar above to find a patient, then click a
+                  patient from the list to view their complete clinical report
+                  including visit history, prescriptions, attachments, payment
+                  details, and upcoming appointments.
                 </p>
               </motion.div>
             ) : (
