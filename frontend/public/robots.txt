@@ -2,6 +2,17 @@
 # For more information about the robots.txt protocol, see:
 # https://www.robotstxt.org/robotstxt.html
 
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /doctor/
+Disallow: /employee/
+Disallow: /patient/
+Disallow: /login
+Disallow: /register
+Disallow: /dashboard/
+
 User-agent: *
 Allow: /
 Disallow: /api/
