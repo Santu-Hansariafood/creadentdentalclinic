@@ -5,8 +5,8 @@
     "description": "Creadent Dental Clinic provides modern dental care with a focus on patient comfort, transparency, and long-term oral health.",
     "phoneDisplay": "+91 62923 00343",
     "phoneHref": "tel:+916292300343",
-    "email": "creadentmultispecialitydentalclinic@gmail.com",
-    "emailHref": "mailto:creadentmultispecialitydentalclinic@gmail.com",
+    "email": "info@creadentdentalclinic.com",
+    "emailHref": "mailto:info@creadentdentalclinic.com",
     "addressLines": [
       "BD-85, Salt Lake Rd, AD Block, Sector 1",
       "Bidhannagar, Kolkata, West Bengal 700064"
@@ -18,7 +18,10 @@
       "region": "IN-WB",
       "locality": "Salt Lake, Kolkata"
     },
-    "hours": ["Monday to Sunday", "9:00 AM to 8:00 PM"],
+    "hours": [
+      "Monday to Sunday",
+      "9:00 AM to 8:00 PM"
+    ],
     "currency": "INR",
     "currencySymbol": "₹",
     "taxInfo": {
@@ -208,8 +211,8 @@
         {
           "icon": "mail",
           "label": "Email",
-          "value": "creadentmultispecialitydentalclinic@gmail.com",
-          "href": "mailto:creadentmultispecialitydentalclinic@gmail.com"
+          "value": "info@creadentdentalclinic.com",
+          "href": "mailto:info@creadentdentalclinic.com"
         },
         {
           "icon": "map-pin",
@@ -511,6 +514,51 @@
         "primaryHref": "/contact-us",
         "secondaryLabel": "Refund policy",
         "secondaryHref": "/refund-policy"
+      }
+    },
+    {
+      "slug": "delete-account",
+      "path": "/delete-account",
+      "label": "Delete Account",
+      "badge": "Account Management",
+      "title": "Delete Account | Creadent Dental Clinic",
+      "heroDescription": "Request deletion of your Creadent Dental Clinic account and associated personal information.",
+      "seo": {
+        "title": "Delete Account | Creadent Dental Clinic",
+        "description": "Request deletion of your Creadent Dental Clinic account and associated personal information.",
+        "keywords": "delete account, delete Creadent account, account deletion, Creadent Dental Clinic"
+      },
+      "sections": [
+        {
+          "title": "Request account deletion",
+          "paragraphs": [
+            "If you would like to delete your Creadent Dental Clinic account, please contact us using the email address below.",
+            "Send your account deletion request from your registered email address and include your registered mobile number or other account details so that we can verify the request."
+          ]
+        },
+        {
+          "title": "Account deletion process",
+          "items": [
+            "Submit your deletion request to info@creadentdentalclinic.com",
+            "Our team may verify your identity and account ownership before processing the request",
+            "Your account and eligible personal information will be deleted or anonymized after verification",
+            "Certain information may be retained where required by applicable medical, legal, regulatory, accounting, or security obligations"
+          ]
+        },
+        {
+          "title": "Contact us",
+          "paragraphs": [
+            "For account deletion requests or questions about your data, please email info@creadentdentalclinic.com."
+          ]
+        }
+      ],
+      "cta": {
+        "title": "Want to delete your account?",
+        "description": "Send an account deletion request to our official support email.",
+        "primaryLabel": "Email Us",
+        "primaryHref": "mailto:info@creadentdentalclinic.com",
+        "secondaryLabel": "Privacy policy",
+        "secondaryHref": "/privacy-policy"
       }
     }
   ]
