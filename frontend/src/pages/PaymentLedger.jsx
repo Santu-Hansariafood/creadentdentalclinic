@@ -79,7 +79,7 @@ const PaymentLedger = () => {
           className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
         >
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[980px] text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">
@@ -124,7 +124,7 @@ const PaymentLedger = () => {
                       <div className="flex items-center gap-2">
                         <Activity size={16} className="text-primary" />
                         <span className="font-medium text-gray-900">
-                          {ledger.treatmentName}
+                          {ledger.treatmentName || "General payment"}
                         </span>
                       </div>
                     </td>
@@ -149,13 +149,13 @@ const PaymentLedger = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1 text-green-600 font-semibold">
                         <DollarSign size={14} />
-                        {ledger.paymentAmount.toLocaleString()}
+                        {(ledger.paymentAmount || 0).toLocaleString()}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1 text-red-600 font-semibold">
                         <DollarSign size={14} />
-                        {ledger.dueAmount.toLocaleString()}
+                        {(ledger.dueAmount || 0).toLocaleString()}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -204,7 +204,7 @@ const PaymentLedger = () => {
                       <div className="flex items-center gap-1">
                         <DollarSign size={14} />
                         {filteredLedgers
-                          .reduce((sum, item) => sum + item.paymentAmount, 0)
+                          .reduce((sum, item) => sum + (item.paymentAmount || 0), 0)
                           .toLocaleString()}
                       </div>
                     </td>
@@ -212,7 +212,7 @@ const PaymentLedger = () => {
                       <div className="flex items-center gap-1">
                         <DollarSign size={14} />
                         {filteredLedgers
-                          .reduce((sum, item) => sum + item.dueAmount, 0)
+                          .reduce((sum, item) => sum + (item.dueAmount || 0), 0)
                           .toLocaleString()}
                       </div>
                     </td>

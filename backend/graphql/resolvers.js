@@ -381,11 +381,20 @@ const resolvers = {
     },
     getPaymentLedgers: async (_, { page = 1, limit = 10, search = "" }) => {
       const skip = (page - 1) * limit;
-      const paymentLedgers = await PaymentLedger.find()
+      const query = search
+        ? {
+            $or: [
+              { treatmentName: { $regex: search, $options: "i" } },
+              { paymentMode: { $regex: search, $options: "i" } },
+              { referenceNo: { $regex: search, $options: "i" } },
+            ],
+          }
+        : {};
+      const paymentLedgers = await PaymentLedger.find(query)
         .sort({ slNo: 1 })
         .skip(skip)
         .limit(limit);
-      const totalCount = await PaymentLedger.countDocuments();
+      const totalCount = await PaymentLedger.countDocuments(query);
       return {
         paymentLedgers,
         totalCount,
@@ -1116,7 +1125,27 @@ const resolvers = {
       invoice.paymentMethod = paymentMethod;
       invoice.paymentDate = paymentDate ? new Date(paymentDate) : new Date();
 
-      return await invoice.save();
+      const savedInvoice = await invoice.save();
+      const lastLedger = await PaymentLedger.findOne().sort({ slNo: -1 });
+      await PaymentLedger.create({
+        slNo: (lastLedger?.slNo || 0) + 1,
+        lorryNo: savedInvoice.invoiceNumber,
+        treatmentName:
+          savedInvoice.items
+            ?.map((item) => item.description)
+            .filter(Boolean)
+            .join(", ") || "Dental treatment",
+        paymentDate: savedInvoice.paymentDate,
+        paymentMode: paymentMethod || "Manual",
+        referenceNo: savedInvoice.invoiceNumber,
+        paymentAmount,
+        dueAmount: savedInvoice.balance,
+        status: savedInvoice.status === "Paid" ? "Paid" : "Partial",
+        remarks: "Payment recorded by clinic staff",
+        invoiceId: savedInvoice._id,
+      });
+
+      return savedInvoice;
     },
     updateInvoice: async (_, { id, ...args }, { user }) => {
       if (!user) {

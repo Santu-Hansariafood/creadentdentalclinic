@@ -231,11 +231,16 @@ export const GET_PAYMENT_LEDGERS = gql`
         id
         slNo
         lorryNo
+        treatmentName
         paymentDate
+        paymentMode
+        referenceNo
         paymentAmount
         dueAmount
         status
         remarks
+        invoiceId
+        transactionId
       }
       totalCount
       totalPages

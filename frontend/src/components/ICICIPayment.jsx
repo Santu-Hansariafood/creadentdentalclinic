@@ -12,6 +12,7 @@ import {
   ArrowRight,
   Banknote,
   Smartphone,
+  Download,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useMutation } from "@apollo/client";
@@ -22,6 +23,7 @@ import {
   ICICI_AUTHORIZE,
   ICICI_GET_TRANSACTION_STATUS,
 } from "../graphql/mutations";
+import { generateInvoicePDF } from "../utils/pdfGenerator";
 
 const STATUS_LABELS = {
   SUC: { label: "Success", color: "text-success", bg: "bg-success/10" },
@@ -283,15 +285,23 @@ const ICICIPayment = ({
   const handlePaymentSuccess = () => {
     setStep("success");
     toast.success("Payment completed successfully!");
-    setTimeout(() => {
-      onSuccess?.({
-        amount: numericAmount,
-        paymentMethod: "ICICI Bank",
-        paymentDate: new Date().toISOString(),
-        transactionId,
-        txnStatus: "SUC",
-      });
-    }, 1200);
+  };
+
+  const paymentInfo = {
+    amount: numericAmount,
+    paymentMethod: "ICICI Bank",
+    paymentDate: new Date().toISOString(),
+    transactionId,
+    txnStatus: "SUC",
+  };
+
+  const paidInvoice = {
+    ...invoice,
+    amountPaid: Number(invoice.amountPaid || 0) + numericAmount,
+    balance: 0,
+    status: "Paid",
+    paymentMethod: "ICICI Bank",
+    paymentDate: paymentInfo.paymentDate,
   };
 
   useEffect(() => {
@@ -711,8 +721,28 @@ const ICICIPayment = ({
                 )}
               </div>
               <p className="text-sm text-gray-500">
-                Invoice will be updated automatically.
+                Your receipt is ready to download.
               </p>
+              <div className="flex flex-col sm:flex-row gap-3 max-w-sm mx-auto pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    generateInvoicePDF(paidInvoice);
+                    toast.success("Receipt downloaded successfully");
+                  }}
+                  className="btn-primary flex-1 flex items-center justify-center gap-2"
+                >
+                  <Download size={18} />
+                  Download Receipt
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onSuccess?.(paymentInfo)}
+                  className="btn-outline flex-1"
+                >
+                  Continue
+                </button>
+              </div>
             </motion.div>
           )}
         </div>

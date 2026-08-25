@@ -205,6 +205,13 @@ const Billing = () => {
         )
       : allInvoices;
 
+  const callbackInvoice = iciciCallbackNotice?.invoiceId
+    ? invoices.find(
+        (invoice) =>
+          String(invoice.id) === String(iciciCallbackNotice.invoiceId),
+      )
+    : null;
+
   const paymentMethods = [];
   const userPaymentMethods = paymentMethods;
 
@@ -751,6 +758,19 @@ const Billing = () => {
                   </span>
                 )}
               </div>
+              {iciciCallbackNotice.status === "SUC" && callbackInvoice && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    generateInvoicePDF(callbackInvoice);
+                    toast.success("Bill downloaded successfully");
+                  }}
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg bg-green-700 px-3 py-2 text-sm font-medium text-white hover:bg-green-800"
+                >
+                  <Download size={16} />
+                  Download Bill
+                </button>
+              )}
             </div>
             <button
               type="button"

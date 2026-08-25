@@ -227,11 +227,16 @@ input UpdateMedicineInput {
     id: ID!
     slNo: Int!
     lorryNo: String!
+    treatmentName: String
     paymentDate: String!
+    paymentMode: String
+    referenceNo: String
     paymentAmount: Float!
     dueAmount: Float!
     status: String
     remarks: String
+    invoiceId: ID
+    transactionId: ID
   }
 
   type Diagnosis {

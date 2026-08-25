@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 const Transaction = require("../models/Transaction");
 const Invoice = require("../models/Invoice");
 const Patient = require("../models/Patient");
+const PaymentLedger = require("../models/PaymentLedger");
 
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
@@ -535,6 +536,26 @@ const reconcilePaymentToInvoice = async (transaction) => {
   await invoice.save();
   transaction.amountPaidApplied = actualPayment;
   await transaction.save();
+
+  const lastLedger = await PaymentLedger.findOne().sort({ slNo: -1 });
+  await PaymentLedger.create({
+    slNo: (lastLedger?.slNo || 0) + 1,
+    lorryNo: invoice.invoiceNumber,
+    treatmentName:
+      invoice.items
+        ?.map((item) => item.description)
+        .filter(Boolean)
+        .join(", ") || "Dental treatment",
+    paymentDate: invoice.paymentDate,
+    paymentMode: "ICICI Bank",
+    referenceNo: transaction.pgTxnNo || transaction.merchantTxnNo,
+    paymentAmount: actualPayment,
+    dueAmount: invoice.balance,
+    status: invoice.status === "Paid" ? "Paid" : "Partial",
+    remarks: `ICICI transaction ${transaction.merchantTxnNo}`,
+    invoiceId: invoice._id,
+    transactionId: transaction._id,
+  });
 
   return invoice;
 };
