@@ -64,7 +64,7 @@ const EmployeeDashboard = () => {
     useQuery(GET_RECENT_ACTIVITIES, { variables: { limit: 10 } });
 
   if (statsLoading || reportsLoading)
-    return <div className="p-8 text-center">Loading dashboard...</div>;
+    return <Preloader />;
 
   const stats = statsData?.getDashboardStats?.admin || {};
   const reports = reportsData?.getReportsData || {
