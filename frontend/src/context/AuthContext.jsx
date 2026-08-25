@@ -34,25 +34,6 @@ export const useAuth = () => {
   return context;
 };
 
-const isAuthError = (error) => {
-  if (!error) return false;
-  const msg = (error.message || "").toLowerCase();
-  const gqlMsgs = (error.graphQLErrors || []).map((e) =>
-    (e.message || "").toLowerCase()
-  );
-  const allMsgs = [msg, ...gqlMsgs];
-  return allMsgs.some(
-    (m) =>
-      m.includes("not authenticated") ||
-      m.includes("unauthorized") ||
-      m.includes("not authorized") ||
-      m.includes("invalid token") ||
-      m.includes("token failed") ||
-      m.includes("no token") ||
-      m.includes("user not found")
-  );
-};
-
 export const AuthProvider = ({ children }) => {
   const apolloClient = useApolloClient();
 
@@ -73,7 +54,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(
     Boolean(initialToken && initialUser)
   );
-  const [loading, setLoading] = useState(!initialToken || !initialUser);
+  const [loading, setLoading] = useState(Boolean(initialToken));
 
   const [loginMutation] = useMutation(LOGIN);
   const [registerMutation] = useMutation(REGISTER);
@@ -110,14 +91,13 @@ export const AuthProvider = ({ children }) => {
 
     if (meError) {
       console.warn("GET_ME error:", meError);
-      if (isAuthError(meError)) {
-        const storedUser = localStorage.getItem("user");
-        const storedToken = localStorage.getItem("token");
-        if (!storedUser || !storedToken) {
-          logout();
-          return;
-        }
-      }
+      // Never keep a cached role active when the server cannot verify its token.
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setUser(null);
+      setIsAuthenticated(false);
+      setLoading(false);
+      return;
     }
 
     if (!meLoading) {

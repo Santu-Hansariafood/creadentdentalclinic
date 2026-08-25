@@ -192,9 +192,24 @@ const resolvers = {
       if (!user) throw new Error("Not authenticated");
       return serializeUser(user);
     },
-    getUsers: async () => await User.find(),
-    getUsersByRole: async (_, { role }) => await User.find({ role }),
-    getUser: async (_, { id }) => await User.findById(id),
+    getUsers: async (_, __, { user }) => {
+      requireStaff(user);
+      return await User.find();
+    },
+    getUsersByRole: async (_, { role }, { user }) => {
+      requireStaff(user);
+      return await User.find({ role });
+    },
+    getUser: async (_, { id }, { user }) => {
+      if (user?.role === "patient") {
+        if (user._id.toString() !== id.toString()) {
+          throw new Error("Unauthorized: You can only access your own user profile");
+        }
+        return user;
+      }
+      requireStaff(user);
+      return await User.findById(id);
+    },
     getMedicines: async (_, { page = 1, limit = 10, search = "" }) => {
       const skip = (page - 1) * limit;
       const query = search ? { name: { $regex: search, $options: "i" } } : {};

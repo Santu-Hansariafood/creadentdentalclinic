@@ -29,6 +29,8 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
         return "/doctor/dashboard";
       case "admin":
         return "/admin/dashboard";
+      case "employee":
+        return "/employee/dashboard";
       default:
         return "/";
     }
