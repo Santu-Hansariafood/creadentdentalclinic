@@ -172,7 +172,7 @@ const PaymentLedger = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1 text-green-600 font-semibold">
-                        <DollarSign size={14} />
+                        <IndianRupee size={14} />
                         {(ledger.paymentAmount || 0).toLocaleString()}
                       </div>
                     </td>
@@ -241,7 +241,7 @@ const PaymentLedger = () => {
                     </td>
                     <td className="px-6 py-4 text-green-600">
                       <div className="flex items-center gap-1">
-                        <DollarSign size={14} />
+                        <IndianRupee size={14} />
                         {filteredLedgers
                           .reduce(
                             (sum, item) => sum + (item.paymentAmount || 0),
@@ -252,7 +252,7 @@ const PaymentLedger = () => {
                     </td>
                     <td className="px-6 py-4 text-red-600">
                       <div className="flex items-center gap-1">
-                        <DollarSign size={14} />
+                        <IndianRupee size={14} />
                         {filteredLedgers
                           .reduce((sum, item) => sum + (item.dueAmount || 0), 0)
                           .toLocaleString()}
