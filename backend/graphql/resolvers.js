@@ -49,6 +49,17 @@ const toDateOnlyString = (value) => {
   return Number.isNaN(date.getTime()) ? "" : date.toISOString().split("T")[0];
 };
 
+const getSelfPatient = async (user) => {
+  if (!user) throw new Error("Not authenticated");
+  return await Patient.findOne({ userId: user._id });
+};
+
+const requireStaff = (user) => {
+  if (!user || !["admin", "employee", "doctor"].includes(user.role)) {
+    throw new Error("Unauthorized: Staff access required");
+  }
+};
+
 const serializeUser = (user) => ({
   id: user._id.toString(),
   name: user.name,
@@ -211,7 +222,17 @@ const resolvers = {
             "Other",
           ];
     },
-    getPatients: async (_, { page = 1, limit = 10, search = "" }) => {
+    getPatients: async (_, { page = 1, limit = 10, search = "" }, { user }) => {
+      if (user?.role === "patient") {
+        const patient = await getSelfPatient(user);
+        return {
+          patients: patient ? [patient] : [],
+          totalCount: patient ? 1 : 0,
+          totalPages: patient ? 1 : 0,
+          currentPage: page,
+        };
+      }
+      requireStaff(user);
       const skip = (page - 1) * limit;
       const query = search
         ? {
@@ -235,7 +256,17 @@ const resolvers = {
         currentPage: page,
       };
     },
-    getPatient: async (_, { id }) => await Patient.findById(id),
+    getPatient: async (_, { id }, { user }) => {
+      if (user?.role === "patient") {
+        const patient = await getSelfPatient(user);
+        if (!patient || patient._id.toString() !== id.toString()) {
+          throw new Error("Unauthorized: You can only access your own profile");
+        }
+        return patient;
+      }
+      requireStaff(user);
+      return await Patient.findById(id);
+    },
     getMyPatient: async (_, __, { user }) => {
       if (!user) throw new Error("Not authenticated");
       return await Patient.findOne({ userId: user._id });
@@ -327,7 +358,17 @@ const resolvers = {
     getAppointments: async (
       _,
       { page = 1, limit = 10, search = "", status = "All", patientId },
+      { user },
     ) => {
+      if (user?.role === "patient") {
+        const patient = await getSelfPatient(user);
+        if (!patient) {
+          return { appointments: [], totalCount: 0, totalPages: 0, currentPage: page };
+        }
+        patientId = patient._id;
+      } else {
+        requireStaff(user);
+      }
       const skip = (page - 1) * limit;
       const query = {};
       if (status && status !== "All") {
@@ -355,7 +396,14 @@ const resolvers = {
         currentPage: page,
       };
     },
-    getMedicalRecords: async (_, { patientId }) => {
+    getMedicalRecords: async (_, { patientId }, { user }) => {
+      if (user?.role === "patient") {
+        const patient = await getSelfPatient(user);
+        if (!patient) return [];
+        patientId = patient._id;
+      } else {
+        requireStaff(user);
+      }
       const query = {};
       if (patientId) query.patientId = patientId;
       return await MedicalRecord.find(query).sort({ date: -1 });
@@ -374,12 +422,20 @@ const resolvers = {
         date: -1,
       });
     },
-    getPrescriptions: async (_, { patientId }) => {
+    getPrescriptions: async (_, { patientId }, { user }) => {
+      if (user?.role === "patient") {
+        const patient = await getSelfPatient(user);
+        if (!patient) return [];
+        patientId = patient._id;
+      } else {
+        requireStaff(user);
+      }
       const query = {};
       if (patientId) query.patientId = patientId;
       return await Prescription.find(query).sort({ date: -1 });
     },
-    getPaymentLedgers: async (_, { page = 1, limit = 10, search = "" }) => {
+    getPaymentLedgers: async (_, { page = 1, limit = 10, search = "" }, { user }) => {
+      requireStaff(user);
       const skip = (page - 1) * limit;
       const query = search
         ? {
@@ -419,6 +475,26 @@ const resolvers = {
     },
     getDashboardStats: async (_, __, { user }) => {
       if (!user) throw new Error("Not authenticated");
+
+      if (user.role === "patient") {
+        const patient = await getSelfPatient(user);
+        const patientId = patient?._id;
+        return {
+          patient: {
+            upcomingAppointments: patientId
+              ? await Appointment.countDocuments({ patientId, date: { $gte: new Date().toISOString().split("T")[0] }, status: "Scheduled" })
+              : 0,
+            totalAppointments: patientId
+              ? await Appointment.countDocuments({ patientId })
+              : 0,
+            pendingBills: patientId
+              ? await Invoice.countDocuments({ patientId, balance: { $gt: 0 } })
+              : 0,
+            unreadMessages: await ChatMessage.countDocuments({ receiverId: user._id, read: false }),
+          },
+        };
+      }
+      requireStaff(user);
 
       const totalPatients = await Patient.countDocuments();
       const today = new Date().toISOString().split("T")[0];
@@ -479,7 +555,8 @@ const resolvers = {
         },
       };
     },
-    getReportsData: async () => {
+    getReportsData: async (_, __, { user }) => {
+      requireStaff(user);
       const invoices = await Invoice.find();
       const monthlyRevenueMap = {};
       const months = [
@@ -594,7 +671,15 @@ const resolvers = {
         lastMessageTime: -1,
       });
     },
-    getChatMessages: async (_, { conversationId }) => {
+    getChatMessages: async (_, { conversationId }, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      const conversation = await Conversation.findOne({
+        _id: conversationId,
+        "participants.id": user._id,
+      });
+      if (!conversation) {
+        throw new Error("Unauthorized: Conversation access denied");
+      }
       return await ChatMessage.find({ conversationId }).sort({ timestamp: 1 });
     },
     getNotifications: async (_, __, { user }) => {
@@ -603,7 +688,8 @@ const resolvers = {
         timestamp: -1,
       });
     },
-    getRecentActivities: async (_, { limit = 10 }) => {
+    getRecentActivities: async (_, { limit = 10 }, { user }) => {
+      requireStaff(user);
       // Fetch recent records from all collections
       const patients = await Patient.find()
         .sort({ createdAt: -1 })
@@ -982,8 +1068,21 @@ const resolvers = {
       return true;
     },
 
-    createAppointment: async (_, args, { io }) => {
-      const appointment = new Appointment(args);
+    createAppointment: async (_, args, { io, user }) => {
+      if (!user) throw new Error("Not authenticated");
+      let appointmentData = { ...args };
+      if (user.role === "patient") {
+        const patient = await getSelfPatient(user);
+        if (!patient) throw new Error("Patient profile not found");
+        appointmentData = {
+          ...appointmentData,
+          patientId: patient._id,
+          patientName: patient.name,
+        };
+      } else {
+        requireStaff(user);
+      }
+      const appointment = new Appointment(appointmentData);
       const savedAppointment = await appointment.save();
 
       await sendAppointmentBookingNotifications(savedAppointment);
@@ -998,7 +1097,8 @@ const resolvers = {
 
       return savedAppointment;
     },
-    updateAppointment: async (_, { id, ...args }, { io }) => {
+    updateAppointment: async (_, { id, ...args }, { io, user }) => {
+      requireStaff(user);
       const appointmentNotificationReset =
         args.date || args.time
           ? {
