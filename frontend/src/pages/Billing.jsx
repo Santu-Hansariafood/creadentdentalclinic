@@ -762,7 +762,12 @@ const Billing = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    generateInvoicePDF(callbackInvoice);
+                    generateInvoicePDF({
+                      ...callbackInvoice,
+                      status: "Paid",
+                      paymentMethod: "ICICI Bank",
+                      transactionId: iciciCallbackNotice.transactionId,
+                    });
                     toast.success("Bill downloaded successfully");
                   }}
                   className="mt-3 inline-flex items-center gap-2 rounded-lg bg-green-700 px-3 py-2 text-sm font-medium text-white hover:bg-green-800"

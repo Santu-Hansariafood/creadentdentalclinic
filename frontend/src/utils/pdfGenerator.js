@@ -249,16 +249,32 @@ export const generateInvoicePDF = async (invoice) => {
     y += 8;
   }
 
-  if (invoice.paymentMethod && invoice.transactionId) {
+  if (
+    invoice.paymentMethod ||
+    invoice.transactionId ||
+    invoice.merchantTxnNo ||
+    invoice.pgTxnNo
+  ) {
     y += 6;
     doc.setFont("helvetica", "bold");
     doc.text("Payment Information:", margin, y);
     y += 6;
     doc.setFont("helvetica", "normal");
-    doc.text(`Method: ${invoice.paymentMethod}`, margin, y);
-    y += 5;
-    doc.text(`Transaction ID: ${invoice.transactionId}`, margin, y);
+    doc.text(`Method: ${invoice.paymentMethod || "-"}`, margin, y);
     y += 8;
+    const paymentReferences = [
+      ["Transaction ID", invoice.transactionId],
+      ["Merchant Reference", invoice.merchantTxnNo],
+      ["PG Transaction No", invoice.pgTxnNo],
+      ["Authorization Ref", invoice.authRefNo],
+    ];
+    paymentReferences.forEach(([label, value]) => {
+      if (value) {
+        doc.text(`${label}: ${value}`, margin, y);
+        y += 5;
+      }
+    });
+    y += 3;
   }
 
   if (invoice.notes) {

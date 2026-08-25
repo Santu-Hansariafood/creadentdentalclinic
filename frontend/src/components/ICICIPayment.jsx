@@ -47,6 +47,7 @@ const ICICIPayment = ({
   const amount = Number(invoice.balance || 0).toFixed(2);
   const [payType] = useState(defaultPayType || "0");
   const [transactionId, setTransactionId] = useState(null);
+  const [merchantTxnNo, setMerchantTxnNo] = useState("");
   const [tranCtx, setTranCtx] = useState("");
   const [redirectURI, setRedirectURI] = useState("");
   const [showOTPCapturePage, setShowOTPCapturePage] = useState("N");
@@ -92,6 +93,7 @@ const ICICIPayment = ({
       if (!result) throw new Error("No response from server");
 
       setTransactionId(result.transactionId);
+      setMerchantTxnNo(result.merchantTxnNo || "");
       setTranCtx(result.tranCtx || "");
       setRedirectURI(result.redirectURI || "");
       setShowOTPCapturePage(result.showOTPCapturePage || "N");
@@ -292,6 +294,8 @@ const ICICIPayment = ({
     paymentMethod: "ICICI Bank",
     paymentDate: new Date().toISOString(),
     transactionId,
+    merchantTxnNo,
+    pgTxnNo,
     txnStatus: "SUC",
   };
 
@@ -302,6 +306,9 @@ const ICICIPayment = ({
     status: "Paid",
     paymentMethod: "ICICI Bank",
     paymentDate: paymentInfo.paymentDate,
+    transactionId,
+    merchantTxnNo,
+    pgTxnNo,
   };
 
   useEffect(() => {

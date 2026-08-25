@@ -23,7 +23,7 @@ const PaymentLedger = () => {
   const limit = 10;
 
   const { loading, error, data } = useQuery(GET_PAYMENT_LEDGERS, {
-    variables: { page, limit },
+    variables: { page, limit, search: searchTerm },
   });
 
   if (loading) return <Preloader />;
@@ -34,13 +34,11 @@ const PaymentLedger = () => {
 
   const { paymentLedgers = [], totalPages = 1 } = data?.getPaymentLedgers || {};
 
-  const filteredLedgers = paymentLedgers.filter((ledger) =>
-    ledger.treatmentName.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredLedgers = paymentLedgers;
 
   return (
     <Suspense fallback={<Preloader />}>
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
         <motion.div {...fadeIn("down")} className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -66,7 +64,7 @@ const PaymentLedger = () => {
             />
             <input
               type="text"
-              placeholder="Search by Treatment Name..."
+              placeholder="Search treatment, mode, or reference..."
               className="input-field pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -78,7 +76,7 @@ const PaymentLedger = () => {
           {...fadeIn("up", 0.2)}
           className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
         >
-          <div className="overflow-x-auto">
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[980px] text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
@@ -221,6 +219,71 @@ const PaymentLedger = () => {
                 </tfoot>
               )}
             </table>
+          </div>
+          <div className="divide-y divide-gray-100 md:hidden">
+            {filteredLedgers.map((ledger) => (
+              <article key={ledger.id} className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 truncate">
+                      {ledger.treatmentName || "General payment"}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {ledger.lorryNo || "-"} · {formatDate(ledger.paymentDate)}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 px-2 py-1 rounded-full text-xs font-medium ${
+                      ledger.status === "Paid"
+                        ? "bg-green-100 text-green-700"
+                        : ledger.status === "Partial"
+                          ? "bg-orange-100 text-orange-700"
+                          : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {ledger.status || "Pending"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-gray-500">Payment mode</p>
+                    <p className="font-medium text-gray-800 truncate">
+                      {ledger.paymentMode || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Reference</p>
+                    <p className="font-mono text-xs text-gray-800 break-all">
+                      {ledger.referenceNo || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Paid</p>
+                    <p className="font-semibold text-green-600">
+                      ₹{(ledger.paymentAmount || 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Due</p>
+                    <p className="font-semibold text-red-600">
+                      ₹{(ledger.dueAmount || 0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                {(ledger.transactionId || ledger.remarks) && (
+                  <p className="text-xs text-gray-500 break-all">
+                    {ledger.transactionId
+                      ? `Transaction ID: ${ledger.transactionId}`
+                      : ledger.remarks}
+                  </p>
+                )}
+              </article>
+            ))}
+            {filteredLedgers.length === 0 && (
+              <div className="px-4 py-12 text-center text-gray-500">
+                No ledger entries found.
+              </div>
+            )}
           </div>
         </motion.div>
 
