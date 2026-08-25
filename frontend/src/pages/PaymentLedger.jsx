@@ -5,10 +5,10 @@ import {
   Plus,
   Activity,
   Calendar,
-  DollarSign,
   FileText,
   CreditCard,
   Hash,
+  IndianRupee,
 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import { useQuery } from "@apollo/client";
@@ -85,14 +85,17 @@ const PaymentLedger = () => {
             </p>
           </div>
           {dateWiseTotals.slice(0, 3).map(({ date, amount }) => (
-              <div key={date} className="rounded-xl border border-gray-100 bg-white p-4">
-                <p className="text-xs text-gray-500">{formatDate(date)}</p>
-                <p className="text-xl font-bold text-gray-900">
-                  ₹{amount.toLocaleString()}
-                </p>
-                <p className="text-xs text-gray-500">Payment total</p>
-              </div>
-            ))}
+            <div
+              key={date}
+              className="rounded-xl border border-gray-100 bg-white p-4"
+            >
+              <p className="text-xs text-gray-500">{formatDate(date)}</p>
+              <p className="text-xl font-bold text-gray-900">
+                ₹{amount.toLocaleString()}
+              </p>
+              <p className="text-xs text-gray-500">Payment total</p>
+            </div>
+          ))}
         </div>
 
         <motion.div
@@ -175,7 +178,7 @@ const PaymentLedger = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1 text-red-600 font-semibold">
-                        <DollarSign size={14} />
+                        <IndianRupee size={14} />
                         {(ledger.dueAmount || 0).toLocaleString()}
                       </div>
                     </td>
@@ -240,7 +243,10 @@ const PaymentLedger = () => {
                       <div className="flex items-center gap-1">
                         <DollarSign size={14} />
                         {filteredLedgers
-                          .reduce((sum, item) => sum + (item.paymentAmount || 0), 0)
+                          .reduce(
+                            (sum, item) => sum + (item.paymentAmount || 0),
+                            0,
+                          )
                           .toLocaleString()}
                       </div>
                     </td>
@@ -315,9 +321,13 @@ const PaymentLedger = () => {
                       : ledger.remarks}
                   </p>
                 )}
-                {(ledger.merchantTxnNo || ledger.pgTxnNo || ledger.authRefNo) && (
+                {(ledger.merchantTxnNo ||
+                  ledger.pgTxnNo ||
+                  ledger.authRefNo) && (
                   <div className="space-y-1 text-xs text-gray-500 break-all">
-                    {ledger.merchantTxnNo && <p>Merchant: {ledger.merchantTxnNo}</p>}
+                    {ledger.merchantTxnNo && (
+                      <p>Merchant: {ledger.merchantTxnNo}</p>
+                    )}
                     {ledger.pgTxnNo && <p>PG: {ledger.pgTxnNo}</p>}
                     {ledger.authRefNo && <p>Auth ref: {ledger.authRefNo}</p>}
                   </div>

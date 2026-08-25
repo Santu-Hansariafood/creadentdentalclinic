@@ -71,9 +71,9 @@ const ICICIPayment = ({
 
   const handleInitiateSale = async () => {
     if (!numericAmount || numericAmount <= 0) {
-  toast.error("Invalid invoice balance");
-  return;
-}
+      toast.error("Invalid invoice balance");
+      return;
+    }
 
     setProcessing(true);
     setErrorMsg("");
@@ -110,8 +110,10 @@ const ICICIPayment = ({
       });
 
       if (!result.apiSuccess) {
-        const errorMsg = result.apiError 
-          ? (typeof result.apiError === 'string' ? result.apiError : JSON.stringify(result.apiError))
+        const errorMsg = result.apiError
+          ? typeof result.apiError === "string"
+            ? result.apiError
+            : JSON.stringify(result.apiError)
           : "Failed to initiate payment";
         setErrorMsg(errorMsg);
         toast.error(errorMsg);
@@ -120,7 +122,11 @@ const ICICIPayment = ({
       }
 
       if (!result.redirectURI) {
-        const errorMsg = "ICICI API did not return redirect URL. " + (result.apiError ? `Server error: ${typeof result.apiError === 'string' ? result.apiError : 'Check console'}` : "Please try again");
+        const errorMsg =
+          "ICICI API did not return redirect URL. " +
+          (result.apiError
+            ? `Server error: ${typeof result.apiError === "string" ? result.apiError : "Check console"}`
+            : "Please try again");
         setErrorMsg(errorMsg);
         toast.error(errorMsg);
         setProcessing(false);
@@ -187,7 +193,9 @@ const ICICIPayment = ({
         setStep("otp-entry");
         toast.success("OTP has been sent to your registered mobile number");
       } else {
-        throw new Error(data?.iciciGenerateOTP?.error || "Failed to generate OTP");
+        throw new Error(
+          data?.iciciGenerateOTP?.error || "Failed to generate OTP",
+        );
       }
     } catch (err) {
       setErrorMsg(err.message || "Failed to generate OTP");
@@ -215,7 +223,9 @@ const ICICIPayment = ({
         toast.success("OTP verified. Authorizing payment...");
         handleAuthorize();
       } else {
-        throw new Error(data?.iciciVerifyOTP?.error || "OTP verification failed");
+        throw new Error(
+          data?.iciciVerifyOTP?.error || "OTP verification failed",
+        );
       }
     } catch (err) {
       setErrorMsg(err.message || "OTP verification failed");
@@ -274,9 +284,15 @@ const ICICIPayment = ({
         // Only log status updates during polling
         if (newStatus === "REJ" || newStatus === "ERR") {
           setStep("status");
-          toast.error("Payment " + (STATUS_LABELS[newStatus]?.label || "failed"));
+          toast.error(
+            "Payment " + (STATUS_LABELS[newStatus]?.label || "failed"),
+          );
         } else if (newStatus !== "REQ" && newStatus !== "INITIATED") {
-          console.log("[Payment] Status update:", newStatus, "(awaiting ICICI callback confirmation)");
+          console.log(
+            "[Payment] Status update:",
+            newStatus,
+            "(awaiting ICICI callback confirmation)",
+          );
         }
       } else {
         throw new Error(result?.error || "Status check failed");
@@ -324,12 +340,14 @@ const ICICIPayment = ({
 
   useEffect(() => {
     if (step !== "redirect-wait" || !transactionId || isDemo) return;
-    
+
     const maxPolls = 120;
     const poll = setInterval(() => {
       if (statusPollCount >= maxPolls) {
         clearInterval(poll);
-        setErrorMsg("Payment verification timeout. Please check your email for confirmation.");
+        setErrorMsg(
+          "Payment verification timeout. Please check your email for confirmation.",
+        );
         toast.error("Payment verification timeout");
         return;
       }
@@ -385,7 +403,11 @@ const ICICIPayment = ({
 
         <div className="p-6 space-y-6">
           {step === "init" && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
               <div className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm text-gray-600">Invoice</span>
@@ -412,22 +434,28 @@ const ICICIPayment = ({
                   Payment Amount
                 </label>
                 <input
-  type="text"
-  value={`₹${numericAmount.toFixed(2)}`}
-  readOnly
-  aria-readonly="true"
-  className="input-field bg-gray-100 cursor-not-allowed font-semibold"
-  required
-/>
+                  type="text"
+                  value={`₹${numericAmount.toFixed(2)}`}
+                  readOnly
+                  aria-readonly="true"
+                  className="input-field bg-gray-100 cursor-not-allowed font-semibold"
+                  required
+                />
               </div>
 
               <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
                 <div className="flex items-start gap-3">
-                  <ShieldCheck size={20} className="text-primary flex-shrink-0 mt-0.5" />
+                  <ShieldCheck
+                    size={20}
+                    className="text-primary flex-shrink-0 mt-0.5"
+                  />
                   <div>
-                    <p className="font-medium text-gray-900">Secure ICICI Bank checkout</p>
+                    <p className="font-medium text-gray-900">
+                      Secure ICICI Bank checkout
+                    </p>
                     <p className="text-sm text-gray-600 mt-1">
-                      You will be redirected to ICICI Bank&apos;s payment page to complete the transaction securely.
+                      You will be redirected to ICICI Bank&apos;s payment page
+                      to complete the transaction securely.
                     </p>
                   </div>
                 </div>
@@ -435,7 +463,10 @@ const ICICIPayment = ({
 
               {errorMsg && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                  <AlertCircle size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
+                  <AlertCircle
+                    size={18}
+                    className="text-red-600 flex-shrink-0 mt-0.5"
+                  />
                   <p className="text-sm text-red-700">{errorMsg}</p>
                 </div>
               )}
@@ -462,14 +493,23 @@ const ICICIPayment = ({
           )}
 
           {step === "choose" && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-              <div className={`p-4 rounded-lg ${statusInfo.bg} border border-opacity-20`}>
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-5"
+            >
+              <div
+                className={`p-4 rounded-lg ${statusInfo.bg} border border-opacity-20`}
+              >
                 <div className="flex items-center justify-between">
                   <span className={`text-sm font-semibold ${statusInfo.color}`}>
                     Status: {statusInfo.label}
                   </span>
                   {transactionId && (
-                    <span className="text-xs text-gray-500 truncate max-w-[200px]" title={transactionId}>
+                    <span
+                      className="text-xs text-gray-500 truncate max-w-[200px]"
+                      title={transactionId}
+                    >
                       Txn: {transactionId.slice(-10)}
                     </span>
                   )}
@@ -528,8 +568,17 @@ const ICICIPayment = ({
                   className="w-full p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all text-left flex items-center justify-between"
                 >
                   <div className="flex items-center gap-2">
-                    <RefreshCw size={18} className={processing ? "animate-spin text-primary" : "text-gray-500"} />
-                    <span className="font-medium text-gray-700">Check Payment Status</span>
+                    <RefreshCw
+                      size={18}
+                      className={
+                        processing
+                          ? "animate-spin text-primary"
+                          : "text-gray-500"
+                      }
+                    />
+                    <span className="font-medium text-gray-700">
+                      Check Payment Status
+                    </span>
                   </div>
                   <span className="text-xs text-gray-500">
                     {STATUS_LABELS[txnStatus]?.label || txnStatus}
@@ -540,13 +589,19 @@ const ICICIPayment = ({
           )}
 
           {step === "redirect-wait" && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-center py-8 space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-8 space-y-6"
+            >
               <div className="w-16 h-16 mx-auto rounded-full bg-blue-100 flex items-center justify-center">
                 <Loader2 size={32} className="animate-spin text-primary" />
               </div>
               <div>
                 <h3 className="font-heading text-xl font-bold text-gray-900 mb-2">
-                  {isDemo ? "Simulating Redirect..." : "Redirecting to ICICI Bank..."}
+                  {isDemo
+                    ? "Simulating Redirect..."
+                    : "Redirecting to ICICI Bank..."}
                 </h3>
                 <p className="text-gray-600 text-sm">
                   {isDemo
@@ -570,7 +625,11 @@ const ICICIPayment = ({
           )}
 
           {step === "otp-entry" && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
               <div className="text-center">
                 <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <Smartphone size={32} className="text-primary" />
@@ -595,7 +654,9 @@ const ICICIPayment = ({
                   maxLength={8}
                   placeholder="Enter OTP"
                   value={otpValue}
-                  onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ""))}
+                  onChange={(e) =>
+                    setOtpValue(e.target.value.replace(/\D/g, ""))
+                  }
                   className="input-field text-center text-2xl tracking-[0.5em] font-mono"
                   autoFocus
                 />
@@ -610,12 +671,17 @@ const ICICIPayment = ({
                 >
                   Resend OTP
                 </button>
-                <span className="text-gray-500">Txn: {transactionId?.slice(-8)}</span>
+                <span className="text-gray-500">
+                  Txn: {transactionId?.slice(-8)}
+                </span>
               </div>
 
               {errorMsg && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                  <AlertCircle size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
+                  <AlertCircle
+                    size={18}
+                    className="text-red-600 flex-shrink-0 mt-0.5"
+                  />
                   <p className="text-sm text-red-700">{errorMsg}</p>
                 </div>
               )}
@@ -642,7 +708,11 @@ const ICICIPayment = ({
           )}
 
           {step === "authorize" && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-center py-8 space-y-4">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-8 space-y-4"
+            >
               <div className="w-16 h-16 mx-auto rounded-full bg-yellow-100 flex items-center justify-center">
                 <Loader2 size={32} className="animate-spin text-warning" />
               </div>
@@ -662,20 +732,36 @@ const ICICIPayment = ({
           )}
 
           {step === "status" && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <div className={`p-5 rounded-xl ${statusInfo.bg} border border-opacity-20`}>
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              <div
+                className={`p-5 rounded-xl ${statusInfo.bg} border border-opacity-20`}
+              >
                 <div className="flex items-start gap-3">
                   {txnStatus === "SUC" ? (
-                    <CheckCircle size={28} className="text-success flex-shrink-0" />
+                    <CheckCircle
+                      size={28}
+                      className="text-success flex-shrink-0"
+                    />
                   ) : (
-                    <AlertCircle size={28} className={`${statusInfo.color} flex-shrink-0`} />
+                    <AlertCircle
+                      size={28}
+                      className={`${statusInfo.color} flex-shrink-0`}
+                    />
                   )}
                   <div className="flex-1">
-                    <h3 className={`font-heading text-lg font-bold ${statusInfo.color}`}>
+                    <h3
+                      className={`font-heading text-lg font-bold ${statusInfo.color}`}
+                    >
                       Payment {statusInfo.label}
                     </h3>
                     {txnResponseMsg && (
-                      <p className="text-sm text-gray-700 mt-1">{txnResponseMsg}</p>
+                      <p className="text-sm text-gray-700 mt-1">
+                        {txnResponseMsg}
+                      </p>
                     )}
                     <div className="mt-3 text-xs text-gray-600 space-y-1">
                       <p>Amount: ₹{numericAmount.toFixed(2)}</p>
@@ -694,10 +780,17 @@ const ICICIPayment = ({
                     disabled={processing}
                     className="btn-outline flex-1 flex items-center justify-center gap-2"
                   >
-                    <RefreshCw size={18} className={processing ? "animate-spin" : ""} />
+                    <RefreshCw
+                      size={18}
+                      className={processing ? "animate-spin" : ""}
+                    />
                     Check Again
                   </button>
-                  <button type="button" onClick={() => setStep("init")} className="btn-primary flex-1">
+                  <button
+                    type="button"
+                    onClick={() => setStep("init")}
+                    className="btn-primary flex-1"
+                  >
                     Retry Payment
                   </button>
                 </div>
@@ -706,15 +799,27 @@ const ICICIPayment = ({
           )}
 
           {step === "success" && (
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-8 space-y-4">
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring" }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-8 space-y-4"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+              >
                 <CheckCircle size={72} className="mx-auto text-success mb-4" />
               </motion.div>
               <h3 className="font-heading text-2xl font-bold text-gray-900 mb-2">
                 Payment Successful!
               </h3>
               <p className="text-gray-600">
-                Payment of <span className="font-bold text-gray-900">₹{numericAmount.toFixed(2)}</span> has been processed via ICICI Bank.
+                Payment of{" "}
+                <span className="font-bold text-gray-900">
+                  ₹{numericAmount.toFixed(2)}
+                </span>{" "}
+                has been processed via ICICI Bank.
               </p>
               <div className="max-w-sm mx-auto p-4 bg-gray-50 rounded-lg text-left text-sm">
                 <div className="flex justify-between mb-1">
@@ -728,7 +833,9 @@ const ICICIPayment = ({
                 {transactionId && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Txn Ref</span>
-                    <span className="font-mono text-xs">{transactionId.slice(-16)}</span>
+                    <span className="font-mono text-xs">
+                      {transactionId.slice(-16)}
+                    </span>
                   </div>
                 )}
               </div>
