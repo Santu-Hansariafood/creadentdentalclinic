@@ -30,6 +30,7 @@ const routeImports = {
   "/admin/appointments": () => import("../pages/Appointments"),
   "/employee/appointments": () => import("../pages/Appointments"),
   "/admin/records": () => import("../pages/MedicalRecords"),
+  "/admin/prescriptions": () => import("../pages/Prescriptions"),
   "/employee/records": () => import("../pages/MedicalRecords"),
   "/admin/billing": () => import("../pages/Billing"),
   "/employee/billing": () => import("../pages/Billing"),

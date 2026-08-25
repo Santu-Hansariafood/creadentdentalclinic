@@ -68,6 +68,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { to: "/admin/payment-ledger", icon: FileText, label: "Payment Ledger" },
     { to: "/admin/appointments", icon: Calendar, label: "Appointments" },
     { to: "/admin/records", icon: FileText, label: "Medical Records" },
+    { to: "/admin/prescriptions", icon: Pill, label: "Prescriptions" },
     { to: "/admin/billing", icon: CreditCard, label: "Billing" },
     { to: "/admin/reports", icon: BarChart3, label: "Reports" },
     { to: "/admin/settings", icon: Settings, label: "Settings" },

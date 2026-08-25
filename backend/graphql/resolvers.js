@@ -1025,16 +1025,19 @@ const resolvers = {
       return true;
     },
 
-    registerMedicine: async (_, args) => {
+    registerMedicine: async (_, args, { user }) => {
+      requireStaff(user);
       const medicine = new Medicine(args);
       return await medicine.save();
     },
 
-    updateMedicine: async (_, { id, ...args }) => {
+    updateMedicine: async (_, { id, ...args }, { user }) => {
+      requireStaff(user);
       return await Medicine.findByIdAndUpdate(id, args, { new: true });
     },
 
-    deleteMedicine: async (_, { id }) => {
+    deleteMedicine: async (_, { id }, { user }) => {
+      requireStaff(user);
       await Medicine.findByIdAndDelete(id);
       return true;
     },

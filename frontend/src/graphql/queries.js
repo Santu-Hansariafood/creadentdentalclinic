@@ -35,11 +35,6 @@ export const GET_MEDICINES = gql`
       totalCount
       totalPages
       currentPage
-      totalPayment
-      dateWiseTotals {
-        date
-        amount
-      }
     }
   }
 `;
@@ -81,6 +76,11 @@ export const GET_APPOINTMENTS = gql`
       totalCount
       totalPages
       currentPage
+      totalPayment
+      dateWiseTotals {
+        date
+        amount
+      }
     }
   }
 `;
