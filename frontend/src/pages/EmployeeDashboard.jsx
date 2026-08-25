@@ -124,7 +124,7 @@ const EmployeeDashboard = () => {
           <DashboardCard
             icon={TrendingUp}
             title="Monthly Revenue"
-            value={`$${((stats.monthlyRevenue || 0) / 1000).toFixed(1)}K`}
+            value={`₹${((stats.monthlyRevenue || 0) / 1000).toFixed(1)}K`}
             subtitle="This month"
             color="blue"
             delay={0.3}
