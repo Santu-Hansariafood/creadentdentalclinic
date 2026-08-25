@@ -237,6 +237,14 @@ input UpdateMedicineInput {
     remarks: String
     invoiceId: ID
     transactionId: ID
+    merchantTxnNo: String
+    pgTxnNo: String
+    authRefNo: String
+    arnNo: String
+    txnStatus: String
+    txnResponseCode: String
+    txnResponseMsg: String
+    currencyCode: String
   }
 
   type Diagnosis {
@@ -339,6 +347,13 @@ input UpdateMedicineInput {
     totalCount: Int
     totalPages: Int
     currentPage: Int
+    totalPayment: Float
+    dateWiseTotals: [PaymentLedgerDateTotal]
+  }
+
+  type PaymentLedgerDateTotal {
+    date: String!
+    amount: Float!
   }
 
   type PatientStats {

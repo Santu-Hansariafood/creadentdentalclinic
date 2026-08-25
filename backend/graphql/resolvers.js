@@ -395,11 +395,26 @@ const resolvers = {
         .skip(skip)
         .limit(limit);
       const totalCount = await PaymentLedger.countDocuments(query);
+      const totalsByDate = await PaymentLedger.find(query).select(
+        "paymentDate paymentAmount",
+      );
+      const dateWiseTotals = totalsByDate.reduce((totals, ledger) => {
+        const date = new Date(ledger.paymentDate).toISOString().slice(0, 10);
+        totals[date] = (totals[date] || 0) + (ledger.paymentAmount || 0);
+        return totals;
+      }, {});
       return {
         paymentLedgers,
         totalCount,
         totalPages: Math.ceil(totalCount / limit),
         currentPage: page,
+        totalPayment: Object.values(dateWiseTotals).reduce(
+          (sum, amount) => sum + amount,
+          0,
+        ),
+        dateWiseTotals: Object.entries(dateWiseTotals)
+          .sort(([first], [second]) => second.localeCompare(first))
+          .map(([date, amount]) => ({ date, amount })),
       };
     },
     getDashboardStats: async (_, __, { user }) => {

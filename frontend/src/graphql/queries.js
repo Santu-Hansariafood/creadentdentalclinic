@@ -35,6 +35,11 @@ export const GET_MEDICINES = gql`
       totalCount
       totalPages
       currentPage
+      totalPayment
+      dateWiseTotals {
+        date
+        amount
+      }
     }
   }
 `;
@@ -241,6 +246,14 @@ export const GET_PAYMENT_LEDGERS = gql`
         remarks
         invoiceId
         transactionId
+        merchantTxnNo
+        pgTxnNo
+        authRefNo
+        arnNo
+        txnStatus
+        txnResponseCode
+        txnResponseMsg
+        currencyCode
       }
       totalCount
       totalPages

@@ -32,7 +32,12 @@ const PaymentLedger = () => {
       <div className="p-6 text-center text-red-500">Error: {error.message}</div>
     );
 
-  const { paymentLedgers = [], totalPages = 1 } = data?.getPaymentLedgers || {};
+  const {
+    paymentLedgers = [],
+    totalPages = 1,
+    totalPayment = 0,
+    dateWiseTotals = [],
+  } = data?.getPaymentLedgers || {};
 
   const filteredLedgers = paymentLedgers;
 
@@ -70,6 +75,24 @@ const PaymentLedger = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+        </div>
+
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="rounded-xl border border-green-100 bg-green-50 p-4">
+            <p className="text-xs text-green-700">Total payment</p>
+            <p className="text-xl font-bold text-green-800">
+              ₹{totalPayment.toLocaleString()}
+            </p>
+          </div>
+          {dateWiseTotals.slice(0, 3).map(({ date, amount }) => (
+              <div key={date} className="rounded-xl border border-gray-100 bg-white p-4">
+                <p className="text-xs text-gray-500">{formatDate(date)}</p>
+                <p className="text-xl font-bold text-gray-900">
+                  ₹{amount.toLocaleString()}
+                </p>
+                <p className="text-xs text-gray-500">Payment total</p>
+              </div>
+            ))}
         </div>
 
         <motion.div
@@ -170,7 +193,22 @@ const PaymentLedger = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {ledger.remarks || "-"}
+                      <div>{ledger.remarks || "-"}</div>
+                      {ledger.transactionId && (
+                        <div className="mt-1 font-mono text-xs break-all">
+                          Txn ID: {ledger.transactionId}
+                        </div>
+                      )}
+                      {ledger.merchantTxnNo && (
+                        <div className="font-mono text-xs break-all">
+                          Merchant: {ledger.merchantTxnNo}
+                        </div>
+                      )}
+                      {ledger.pgTxnNo && (
+                        <div className="font-mono text-xs break-all">
+                          PG: {ledger.pgTxnNo}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -276,6 +314,13 @@ const PaymentLedger = () => {
                       ? `Transaction ID: ${ledger.transactionId}`
                       : ledger.remarks}
                   </p>
+                )}
+                {(ledger.merchantTxnNo || ledger.pgTxnNo || ledger.authRefNo) && (
+                  <div className="space-y-1 text-xs text-gray-500 break-all">
+                    {ledger.merchantTxnNo && <p>Merchant: {ledger.merchantTxnNo}</p>}
+                    {ledger.pgTxnNo && <p>PG: {ledger.pgTxnNo}</p>}
+                    {ledger.authRefNo && <p>Auth ref: {ledger.authRefNo}</p>}
+                  </div>
                 )}
               </article>
             ))}

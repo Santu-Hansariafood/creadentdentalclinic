@@ -135,7 +135,10 @@ const ICICIPayment = ({
 
       if (shouldAutoRedirect) {
         setProcessing(false);
-        setTimeout(() => handleRedirectFlow(), 300);
+        setTimeout(
+          () => handleRedirectFlow(result.redirectURI, result.tranCtx),
+          300,
+        );
       } else {
         setStep("choose");
         setProcessing(false);
@@ -147,22 +150,24 @@ const ICICIPayment = ({
     }
   };
 
-  const handleRedirectFlow = () => {
-    if (!redirectURI) {
+  const handleRedirectFlow = (redirectUrl = redirectURI, context = tranCtx) => {
+    if (!redirectUrl) {
       toast.error("Redirect URL not available");
       return;
     }
 
     const finalRedirectUrl = (() => {
-      if (!tranCtx) return redirectURI;
-      const separator = redirectURI.includes("?") ? "&" : "?";
-      const hasTranCtx = /(?:^|[?&])tranCtx=/.test(redirectURI);
-      return hasTranCtx ? redirectURI : `${redirectURI}${separator}tranCtx=${encodeURIComponent(tranCtx)}`;
+      if (!context) return redirectUrl;
+      const separator = redirectUrl.includes("?") ? "&" : "?";
+      const hasTranCtx = /(?:^|[?&])tranCtx=/.test(redirectUrl);
+      return hasTranCtx
+        ? redirectUrl
+        : `${redirectUrl}${separator}tranCtx=${encodeURIComponent(context)}`;
     })();
 
     console.log("[Payment] Redirecting browser to ICICI authRedirect:", {
       url: finalRedirectUrl,
-      tranCtx: tranCtx ? "***" : "not provided",
+      tranCtx: context ? "***" : "not provided",
     });
 
     setStep("redirect-wait");

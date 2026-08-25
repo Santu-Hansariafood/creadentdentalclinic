@@ -275,7 +275,14 @@ const initiateSale = async ({
 
   if (result.success && result.data) {
     const responseData = result.data;
-    const redirectURI = responseData.redirectURI || "";
+    const redirectURI =
+      responseData.redirectURI ||
+      responseData.redirectUrl ||
+      responseData.redirectURL ||
+      responseData.authRedirectUrl ||
+      responseData.authRedirect ||
+      responseData.paymentUrl ||
+      "";
     const tranCtx = responseData.tranCtx || "";
     const normalizedRedirectURI = buildICICIRedirectUrl(redirectURI, tranCtx);
 
@@ -555,6 +562,14 @@ const reconcilePaymentToInvoice = async (transaction) => {
     remarks: `ICICI transaction ${transaction.merchantTxnNo}`,
     invoiceId: invoice._id,
     transactionId: transaction._id,
+    merchantTxnNo: transaction.merchantTxnNo,
+    pgTxnNo: transaction.pgTxnNo,
+    authRefNo: transaction.authRefNo,
+    arnNo: transaction.arnNo,
+    txnStatus: transaction.txnStatus,
+    txnResponseCode: transaction.txnResponseCode,
+    txnResponseMsg: transaction.txnResponseMsg,
+    currencyCode: transaction.currencyCode,
   });
 
   return invoice;
