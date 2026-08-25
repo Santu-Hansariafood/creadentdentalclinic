@@ -76,11 +76,6 @@ export const GET_APPOINTMENTS = gql`
       totalCount
       totalPages
       currentPage
-      totalPayment
-      dateWiseTotals {
-        date
-        amount
-      }
     }
   }
 `;
@@ -258,6 +253,11 @@ export const GET_PAYMENT_LEDGERS = gql`
       totalCount
       totalPages
       currentPage
+      totalPayment
+      dateWiseTotals {
+        date
+        amount
+      }
     }
   }
 `;

@@ -99,9 +99,11 @@ const Appointments = () => {
 
   const { data: dataDoctors } = useQuery(GET_USERS_BY_ROLE, {
     variables: { role: "doctor" },
+    skip: user?.role === "patient",
   });
   const { data: dataPatients } = useQuery(GET_PATIENTS, {
     variables: { page: 1, limit: 100 },
+    skip: user?.role === "patient",
   });
 
   const [createAppointment] = useMutation(CREATE_APPOINTMENT, {
