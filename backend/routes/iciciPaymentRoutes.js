@@ -5,10 +5,13 @@ const {
   getTransactionStatus,
 } = require("../utils/iciciPaymentService");
 
-// Generic body parser for ICICI callbacks (handles both URL-encoded and JSON)
 const parseICICIBody = [express.json(), express.urlencoded({ extended: true })];
 
-// Unified callback processing handler
+const buildPaymentResultUrl = (baseUrl, params) => {
+  const separator = baseUrl.includes("?") ? "&" : "?";
+  return `${baseUrl}${separator}${new URLSearchParams(params).toString()}`;
+};
+
 const processCallback = async (req, res, isRedirect = false) => {
   const callbackData = { ...(req.query || {}), ...(req.body || {}) };
   console.log(
@@ -19,23 +22,29 @@ const processCallback = async (req, res, isRedirect = false) => {
   const result = await handleICICICallback(callbackData);
 
   if (isRedirect) {
-    const redirectBase = process.env.FRONTEND_URL || "http://localhost:3000";
+    const redirectBase =
+      process.env.ICICI_SUCCESS_REDIRECT_URL ||
+      `${process.env.FRONTEND_URL || "http://localhost:3000"}/billing`;
     const status = result.transaction?.txnStatus || "ERR";
     const invoiceId = result.transaction?.invoiceId || "";
     const transactionId = result.transaction?.id || "";
     const hashValid = result.hashValid ? "1" : "0";
     const callbackProcessed = result.transaction?.callbackProcessed ? "1" : "0";
 
-    // Only consider payment truly successful if callback was processed and status is SUC
     const paymentConfirmed = (status === "SUC" && callbackProcessed === "1") ? "1" : "0";
-    const redirectUrl = `${redirectBase}/billing?paymentStatus=${status}&invoiceId=${invoiceId}&transactionId=${transactionId}&hashValid=${hashValid}&callbackProcessed=${callbackProcessed}&paymentConfirmed=${paymentConfirmed}`;
+    const redirectUrl = buildPaymentResultUrl(redirectBase, {
+      paymentStatus: status,
+      invoiceId,
+      transactionId,
+      hashValid,
+      callbackProcessed,
+      paymentConfirmed,
+    });
     console.log("[ICICI] Redirecting browser to:", redirectUrl);
     return res.redirect(redirectUrl);
   }
 
-  // Server-to-server Webhook / Callback response
   if (!result.success) {
-    // Return 200 to acknowledge receipt and stop gateway retries, but mark success: false
     return res.status(200).json({
       success: false,
       error: result.error || "Callback processing unverified",
@@ -49,7 +58,6 @@ const processCallback = async (req, res, isRedirect = false) => {
   });
 };
 
-// Webhook & Server-to-Server Callback
 router.post("/callback", parseICICIBody, (req, res) =>
   processCallback(req, res, false),
 );
@@ -57,12 +65,10 @@ router.post("/webhook", parseICICIBody, (req, res) =>
   processCallback(req, res, false),
 );
 
-// Browser Redirect Handlers (Accepts both GET and POST from Gateway)
 router.all("/response", parseICICIBody, (req, res) =>
   processCallback(req, res, true),
 );
 
-// Status Query Endpoint
 router.post("/status-check", express.json(), async (req, res) => {
   try {
     const { transactionId, merchantTxnNo } = req.body || {};
@@ -84,7 +90,6 @@ router.post("/status-check", express.json(), async (req, res) => {
   }
 });
 
-// Health check endpoint
 router.get("/health", (req, res) => {
   res.status(200).json({
     status: "ok",
@@ -96,7 +101,6 @@ router.get("/health", (req, res) => {
   });
 });
 
-// Diagnostic endpoint to check ICICI configuration and connectivity
 router.get("/diagnostic", (req, res) => {
   const diagnostics = {
     timestamp: new Date().toISOString(),
