@@ -352,11 +352,19 @@ input UpdateMedicineInput {
     currentPage: Int
     totalPayment: Float
     dateWiseTotals: [PaymentLedgerDateTotal]
+    paymentModeTotals: [PaymentLedgerGroupTotal]
+    statusTotals: [PaymentLedgerGroupTotal]
   }
 
   type PaymentLedgerDateTotal {
     date: String!
     amount: Float!
+  }
+
+  type PaymentLedgerGroupTotal {
+    name: String!
+    amount: Float!
+    count: Int!
   }
 
   type PatientStats {

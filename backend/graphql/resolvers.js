@@ -475,6 +475,25 @@ const resolvers = {
         totals[date] = (totals[date] || 0) + (ledger.paymentAmount || 0);
         return totals;
       }, {});
+      const modeTotals = {};
+      const statusTotals = {};
+      const reportLedgers = await PaymentLedger.find(query).select(
+        "paymentMode status paymentAmount",
+      );
+      reportLedgers.forEach((ledger) => {
+        const mode = ledger.paymentMode || "Unknown";
+        const status = ledger.status || "Unknown";
+        if (!modeTotals[mode]) modeTotals[mode] = { amount: 0, count: 0 };
+        if (!statusTotals[status]) statusTotals[status] = { amount: 0, count: 0 };
+        modeTotals[mode].amount += ledger.paymentAmount || 0;
+        modeTotals[mode].count += 1;
+        statusTotals[status].amount += ledger.paymentAmount || 0;
+        statusTotals[status].count += 1;
+      });
+      const toGroupTotals = (totals) =>
+        Object.entries(totals)
+          .map(([name, values]) => ({ name, ...values }))
+          .sort((first, second) => second.amount - first.amount);
       return {
         paymentLedgers,
         totalCount,
@@ -487,6 +506,8 @@ const resolvers = {
         dateWiseTotals: Object.entries(dateWiseTotals)
           .sort(([first], [second]) => second.localeCompare(first))
           .map(([date, amount]) => ({ date, amount })),
+        paymentModeTotals: toGroupTotals(modeTotals),
+        statusTotals: toGroupTotals(statusTotals),
       };
     },
     getDashboardStats: async (_, __, { user }) => {

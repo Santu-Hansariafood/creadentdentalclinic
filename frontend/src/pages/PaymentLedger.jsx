@@ -2,7 +2,8 @@ import { Suspense, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Search,
-  Plus,
+  Download,
+  BarChart3,
   Activity,
   Calendar,
   FileText,
@@ -37,9 +38,44 @@ const PaymentLedger = () => {
     totalPages = 1,
     totalPayment = 0,
     dateWiseTotals = [],
+    paymentModeTotals = [],
+    statusTotals = [],
   } = data?.getPaymentLedgers || {};
 
   const filteredLedgers = paymentLedgers;
+
+  const exportReport = () => {
+    const headers = [
+      "Sl No",
+      "Treatment Name",
+      "Payment Date",
+      "Payment Mode",
+      "Reference No",
+      "Payment Amount",
+      "Due Amount",
+      "Status",
+      "Remarks",
+    ];
+    const escapeCsv = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+    const rows = filteredLedgers.map((ledger) => [
+      ledger.slNo,
+      ledger.treatmentName,
+      ledger.paymentDate,
+      ledger.paymentMode,
+      ledger.referenceNo,
+      ledger.paymentAmount,
+      ledger.dueAmount,
+      ledger.status,
+      ledger.remarks,
+    ]);
+    const csv = [headers, ...rows].map((row) => row.map(escapeCsv).join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `payment-ledger-mis-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <Suspense fallback={<Preloader />}>
@@ -54,9 +90,12 @@ const PaymentLedger = () => {
                 Track payments and dues by Treatment Name
               </p>
             </div>
-            <button className="btn-primary flex items-center gap-2 self-start md:self-center">
-              <Plus size={20} />
-              Add Entry
+            <button
+              onClick={exportReport}
+              className="btn-primary flex items-center gap-2 self-start md:self-center"
+            >
+              <Download size={18} />
+              Export Report
             </button>
           </div>
         </motion.div>
@@ -96,6 +135,37 @@ const PaymentLedger = () => {
               <p className="text-xs text-gray-500">Payment total</p>
             </div>
           ))}
+        </div>
+
+        <div className="mb-6 grid gap-6 lg:grid-cols-2">
+          <section className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2">
+              <BarChart3 size={18} className="text-primary" />
+              <h2 className="font-semibold text-gray-900">Payment by mode</h2>
+            </div>
+            <div className="mt-4 space-y-3">
+              {paymentModeTotals.length ? paymentModeTotals.map((item) => (
+                <div key={item.name} className="flex items-center justify-between border-b border-gray-100 pb-2 text-sm">
+                  <span className="text-gray-600">{item.name} ({item.count})</span>
+                  <span className="font-semibold text-gray-900">₹{item.amount.toLocaleString()}</span>
+                </div>
+              )) : <p className="text-sm text-gray-500">No mode data available.</p>}
+            </div>
+          </section>
+          <section className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2">
+              <BarChart3 size={18} className="text-primary" />
+              <h2 className="font-semibold text-gray-900">Payment by status</h2>
+            </div>
+            <div className="mt-4 space-y-3">
+              {statusTotals.length ? statusTotals.map((item) => (
+                <div key={item.name} className="flex items-center justify-between border-b border-gray-100 pb-2 text-sm">
+                  <span className="text-gray-600">{item.name} ({item.count})</span>
+                  <span className="font-semibold text-gray-900">₹{item.amount.toLocaleString()}</span>
+                </div>
+              )) : <p className="text-sm text-gray-500">No status data available.</p>}
+            </div>
+          </section>
         </div>
 
         <motion.div

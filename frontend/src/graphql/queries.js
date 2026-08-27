@@ -258,6 +258,16 @@ export const GET_PAYMENT_LEDGERS = gql`
         date
         amount
       }
+      paymentModeTotals {
+        name
+        amount
+        count
+      }
+      statusTotals {
+        name
+        amount
+        count
+      }
     }
   }
 `;
