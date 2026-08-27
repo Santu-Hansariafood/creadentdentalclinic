@@ -19,6 +19,7 @@ const { sendPrescriptionEmail } = require("../utils/emailService");
 const {
   sendInvoiceWhatsApp,
   sendLoginCredentialsWhatsApp,
+  sendPrescriptionWhatsApp,
 } = require("../utils/whatsappNotifications");
 const {
   initiateSale,
@@ -1121,7 +1122,6 @@ const resolvers = {
         args.date || args.time
           ? {
               reminderOneDaySentAt: null,
-              reminderOneHourSentAt: null,
               lastNotificationError: null,
             }
           : {};
@@ -1136,8 +1136,9 @@ const resolvers = {
       ) {
         updatedAppointment.reminderOneDaySentAt =
           appointmentNotificationReset.reminderOneDaySentAt;
-        updatedAppointment.reminderOneHourSentAt =
-          appointmentNotificationReset.reminderOneHourSentAt;
+        updatedAppointment.reminderPatientSixHoursSentAt = null;
+        updatedAppointment.reminderDoctorOneDaySentAt = null;
+        updatedAppointment.reminderDoctorOneHourSentAt = null;
         updatedAppointment.lastNotificationError =
           appointmentNotificationReset.lastNotificationError;
         await updatedAppointment.save();
@@ -1470,7 +1471,15 @@ const resolvers = {
         ...args,
         date: args.date ? new Date(args.date) : new Date(),
       });
-      return await prescription.save();
+      const savedPrescription = await prescription.save();
+      const notificationResult = await sendPrescriptionWhatsApp(savedPrescription);
+      if (!notificationResult.success && !notificationResult.skipped) {
+        console.error(
+          "[WHATSAPP] Prescription notification failed:",
+          notificationResult.error,
+        );
+      }
+      return savedPrescription;
     },
     sendPrescriptionEmail: async (
       _,

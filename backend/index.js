@@ -17,6 +17,7 @@ const socket = require("./socket");
 const authRoutes = require("./routes/authRoutes");
 const storageRoutes = require("./routes/storageRoutes");
 const iciciPaymentRoutes = require("./routes/iciciPaymentRoutes");
+const whatsappWebhookRoutes = require("./routes/whatsappWebhookRoutes");
 const storageService = require("./utils/storageService");
 const {
   startAppointmentReminderScheduler,
@@ -38,6 +39,12 @@ const startServer = async () => {
   app.use("/api/storage", storageRoutesLogger("api"), storageRoutes);
   app.use("/storage", storageRoutesLogger("root"), storageRoutes);
   app.use("/graphql/storage", storageRoutesLogger("gql"), storageRoutes);
+
+  app.use(
+    "/webhooks/whatsapp",
+    express.raw({ type: "application/json", limit: "5mb" }),
+    whatsappWebhookRoutes,
+  );
 
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ extended: true, limit: "50mb" }));

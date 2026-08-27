@@ -423,6 +423,47 @@ const sendLoginCredentialsWhatsApp = async (credentials) => {
   };
 };
 
+const sendPrescriptionWhatsApp = async (prescription) => {
+  const templateName = process.env.WHATSAPP_TEMPLATE_PRESCRIPTION;
+  const patientContact = await resolvePatientContact(prescription?.patientId);
+
+  if (!patientContact.phone) {
+    return { success: false, error: "Patient phone number not found" };
+  }
+
+  if (!templateName) {
+    return {
+      success: false,
+      skipped: true,
+      error: "WHATSAPP_TEMPLATE_PRESCRIPTION is not configured",
+    };
+  }
+
+  const medications = (prescription?.medications || [])
+    .map((medicine) =>
+      [medicine.name, medicine.dosage, medicine.frequency, medicine.duration]
+        .filter(Boolean)
+        .join(" - "),
+    )
+    .filter(Boolean)
+    .join(", ");
+  const result = await sendWhatsAppTemplateMessage({
+    to: patientContact.phone,
+    templateName,
+    bodyParameters: [
+      patientContact.name,
+      prescription?.doctorName || "Doctor",
+      `RX-${String(prescription?._id || "PRESCRIPTION").slice(-8).toUpperCase()}`,
+      formatDateIN(prescription?.date),
+      prescription?.diagnosis || "Dental consultation",
+      medications || "See your patient portal",
+      `${FRONTEND_URL}/patient/prescriptions`,
+    ],
+  });
+
+  return { ...result, phone: patientContact.phone, patient: patientContact };
+};
+
 module.exports = {
   normalizePhoneNumber,
   resolvePatientContact,
@@ -432,6 +473,7 @@ module.exports = {
   buildLoginCredentialsMessage,
   sendInvoiceWhatsApp,
   sendLoginCredentialsWhatsApp,
+  sendPrescriptionWhatsApp,
   sendWhatsAppTemplateMessage,
   sendWhatsAppTextMessage,
   hasWhatsAppBaseConfig,

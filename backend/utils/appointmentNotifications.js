@@ -331,8 +331,10 @@ const sendAppointmentBookingNotifications = async (appointment) => {
 let reminderJobRunning = false;
 
 const sendReminderIfDue = async (appointment, now) => {
-  const templateName = process.env.WHATSAPP_TEMPLATE_APPOINTMENT_REMINDER_PATIENT;
-  if (!templateName) {
+  const patientTemplate =
+    process.env.WHATSAPP_TEMPLATE_APPOINTMENT_REMINDER_PATIENT;
+  const doctorTemplate = process.env.WHATSAPP_TEMPLATE_APPOINTMENT_REMINDER_DOCTOR;
+  if (!patientTemplate && !doctorTemplate) {
     return;
   }
 
@@ -342,12 +344,8 @@ const sendReminderIfDue = async (appointment, now) => {
   }
 
   const oneDayBefore = new Date(appointmentDateTime.getTime() - 24 * 60 * 60 * 1000);
+  const sixHoursBefore = new Date(appointmentDateTime.getTime() - 6 * 60 * 60 * 1000);
   const oneHourBefore = new Date(appointmentDateTime.getTime() - 60 * 60 * 1000);
-
-  const patientContact = await resolvePatientContact(appointment);
-  if (!patientContact.phone) {
-    return;
-  }
 
   const { appointmentDate, appointmentTime } =
     formatAppointmentDateTimeParts(appointment);
@@ -357,14 +355,70 @@ const sendReminderIfDue = async (appointment, now) => {
   if (
     !appointment.reminderOneDaySentAt &&
     now >= oneDayBefore &&
-    now < oneHourBefore
+    now < sixHoursBefore
+  ) {
+    const patientContact = await resolvePatientContact(appointment);
+    if (patientContact.phone) {
+      const result = await sendWhatsAppTemplateMessage({
+        to: patientContact.phone,
+        templateName: patientTemplate,
+        bodyParameters: [
+          patientContact.name,
+          appointment?.doctorName || "Doctor",
+          appointmentDate,
+          appointmentTime,
+          "tomorrow",
+        ],
+      });
+
+      if (result.success) {
+        updates.reminderOneDaySentAt = new Date();
+      } else if (!result.skipped) {
+        errors.push(`Patient 1 day reminder failed: ${result.error}`);
+      }
+    }
+  }
+
+  if (
+    !appointment.reminderPatientSixHoursSentAt &&
+    now >= sixHoursBefore &&
+    now < appointmentDateTime
+  ) {
+    const patientContact = await resolvePatientContact(appointment);
+    if (patientContact.phone) {
+      const result = await sendWhatsAppTemplateMessage({
+        to: patientContact.phone,
+        templateName: patientTemplate,
+        bodyParameters: [
+          patientContact.name,
+          appointment?.doctorName || "Doctor",
+          appointmentDate,
+          appointmentTime,
+          "in 6 hours",
+        ],
+      });
+
+      if (result.success) {
+        updates.reminderPatientSixHoursSentAt = new Date();
+      } else if (!result.skipped) {
+        errors.push(`Patient 6 hour reminder failed: ${result.error}`);
+      }
+    }
+  }
+
+  const doctorContact = await resolveDoctorContact(appointment);
+  if (
+    !appointment.reminderDoctorOneDaySentAt &&
+    now >= oneDayBefore &&
+    now < oneHourBefore &&
+    doctorContact.phone
   ) {
     const result = await sendWhatsAppTemplateMessage({
-      to: patientContact.phone,
-      templateName,
+      to: doctorContact.phone,
+      templateName: doctorTemplate,
       bodyParameters: [
-        patientContact.name,
-        appointment?.doctorName || "Doctor",
+        doctorContact.name,
+        appointment?.patientName || "Patient",
         appointmentDate,
         appointmentTime,
         "tomorrow",
@@ -372,23 +426,24 @@ const sendReminderIfDue = async (appointment, now) => {
     });
 
     if (result.success) {
-      updates.reminderOneDaySentAt = new Date();
+      updates.reminderDoctorOneDaySentAt = new Date();
     } else if (!result.skipped) {
-      errors.push(`1 day reminder failed: ${result.error}`);
+      errors.push(`Doctor 1 day reminder failed: ${result.error}`);
     }
   }
 
   if (
-    !appointment.reminderOneHourSentAt &&
+    !appointment.reminderDoctorOneHourSentAt &&
     now >= oneHourBefore &&
-    now < appointmentDateTime
+    now < appointmentDateTime &&
+    doctorContact.phone
   ) {
     const result = await sendWhatsAppTemplateMessage({
-      to: patientContact.phone,
-      templateName,
+      to: doctorContact.phone,
+      templateName: doctorTemplate,
       bodyParameters: [
-        patientContact.name,
-        appointment?.doctorName || "Doctor",
+        doctorContact.name,
+        appointment?.patientName || "Patient",
         appointmentDate,
         appointmentTime,
         "in 1 hour",
@@ -396,9 +451,9 @@ const sendReminderIfDue = async (appointment, now) => {
     });
 
     if (result.success) {
-      updates.reminderOneHourSentAt = new Date();
+      updates.reminderDoctorOneHourSentAt = new Date();
     } else if (!result.skipped) {
-      errors.push(`1 hour reminder failed: ${result.error}`);
+      errors.push(`Doctor 1 hour reminder failed: ${result.error}`);
     }
   }
 
