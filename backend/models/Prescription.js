@@ -34,6 +34,8 @@ const prescriptionSchema = new mongoose.Schema(
     ],
     notes: { type: String },
     status: { type: String, enum: ["Active", "Completed"], default: "Active" },
+    pdfUrl: { type: String },
+    pdfStorageKey: { type: String },
   },
   { timestamps: true },
 );

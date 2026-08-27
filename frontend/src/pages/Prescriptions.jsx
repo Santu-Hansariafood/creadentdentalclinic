@@ -23,7 +23,11 @@ import {
   GET_PATIENTS,
   GET_MEDICINES,
 } from "../graphql/queries";
-import { CREATE_PRESCRIPTION, SEND_PRESCRIPTION_EMAIL } from "../graphql/mutations";
+import {
+  CREATE_PRESCRIPTION,
+  SEND_PRESCRIPTION_EMAIL,
+  SEND_PRESCRIPTION_WHATSAPP_LINK,
+} from "../graphql/mutations";
 import generatePrescriptionPDF from "../components/PrescriptionPDF";
 import Preloader from "../components/Preloader";
 
@@ -340,6 +344,9 @@ const Prescriptions = () => {
     refetchQueries: [{ query: GET_PRESCRIPTIONS }],
   });
   const [sendPrescriptionEmail] = useMutation(SEND_PRESCRIPTION_EMAIL);
+  const [sendPrescriptionWhatsAppLink] = useMutation(
+    SEND_PRESCRIPTION_WHATSAPP_LINK,
+  );
   const [sendingEmailAfterCreate, setSendingEmailAfterCreate] = useState(false);
 
   if (loading) return <Preloader />;
@@ -418,11 +425,16 @@ const Prescriptions = () => {
   const downloadPrescription = async (prescription, patientOverride = null) => {
     try {
       const patient = patientOverride || prescription?.patient || null;
-      await generatePrescriptionPDF(prescription, patient);
+      const result = await generatePrescriptionPDF(prescription, patient, {
+        save: false,
+      });
+      result.pdf.save(result.filename);
       toast.success("Prescription downloaded successfully!");
+      return result;
     } catch (err) {
       console.error(err);
       toast.error("Failed to generate PDF");
+      return null;
     }
   };
 
@@ -475,10 +487,31 @@ const Prescriptions = () => {
       setDiagnoses([{ name: "", critical: false }]);
       setNotes("");
 
-      await downloadPrescription(
+      const generatedPdf = await downloadPrescription(
         { ...newPrescription, patient: selectedPatient, diagnoses: validDiagnoses },
         selectedPatient,
       );
+
+      if (generatedPdf?.dataUriString) {
+        try {
+          const whatsappResult = await sendPrescriptionWhatsAppLink({
+            variables: {
+              prescriptionId: newPrescription.id,
+              pdfDataUri: generatedPdf.dataUriString,
+              fileName: generatedPdf.filename,
+            },
+          });
+          const response = whatsappResult.data?.sendPrescriptionWhatsAppLink;
+          if (response?.success) {
+            toast.success("Prescription link sent to the patient's WhatsApp");
+          } else if (!response?.skipped) {
+            toast.error(response?.message || "Prescription link could not be sent");
+          }
+        } catch (whatsappError) {
+          console.error("Prescription WhatsApp error:", whatsappError);
+          toast.error("Prescription saved, but WhatsApp link could not be sent");
+        }
+      }
 
       if (selectedPatient?.email) {
         setSendingEmailAfterCreate(true);

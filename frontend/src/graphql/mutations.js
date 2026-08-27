@@ -214,6 +214,8 @@ export const CREATE_PRESCRIPTION = gql`
       }
       notes
       status
+      pdfUrl
+      pdfStorageKey
     }
   }
 `;
@@ -247,6 +249,28 @@ export const SEND_PRESCRIPTION_EMAIL = gql`
       message
       messageId
       sentTo
+    }
+  }
+`;
+
+export const SEND_PRESCRIPTION_WHATSAPP_LINK = gql`
+  mutation SendPrescriptionWhatsAppLink(
+    $prescriptionId: ID!
+    $pdfDataUri: String!
+    $fileName: String
+  ) {
+    sendPrescriptionWhatsAppLink(
+      prescriptionId: $prescriptionId
+      pdfDataUri: $pdfDataUri
+      fileName: $fileName
+    ) {
+      success
+      skipped
+      message
+      phone
+      patientName
+      error
+      fileUrl
     }
   }
 `;

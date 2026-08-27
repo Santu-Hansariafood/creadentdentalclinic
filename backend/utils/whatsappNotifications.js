@@ -423,7 +423,7 @@ const sendLoginCredentialsWhatsApp = async (credentials) => {
   };
 };
 
-const sendPrescriptionWhatsApp = async (prescription) => {
+const sendPrescriptionWhatsApp = async (prescription, fileUrl = "") => {
   const templateName = process.env.WHATSAPP_TEMPLATE_PRESCRIPTION;
   const patientContact = await resolvePatientContact(prescription?.patientId);
 
@@ -457,7 +457,7 @@ const sendPrescriptionWhatsApp = async (prescription) => {
       formatDateIN(prescription?.date),
       prescription?.diagnosis || "Dental consultation",
       medications || "See your patient portal",
-      `${FRONTEND_URL}/patient/prescriptions`,
+      fileUrl || `${FRONTEND_URL}/patient/prescriptions`,
     ],
   });
 

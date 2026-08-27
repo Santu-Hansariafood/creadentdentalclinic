@@ -1471,15 +1471,58 @@ const resolvers = {
         ...args,
         date: args.date ? new Date(args.date) : new Date(),
       });
-      const savedPrescription = await prescription.save();
-      const notificationResult = await sendPrescriptionWhatsApp(savedPrescription);
-      if (!notificationResult.success && !notificationResult.skipped) {
-        console.error(
-          "[WHATSAPP] Prescription notification failed:",
-          notificationResult.error,
-        );
+      return await prescription.save();
+    },
+    sendPrescriptionWhatsAppLink: async (
+      _,
+      { prescriptionId, pdfDataUri, fileName },
+      { user },
+    ) => {
+      requireStaff(user);
+      const prescription = await Prescription.findById(prescriptionId);
+      if (!prescription) {
+        throw new Error("Prescription not found");
       }
-      return savedPrescription;
+      if (typeof pdfDataUri !== "string" || !pdfDataUri.includes("base64,")) {
+        throw new Error("A generated prescription PDF is required");
+      }
+
+      const base64 = pdfDataUri.split("base64,")[1];
+      const pdfBuffer = Buffer.from(base64, "base64");
+      if (!pdfBuffer.length) {
+        throw new Error("Generated prescription PDF is empty");
+      }
+
+      const safeFileName = (fileName || `Prescription_${prescriptionId}.pdf`)
+        .replace(/[^a-zA-Z0-9._-]/g, "_");
+      const storedFile = await storageService.uploadFile({
+        file: {
+          buffer: pdfBuffer,
+          mimetype: "application/pdf",
+          originalname: safeFileName,
+          size: pdfBuffer.length,
+        },
+        folder: `prescriptions/${prescription.patientId}`,
+        fileName: safeFileName,
+      });
+      prescription.pdfUrl = storedFile.url;
+      prescription.pdfStorageKey = storedFile.storageKey;
+      await prescription.save();
+      const result = await sendPrescriptionWhatsApp(prescription, storedFile.url);
+
+      return {
+        success: result.success,
+        skipped: result.skipped,
+        message: result.success
+          ? "Prescription link sent to the patient's registered WhatsApp number"
+          : result.skipped
+            ? "WhatsApp is not configured; prescription was stored but not sent"
+            : "Prescription was stored but WhatsApp delivery failed",
+        phone: result.phone || "",
+        patientName: result.patient?.name || prescription.patientName,
+        error: result.error || null,
+        fileUrl: storedFile.url,
+      };
     },
     sendPrescriptionEmail: async (
       _,

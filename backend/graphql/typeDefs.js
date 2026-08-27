@@ -279,6 +279,8 @@ input UpdateMedicineInput {
     medications: [Medication]
     notes: String
     status: String
+    pdfUrl: String
+    pdfStorageKey: String
   }
 
   type EmailSendResult {
@@ -319,6 +321,7 @@ input UpdateMedicineInput {
     patientName: String
     error: String
     messagePreview: String
+    fileUrl: String
   }
 
   type PaginatedMedicines {
@@ -722,6 +725,12 @@ input UpdateMedicineInput {
       patientName: String!,
       phone: String!,
       password: String!
+    ): WhatsAppSendResult!
+
+    sendPrescriptionWhatsAppLink(
+      prescriptionId: ID!
+      pdfDataUri: String!
+      fileName: String
     ): WhatsAppSendResult!
 
     createPrescription(
