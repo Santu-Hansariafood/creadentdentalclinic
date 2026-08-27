@@ -32,7 +32,7 @@ const PaymentForm = ({
   const [paymentMethod, setPaymentMethod] = useState(
     isPatientSelfServe ? "ICICI Bank" : "ICICI Bank",
   );
-  const [showICICIPayment, setShowICICIPayment] = useState(false);
+  const [showICICIPayment, setShowICICIPayment] = useState(true);
   const [recordInvoicePayment] = useMutation(RECORD_INVOICE_PAYMENT);
 
   if (showICICIPayment && paymentMethod === "ICICI Bank") {
@@ -43,7 +43,7 @@ const PaymentForm = ({
         onClose={() => setShowICICIPayment(false)}
         isDemo={isDemo}
         autoInitiate={true}
-        defaultPayType="0"
+        defaultPayType="1"
         onSuccess={(paymentInfo) => {
           setShowICICIPayment(false);
           setSucceeded(true);
