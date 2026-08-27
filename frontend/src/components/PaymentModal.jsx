@@ -43,7 +43,7 @@ const PaymentForm = ({
         onClose={() => setShowICICIPayment(false)}
         isDemo={isDemo}
         autoInitiate={true}
-        defaultPayType="1"
+        defaultPayType="0"
         onSuccess={(paymentInfo) => {
           setShowICICIPayment(false);
           setSucceeded(true);
@@ -236,7 +236,7 @@ const PaymentForm = ({
                     Pay Online — ICICI Bank
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Secure payment via UPI / Cards / Net Banking on ICICI&apos;s secure portal.
+                    Secure payment through ICICI Bank&apos;s configured payment flow.
                   </p>
                 </div>
               </div>
@@ -325,7 +325,7 @@ const PaymentForm = ({
                 Secure ICICI Bank Payment Gateway
               </p>
               <p className="text-gray-600 mt-1">
-                You will be redirected to ICICI Bank&apos;s secure portal to complete your payment.
+                Complete payment through the secure ICICI Bank payment flow.
               </p>
             </div>
           </div>
@@ -360,7 +360,7 @@ const PaymentForm = ({
           ) : paymentMethod === "ICICI Bank" ? (
             <span className="flex items-center justify-center gap-2">
               <CreditCard size={18} />
-              Continue to ICICI Bank — Pay ₹
+              Continue to payment — Pay ₹
               {parseFloat(amount || 0).toFixed(2)}
             </span>
           ) : (

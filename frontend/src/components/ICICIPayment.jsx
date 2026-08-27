@@ -120,6 +120,17 @@ const ICICIPayment = ({
         return;
       }
 
+      if (result.txnStatus === "REJ" || result.txnStatus === "ERR") {
+        const errorMsg =
+          result.txnResponseMsg ||
+          result.apiError ||
+          "ICICI rejected the payment";
+        setErrorMsg(errorMsg);
+        toast.error(errorMsg);
+        setProcessing(false);
+        return;
+      }
+
       const otpFlowAvailable =
         payType === "1" || result.showOTPCapturePage === "Y";
 
@@ -520,7 +531,7 @@ const ICICIPayment = ({
               </div>
 
               <div className="space-y-3">
-                {showOTPCapturePage === "Y" || payType === "1" ? (
+                {!isDemo ? (
                   <button
                     type="button"
                     onClick={handleGenerateOTP}
@@ -531,10 +542,10 @@ const ICICIPayment = ({
                       <div>
                         <h4 className="font-semibold text-gray-900 flex items-center gap-2">
                           <Smartphone size={20} className="text-primary" />
-                          Pay via OTP (Seamless)
+                          Pay via OTP
                         </h4>
                         <p className="text-sm text-gray-600 mt-1">
-                          Receive OTP on registered mobile → Verify → Complete
+                          Receive an OTP on the registered mobile number, then complete payment here
                         </p>
                       </div>
                       <ArrowRight size={20} className="text-primary" />
