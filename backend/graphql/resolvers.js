@@ -2143,26 +2143,22 @@ const resolvers = {
       if (!user) throw new Error("Not authenticated");
       if (user.role === "patient") {
         const patient = await Patient.findOne({ userId: user._id });
+        if (!patient) {
+          throw new Error("Unauthorized");
+        }
+        let transaction = null;
         if (transactionId) {
-          const transaction = await Transaction.findById(transactionId);
-          if (
-            !patient ||
-            !transaction ||
-            transaction.patientId?.toString() !== patient._id.toString()
-          ) {
-            throw new Error("Unauthorized");
-          }
+          transaction = await Transaction.findById(transactionId);
         } else if (merchantTxnNo) {
-          const transaction = await Transaction.findOne({ merchantTxnNo });
-          if (
-            !patient ||
-            !transaction ||
-            transaction.patientId?.toString() !== patient._id.toString()
-          ) {
-            throw new Error("Unauthorized");
-          }
+          transaction = await Transaction.findOne({ merchantTxnNo });
         } else {
           throw new Error("Either transactionId or merchantTxnNo is required");
+        }
+        if (
+          transaction &&
+          transaction.patientId?.toString() !== patient._id.toString()
+        ) {
+          throw new Error("Unauthorized");
         }
       }
       const result = await getTransactionStatus({
@@ -2178,6 +2174,8 @@ const resolvers = {
             : JSON.stringify(result.error)
           : null,
         transaction: result.transaction || null,
+        removed: result.removed || false,
+        message: result.message || null,
       };
     },
     iciciProcessRefund: async (

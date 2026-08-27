@@ -500,6 +500,8 @@ input UpdateMedicineInput {
     data: String
     error: String
     transaction: ICICITransactionSummary
+    removed: Boolean
+    message: String
   }
 
   type ICICITransactionSummary {

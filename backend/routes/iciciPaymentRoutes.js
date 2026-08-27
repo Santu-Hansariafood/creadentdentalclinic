@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   handleICICICallback,
   getTransactionStatus,
+  cleanupStaleTransactions,
 } = require("../utils/iciciPaymentService");
 
 const parseICICIBody = [express.json(), express.urlencoded({ extended: true })];
@@ -135,6 +136,24 @@ router.get("/diagnostic", (req, res) => {
   };
 
   res.status(200).json(diagnostics);
+});
+
+router.post("/cleanup-stale", express.json(), async (req, res) => {
+  try {
+    const { hours = 24 } = req.body || {};
+    const result = await cleanupStaleTransactions(Number(hours) || 24);
+    return res.status(200).json({
+      success: true,
+      message: `Stale cleanup completed: removed ${result.cleaned} transaction(s)`,
+      ...result,
+    });
+  } catch (err) {
+    console.error("[ICICI] Stale cleanup error:", err);
+    return res.status(500).json({
+      success: false,
+      error: err?.message || "Internal server error",
+    });
+  }
 });
 
 module.exports = router;

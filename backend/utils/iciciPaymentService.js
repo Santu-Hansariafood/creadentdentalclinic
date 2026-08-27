@@ -197,6 +197,46 @@ const buildICICIRedirectUrl = (redirectURI, tranCtx) => {
   return `${redirectURI}${separator}tranCtx=${encodeURIComponent(tranCtx)}`;
 };
 
+const isSuccessfulICICIResponse = (responseCode) =>
+  ["000", "0000", "R1000"].includes(String(responseCode || "").toUpperCase());
+
+const normalizeICICIStatus = (status, responseCode, fallback = "REQ") => {
+  const normalizedStatus = String(status || "").toUpperCase();
+  if (["SUC", "REJ", "ERR", "REQ", "PENDING", "INITIATED"].includes(normalizedStatus)) {
+    return normalizedStatus;
+  }
+  if (isSuccessfulICICIResponse(responseCode)) return "SUC";
+  if (String(responseCode || "").match(/^[1-9]/)) return "REJ";
+  return fallback;
+};
+
+const cleanupUnsuccessfulTransaction = async (transaction, reason = "") => {
+  if (!transaction) return;
+  const logData = {
+    merchantTxnNo: transaction.merchantTxnNo,
+    invoiceId: transaction.invoiceId,
+    patientId: transaction.patientId,
+    amount: transaction.amount,
+    txnStatus: transaction.txnStatus,
+    txnResponseCode: transaction.txnResponseCode,
+    txnResponseMsg: transaction.txnResponseMsg,
+    pgTxnNo: transaction.pgTxnNo,
+    hashVerified: transaction.hashVerified,
+    callbackProcessed: transaction.callbackProcessed,
+    reason,
+    deletedAt: new Date().toISOString(),
+  };
+  console.warn(
+    "[ICICI] 🗑️  Removing unsuccessful transaction from DB:",
+    JSON.stringify(logData, null, 2),
+  );
+  try {
+    await Transaction.deleteOne({ _id: transaction._id });
+  } catch (delErr) {
+    console.error("[ICICI] Failed to delete unsuccessful transaction:", delErr.message);
+  }
+};
+
 const callICICIAPI = async (url, payload, headers = {}) => {
   try {
     const securehash = payload.secureHash;
@@ -311,7 +351,11 @@ const initiateSale = async ({
         String(responseData.txnStatus || nestedResponse.txnStatus || "").toUpperCase(),
       );
 
-    transaction.txnStatus = responseData.txnStatus || "REQ";
+    transaction.txnStatus = normalizeICICIStatus(
+      responseData.txnStatus || nestedResponse.txnStatus,
+      responseCode,
+      "REQ",
+    );
     transaction.txnResponseCode = responseData.responseCode || "";
     transaction.txnResponseMsg =
       responseData.respDescription ||
@@ -337,6 +381,12 @@ const initiateSale = async ({
         nestedResponse.responseDescription ||
         nestedResponse.message ||
         "No description";
+      transaction.txnStatus = "REJ";
+      await transaction.save();
+      await cleanupUnsuccessfulTransaction(
+        transaction,
+        `ICICI initiation rejected or no redirect/OTP flow: code=${responseCode}, msg=${gatewayMessage}`,
+      );
       return {
         transactionId: transaction._id.toString(),
         merchantTxnNo: transaction.merchantTxnNo,
@@ -376,7 +426,14 @@ const initiateSale = async ({
     }
 
     transaction.rawResponse = { error: errorMessage, status: result.status };
+    transaction.txnStatus = "ERR";
+    transaction.txnResponseMsg = errorMessage;
     await transaction.save();
+
+    await cleanupUnsuccessfulTransaction(
+      transaction,
+      `ICICI API call failed during initiateSale: ${errorMessage}`,
+    );
 
     return {
       transactionId: transaction._id.toString(),
@@ -469,7 +526,11 @@ const authorizeTransaction = async ({ transactionId, tranCtx }) => {
   if (result.success && result.data) {
     transaction.authorized =
       result.data.txnStatus === "SUC" || result.data.authorized === true;
-    transaction.txnStatus = result.data.txnStatus || transaction.txnStatus;
+    transaction.txnStatus = normalizeICICIStatus(
+      result.data.txnStatus,
+      result.data.responseCode,
+      transaction.txnStatus,
+    );
     transaction.txnResponseCode =
       result.data.txnResponseCode || transaction.txnResponseCode;
     transaction.txnResponseMsg =
@@ -483,6 +544,11 @@ const authorizeTransaction = async ({ transactionId, tranCtx }) => {
 
     if (transaction.txnStatus === "SUC") {
       await reconcilePaymentToInvoice(transaction);
+    } else if (["REJ", "ERR"].includes(transaction.txnStatus)) {
+      await cleanupUnsuccessfulTransaction(
+        transaction,
+        `Authorization confirmed terminal failure: status=${transaction.txnStatus}, code=${transaction.txnResponseCode}, msg=${transaction.txnResponseMsg}`,
+      );
     }
   }
 
@@ -502,7 +568,20 @@ const getTransactionStatus = async ({ transactionId, merchantTxnNo }) => {
   }
 
   if (!transaction) {
-    throw new Error("Transaction not found");
+    return {
+      success: true,
+      data: null,
+      error: null,
+      removed: true,
+      transaction: {
+        id: transactionId || "",
+        merchantTxnNo: merchantTxnNo || "",
+        txnStatus: "REJ",
+        amount: 0,
+        invoiceId: "",
+      },
+      message: "Transaction record was cleaned up (was not successful).",
+    };
   }
 
   const payload = {
@@ -538,6 +617,11 @@ const getTransactionStatus = async ({ transactionId, merchantTxnNo }) => {
 
     if (transaction.txnStatus === "SUC" && !transaction.amountPaidApplied) {
       await reconcilePaymentToInvoice(transaction);
+    } else if (["REJ", "ERR"].includes(transaction.txnStatus)) {
+      await cleanupUnsuccessfulTransaction(
+        transaction,
+        `Status check confirmed terminal failure: status=${transaction.txnStatus}, code=${transaction.txnResponseCode}, msg=${transaction.txnResponseMsg}`,
+      );
     }
   }
 
@@ -656,15 +740,18 @@ const handleICICICallback = async (callbackData) => {
     hashValid = true;
   }
 
-  const txnStatus =
-    callbackData.txnStatus ||
-    callbackData.txn_status ||
-    callbackData.status ||
-    transaction.txnStatus;
+  const callbackResponseCode =
+    callbackData.responseCode || callbackData.response_code;
+  const txnStatus = normalizeICICIStatus(
+    callbackData.txnStatus || callbackData.txn_status || callbackData.status,
+    callbackResponseCode,
+    transaction.txnStatus,
+  );
 
   transaction.txnStatus = txnStatus;
   transaction.txnResponseCode =
     callbackData.txnResponseCode ||
+    callbackData.responseCode ||
     callbackData.response_code ||
     transaction.txnResponseCode;
   transaction.txnResponseMsg =
@@ -706,6 +793,10 @@ const handleICICICallback = async (callbackData) => {
     }
   } else if (transaction.txnStatus !== "SUC") {
     console.log("[ICICI] Callback received with status:", transaction.txnStatus, "(not successful) for merchantTxnNo:", merchantTxnNo);
+    await cleanupUnsuccessfulTransaction(
+      transaction,
+      `Callback processed but status not successful: status=${transaction.txnStatus}, code=${transaction.txnResponseCode}, msg=${transaction.txnResponseMsg}`,
+    );
   }
 
   return {
@@ -833,6 +924,31 @@ const getSettlementDetails = async (params = {}) => {
   return callICICIAPI(ICICI_CONFIG.settlementDetailsUrl, payload);
 };
 
+const cleanupStaleTransactions = async (olderThanHours = 24) => {
+  const cutoff = new Date(Date.now() - olderThanHours * 60 * 60 * 1000);
+  const staleStatuses = ["INITIATED", "REQ", "PENDING"];
+  const staleTxns = await Transaction.find({
+    txnStatus: { $in: staleStatuses },
+    createdAt: { $lt: cutoff },
+  });
+
+  if (staleTxns.length === 0) {
+    console.log(`[ICICI] 🧹 Stale cleanup: No stale transactions found older than ${olderThanHours}h.`);
+    return { cleaned: 0 };
+  }
+
+  console.log(`[ICICI] 🧹 Stale cleanup: Found ${staleTxns.length} stale transaction(s) older than ${olderThanHours}h.`);
+
+  for (const txn of staleTxns) {
+    await cleanupUnsuccessfulTransaction(
+      txn,
+      `Stale transaction cleanup: status=${txn.txnStatus}, created=${txn.createdAt}, no callback received within ${olderThanHours}h`,
+    );
+  }
+
+  return { cleaned: staleTxns.length, merchantTxnNos: staleTxns.map((t) => t.merchantTxnNo) };
+};
+
 module.exports = {
   ICICI_CONFIG,
   formatTxnDate,
@@ -853,4 +969,6 @@ module.exports = {
   getSettlementStatus,
   getSettlementSummary,
   getSettlementDetails,
+  cleanupUnsuccessfulTransaction,
+  cleanupStaleTransactions,
 };

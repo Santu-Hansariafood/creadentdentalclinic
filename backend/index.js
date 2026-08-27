@@ -22,6 +22,9 @@ const storageService = require("./utils/storageService");
 const {
   startAppointmentReminderScheduler,
 } = require("./utils/appointmentNotifications");
+const {
+  cleanupStaleTransactions,
+} = require("./utils/iciciPaymentService");
 const startServer = async () => {
   const app = express();
   const httpServer = http.createServer(app);
@@ -105,6 +108,34 @@ const startServer = async () => {
   await connectDB();
   await seedAdmin();
   startAppointmentReminderScheduler();
+
+  if (process.env.ICICI_STALE_CLEANUP_DISABLED !== "true") {
+    try {
+      const initialDelay = 60 * 1000;
+      const interval = 6 * 60 * 60 * 1000;
+      setTimeout(async () => {
+        console.log("[ICICI] 🧹 Running initial stale transaction cleanup...");
+        try {
+          await cleanupStaleTransactions(24);
+        } catch (e) {
+          console.error("[ICICI] Initial stale cleanup failed:", e.message);
+        }
+        setInterval(async () => {
+          console.log("[ICICI] 🧹 Running periodic stale transaction cleanup...");
+          try {
+            await cleanupStaleTransactions(24);
+          } catch (e) {
+            console.error("[ICICI] Periodic stale cleanup failed:", e.message);
+          }
+        }, interval);
+      }, initialDelay);
+      console.log("[ICICI] 🕒 Scheduled stale transaction cleanup: first run in 60s, then every 6h (removes >24h old INITIATED/REQ/PENDING).");
+    } catch (schedErr) {
+      console.error("[ICICI] Failed to schedule stale transaction cleanup:", schedErr.message);
+    }
+  } else {
+    console.log("[ICICI] ⏭️  Stale transaction cleanup scheduler is disabled via ICICI_STALE_CLEANUP_DISABLED=true.");
+  }
 
   const server = new ApolloServer({
     typeDefs,
