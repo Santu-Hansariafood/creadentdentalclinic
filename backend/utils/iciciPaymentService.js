@@ -285,6 +285,14 @@ const initiateSale = async ({
       "";
     const tranCtx = responseData.tranCtx || "";
     const normalizedRedirectURI = buildICICIRedirectUrl(redirectURI, tranCtx);
+    const otpFlowAvailable =
+      responseData.showOTPCapturePage === "Y" || payload.payType === "1";
+    const responseCode = String(responseData.responseCode || "");
+    const responseIndicatesFailure =
+      responseCode === "309" ||
+      ["REJ", "ERR", "FAILED", "FAIL"].includes(
+        String(responseData.txnStatus || "").toUpperCase(),
+      );
 
     transaction.txnStatus = responseData.txnStatus || "REQ";
     transaction.txnResponseCode = responseData.responseCode || "";
@@ -296,12 +304,20 @@ const initiateSale = async ({
     transaction.rawResponse = responseData;
     await transaction.save();
 
-    if (!normalizedRedirectURI) {
+    if (responseIndicatesFailure || (!normalizedRedirectURI && !otpFlowAvailable)) {
+      const gatewayMessage =
+        responseData.respDescription ||
+        responseData.responseDescription ||
+        responseData.message ||
+        "No description";
       return {
         transactionId: transaction._id.toString(),
         merchantTxnNo: transaction.merchantTxnNo,
         apiSuccess: false,
-        apiError: `ICICI API did not return redirectURI. Code: ${responseData.responseCode}, Message: ${responseData.respDescription}`,
+        apiError:
+          responseCode === "309"
+            ? `ICICI rejected the initiation (code 309): ${gatewayMessage}. Verify that the merchant credentials, environment, payType, and registered return URL belong to the same ICICI account.`
+            : `ICICI API did not return redirectURI. Code: ${responseCode || "unknown"}, Message: ${gatewayMessage}`,
       };
     }
 

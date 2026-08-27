@@ -120,7 +120,10 @@ const ICICIPayment = ({
         return;
       }
 
-      if (!result.redirectURI) {
+      const otpFlowAvailable =
+        payType === "1" || result.showOTPCapturePage === "Y";
+
+      if (!result.redirectURI && !otpFlowAvailable) {
         const errorMsg =
           "ICICI API did not return redirect URL. " +
           (result.apiError
@@ -366,17 +369,15 @@ const ICICIPayment = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
+      className="mx-auto w-full max-w-3xl"
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+        className="rounded-2xl border border-gray-200 bg-white shadow-sm"
       >
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+        <div className="border-b border-gray-200 bg-white p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
               <ShieldCheck size={24} className="text-primary" />
