@@ -7,7 +7,6 @@ import {
   AlertCircle,
   Loader2,
   ShieldCheck,
-  ExternalLink,
   RefreshCw,
   ArrowRight,
   Banknote,
@@ -454,8 +453,8 @@ const ICICIPayment = ({
                       Secure ICICI Bank checkout
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
-                      You will be redirected to ICICI Bank&apos;s payment page
-                      to complete the transaction securely.
+                      Payment will be completed securely inside this page using
+                      the OTP sent to your registered mobile number.
                     </p>
                   </div>
                 </div>
@@ -541,25 +540,6 @@ const ICICIPayment = ({
                     </div>
                   </button>
                 ) : null}
-
-                <button
-                  type="button"
-                  onClick={handleRedirectFlow}
-                  className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-primary/40 hover:bg-primary/5 transition-all text-left"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-                        <ExternalLink size={20} className="text-primary" />
-                        Redirect to ICICI Secure Page
-                      </h4>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Complete payment on ICICI Bank's secure portal
-                      </p>
-                    </div>
-                    <ArrowRight size={20} className="text-gray-400" />
-                  </div>
-                </button>
 
                 <button
                   type="button"
