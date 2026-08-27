@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import { useQuery } from "@apollo/client";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import { GET_PAYMENT_LEDGERS } from "../graphql/queries";
 import { formatDate } from "../utils/dateUtils";
 import Pagination from "../components/Pagination";
@@ -45,36 +47,83 @@ const PaymentLedger = () => {
   const filteredLedgers = paymentLedgers;
 
   const exportReport = () => {
-    const headers = [
-      "Sl No",
-      "Treatment Name",
-      "Payment Date",
-      "Payment Mode",
-      "Reference No",
-      "Payment Amount",
-      "Due Amount",
-      "Status",
-      "Remarks",
+    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const money = (value) => Number(value || 0).toFixed(2);
+    const columns = [
+      "SL NO",
+      "TREATMENT",
+      "DATE",
+      "MODE",
+      "GST (Rs.)",
+      "CREDIT (Rs.)",
+      "CLAIMS (Rs.)",
+      "CD (Rs.)",
+      "BANK CHGS (Rs.)",
+      "BALANCE (Rs.)",
+      "REMARKS",
     ];
-    const escapeCsv = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
     const rows = filteredLedgers.map((ledger) => [
       ledger.slNo,
-      ledger.treatmentName,
-      ledger.paymentDate,
-      ledger.paymentMode,
-      ledger.referenceNo,
-      ledger.paymentAmount,
-      ledger.dueAmount,
-      ledger.status,
-      ledger.remarks,
+      ledger.treatmentName || "General payment",
+      formatDate(ledger.paymentDate),
+      ledger.paymentMode || "-",
+      money(ledger.gst),
+      money(ledger.credit ?? ledger.paymentAmount),
+      money(ledger.claims),
+      money(ledger.cd),
+      money(ledger.bankCharges),
+      money(ledger.balance ?? ledger.dueAmount),
+      ledger.remarks || "-",
     ]);
-    const csv = [headers, ...rows].map((row) => row.map(escapeCsv).join(",")).join("\n");
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `payment-ledger-mis-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    const totals = filteredLedgers.reduce(
+      (result, ledger) => ({
+        gst: result.gst + Number(ledger.gst || 0),
+        credit: result.credit + Number(ledger.credit ?? ledger.paymentAmount ?? 0),
+        claims: result.claims + Number(ledger.claims || 0),
+        cd: result.cd + Number(ledger.cd || 0),
+        bankCharges: result.bankCharges + Number(ledger.bankCharges || 0),
+        balance: result.balance + Number(ledger.balance ?? ledger.dueAmount ?? 0),
+      }),
+      { gst: 0, credit: 0, claims: 0, cd: 0, bankCharges: 0, balance: 0 },
+    );
+
+    pdf.setFontSize(16);
+    pdf.text("Creadent Dental Clinic - Payment Ledger MIS", 14, 15);
+    pdf.setFontSize(9);
+    pdf.text(`Generated: ${new Date().toLocaleString("en-IN")}`, 14, 21);
+    autoTable(pdf, {
+      head: [columns],
+      body: rows,
+      startY: 27,
+      theme: "grid",
+      styles: { fontSize: 7, cellPadding: 2, overflow: "linebreak" },
+      headStyles: { fillColor: [15, 118, 110], textColor: 255, fontSize: 7 },
+      columnStyles: {
+        1: { cellWidth: 34 },
+        4: { cellWidth: 18 },
+        5: { cellWidth: 20 },
+        6: { cellWidth: 18 },
+        7: { cellWidth: 16 },
+        8: { cellWidth: 22 },
+        9: { cellWidth: 20 },
+        10: { cellWidth: 42 },
+      },
+      foot: [[
+        "TOTAL",
+        "",
+        "",
+        "",
+        money(totals.gst),
+        money(totals.credit),
+        money(totals.claims),
+        money(totals.cd),
+        money(totals.bankCharges),
+        money(totals.balance),
+        `${filteredLedgers.length} entries`,
+      ]],
+      footStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: "bold" },
+    });
+    pdf.save(`payment-ledger-mis-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   return (

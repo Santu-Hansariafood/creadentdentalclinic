@@ -237,6 +237,12 @@ export const GET_PAYMENT_LEDGERS = gql`
         referenceNo
         paymentAmount
         dueAmount
+        gst
+        credit
+        claims
+        cd
+        bankCharges
+        balance
         status
         remarks
         invoiceId

@@ -306,7 +306,7 @@ const initiateSale = async ({
       responseData.responseCode || nestedResponse.responseCode || "",
     );
     const responseIndicatesFailure =
-      responseCode === "309" ||
+      responseCode !== "R1000" ||
       ["REJ", "ERR", "FAILED", "FAIL"].includes(
         String(responseData.txnStatus || nestedResponse.txnStatus || "").toUpperCase(),
       );
@@ -333,6 +333,9 @@ const initiateSale = async ({
         responseData.respDescription ||
         responseData.responseDescription ||
         responseData.message ||
+        nestedResponse.respDescription ||
+        nestedResponse.responseDescription ||
+        nestedResponse.message ||
         "No description";
       return {
         transactionId: transaction._id.toString(),
@@ -505,9 +508,8 @@ const getTransactionStatus = async ({ transactionId, merchantTxnNo }) => {
   const payload = {
     merchantId: ICICI_CONFIG.merchantId,
     merchantTxnNo: transaction.merchantTxnNo,
-    pgTxnNo: transaction.pgTxnNo || "",
+    originalTxnNo: transaction.pgTxnNo || transaction.merchantTxnNo,
     transactionType: "STATUS",
-    txnDate: formatTxnDate(),
   };
 
   payload.secureHash = calculateSecureHashV1(payload, ICICI_CONFIG.secretKey);
@@ -519,9 +521,14 @@ const getTransactionStatus = async ({ transactionId, merchantTxnNo }) => {
     transaction.txnResponseCode =
       result.data.txnResponseCode || transaction.txnResponseCode;
     transaction.txnResponseMsg =
-      result.data.txnResponseMsg || transaction.txnResponseMsg;
-    transaction.pgTxnNo = result.data.pgTxnNo || transaction.pgTxnNo;
-    transaction.authRefNo = result.data.authRefNo || transaction.authRefNo;
+      result.data.txnResponseMsg ||
+      result.data.txnRespDescription ||
+      result.data.respDescription ||
+      transaction.txnResponseMsg;
+    transaction.pgTxnNo =
+      result.data.pgTxnNo || result.data.txnID || transaction.pgTxnNo;
+    transaction.authRefNo =
+      result.data.authRefNo || result.data.txnAuthID || transaction.authRefNo;
     transaction.arnNo = result.data.arnNo || transaction.arnNo;
     transaction.rawResponse = {
       ...transaction.rawResponse,
@@ -593,6 +600,17 @@ const reconcilePaymentToInvoice = async (transaction) => {
     referenceNo: transaction.pgTxnNo || transaction.merchantTxnNo,
     paymentAmount: actualPayment,
     dueAmount: invoice.balance,
+    gst: Number(invoice.tax || 0),
+    credit: actualPayment,
+    claims: Number(invoice.insuranceClaim?.claimAmount || 0),
+    cd: Number(invoice.discount || 0),
+    bankCharges: Number(
+      transaction.rawCallback?.oth_charge ||
+      transaction.rawCallback?.othCharge ||
+      transaction.rawResponse?.oth_charge ||
+      0,
+    ),
+    balance: invoice.balance,
     status: invoice.status === "Paid" ? "Paid" : "Partial",
     remarks: `ICICI transaction ${transaction.merchantTxnNo}`,
     invoiceId: invoice._id,
@@ -651,16 +669,22 @@ const handleICICICallback = async (callbackData) => {
     transaction.txnResponseCode;
   transaction.txnResponseMsg =
     callbackData.txnResponseMsg ||
+    callbackData.txnRespDescription ||
+    callbackData.respDescription ||
     callbackData.response_message ||
     callbackData.message ||
     transaction.txnResponseMsg;
   transaction.pgTxnNo =
     callbackData.pgTxnNo ||
+    callbackData.txnID ||
     callbackData.pg_txn_no ||
     callbackData.bankTxnNo ||
     transaction.pgTxnNo;
   transaction.authRefNo =
-    callbackData.authRefNo || callbackData.auth_ref_no || transaction.authRefNo;
+    callbackData.authRefNo ||
+    callbackData.txnAuthID ||
+    callbackData.auth_ref_no ||
+    transaction.authRefNo;
   transaction.arnNo =
     callbackData.arnNo || callbackData.arn_no || transaction.arnNo;
   transaction.rawCallback = callbackData;

@@ -233,6 +233,12 @@ input UpdateMedicineInput {
     referenceNo: String
     paymentAmount: Float!
     dueAmount: Float!
+    gst: Float
+    credit: Float
+    claims: Float
+    cd: Float
+    bankCharges: Float
+    balance: Float
     status: String
     remarks: String
     invoiceId: ID
