@@ -275,29 +275,53 @@ const initiateSale = async ({
 
   if (result.success && result.data) {
     const responseData = result.data;
+    const nestedResponse =
+      responseData.data && typeof responseData.data === "object"
+        ? responseData.data
+        : {};
     const redirectURI =
       responseData.redirectURI ||
       responseData.redirectUrl ||
       responseData.redirectURL ||
+      responseData.redirectUri ||
       responseData.authRedirectUrl ||
       responseData.authRedirect ||
+      responseData.authRedirectURI ||
+      responseData.paymentURL ||
       responseData.paymentUrl ||
+      nestedResponse.redirectURI ||
+      nestedResponse.redirectUrl ||
+      nestedResponse.redirectURL ||
+      nestedResponse.redirectUri ||
+      nestedResponse.authRedirectUrl ||
+      nestedResponse.authRedirectURI ||
+      nestedResponse.paymentURL ||
+      nestedResponse.paymentUrl ||
       "";
-    const tranCtx = responseData.tranCtx || "";
+    const tranCtx = responseData.tranCtx || nestedResponse.tranCtx || "";
     const normalizedRedirectURI = buildICICIRedirectUrl(redirectURI, tranCtx);
     const otpFlowAvailable =
       responseData.showOTPCapturePage === "Y" || payload.payType === "1";
-    const responseCode = String(responseData.responseCode || "");
+    const responseCode = String(
+      responseData.responseCode || nestedResponse.responseCode || "",
+    );
     const responseIndicatesFailure =
       responseCode === "309" ||
       ["REJ", "ERR", "FAILED", "FAIL"].includes(
-        String(responseData.txnStatus || "").toUpperCase(),
+        String(responseData.txnStatus || nestedResponse.txnStatus || "").toUpperCase(),
       );
 
     transaction.txnStatus = responseData.txnStatus || "REQ";
     transaction.txnResponseCode = responseData.responseCode || "";
-    transaction.txnResponseMsg = responseData.respDescription || "";
-    transaction.pgTxnNo = responseData.pgTxnNo || "";
+    transaction.txnResponseMsg =
+      responseData.respDescription ||
+      responseData.responseDescription ||
+      responseData.message ||
+      nestedResponse.respDescription ||
+      nestedResponse.responseDescription ||
+      nestedResponse.message ||
+      "";
+    transaction.pgTxnNo = responseData.pgTxnNo || nestedResponse.pgTxnNo || "";
     transaction.redirectURI = normalizedRedirectURI;
     transaction.tranCtx = tranCtx;
     transaction.showOTPCapturePage = responseData.showOTPCapturePage || "N";

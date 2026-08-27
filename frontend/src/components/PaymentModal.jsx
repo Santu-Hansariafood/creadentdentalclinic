@@ -43,7 +43,7 @@ const PaymentForm = ({
         onClose={() => setShowICICIPayment(false)}
         isDemo={isDemo}
         autoInitiate={true}
-        defaultPayType="1"
+        defaultPayType="0"
         onSuccess={(paymentInfo) => {
           setShowICICIPayment(false);
           setSucceeded(true);
