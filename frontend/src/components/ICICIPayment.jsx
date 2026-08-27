@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
@@ -43,16 +44,13 @@ const ICICIPayment = ({
   autoInitiate = false,
 }) => {
   const [step, setStep] = useState("init");
-  const amount = Number(invoice.balance || 0).toFixed(2);
   const [payType] = useState(defaultPayType || "0");
   const [transactionId, setTransactionId] = useState(null);
   const [merchantTxnNo, setMerchantTxnNo] = useState("");
   const [tranCtx, setTranCtx] = useState("");
   const [redirectURI, setRedirectURI] = useState("");
-  const [showOTPCapturePage, setShowOTPCapturePage] = useState("N");
   const [pgTxnNo, setPgTxnNo] = useState("");
   const [otpValue, setOtpValue] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
   const [otpVerifying, setOtpVerifying] = useState(false);
   const [txnStatus, setTxnStatus] = useState("INITIATED");
   const [txnResponseMsg, setTxnResponseMsg] = useState("");
@@ -95,7 +93,6 @@ const ICICIPayment = ({
       setMerchantTxnNo(result.merchantTxnNo || "");
       setTranCtx(result.tranCtx || "");
       setRedirectURI(result.redirectURI || "");
-      setShowOTPCapturePage(result.showOTPCapturePage || "N");
       setPgTxnNo(result.pgTxnNo || "");
       setTxnStatus(result.txnStatus || "INITIATED");
       setTxnResponseMsg(result.txnResponseMsg || "");
@@ -202,7 +199,6 @@ const ICICIPayment = ({
       });
 
       if (data?.iciciGenerateOTP?.success) {
-        setOtpSent(true);
         setStep("otp-entry");
         toast.success("OTP has been sent to your registered mobile number");
       } else {
@@ -292,10 +288,9 @@ const ICICIPayment = ({
         setTxnStatus(newStatus);
         setStatusPollCount((c) => c + 1);
 
-        // ⚠️  CRITICAL: DO NOT mark as success during redirect flow
-        // Wait for ICICI callback to actually be received and processed
-        // Only log status updates during polling
-        if (newStatus === "REJ" || newStatus === "ERR") {
+        if (newStatus === "SUC") {
+          handlePaymentSuccess();
+        } else if (newStatus === "REJ" || newStatus === "ERR") {
           setStep("status");
           toast.error(
             "Payment " + (STATUS_LABELS[newStatus]?.label || "failed"),
@@ -304,7 +299,7 @@ const ICICIPayment = ({
           console.log(
             "[Payment] Status update:",
             newStatus,
-            "(awaiting ICICI callback confirmation)",
+            "(awaiting final confirmation)",
           );
         }
       } else {

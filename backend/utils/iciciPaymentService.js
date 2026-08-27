@@ -515,7 +515,6 @@ const getTransactionStatus = async ({ transactionId, merchantTxnNo }) => {
   const result = await callICICIAPI(ICICI_CONFIG.transactionStatusUrl, payload);
 
   if (result.success && result.data) {
-    const prevStatus = transaction.txnStatus;
     transaction.txnStatus = result.data.txnStatus || transaction.txnStatus;
     transaction.txnResponseCode =
       result.data.txnResponseCode || transaction.txnResponseCode;
@@ -530,11 +529,7 @@ const getTransactionStatus = async ({ transactionId, merchantTxnNo }) => {
     };
     await transaction.save();
 
-    if (
-      transaction.txnStatus === "SUC" &&
-      prevStatus !== "SUC" &&
-      !transaction.amountPaidApplied
-    ) {
+    if (transaction.txnStatus === "SUC" && !transaction.amountPaidApplied) {
       await reconcilePaymentToInvoice(transaction);
     }
   }
@@ -649,7 +644,6 @@ const handleICICICallback = async (callbackData) => {
     callbackData.status ||
     transaction.txnStatus;
 
-  const prevStatus = transaction.txnStatus;
   transaction.txnStatus = txnStatus;
   transaction.txnResponseCode =
     callbackData.txnResponseCode ||
@@ -678,7 +672,7 @@ const handleICICICallback = async (callbackData) => {
 
   // ✅ CRITICAL: Only update invoice when ICICI confirms SUC via callback
   let invoice = null;
-  if (transaction.txnStatus === "SUC" && prevStatus !== "SUC") {
+  if (transaction.txnStatus === "SUC") {
     if (!transaction.amountPaidApplied) {
       invoice = await reconcilePaymentToInvoice(transaction);
       console.log("[ICICI] ✅ Payment SUCCESS confirmed via callback. Invoice reconciled for merchantTxnNo:", merchantTxnNo);
