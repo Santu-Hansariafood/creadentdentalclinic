@@ -51,6 +51,43 @@ const generateQR = async (text) => {
   }
 };
 
+const drawClinicHeader = async (doc, margin) => {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = margin;
+  let logoDataUrl = null;
+
+  try {
+    logoDataUrl = await loadImage(CLINIC.logoUrl);
+  } catch (e) {
+    console.warn("Logo could not be loaded", e);
+  }
+
+  doc.setDrawColor(15, 118, 110);
+  doc.setFillColor(15, 118, 110);
+  doc.roundedRect(margin, y, 4, 30, 2, 2, "F");
+
+  const contentX = logoDataUrl ? margin + 48 : margin + 12;
+  if (logoDataUrl) {
+    doc.addImage(logoDataUrl, "PNG", margin + 10, y, 30, 30);
+  }
+
+  doc.setTextColor(15, 23, 42);
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.text(CLINIC.name, contentX, y + 8);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(71, 85, 105);
+  doc.text(CLINIC.address, contentX, y + 16);
+  doc.text(`Phone: ${CLINIC.phone}  |  Email: ${CLINIC.email}`, contentX, y + 23);
+
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.35);
+  doc.line(margin, y + 36, pageWidth - margin, y + 36);
+  doc.setTextColor(0, 0, 0);
+  return y + 46;
+};
+
 export const generateInvoicePDF = async (invoice) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -58,49 +95,21 @@ export const generateInvoicePDF = async (invoice) => {
   const margin = 20;
   let y = margin;
 
-  let logoDataUrl = null;
-  try {
-    logoDataUrl = await loadImage(CLINIC.logoUrl);
-  } catch (e) {
-    console.warn("Logo could not be loaded", e);
-  }
+  y = await drawClinicHeader(doc, margin);
 
-  if (logoDataUrl) {
-    doc.addImage(logoDataUrl, "PNG", margin, y, 40, 40);
-    doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
-    doc.text(CLINIC.name, margin + 50, y + 12);
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.text(CLINIC.address, margin + 50, y + 22);
-    doc.text(
-      `Phone: ${CLINIC.phone}  |  Email: ${CLINIC.email}`,
-      margin + 50,
-      y + 32,
-    );
-    y += 50;
-  } else {
-    doc.setFontSize(20);
-    doc.setFont("helvetica", "bold");
-    doc.text(CLINIC.name, margin, y);
-    y += 10;
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.text(CLINIC.address, margin, y);
-    y += 5;
-    doc.text(`Phone: ${CLINIC.phone}  |  Email: ${CLINIC.email}`, margin, y);
-    y += 10;
-  }
-
-  doc.setDrawColor(0, 127, 175);
-  doc.setLineWidth(0.5);
-  doc.line(margin, y, pageWidth - margin, y);
-  y += 10;
-
-  doc.setFontSize(20);
+  doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
+  doc.setTextColor(15, 118, 110);
   const title = invoice.status === "Paid" ? "RECEIPT" : "INVOICE";
   doc.text(title, margin, y);
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text(
+    invoice.status === "Paid" ? "OFFICIAL PAYMENT RECEIPT" : "DENTAL CARE INVOICE",
+    margin,
+    y + 6,
+  );
+  doc.setTextColor(0, 0, 0);
   y += 8;
 
   doc.setFontSize(10);
@@ -118,7 +127,7 @@ export const generateInvoicePDF = async (invoice) => {
   if (invoice.status === "Paid" || invoice.paymentDate) {
     doc.setTextColor(16, 185, 129);
     doc.text(
-      `Received Date: ${formatPdfDate(invoice.paymentDate)}`,
+      `Received Date: ${formatPdfDate(invoice.paymentDate || invoice.date)}`,
       rightColX,
       y + 14,
       { align: "right" },
@@ -362,46 +371,19 @@ export const generatePaymentReceipt = async (invoice, paymentDetails) => {
   const margin = 20;
   let y = margin;
 
-  let logoDataUrl = null;
-  try {
-    logoDataUrl = await loadImage(CLINIC.logoUrl);
-  } catch (e) {
-    console.warn("Logo could not be loaded", e);
-  }
+  y = await drawClinicHeader(doc, margin);
 
-  if (logoDataUrl) {
-    doc.addImage(logoDataUrl, "PNG", margin, y, 40, 40);
-    doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
-    doc.text(CLINIC.name, margin + 50, y + 12);
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.text(CLINIC.address, margin + 50, y + 22);
-    doc.text(
-      `Phone: ${CLINIC.phone}  |  Email: ${CLINIC.email}`,
-      margin + 50,
-      y + 32,
-    );
-    y += 50;
-  } else {
-    doc.setFontSize(20);
-    doc.setFont("helvetica", "bold");
-    doc.text(CLINIC.name, margin, y);
-    y += 10;
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.text(CLINIC.address, margin, y);
-    y += 5;
-    doc.text(`Phone: ${CLINIC.phone}  |  Email: ${CLINIC.email}`, margin, y);
-    y += 15;
-  }
-
-  doc.setFontSize(24);
+  doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(16, 185, 129);
+  doc.setTextColor(15, 118, 110);
   doc.text("PAYMENT RECEIPT", pageWidth / 2, y, { align: "center" });
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text("OFFICIAL PAYMENT CONFIRMATION", pageWidth / 2, y + 6, {
+    align: "center",
+  });
   doc.setTextColor(0, 0, 0);
-  y += 20;
+  y += 16;
 
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
@@ -414,7 +396,7 @@ export const generatePaymentReceipt = async (invoice, paymentDetails) => {
   doc.text(`Transaction ID: ${paymentDetails.transactionId}`, margin, y);
   y += 6;
   doc.text(
-    `Payment Date: ${formatPdfDate(paymentDetails.date, "MMM dd, yyyy HH:mm")}`,
+    `Received Date: ${formatPdfDate(paymentDetails.date || invoice.paymentDate || invoice.date, "MMM dd, yyyy HH:mm")}`,
     margin,
     y,
   );
