@@ -665,6 +665,10 @@ const reconcilePaymentToInvoice = async (transaction) => {
         : "Unpaid";
   invoice.paymentMethod = "ICICI Bank";
   invoice.paymentDate = new Date();
+  invoice.transactionId = transaction._id.toString();
+  invoice.merchantTxnNo = transaction.merchantTxnNo;
+  invoice.pgTxnNo = transaction.pgTxnNo;
+  invoice.authRefNo = transaction.authRefNo;
 
   await invoice.save();
   transaction.amountPaidApplied = actualPayment;

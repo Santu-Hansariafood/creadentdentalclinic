@@ -399,6 +399,10 @@ export const CREATE_INVOICE = gql`
       invoiceNumber
       paymentMethod
       paymentDate
+      transactionId
+      merchantTxnNo
+      pgTxnNo
+      authRefNo
       notes
     }
   }
@@ -438,6 +442,10 @@ export const RECORD_INVOICE_PAYMENT = gql`
       status
       paymentMethod
       paymentDate
+      transactionId
+      merchantTxnNo
+      pgTxnNo
+      authRefNo
       notes
     }
   }

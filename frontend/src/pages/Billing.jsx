@@ -766,6 +766,7 @@ const Billing = () => {
                       ...callbackInvoice,
                       status: "Paid",
                       paymentMethod: "ICICI Bank",
+                      paymentDate: new Date().toISOString(),
                       transactionId: iciciCallbackNotice.transactionId,
                     });
                     toast.success("Bill downloaded successfully");

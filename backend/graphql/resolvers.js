@@ -434,8 +434,34 @@ const resolvers = {
       } else if (patientId) {
         query.patientId = patientId;
       }
-      return await Invoice.find(query).sort({
+      const invoices = await Invoice.find(query).sort({
         date: -1,
+      });
+      const invoiceIds = invoices.map((invoice) => invoice._id);
+      const ledgerEntries = await PaymentLedger.find({
+        invoiceId: { $in: invoiceIds },
+      }).sort({ paymentDate: -1 });
+      const latestLedgerByInvoice = new Map();
+      ledgerEntries.forEach((ledger) => {
+        const invoiceId = String(ledger.invoiceId);
+        if (!latestLedgerByInvoice.has(invoiceId)) {
+          latestLedgerByInvoice.set(invoiceId, ledger);
+        }
+      });
+      return invoices.map((invoice) => {
+        const ledger = latestLedgerByInvoice.get(String(invoice._id));
+        if (!ledger) return invoice;
+        return {
+          ...invoice.toObject(),
+          paymentMethod: invoice.paymentMethod || ledger.paymentMode,
+          paymentDate: invoice.paymentDate || ledger.paymentDate,
+          transactionId:
+            invoice.transactionId ||
+            (ledger.transactionId ? String(ledger.transactionId) : null),
+          merchantTxnNo: invoice.merchantTxnNo || ledger.merchantTxnNo,
+          pgTxnNo: invoice.pgTxnNo || ledger.pgTxnNo,
+          authRefNo: invoice.authRefNo || ledger.authRefNo,
+        };
       });
     },
     getPrescriptions: async (_, { patientId }, { user }) => {

@@ -180,6 +180,10 @@ export const GET_INVOICES = gql`
       status
       paymentMethod
       paymentDate
+      transactionId
+      merchantTxnNo
+      pgTxnNo
+      authRefNo
       notes
     }
   }

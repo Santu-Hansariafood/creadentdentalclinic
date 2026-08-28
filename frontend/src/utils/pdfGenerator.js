@@ -251,6 +251,7 @@ export const generateInvoicePDF = async (invoice) => {
 
   if (
     invoice.paymentMethod ||
+    invoice.paymentDate ||
     invoice.transactionId ||
     invoice.merchantTxnNo ||
     invoice.pgTxnNo
@@ -260,7 +261,13 @@ export const generateInvoicePDF = async (invoice) => {
     doc.text("Payment Information:", margin, y);
     y += 6;
     doc.setFont("helvetica", "normal");
-    doc.text(`Method: ${invoice.paymentMethod || "-"}`, margin, y);
+    doc.text(`Transaction Mode: ${invoice.paymentMethod || "-"}`, margin, y);
+    y += 5;
+    doc.text(
+      `Received Date: ${formatPdfDate(invoice.paymentDate, "MMM dd, yyyy HH:mm")}`,
+      margin,
+      y,
+    );
     y += 8;
     const paymentReferences = [
       ["Transaction ID", invoice.transactionId],

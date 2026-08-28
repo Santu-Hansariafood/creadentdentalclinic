@@ -136,6 +136,10 @@ input UpdateMedicineInput {
     status: String
     paymentMethod: String
     paymentDate: String
+    transactionId: String
+    merchantTxnNo: String
+    pgTxnNo: String
+    authRefNo: String
     notes: String
   }
 
