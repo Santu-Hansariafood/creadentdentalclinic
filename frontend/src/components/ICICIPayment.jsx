@@ -338,6 +338,7 @@ const ICICIPayment = ({
     transactionId,
     merchantTxnNo,
     pgTxnNo,
+    patient,
   };
 
   useEffect(() => {

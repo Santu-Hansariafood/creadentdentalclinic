@@ -192,6 +192,12 @@ const Billing = () => {
   const patients = isDemoUser
     ? mockPatients
     : patientsData?.getPatients?.patients || [];
+  const enrichInvoiceWithPatient = (invoice) => ({
+    ...invoice,
+    patient: patients.find(
+      (patient) => String(patient.id) === String(invoice.patientId),
+    ),
+  });
   const myPatient = isDemoUser
     ? { id: user?.id, ...user }
     : myPatientData?.getMyPatient;
@@ -763,7 +769,7 @@ const Billing = () => {
                   type="button"
                   onClick={() => {
                     generateInvoicePDF({
-                      ...callbackInvoice,
+                      ...enrichInvoiceWithPatient(callbackInvoice),
                       status: "Paid",
                       paymentMethod: "ICICI Bank",
                       paymentDate: new Date().toISOString(),
@@ -1451,7 +1457,7 @@ const Billing = () => {
                         <span>{inv.patientName}</span>
                         <button
                           onClick={() => {
-                            generateInvoicePDF(inv);
+                            generateInvoicePDF(enrichInvoiceWithPatient(inv));
                             toast.success("Receipt downloaded successfully");
                           }}
                           className="text-primary hover:underline flex items-center gap-1"
@@ -1501,7 +1507,7 @@ const Billing = () => {
                     />
                   )}
                   <InvoiceCard
-                    invoice={invoice}
+                    invoice={enrichInvoiceWithPatient(invoice)}
                     delay={index * 0.05}
                     onPay={user?.role !== "doctor" ? handlePayment : undefined}
                     onShareWhatsApp={

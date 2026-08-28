@@ -115,10 +115,10 @@ export const generateInvoicePDF = async (invoice) => {
   doc.text(`Due Date: ${formatPdfDate(invoice.dueDate)}`, rightColX, y + 8, {
     align: "right",
   });
-  if (invoice.paymentDate) {
+  if (invoice.status === "Paid" || invoice.paymentDate) {
     doc.setTextColor(16, 185, 129);
     doc.text(
-      `Payment Date: ${formatPdfDate(invoice.paymentDate)}`,
+      `Received Date: ${formatPdfDate(invoice.paymentDate)}`,
       rightColX,
       y + 14,
       { align: "right" },
@@ -133,8 +133,25 @@ export const generateInvoicePDF = async (invoice) => {
   y += 6;
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text(invoice.patientName, margin, y);
-  y += 12;
+  const patient = invoice.patient || {};
+  const patientLines = [
+    invoice.patientName,
+    patient.phone || invoice.patientPhone
+      ? `Mobile: ${patient.phone || invoice.patientPhone}`
+      : null,
+    patient.address || invoice.patientAddress
+      ? `Address: ${patient.address || invoice.patientAddress}`
+      : null,
+    patient.age || invoice.patientAge
+      ? `Age: ${patient.age || invoice.patientAge}`
+      : null,
+  ].filter(Boolean);
+  const patientText = doc.splitTextToSize(
+    patientLines.join(" | "),
+    pageWidth - 2 * margin,
+  );
+  doc.text(patientText, margin, y);
+  y += patientText.length * 5 + 7;
 
   const col1 = margin;
   const col2 = pageWidth - 100;
