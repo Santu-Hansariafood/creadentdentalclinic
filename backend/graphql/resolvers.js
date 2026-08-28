@@ -453,6 +453,7 @@ const resolvers = {
         if (!ledger) return invoice;
         return {
           ...invoice.toObject(),
+          id: invoice._id.toString(),
           paymentMethod: invoice.paymentMethod || ledger.paymentMode,
           paymentDate: invoice.paymentDate || ledger.paymentDate,
           transactionId:
