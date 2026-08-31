@@ -113,13 +113,21 @@ const resolvers = {
   },
   MedicalRecord: {
     id: (parent) => (parent.id || parent._id)?.toString(),
-    patientId: (parent) => (parent.patientId?._id || parent.patientId)?.toString?.() ?? parent.patientId,
-    doctorId: (parent) => (parent.doctorId?._id || parent.doctorId)?.toString?.() ?? parent.doctorId,
+    patientId: (parent) =>
+      (parent.patientId?._id || parent.patientId)?.toString?.() ??
+      parent.patientId,
+    doctorId: (parent) =>
+      (parent.doctorId?._id || parent.doctorId)?.toString?.() ??
+      parent.doctorId,
     date: (parent) => toIsoDateString(parent.date),
-    followUpDate: (parent) => (parent.followUpDate ? toIsoDateString(parent.followUpDate) : null),
-    createdAt: (parent) => (parent.createdAt ? new Date(parent.createdAt).toISOString() : null),
-    updatedAt: (parent) => (parent.updatedAt ? new Date(parent.updatedAt).toISOString() : null),
-    attachments: async (parent) => await serializeAttachments(parent.attachments),
+    followUpDate: (parent) =>
+      parent.followUpDate ? toIsoDateString(parent.followUpDate) : null,
+    createdAt: (parent) =>
+      parent.createdAt ? new Date(parent.createdAt).toISOString() : null,
+    updatedAt: (parent) =>
+      parent.updatedAt ? new Date(parent.updatedAt).toISOString() : null,
+    attachments: async (parent) =>
+      await serializeAttachments(parent.attachments),
     patient: async (parent) => {
       try {
         let p = parent.patient;
@@ -204,7 +212,9 @@ const resolvers = {
     getUser: async (_, { id }, { user }) => {
       if (user?.role === "patient") {
         if (user._id.toString() !== id.toString()) {
-          throw new Error("Unauthorized: You can only access your own user profile");
+          throw new Error(
+            "Unauthorized: You can only access your own user profile",
+          );
         }
         return user;
       }
@@ -379,7 +389,12 @@ const resolvers = {
       if (user?.role === "patient") {
         const patient = await getSelfPatient(user);
         if (!patient) {
-          return { appointments: [], totalCount: 0, totalPages: 0, currentPage: page };
+          return {
+            appointments: [],
+            totalCount: 0,
+            totalPages: 0,
+            currentPage: page,
+          };
         }
         patientId = patient._id;
       } else {
@@ -477,7 +492,11 @@ const resolvers = {
       if (patientId) query.patientId = patientId;
       return await Prescription.find(query).sort({ date: -1 });
     },
-    getPaymentLedgers: async (_, { page = 1, limit = 10, search = "" }, { user }) => {
+    getPaymentLedgers: async (
+      _,
+      { page = 1, limit = 10, search = "" },
+      { user },
+    ) => {
       requireStaff(user);
       const skip = (page - 1) * limit;
       const query = search
@@ -511,7 +530,8 @@ const resolvers = {
         const mode = ledger.paymentMode || "Unknown";
         const status = ledger.status || "Unknown";
         if (!modeTotals[mode]) modeTotals[mode] = { amount: 0, count: 0 };
-        if (!statusTotals[status]) statusTotals[status] = { amount: 0, count: 0 };
+        if (!statusTotals[status])
+          statusTotals[status] = { amount: 0, count: 0 };
         modeTotals[mode].amount += ledger.paymentAmount || 0;
         modeTotals[mode].count += 1;
         statusTotals[status].amount += ledger.paymentAmount || 0;
@@ -546,7 +566,11 @@ const resolvers = {
         return {
           patient: {
             upcomingAppointments: patientId
-              ? await Appointment.countDocuments({ patientId, date: { $gte: new Date().toISOString().split("T")[0] }, status: "Scheduled" })
+              ? await Appointment.countDocuments({
+                  patientId,
+                  date: { $gte: new Date().toISOString().split("T")[0] },
+                  status: "Scheduled",
+                })
               : 0,
             totalAppointments: patientId
               ? await Appointment.countDocuments({ patientId })
@@ -554,7 +578,10 @@ const resolvers = {
             pendingBills: patientId
               ? await Invoice.countDocuments({ patientId, balance: { $gt: 0 } })
               : 0,
-            unreadMessages: await ChatMessage.countDocuments({ receiverId: user._id, read: false }),
+            unreadMessages: await ChatMessage.countDocuments({
+              receiverId: user._id,
+              read: false,
+            }),
           },
         };
       }
@@ -1547,8 +1574,9 @@ const resolvers = {
         throw new Error("Generated prescription PDF is empty");
       }
 
-      const safeFileName = (fileName || `Prescription_${prescriptionId}.pdf`)
-        .replace(/[^a-zA-Z0-9._-]/g, "_");
+      const safeFileName = (
+        fileName || `Prescription_${prescriptionId}.pdf`
+      ).replace(/[^a-zA-Z0-9._-]/g, "_");
       const storedFile = await storageService.uploadFile({
         file: {
           buffer: pdfBuffer,
@@ -1562,7 +1590,10 @@ const resolvers = {
       prescription.pdfUrl = storedFile.url;
       prescription.pdfStorageKey = storedFile.storageKey;
       await prescription.save();
-      const result = await sendPrescriptionWhatsApp(prescription, storedFile.url);
+      const result = await sendPrescriptionWhatsApp(
+        prescription,
+        storedFile.url,
+      );
 
       return {
         success: result.success,

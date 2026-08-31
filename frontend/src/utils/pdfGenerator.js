@@ -79,7 +79,11 @@ const drawClinicHeader = async (doc, margin) => {
   doc.setFont("helvetica", "normal");
   doc.setTextColor(71, 85, 105);
   doc.text(CLINIC.address, contentX, y + 16);
-  doc.text(`Phone: ${CLINIC.phone}  |  Email: ${CLINIC.email}`, contentX, y + 23);
+  doc.text(
+    `Phone: ${CLINIC.phone}  |  Email: ${CLINIC.email}`,
+    contentX,
+    y + 23,
+  );
 
   doc.setDrawColor(203, 213, 225);
   doc.setLineWidth(0.35);
@@ -105,7 +109,9 @@ export const generateInvoicePDF = async (invoice) => {
   doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
   doc.text(
-    invoice.status === "Paid" ? "OFFICIAL PAYMENT RECEIPT" : "DENTAL CARE INVOICE",
+    invoice.status === "Paid"
+      ? "OFFICIAL PAYMENT RECEIPT"
+      : "DENTAL CARE INVOICE",
     margin,
     y + 6,
   );

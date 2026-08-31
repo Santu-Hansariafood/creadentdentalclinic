@@ -176,11 +176,7 @@ const FormContent = ({
 
     <div className="flex justify-end gap-3 pt-4">
       {onClose && (
-        <button
-          type="button"
-          onClick={onClose}
-          className="btn-secondary px-6"
-        >
+        <button type="button" onClick={onClose} className="btn-secondary px-6">
           Cancel
         </button>
       )}

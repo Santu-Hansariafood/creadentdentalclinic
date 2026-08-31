@@ -1,18 +1,18 @@
 import { motion } from "framer-motion";
 import { fadeIn } from "../utils/motion";
-import PatientCard from "../components/PatientCard";
-import PatientRegistration from "./PatientRegistration";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_PATIENTS } from "../graphql/queries";
 import { DELETE_PATIENT } from "../graphql/mutations";
-import Pagination from "../components/Pagination";
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy } from "react";
 import { Search, Plus, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import Preloader from "../components/Preloader";
 import { useAuth } from "../context/AuthContext";
-import PageHeader from "../components/PageHeader";
+const PageHeader = lazy(() => import("../components/PageHeader"));
+const PatientCard = lazy(() => import("../components/PatientCard"));
+const PatientRegistration = lazy(() => import("./PatientRegistration"));
+const Pagination = lazy(() => import("../components/Pagination"));
 
 const PatientList = () => {
   const { user } = useAuth();

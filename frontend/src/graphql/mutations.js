@@ -461,8 +461,22 @@ export const UPDATE_MEDICINE_STOCK = gql`
 `;
 
 export const UPDATE_MEDICINE = gql`
-  mutation UpdateMedicine($id: ID!, $name: String, $category: String, $description: String, $dosageForm: String, $dosageStrength: String) {
-    updateMedicine(id: $id, name: $name, category: $category, description: $description, dosageForm: $dosageForm, dosageStrength: $dosageStrength) {
+  mutation UpdateMedicine(
+    $id: ID!
+    $name: String
+    $category: String
+    $description: String
+    $dosageForm: String
+    $dosageStrength: String
+  ) {
+    updateMedicine(
+      id: $id
+      name: $name
+      category: $category
+      description: $description
+      dosageForm: $dosageForm
+      dosageStrength: $dosageStrength
+    ) {
       id
       name
       category
@@ -519,39 +533,39 @@ export const DELETE_USER = gql`
 
 export const UPDATE_PATIENT = gql`
   mutation UpdatePatient(
-    $id: ID!,
-    $name: String,
-    $email: String,
-    $phone: String,
-    $dateOfBirth: String,
-    $age: Int,
-    $gender: String,
-    $address: String,
-    $bloodGroup: String,
-    $status: String,
-    $emergencyContact: EmergencyContactInput,
-    $medicalHistory: MedicalHistoryInput,
-    $vitalSigns: VitalSignsInput,
-    $dentalHistory: DentalHistoryInput,
-    $insurance: InsuranceInput,
+    $id: ID!
+    $name: String
+    $email: String
+    $phone: String
+    $dateOfBirth: String
+    $age: Int
+    $gender: String
+    $address: String
+    $bloodGroup: String
+    $status: String
+    $emergencyContact: EmergencyContactInput
+    $medicalHistory: MedicalHistoryInput
+    $vitalSigns: VitalSignsInput
+    $dentalHistory: DentalHistoryInput
+    $insurance: InsuranceInput
     $password: String
   ) {
     updatePatient(
-      id: $id,
-      name: $name,
-      email: $email,
-      phone: $phone,
-      dateOfBirth: $dateOfBirth,
-      age: $age,
-      gender: $gender,
-      address: $address,
-      bloodGroup: $bloodGroup,
-      status: $status,
-      emergencyContact: $emergencyContact,
-      medicalHistory: $medicalHistory,
-      vitalSigns: $vitalSigns,
-      dentalHistory: $dentalHistory,
-      insurance: $insurance,
+      id: $id
+      name: $name
+      email: $email
+      phone: $phone
+      dateOfBirth: $dateOfBirth
+      age: $age
+      gender: $gender
+      address: $address
+      bloodGroup: $bloodGroup
+      status: $status
+      emergencyContact: $emergencyContact
+      medicalHistory: $medicalHistory
+      vitalSigns: $vitalSigns
+      dentalHistory: $dentalHistory
+      insurance: $insurance
       password: $password
     ) {
       id

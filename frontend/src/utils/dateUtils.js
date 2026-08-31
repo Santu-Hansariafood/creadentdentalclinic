@@ -1,4 +1,14 @@
-import { format, isValid, parseISO, isToday, isBefore, isAfter, startOfDay, endOfDay, getDate } from "date-fns";
+import {
+  format,
+  isValid,
+  parseISO,
+  isToday,
+  isBefore,
+  isAfter,
+  startOfDay,
+  endOfDay,
+  getDate,
+} from "date-fns";
 
 const DATE_ONLY_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
 

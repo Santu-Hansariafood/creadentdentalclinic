@@ -37,7 +37,7 @@ const PatientDashboard = () => {
     useQuery(GET_MEDICAL_RECORDS);
 
   if (statsLoading || aptsLoading || presLoading || recordsLoading) {
-    return <div className="p-8 text-center">Loading dashboard...</div>;
+    return <Preloader />;
   }
 
   const stats = statsData?.getDashboardStats?.patient || {};

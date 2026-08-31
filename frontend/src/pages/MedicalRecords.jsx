@@ -40,19 +40,27 @@ import api from "../api/axios";
 
 const FILE_API_ORIGIN = import.meta.env.VITE_API_URL
   ? new URL(import.meta.env.VITE_API_URL, window.location.origin).origin
-  : window.location.hostname === "creadentsmiles.com" || window.location.hostname === "www.creadentsmiles.com"
+  : window.location.hostname === "creadentsmiles.com" ||
+      window.location.hostname === "www.creadentsmiles.com"
     ? "https://api.creadentsmiles.com"
     : "";
 
 const resolveFileUrl = (url) => {
-  if (!url || !FILE_API_ORIGIN || !String(url).startsWith("/files/")) return url;
+  if (!url || !FILE_API_ORIGIN || !String(url).startsWith("/files/"))
+    return url;
   return `${FILE_API_ORIGIN}${url}`;
 };
 
 const fileTypeIcon = (type, name) => {
   const n = (name || "").toLowerCase();
   const t = (type || "").toLowerCase();
-  if (t.startsWith("image") || /\.(avif|bmp|gif|heic|heif|ico|jpe?g|jp2|jpf|jpm|jpx|png|svg|tif?f|webp)$/.test(n)) return "🖼️";
+  if (
+    t.startsWith("image") ||
+    /\.(avif|bmp|gif|heic|heif|ico|jpe?g|jp2|jpf|jpm|jpx|png|svg|tif?f|webp)$/.test(
+      n,
+    )
+  )
+    return "🖼️";
   if (t.includes("pdf") || n.endsWith(".pdf")) return "📕";
   if (t.includes("word") || /\.(docx?|rtf)$/.test(n)) return "📘";
   if (t.includes("sheet") || /\.(xlsx?|csv|ods)$/.test(n)) return "📗";
@@ -86,7 +94,9 @@ const getPreviewUrl = (f) => {
     return `/api/storage/proxy?url=${encodeURIComponent(url)}${token ? `&token=${encodeURIComponent(token)}` : ""}`;
   }
   if (url) return url;
-  return f.storageKey ? resolveFileUrl(`/files/${encodeURIComponent(f.storageKey)}`) : "";
+  return f.storageKey
+    ? resolveFileUrl(`/files/${encodeURIComponent(f.storageKey)}`)
+    : "";
 };
 
 const CustomCombobox = ({
@@ -149,7 +159,9 @@ const CustomCombobox = ({
         <ChevronDown
           size={16}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none transition-transform"
-          style={{ transform: `translateY(-50%) rotate(${isOpen ? 180 : 0}deg)` }}
+          style={{
+            transform: `translateY(-50%) rotate(${isOpen ? 180 : 0}deg)`,
+          }}
         />
       </div>
       {isOpen && !disabled && (
@@ -173,7 +185,9 @@ const CustomCombobox = ({
                     setIsOpen(false);
                   }}
                   className={`px-3 py-2 text-sm cursor-pointer border-b border-gray-50 last:border-b-0 hover:bg-primary/5 ${
-                    selected ? "bg-primary/10 text-primary font-semibold" : "text-gray-700"
+                    selected
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-gray-700"
                   }`}
                 >
                   {ol}
@@ -202,7 +216,11 @@ const RecordForm = ({
     record?.attachments?.map((a) => ({
       ...a,
       status: "saved",
-      previewUrl: resolveFileUrl(a.url) || (a.storageKey ? resolveFileUrl(`/files/${encodeURIComponent(a.storageKey)}`) : ""),
+      previewUrl:
+        resolveFileUrl(a.url) ||
+        (a.storageKey
+          ? resolveFileUrl(`/files/${encodeURIComponent(a.storageKey)}`)
+          : ""),
     })) || [];
 
   const [patientId, setPatientId] = useState(initialPatient);
@@ -231,7 +249,8 @@ const RecordForm = ({
   const [selectedPreview, setSelectedPreview] = useState(null);
   const fileInputRef = useState(null)[0];
 
-  const selectedPatient = patientOptions.find((p) => p.id === patientId) || null;
+  const selectedPatient =
+    patientOptions.find((p) => p.id === patientId) || null;
   const uploadable = attachments.filter((a) => a.status !== "saved");
 
   const buildVitalSigns = () => {
@@ -251,11 +270,17 @@ const RecordForm = ({
       toast(
         (t) => (
           <div className="flex items-start gap-2">
-            <AlertTriangle size={18} className="text-amber-500 mt-0.5 flex-shrink-0" />
+            <AlertTriangle
+              size={18}
+              className="text-amber-500 mt-0.5 flex-shrink-0"
+            />
             <div className="text-sm text-gray-800">
-              <b>{skipped} file{skipped === 1 ? "" : "s"}</b> could not be uploaded and were
-              skipped. The record will be created without them. You can edit the record
-              after save and retry uploads.
+              <b>
+                {skipped} file{skipped === 1 ? "" : "s"}
+              </b>{" "}
+              could not be uploaded and were skipped. The record will be created
+              without them. You can edit the record after save and retry
+              uploads.
             </div>
             <button
               onClick={() => toast.dismiss(t.id)}
@@ -286,7 +311,9 @@ const RecordForm = ({
       const isImg = isImageFile(f);
       let previewUrl = "";
       if ((isImg || isPdfFile(f)) && typeof URL !== "undefined") {
-        try { previewUrl = URL.createObjectURL(f); } catch {}
+        try {
+          previewUrl = URL.createObjectURL(f);
+        } catch {}
       }
       return {
         originalName: f.name,
@@ -300,7 +327,9 @@ const RecordForm = ({
     });
     setAttachments((prev) => [...prev, ...withMeta]);
     if (!selectedPreview) {
-      const firstPreviewable = withMeta.find((file) => isImageFile(file) || isPdfFile(file));
+      const firstPreviewable = withMeta.find(
+        (file) => isImageFile(file) || isPdfFile(file),
+      );
       if (firstPreviewable) setSelectedPreview(firstPreviewable);
     }
   };
@@ -313,179 +342,169 @@ const RecordForm = ({
   const removeAttachment = (idx) => {
     const att = attachments[idx];
     if (att?.previewUrl && att?.file) {
-      try { URL.revokeObjectURL(att.previewUrl); } catch {}
+      try {
+        URL.revokeObjectURL(att.previewUrl);
+      } catch {}
     }
     setAttachments(attachments.filter((_, i) => i !== idx));
   };
 
   const uploadPending = async () => {
-  if (uploadable.length === 0) {
-    return attachments;
-  }
-
-  if (!patientId) {
-    toast.error("Please select a patient before uploading documents");
-    return attachments;
-  }
-
-  const withFiles = uploadable.filter(
-    (a) => a.file instanceof File || a.file instanceof Blob
-  );
-
-  if (withFiles.length === 0) {
-    toast.error(
-      "File objects are no longer available. Please re-add the files."
-    );
-    return attachments;
-  }
-
-  setUploading(true);
-
-  try {
-    const form = new FormData();
-
-    withFiles.forEach((attachment) => {
-      const file = attachment.file;
-
-      form.append(
-        "files",
-        file,
-        file.name ||
-          attachment.originalName ||
-          attachment.name ||
-          "file"
-      );
-    });
-
-    form.append("patientId", patientId);
-    form.append("recordId", isEdit ? record.id : "pending-new");
-
-    if (selectedPatient?.name) {
-      form.append("patientName", selectedPatient.name);
+    if (uploadable.length === 0) {
+      return attachments;
     }
 
-    const response = await api.post(
-      "/api/storage/upload",
-      form,
-      {
+    if (!patientId) {
+      toast.error("Please select a patient before uploading documents");
+      return attachments;
+    }
+
+    const withFiles = uploadable.filter(
+      (a) => a.file instanceof File || a.file instanceof Blob,
+    );
+
+    if (withFiles.length === 0) {
+      toast.error(
+        "File objects are no longer available. Please re-add the files.",
+      );
+      return attachments;
+    }
+
+    setUploading(true);
+
+    try {
+      const form = new FormData();
+
+      withFiles.forEach((attachment) => {
+        const file = attachment.file;
+
+        form.append(
+          "files",
+          file,
+          file.name || attachment.originalName || attachment.name || "file",
+        );
+      });
+
+      form.append("patientId", patientId);
+      form.append("recordId", isEdit ? record.id : "pending-new");
+
+      if (selectedPatient?.name) {
+        form.append("patientName", selectedPatient.name);
+      }
+
+      const response = await api.post("/api/storage/upload", form, {
         timeout: 180000,
         headers: {
           "Content-Type": "multipart/form-data",
         },
+      });
+
+      const data = response.data || {};
+
+      if (Array.isArray(data.failed) && data.failed.length > 0) {
+        const failedNames = data.failed
+          .map((item) => item.name || item.originalName)
+          .filter(Boolean)
+          .join(", ");
+
+        toast.error(
+          `Some files failed to upload${failedNames ? `: ${failedNames}` : ""}`,
+          { duration: 8000 },
+        );
       }
-    );
 
-    const data = response.data || {};
+      if (!Array.isArray(data.attachments)) {
+        throw new Error(
+          data.error || "Upload API returned an invalid response",
+        );
+      }
 
-    if (Array.isArray(data.failed) && data.failed.length > 0) {
-      const failedNames = data.failed
-        .map((item) => item.name || item.originalName)
-        .filter(Boolean)
-        .join(", ");
+      const uploaded = data.attachments;
+
+      const remainingUploads = [...uploaded];
+
+      const newAttachments = attachments.map((attachment) => {
+        if (attachment.status !== "pending") {
+          return attachment;
+        }
+
+        const uploadIndex = remainingUploads.findIndex(
+          (uploadedFile) =>
+            uploadedFile.originalName ===
+            (attachment.file?.name ||
+              attachment.originalName ||
+              attachment.name),
+        );
+
+        if (uploadIndex < 0) {
+          return attachment;
+        }
+
+        const uploadedFile = remainingUploads.splice(uploadIndex, 1)[0];
+
+        if (attachment.previewUrl && attachment.file) {
+          try {
+            URL.revokeObjectURL(attachment.previewUrl);
+          } catch {}
+        }
+
+        return {
+          ...uploadedFile,
+          status: "saved",
+          previewUrl:
+            resolveFileUrl(uploadedFile.url) ||
+            (uploadedFile.storageKey
+              ? resolveFileUrl(
+                  `/files/${encodeURIComponent(uploadedFile.storageKey)}`,
+                )
+              : ""),
+        };
+      });
+
+      setAttachments(newAttachments);
+
+      if (selectedPreview) {
+        const previewName =
+          selectedPreview.file?.name ||
+          selectedPreview.originalName ||
+          selectedPreview.name;
+
+        const replacement = newAttachments.find(
+          (attachment) => attachment.originalName === previewName,
+        );
+
+        if (replacement) {
+          setSelectedPreview(replacement);
+        }
+      }
+
+      toast.success(
+        `${uploaded.length} file${
+          uploaded.length === 1 ? "" : "s"
+        } uploaded successfully`,
+      );
+
+      return newAttachments;
+    } catch (error) {
+      console.error("Medical record upload failed:", error);
+
+      const serverMessage =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        error?.response?.data?.detail;
 
       toast.error(
-        `Some files failed to upload${
-          failedNames ? `: ${failedNames}` : ""
+        `Failed to upload documents: ${
+          serverMessage || error.message || "Upload failed"
         }`,
-        { duration: 8000 }
+        { duration: 8000 },
       );
+
+      return null;
+    } finally {
+      setUploading(false);
     }
-
-    if (!Array.isArray(data.attachments)) {
-      throw new Error(
-        data.error || "Upload API returned an invalid response"
-      );
-    }
-
-    const uploaded = data.attachments;
-
-    const remainingUploads = [...uploaded];
-
-    const newAttachments = attachments.map((attachment) => {
-      if (attachment.status !== "pending") {
-        return attachment;
-      }
-
-      const uploadIndex = remainingUploads.findIndex(
-        (uploadedFile) =>
-          uploadedFile.originalName ===
-          (attachment.file?.name ||
-            attachment.originalName ||
-            attachment.name)
-      );
-
-      if (uploadIndex < 0) {
-        return attachment;
-      }
-
-      const uploadedFile = remainingUploads.splice(uploadIndex, 1)[0];
-
-      if (attachment.previewUrl && attachment.file) {
-        try {
-          URL.revokeObjectURL(attachment.previewUrl);
-        } catch {}
-      }
-
-      return {
-        ...uploadedFile,
-        status: "saved",
-        previewUrl:
-          resolveFileUrl(uploadedFile.url) ||
-          (uploadedFile.storageKey
-            ? resolveFileUrl(
-                `/files/${encodeURIComponent(
-                  uploadedFile.storageKey
-                )}`
-              )
-            : ""),
-      };
-    });
-
-    setAttachments(newAttachments);
-
-    if (selectedPreview) {
-      const previewName =
-        selectedPreview.file?.name ||
-        selectedPreview.originalName ||
-        selectedPreview.name;
-
-      const replacement = newAttachments.find(
-        (attachment) =>
-          attachment.originalName === previewName
-      );
-
-      if (replacement) {
-        setSelectedPreview(replacement);
-      }
-    }
-
-    toast.success(
-      `${uploaded.length} file${
-        uploaded.length === 1 ? "" : "s"
-      } uploaded successfully`
-    );
-
-    return newAttachments;
-  } catch (error) {
-    console.error("Medical record upload failed:", error);
-
-    const serverMessage =
-      error?.response?.data?.error ||
-      error?.response?.data?.message ||
-      error?.response?.data?.detail;
-
-    toast.error(
-      `Failed to upload documents: ${
-        serverMessage || error.message || "Upload failed"
-      }`,
-      { duration: 8000 }
-    );
-
-    return null;
-  } finally {
-    setUploading(false);
-  }
-};
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!patientId) {
@@ -516,7 +535,8 @@ const RecordForm = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Patient Name * <span className="text-gray-400 font-normal">(type to search)</span>
+            Patient Name *{" "}
+            <span className="text-gray-400 font-normal">(type to search)</span>
           </label>
           <CustomCombobox
             options={patientOptions}
@@ -551,7 +571,8 @@ const RecordForm = ({
                   <span className="ml-2 text-gray-600 normal-case font-normal">
                     (
                     {Math.floor(
-                      (Date.now() - new Date(selectedPatient.dateOfBirth).getTime()) /
+                      (Date.now() -
+                        new Date(selectedPatient.dateOfBirth).getTime()) /
                         (365.25 * 24 * 60 * 60 * 1000),
                     )}{" "}
                     yrs)
@@ -573,9 +594,14 @@ const RecordForm = ({
             </div>
             {selectedPatient?.medicalHistory?.allergies?.length > 0 && (
               <div className="md:col-span-4 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                <AlertCircle size={14} className="text-red-600 mt-0.5 flex-shrink-0" />
+                <AlertCircle
+                  size={14}
+                  className="text-red-600 mt-0.5 flex-shrink-0"
+                />
                 <div>
-                  <p className="text-[11px] font-semibold text-red-700 uppercase tracking-wide">Known Allergies</p>
+                  <p className="text-[11px] font-semibold text-red-700 uppercase tracking-wide">
+                    Known Allergies
+                  </p>
                   <p className="text-sm text-gray-700">
                     {selectedPatient.medicalHistory.allergies.join(", ")}
                   </p>
@@ -624,7 +650,8 @@ const RecordForm = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-            <Stethoscope size={14} className="text-primary" /> Diagnosis / Findings *
+            <Stethoscope size={14} className="text-primary" /> Diagnosis /
+            Findings *
           </label>
           <input
             type="text"
@@ -801,8 +828,8 @@ const RecordForm = ({
             Click to choose files or drag & drop here
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            Upload X-rays, reports, prescriptions, lab results, images, PDFs, etc.
-            (Multiple files allowed)
+            Upload X-rays, reports, prescriptions, lab results, images, PDFs,
+            etc. (Multiple files allowed)
           </p>
           <input
             id="mr-files-input"
@@ -857,7 +884,10 @@ const RecordForm = ({
                     </button>
                   </div>
                   <div className="p-3">
-                    <p className="text-sm font-medium text-gray-900 truncate" title={att.name || att.originalName}>
+                    <p
+                      className="text-sm font-medium text-gray-900 truncate"
+                      title={att.name || att.originalName}
+                    >
                       {att.name || att.originalName || "Document"}
                     </p>
                     <div className="flex items-center justify-between mt-1.5 text-xs text-gray-500">
@@ -886,7 +916,9 @@ const RecordForm = ({
           <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
             <div className="px-3 py-2 border-b border-gray-200 bg-white flex items-center justify-between gap-2">
               <p className="text-sm font-semibold text-gray-900 truncate">
-                {selectedPreview.name || selectedPreview.originalName || "Preview"}
+                {selectedPreview.name ||
+                  selectedPreview.originalName ||
+                  "Preview"}
               </p>
               <button
                 type="button"
@@ -901,7 +933,11 @@ const RecordForm = ({
               <div className="p-3 flex justify-center max-h-[32rem] overflow-auto">
                 <img
                   src={getPreviewUrl(selectedPreview)}
-                  alt={selectedPreview.name || selectedPreview.originalName || "Image preview"}
+                  alt={
+                    selectedPreview.name ||
+                    selectedPreview.originalName ||
+                    "Image preview"
+                  }
                   className="max-w-full max-h-[30rem] object-contain rounded"
                 />
               </div>
@@ -938,8 +974,12 @@ const RecordForm = ({
             <Plus size={18} />
           )}
           {isEdit
-            ? (uploading ? "Uploading..." : "Update Medical Record")
-            : (uploading ? "Uploading..." : "Create Medical Record")}
+            ? uploading
+              ? "Uploading..."
+              : "Update Medical Record"
+            : uploading
+              ? "Uploading..."
+              : "Create Medical Record"}
         </button>
       </div>
     </form>
@@ -989,14 +1029,14 @@ const MedicalRecords = () => {
   const filteredRecords = medicalRecords.filter((rec) => {
     const matchesSearch =
       rec.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (rec.diagnosis || "")
+      (rec.diagnosis || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (rec.treatment || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (rec.patient?.phone || "")
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      (rec.treatment || "")
+      (rec.patient?.patientId || "")
         .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      (rec.patient?.phone || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (rec.patient?.patientId || "").toLowerCase().includes(searchTerm.toLowerCase());
+        .includes(searchTerm.toLowerCase());
     const matchesType = filterType === "All" || rec.visitType === filterType;
     return matchesSearch && matchesType;
   });
@@ -1085,8 +1125,11 @@ const MedicalRecords = () => {
         e?.message ||
         "unknown error";
       toast.error(
-        (mode === "create" ? "Failed to create record" : "Failed to update record") +
-          ": " + reason,
+        (mode === "create"
+          ? "Failed to create record"
+          : "Failed to update record") +
+          ": " +
+          reason,
         { duration: 6000 },
       );
     }
@@ -1123,12 +1166,17 @@ const MedicalRecords = () => {
         </motion.div>
 
         {showCreateForm && (
-          <motion.div {...fadeIn("up", 0.1)} className="card mb-8 overflow-hidden">
+          <motion.div
+            {...fadeIn("up", 0.1)}
+            className="card mb-8 overflow-hidden"
+          >
             <div className="bg-gradient-to-r from-primary to-accent px-6 py-4 -mx-4 -mt-4 mb-6 sm:-mx-6 sm:-mt-6 rounded-t-lg flex items-center justify-between">
               <div>
                 <h2 className="font-heading text-xl font-bold text-white flex items-center gap-2">
                   <FileText size={22} />
-                  {editingRecord ? "Update Medical Record" : "Create New Medical Record"}
+                  {editingRecord
+                    ? "Update Medical Record"
+                    : "Create New Medical Record"}
                 </h2>
                 <p className="text-white/80 text-sm mt-1">
                   Fill the details and attach all reports, X-rays, or documents
@@ -1262,7 +1310,9 @@ const MedicalRecords = () => {
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Stethoscope size={14} />
-                    <span className="line-clamp-1">Dr. {record.doctorName}</span>
+                    <span className="line-clamp-1">
+                      Dr. {record.doctorName}
+                    </span>
                   </div>
                 </div>
 
@@ -1325,7 +1375,10 @@ const MedicalRecords = () => {
               </motion.div>
             ))
           ) : (
-            <motion.div {...fadeIn("up")} className="col-span-full card text-center py-12">
+            <motion.div
+              {...fadeIn("up")}
+              className="col-span-full card text-center py-12"
+            >
               <FileText size={64} className="mx-auto mb-4 text-gray-300" />
               <h3 className="font-heading text-xl font-semibold text-gray-900 mb-2">
                 No medical records found

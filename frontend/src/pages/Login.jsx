@@ -1,7 +1,17 @@
-import { useState, useEffect,Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Phone, Lock, Eye, EyeOff, KeyRound, ArrowLeft, Sparkles, User, Key } from "lucide-react";
+import {
+  Phone,
+  Lock,
+  Eye,
+  EyeOff,
+  KeyRound,
+  ArrowLeft,
+  Sparkles,
+  User,
+  Key,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { fadeIn } from "../utils/motion";
 import { useMutation } from "@apollo/client";
@@ -120,7 +130,7 @@ const Login = () => {
   };
 
   return (
-    <Suspense fallback={<Preloader/>}>
+    <Suspense fallback={<Preloader />}>
       <SEO
         title="Login to Creadent Dental Clinic | Book Appointment"
         description="Login to Creadent Dental Clinic to book appointments, view records, and manage your dental care."
@@ -286,19 +296,27 @@ const Login = () => {
                         <div className="flex items-center gap-2">
                           <User size={14} className="text-gray-500" />
                           <span className="text-gray-500">Phone:</span>
-                          <span className="font-mono font-semibold">{demoPatient.phone}</span>
+                          <span className="font-mono font-semibold">
+                            {demoPatient.phone}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Key size={14} className="text-gray-500" />
                           <span className="text-gray-500">Password:</span>
-                          <span className="font-mono font-semibold">{demoPatient.password}</span>
+                          <span className="font-mono font-semibold">
+                            {demoPatient.password}
+                          </span>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => {
-                          setValue("phone", demoPatient.phone, { shouldValidate: true });
-                          setValue("password", demoPatient.password, { shouldValidate: true });
+                          setValue("phone", demoPatient.phone, {
+                            shouldValidate: true,
+                          });
+                          setValue("password", demoPatient.password, {
+                            shouldValidate: true,
+                          });
                         }}
                         className="mt-3 w-full text-xs font-medium text-primary hover:text-primary/80 hover:underline"
                       >

@@ -19,12 +19,14 @@ const routeImports = {
   "/doctor/records": () => import("../pages/MedicalRecords"),
   "/doctor/prescriptions": () => import("../pages/Prescriptions"),
   "/doctor/medicines": () => import("../pages/MedicineList"),
-  "/doctor/medicine-registration": () => import("../pages/MedicineRegistration"),
+  "/doctor/medicine-registration": () =>
+    import("../pages/MedicineRegistration"),
   "/doctor/payment-ledger": () => import("../pages/PaymentLedger"),
   "/doctor/chat": () => import("../pages/Chat"),
   "/doctor/settings": () => import("../pages/Settings"),
   "/admin/patient-registration": () => import("../pages/PatientRegistration"),
-  "/employee/patient-registration": () => import("../pages/PatientRegistration"),
+  "/employee/patient-registration": () =>
+    import("../pages/PatientRegistration"),
   "/admin/patients": () => import("../pages/PatientList"),
   "/employee/patients": () => import("../pages/PatientList"),
   "/admin/appointments": () => import("../pages/Appointments"),
@@ -39,7 +41,8 @@ const routeImports = {
   "/admin/medicines": () => import("../pages/MedicineList"),
   "/employee/medicines": () => import("../pages/MedicineList"),
   "/admin/medicine-registration": () => import("../pages/MedicineRegistration"),
-  "/employee/medicine-registration": () => import("../pages/MedicineRegistration"),
+  "/employee/medicine-registration": () =>
+    import("../pages/MedicineRegistration"),
   "/admin/staff-registration": () => import("../pages/StaffRegistration"),
   "/admin/doctor-registration": () => import("../pages/StaffRegistration"),
   "/admin/payment-ledger": () => import("../pages/PaymentLedger"),
@@ -118,7 +121,12 @@ export const prefetchRoutes = (routes = [], currentRoute = "") => {
 };
 
 export const prefetchCriticalAssets = () => {
-  addHint({ href: "/logo/logo.png", rel: "preload", as: "image", fetchpriority: "high" });
+  addHint({
+    href: "/logo/logo.png",
+    rel: "preload",
+    as: "image",
+    fetchpriority: "high",
+  });
   addHint({ href: "/favicon/favicon.ico", rel: "prefetch", as: "image" });
 };
 
@@ -126,8 +134,16 @@ export const preloadLikelyRoutes = (userRole, currentRoute) => {
   const routesByRole = {
     admin: ["/admin/dashboard", "/admin/patients", "/admin/appointments"],
     doctor: ["/doctor/dashboard", "/doctor/patients", "/doctor/appointments"],
-    patient: ["/patient/dashboard", "/patient/appointments", "/patient/records"],
-    employee: ["/employee/dashboard", "/employee/patients", "/employee/appointments"],
+    patient: [
+      "/patient/dashboard",
+      "/patient/appointments",
+      "/patient/records",
+    ],
+    employee: [
+      "/employee/dashboard",
+      "/employee/patients",
+      "/employee/appointments",
+    ],
   };
 
   prefetchRoutes(routesByRole[userRole] || ["/login"], currentRoute);

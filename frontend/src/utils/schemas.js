@@ -83,9 +83,17 @@ export const patientRegistrationSchema = z
       .refine(
         (val) =>
           !val ||
-          ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"].includes(
-            val,
-          ),
+          [
+            "A+",
+            "A-",
+            "B+",
+            "B-",
+            "AB+",
+            "AB-",
+            "O+",
+            "O-",
+            "Unknown",
+          ].includes(val),
         {
           message: "Invalid blood group",
         },

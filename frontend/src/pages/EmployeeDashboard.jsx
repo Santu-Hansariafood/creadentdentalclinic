@@ -26,7 +26,11 @@ import {
   Cell,
 } from "recharts";
 import { useQuery } from "@apollo/client";
-import { GET_DASHBOARD_STATS, GET_REPORTS_DATA, GET_RECENT_ACTIVITIES } from "../graphql/queries";
+import {
+  GET_DASHBOARD_STATS,
+  GET_REPORTS_DATA,
+  GET_RECENT_ACTIVITIES,
+} from "../graphql/queries";
 import SEO from "../components/SEO";
 import { Suspense } from "react";
 import Preloader from "../components/Preloader";
@@ -35,24 +39,24 @@ const formatTimeAgo = (dateString) => {
   const date = new Date(dateString);
   const now = new Date();
   const seconds = Math.floor((now - date) / 1000);
-  
+
   const intervals = [
-    { label: 'year', seconds: 31536000 },
-    { label: 'month', seconds: 2592000 },
-    { label: 'week', seconds: 604800 },
-    { label: 'day', seconds: 86400 },
-    { label: 'hour', seconds: 3600 },
-    { label: 'minute', seconds: 60 },
+    { label: "year", seconds: 31536000 },
+    { label: "month", seconds: 2592000 },
+    { label: "week", seconds: 604800 },
+    { label: "day", seconds: 86400 },
+    { label: "hour", seconds: 3600 },
+    { label: "minute", seconds: 60 },
   ];
 
   for (const interval of intervals) {
     const count = Math.floor(seconds / interval.seconds);
     if (count >= 1) {
-      return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
+      return `${count} ${interval.label}${count > 1 ? "s" : ""} ago`;
     }
   }
-  
-  return 'just now';
+
+  return "just now";
 };
 
 const EmployeeDashboard = () => {
@@ -60,11 +64,12 @@ const EmployeeDashboard = () => {
     useQuery(GET_DASHBOARD_STATS);
   const { data: reportsData, loading: reportsLoading } =
     useQuery(GET_REPORTS_DATA);
-  const { data: activitiesData, loading: activitiesLoading } =
-    useQuery(GET_RECENT_ACTIVITIES, { variables: { limit: 10 } });
+  const { data: activitiesData, loading: activitiesLoading } = useQuery(
+    GET_RECENT_ACTIVITIES,
+    { variables: { limit: 10 } },
+  );
 
-  if (statsLoading || reportsLoading)
-    return <Preloader />;
+  if (statsLoading || reportsLoading) return <Preloader />;
 
   const stats = statsData?.getDashboardStats?.admin || {};
   const reports = reportsData?.getReportsData || {
