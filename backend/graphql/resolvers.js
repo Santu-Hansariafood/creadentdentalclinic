@@ -19,7 +19,9 @@ const { sendPrescriptionEmail } = require("../utils/emailService");
 const {
   sendInvoiceWhatsApp,
   sendLoginCredentialsWhatsApp,
+  sendForgotPasswordOtpWhatsApp,
   sendPrescriptionWhatsApp,
+  normalizePhoneNumber,
 } = require("../utils/whatsappNotifications");
 const {
   initiateSale,
@@ -1082,6 +1084,19 @@ const resolvers = {
       user.resetPasswordOTP = otp;
       user.resetPasswordOTPExpires = Date.now() + 10 * 60 * 1000;
       await user.save();
+
+      try {
+        const phoneNumber = normalizePhoneNumber(user.phone);
+        if (phoneNumber) {
+          await sendForgotPasswordOtpWhatsApp({
+            phone: phoneNumber,
+            otp,
+          });
+        }
+      } catch (error) {
+        console.warn("Forgot password OTP WhatsApp send failed:", error.message);
+      }
+
       return true;
     },
 

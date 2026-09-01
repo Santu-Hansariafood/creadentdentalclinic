@@ -317,6 +317,40 @@ Regards,
 Team Creadent Dental Clinic`;
 };
 
+const sendForgotPasswordOtpWhatsApp = async ({ phone, otp }) => {
+  const normalizedPhone = normalizePhoneNumber(phone);
+  const templateName = process.env.WHATSAPP_TEMPLATE_FORGOT_PASSWORD_OTP;
+
+  if (!normalizedPhone) {
+    return {
+      success: false,
+      skipped: true,
+      error: "Phone number is required for forgot-password OTP",
+    };
+  }
+
+  if (templateName) {
+    const templateResult = await sendWhatsAppTemplateMessage({
+      to: normalizedPhone,
+      templateName,
+      bodyParameters: [otp || "-"],
+    });
+    if (templateResult.success || templateResult.skipped) {
+      return {
+        ...templateResult,
+        phone: normalizedPhone,
+      };
+    }
+  }
+
+  const text = `*Creadent Dental Clinic*\n\nYour password reset OTP is *${otp}*.\nThis code is valid for 10 minutes only.\n\nDo not share this OTP with anyone.\n\nIf you did not request this, please ignore this message.`;
+
+  return await sendWhatsAppTextMessage({
+    to: normalizedPhone,
+    text,
+  });
+};
+
 const sendInvoiceWhatsApp = async (invoice, patientId) => {
   const patientTemplate = process.env.WHATSAPP_TEMPLATE_INVOICE_SHARE;
   const patientContact = await resolvePatientContact(
@@ -473,6 +507,7 @@ module.exports = {
   buildLoginCredentialsMessage,
   sendInvoiceWhatsApp,
   sendLoginCredentialsWhatsApp,
+  sendForgotPasswordOtpWhatsApp,
   sendPrescriptionWhatsApp,
   sendWhatsAppTemplateMessage,
   sendWhatsAppTextMessage,
