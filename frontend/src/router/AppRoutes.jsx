@@ -20,6 +20,7 @@ const Appointments = lazy(() => import("../pages/Appointments"));
 const MedicalRecords = lazy(() => import("../pages/MedicalRecords"));
 const Prescriptions = lazy(() => import("../pages/Prescriptions"));
 const Chat = lazy(() => import("../pages/Chat"));
+const WhatsAppMessages = lazy(() => import("../pages/WhatsAppMessages"));
 const Billing = lazy(() => import("../pages/Billing"));
 const Reports = lazy(() => import("../pages/Reports"));
 const PatientList = lazy(() => import("../pages/PatientList"));
@@ -195,6 +196,14 @@ const AppRoutes = ({ isAuthenticated, user }) => {
           }
         />
         <Route
+          path="/doctor/whatsapp-messages"
+          element={
+            <ProtectedRoute role="doctor">
+              <WhatsAppMessages />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/doctor/settings"
           element={
             <ProtectedRoute role="doctor">
@@ -308,6 +317,14 @@ const AppRoutes = ({ isAuthenticated, user }) => {
           }
         />
         <Route
+          path="/admin/whatsapp-messages"
+          element={
+            <ProtectedRoute role="admin">
+              <WhatsAppMessages />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin/settings"
           element={
             <ProtectedRoute role="admin">
@@ -385,6 +402,14 @@ const AppRoutes = ({ isAuthenticated, user }) => {
           element={
             <ProtectedRoute role="employee">
               <Billing />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/whatsapp-messages"
+          element={
+            <ProtectedRoute role="employee">
+              <WhatsAppMessages />
             </ProtectedRoute>
           }
         />

@@ -23,6 +23,7 @@ const routeImports = {
     import("../pages/MedicineRegistration"),
   "/doctor/payment-ledger": () => import("../pages/PaymentLedger"),
   "/doctor/chat": () => import("../pages/Chat"),
+  "/doctor/whatsapp-messages": () => import("../pages/WhatsAppMessages"),
   "/doctor/settings": () => import("../pages/Settings"),
   "/admin/patient-registration": () => import("../pages/PatientRegistration"),
   "/employee/patient-registration": () =>
@@ -37,7 +38,9 @@ const routeImports = {
   "/admin/billing": () => import("../pages/Billing"),
   "/employee/billing": () => import("../pages/Billing"),
   "/admin/reports": () => import("../pages/Reports"),
+  "/admin/whatsapp-messages": () => import("../pages/WhatsAppMessages"),
   "/employee/reports": () => import("../pages/Reports"),
+  "/employee/whatsapp-messages": () => import("../pages/WhatsAppMessages"),
   "/admin/medicines": () => import("../pages/MedicineList"),
   "/employee/medicines": () => import("../pages/MedicineList"),
   "/admin/medicine-registration": () => import("../pages/MedicineRegistration"),

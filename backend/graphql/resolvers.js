@@ -10,6 +10,7 @@ const Conversation = require("../models/Conversation");
 const ChatMessage = require("../models/ChatMessage");
 const Notification = require("../models/Notification");
 const Transaction = require("../models/Transaction");
+const WhatsAppMessage = require("../models/WhatsAppMessage");
 const generateToken = require("../utils/generateToken");
 const storageService = require("../utils/storageService");
 const {
@@ -22,6 +23,7 @@ const {
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
   sendPrescriptionWhatsApp,
+  sendWhatsAppTextMessage,
   normalizePhoneNumber,
 } = require("../utils/whatsappNotifications");
 const {
@@ -300,16 +302,25 @@ const resolvers = {
       if (!user) throw new Error("Not authenticated");
       return await Patient.findOne({ userId: user._id });
     },
-    checkPatientExists: async (_, { phone, email }) => {
+    checkPatientExists: async (_, { phone, email, patientId }) => {
       const normalizedPhone = (phone || "").replace(/\D/g, "").slice(-10);
       const normalizedEmail = email?.trim().toLowerCase();
+      const currentPatient = patientId ? await Patient.findById(patientId) : null;
+      const patientExclusion = currentPatient ? { _id: { $ne: currentPatient._id } } : {};
+      const userExclusion = currentPatient?.userId
+        ? { _id: { $ne: currentPatient.userId } }
+        : {};
 
       if (normalizedPhone.length === 10) {
         const patientPhoneExists = await Patient.exists({
           phone: normalizedPhone,
+          ...patientExclusion,
         });
         if (patientPhoneExists) return true;
-        const userPhoneExists = await User.exists({ phone: normalizedPhone });
+        const userPhoneExists = await User.exists({
+          phone: normalizedPhone,
+          ...userExclusion,
+        });
         if (userPhoneExists) return true;
       }
 
@@ -320,6 +331,7 @@ const resolvers = {
         );
         const userEmailExists = await User.exists({
           email: { $regex: `^${escapedEmail}$`, $options: "i" },
+          ...userExclusion,
         });
         if (userEmailExists) return true;
       }
@@ -911,6 +923,13 @@ const resolvers = {
         }
       }
       return transaction;
+    },
+    getWhatsAppMessages: async (_, { patientId, limit = 100 }, { user }) => {
+      requireStaff(user);
+      const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 500);
+      return await WhatsAppMessage.find(patientId ? { patientId } : {})
+        .sort({ createdAt: -1 })
+        .limit(safeLimit);
     },
   },
   Mutation: {
@@ -1640,6 +1659,30 @@ const resolvers = {
         patientName: result.patient?.name || prescription.patientName,
         error: result.error || null,
         fileUrl: storedFile.url,
+      };
+    },
+    sendWhatsAppMessage: async (_, { patientId, phone, message }, { user }) => {
+      requireStaff(user);
+      const text = message?.trim();
+      if (!text) throw new Error("Message cannot be empty");
+
+      const patient = patientId ? await Patient.findById(patientId) : null;
+      const destination = phone || patient?.phone;
+      if (!destination) throw new Error("Patient phone number is required");
+
+      const result = await sendWhatsAppTextMessage({ to: destination, text });
+      return {
+        success: result.success,
+        skipped: result.skipped,
+        message: result.success
+          ? "WhatsApp message sent successfully"
+          : result.skipped
+            ? "WhatsApp is not configured"
+            : "WhatsApp message failed",
+        phone: result.phone || destination,
+        patientName: patient?.name || "",
+        error: result.error || null,
+        messagePreview: text,
       };
     },
     sendPrescriptionEmail: async (

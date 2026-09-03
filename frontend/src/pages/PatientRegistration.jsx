@@ -105,16 +105,9 @@ const PatientRegistration = ({
       return;
     }
 
-    if (initialPatient?.phone === phone) {
-      return;
-    }
-    if (isSelfRegistration && myPatientData?.getMyPatient?.phone === phone) {
-      return;
-    }
-
     try {
       const { data } = await checkPatientExistsQuery({
-        variables: { phone, email },
+        variables: { phone, email, patientId: watch("id") || undefined },
         fetchPolicy: "network-only",
       });
 
@@ -133,21 +126,12 @@ const PatientRegistration = ({
       return;
     }
 
-    if (initialPatient?.email?.toLowerCase() === normalizedEmail) {
-      return;
-    }
-    if (
-      isSelfRegistration &&
-      myPatientData?.getMyPatient?.email?.toLowerCase() === normalizedEmail
-    ) {
-      return;
-    }
-
     try {
       const { data } = await checkPatientExistsQuery({
         variables: {
           phone: phone?.length === 10 ? phone : undefined,
           email: normalizedEmail,
+          patientId: watch("id") || undefined,
         },
         fetchPolicy: "network-only",
       });

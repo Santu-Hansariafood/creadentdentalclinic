@@ -413,8 +413,27 @@ export const GET_MY_PATIENT = gql`
 `;
 
 export const CHECK_PATIENT_EXISTS = gql`
-  query CheckPatientExists($phone: String, $email: String) {
-    checkPatientExists(phone: $phone, email: $email)
+  query CheckPatientExists($phone: String, $email: String, $patientId: ID) {
+    checkPatientExists(phone: $phone, email: $email, patientId: $patientId)
+  }
+`;
+
+export const GET_WHATSAPP_MESSAGES = gql`
+  query GetWhatsAppMessages($patientId: ID, $limit: Int) {
+    getWhatsAppMessages(patientId: $patientId, limit: $limit) {
+      id
+      direction
+      phone
+      patientId
+      patientName
+      text
+      messageType
+      templateName
+      status
+      messageId
+      error
+      createdAt
+    }
   }
 `;
 

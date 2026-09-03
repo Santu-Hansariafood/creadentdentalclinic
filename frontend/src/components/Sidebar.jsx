@@ -46,6 +46,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     },
     { to: "/doctor/payment-ledger", icon: FileText, label: "Payment Ledger" },
     { to: "/doctor/chat", icon: MessageSquare, label: "Messages" },
+    { to: "/doctor/whatsapp-messages", icon: MessageSquare, label: "WhatsApp Messages" },
     { to: "/doctor/settings", icon: Settings, label: "Settings" },
   ];
 
@@ -71,6 +72,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { to: "/admin/prescriptions", icon: Pill, label: "Prescriptions" },
     { to: "/admin/billing", icon: CreditCard, label: "Billing" },
     { to: "/admin/reports", icon: BarChart3, label: "Reports" },
+    { to: "/admin/whatsapp-messages", icon: MessageSquare, label: "WhatsApp Messages" },
     { to: "/admin/settings", icon: Settings, label: "Settings" },
   ];
 
@@ -93,6 +95,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { to: "/employee/records", icon: FileText, label: "Medical Records" },
     { to: "/employee/billing", icon: CreditCard, label: "Billing" },
     { to: "/employee/reports", icon: BarChart3, label: "Reports" },
+    { to: "/employee/whatsapp-messages", icon: MessageSquare, label: "WhatsApp Messages" },
     { to: "/employee/settings", icon: Settings, label: "Settings" },
   ];
 

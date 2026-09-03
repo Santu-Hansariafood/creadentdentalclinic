@@ -334,6 +334,21 @@ input UpdateMedicineInput {
     fileUrl: String
   }
 
+  type WhatsAppMessage {
+    id: ID!
+    direction: String!
+    phone: String!
+    patientId: ID
+    patientName: String
+    text: String
+    messageType: String
+    templateName: String
+    status: String
+    messageId: String
+    error: String
+    createdAt: String
+  }
+
   type PaginatedMedicines {
     medicines: [Medicine]
     totalCount: Int
@@ -590,7 +605,7 @@ input UpdateMedicineInput {
     getPatients(page: Int, limit: Int, search: String): PaginatedPatients
     getPatient(id: ID!): Patient
     getMyPatient: Patient
-    checkPatientExists(phone: String, email: String): Boolean!
+    checkPatientExists(phone: String, email: String, patientId: ID): Boolean!
     findPatientByNameAndPhone(name: String!, phone: String!): Patient
     findPatientByNameAndEmail(name: String!, email: String!): Patient
     findPatientsByNameOrContact(name: String, email: String, phone: String): [Patient]!
@@ -607,6 +622,7 @@ input UpdateMedicineInput {
     getRecentActivities(limit: Int): [Activity]
     getTransactions(page: Int, limit: Int, invoiceId: ID, patientId: ID, txnStatus: String): PaginatedTransactions
     getTransaction(id: ID!): Transaction
+    getWhatsAppMessages(patientId: ID, limit: Int): [WhatsAppMessage]!
   }
 
   type Mutation {
@@ -752,6 +768,8 @@ input UpdateMedicineInput {
       pdfDataUri: String!
       fileName: String
     ): WhatsAppSendResult!
+
+    sendWhatsAppMessage(patientId: ID, phone: String, message: String!): WhatsAppSendResult!
 
     createPrescription(
       patientId: ID!,

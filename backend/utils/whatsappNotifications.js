@@ -1,6 +1,7 @@
 const https = require("https");
 const Patient = require("../models/Patient");
 const User = require("../models/User");
+const WhatsAppMessage = require("../models/WhatsAppMessage");
 
 const DEFAULT_COUNTRY_CODE = process.env.WHATSAPP_DEFAULT_COUNTRY_CODE || "91";
 const DEFAULT_LANGUAGE_CODE = process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en";
@@ -18,6 +19,38 @@ const normalizePhoneNumber = (phone) => {
     return `${DEFAULT_COUNTRY_CODE}${digitsOnly}`;
   }
   return digitsOnly;
+};
+
+const recordWhatsAppMessage = async ({
+  direction = "outbound",
+  phone,
+  text = "",
+  messageType = "text",
+  templateName,
+  status = "sent",
+  messageId,
+  error,
+}) => {
+  try {
+    const normalizedPhone = normalizePhoneNumber(phone);
+    const patient = normalizedPhone
+      ? await Patient.findOne({ phone: normalizedPhone.slice(-10) })
+      : null;
+    await WhatsAppMessage.create({
+      direction,
+      phone: normalizedPhone || String(phone || ""),
+      patientId: patient?._id,
+      patientName: patient?.name,
+      text,
+      messageType,
+      templateName,
+      status,
+      messageId,
+      error,
+    });
+  } catch (recordError) {
+    console.warn("[WHATSAPP] Could not save message history:", recordError.message);
+  }
 };
 
 const hasWhatsAppBaseConfig = () => {
@@ -105,6 +138,19 @@ const sendWhatsAppTemplateMessage = ({
         });
         response.on("end", () => {
           const ok = response.statusCode >= 200 && response.statusCode < 300;
+          let parsedBody = null;
+          try {
+            parsedBody = JSON.parse(responseBody);
+          } catch (_) {}
+          void recordWhatsAppMessage({
+            phone: to,
+            text: `Template: ${templateName}${bodyParameters.length ? ` (${bodyParameters.join(", ")})` : ""}`,
+            messageType: "template",
+            templateName,
+            status: ok ? "sent" : "failed",
+            messageId: parsedBody?.messages?.[0]?.id,
+            error: ok ? undefined : responseBody,
+          });
           resolve({
             success: ok,
             statusCode: response.statusCode,
@@ -115,6 +161,14 @@ const sendWhatsAppTemplateMessage = ({
       },
     );
     request.on("error", (error) => {
+      void recordWhatsAppMessage({
+        phone: to,
+        text: `Template: ${templateName}`,
+        messageType: "template",
+        templateName,
+        status: "failed",
+        error: error.message,
+      });
       resolve({
         success: false,
         error: error.message,
@@ -160,6 +214,17 @@ const sendWhatsAppTextMessage = ({ to, text }) =>
         });
         response.on("end", () => {
           const ok = response.statusCode >= 200 && response.statusCode < 300;
+          let parsedBody = null;
+          try {
+            parsedBody = JSON.parse(responseBody);
+          } catch (_) {}
+          void recordWhatsAppMessage({
+            phone: to,
+            text,
+            status: ok ? "sent" : "failed",
+            messageId: parsedBody?.messages?.[0]?.id,
+            error: ok ? undefined : responseBody,
+          });
           resolve({
             success: ok,
             statusCode: response.statusCode,
@@ -170,6 +235,12 @@ const sendWhatsAppTextMessage = ({ to, text }) =>
       },
     );
     request.on("error", (error) => {
+      void recordWhatsAppMessage({
+        phone: to,
+        text,
+        status: "failed",
+        error: error.message,
+      });
       resolve({
         success: false,
         error: error.message,

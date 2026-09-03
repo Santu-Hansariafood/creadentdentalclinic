@@ -275,6 +275,20 @@ export const SEND_PRESCRIPTION_WHATSAPP_LINK = gql`
   }
 `;
 
+export const SEND_WHATSAPP_MESSAGE = gql`
+  mutation SendWhatsAppMessage($patientId: ID, $phone: String, $message: String!) {
+    sendWhatsAppMessage(patientId: $patientId, phone: $phone, message: $message) {
+      success
+      skipped
+      message
+      phone
+      patientName
+      error
+      messagePreview
+    }
+  }
+`;
+
 export const CREATE_MEDICAL_RECORD = gql`
   mutation CreateMedicalRecord(
     $patientId: ID!

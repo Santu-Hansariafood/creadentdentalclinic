@@ -1,5 +1,7 @@
 const crypto = require("crypto");
 const express = require("express");
+const Patient = require("../models/Patient");
+const WhatsAppMessage = require("../models/WhatsAppMessage");
 
 const router = express.Router();
 
@@ -26,7 +28,7 @@ router.get("/", (req, res) => {
   return res.sendStatus(403);
 });
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const signature = req.get("x-hub-signature-256") || "";
   const appSecret = getAppSecret();
   const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from("");
@@ -73,6 +75,29 @@ router.post("/", (req, res) => {
           status: status.status,
           timestamp: status.timestamp,
           errors: status.errors || [],
+        });
+        await WhatsAppMessage.findOneAndUpdate(
+          { messageId: status.id },
+          { status: status.status, error: status.errors?.[0]?.message },
+        );
+      }
+      for (const message of value.messages || []) {
+        const phone = message.from || "";
+        const patient = await Patient.findOne({ phone: phone.slice(-10) });
+        const text =
+          message.text?.body ||
+          message.button?.text ||
+          message.interactive?.button_reply?.title ||
+          `[${message.type || "WhatsApp"} message]`;
+        await WhatsAppMessage.create({
+          direction: "inbound",
+          phone,
+          patientId: patient?._id,
+          patientName: patient?.name,
+          text,
+          messageType: message.type || "unknown",
+          status: "received",
+          messageId: message.id,
         });
       }
     }
