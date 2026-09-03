@@ -19,19 +19,53 @@ const WhatsAppMessages = () => {
     loading: messagesLoading,
     refetch: refetchMessages,
   } = useQuery(GET_WHATSAPP_MESSAGES, {
-    variables: { patientId: selectedPatient?.id, limit: 200 },
+    variables: { limit: 500 },
   });
   const [sendMessage, { loading: sending }] = useMutation(SEND_WHATSAPP_MESSAGE);
 
   const patients = patientData?.getPatients?.patients || [];
-  const messages = [...(messageData?.getWhatsAppMessages || [])].reverse();
+  const allMessages = messageData?.getWhatsAppMessages || [];
+  const patientMap = new Map(patients.map((patient) => [patient.id, patient]));
+  const historyRecipients = Array.from(
+    allMessages.reduce((recipients, item) => {
+      const key = item.patientId || item.phone;
+      const current = recipients.get(key);
+      if (!current || new Date(item.createdAt) > new Date(current.createdAt)) {
+        recipients.set(key, {
+          id: item.patientId || item.phone,
+          patientId: item.patientId,
+          name: item.patientName || patientMap.get(item.patientId)?.name || item.phone,
+          phone: item.phone,
+          createdAt: item.createdAt,
+        });
+      }
+      return recipients;
+    }, new Map()).values(),
+  )
+    .filter((recipient) =>
+      `${recipient.name} ${recipient.phone}`.toLowerCase().includes(search.toLowerCase()),
+    )
+    .sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt));
+  const activePatient = selectedPatient || historyRecipients[0] || null;
+  const messages = allMessages
+    .filter((item) =>
+      activePatient &&
+      (activePatient.patientId
+        ? item.patientId === activePatient.patientId
+        : item.phone === activePatient.phone),
+    )
+    .sort((first, second) => new Date(first.createdAt) - new Date(second.createdAt));
 
   const handleSend = async (event) => {
     event.preventDefault();
-    if (!selectedPatient || !message.trim()) return;
+    if (!activePatient || !message.trim()) return;
     try {
       const { data } = await sendMessage({
-        variables: { patientId: selectedPatient.id, message: message.trim() },
+        variables: {
+          patientId: activePatient.patientId,
+          phone: activePatient.phone,
+          message: message.trim(),
+        },
       });
       const result = data?.sendWhatsAppMessage;
       if (result?.success) {
@@ -46,7 +80,7 @@ const WhatsAppMessages = () => {
     }
   };
 
-  if (patientsLoading && !patientData) return <Preloader />;
+  if ((patientsLoading || messagesLoading) && !patientData && !messageData) return <Preloader />;
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -69,7 +103,7 @@ const WhatsAppMessages = () => {
         <section className="card p-4 h-fit">
           <div className="flex items-center gap-2 mb-4">
             <User size={19} className="text-primary" />
-            <h2 className="font-heading font-semibold text-gray-900">Patients</h2>
+            <h2 className="font-heading font-semibold text-gray-900">Message History</h2>
           </div>
           <input
             value={search}
@@ -77,14 +111,27 @@ const WhatsAppMessages = () => {
             placeholder="Search patients..."
             className="input-field mb-3"
           />
-          <div className="space-y-2 max-h-[35rem] overflow-y-auto">
+          <select
+            value={activePatient?.patientId || ""}
+            onChange={(event) => {
+              const patient = patients.find((item) => item.id === event.target.value);
+              if (patient) setSelectedPatient({ patientId: patient.id, ...patient });
+            }}
+            className="input-field mb-3"
+          >
+            <option value="">Send to a patient...</option>
             {patients.map((patient) => (
+              <option key={patient.id} value={patient.id}>{patient.name} ({patient.phone})</option>
+            ))}
+          </select>
+          <div className="space-y-2 max-h-[35rem] overflow-y-auto">
+            {historyRecipients.map((patient) => (
               <button
                 key={patient.id}
                 type="button"
                 onClick={() => setSelectedPatient(patient)}
                 className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                  selectedPatient?.id === patient.id
+                  activePatient?.id === patient.id
                     ? "border-primary bg-primary/10"
                     : "border-gray-100 hover:bg-gray-50"
                 }`}
@@ -93,20 +140,20 @@ const WhatsAppMessages = () => {
                 <p className="text-xs text-gray-500 mt-1">{patient.phone}</p>
               </button>
             ))}
-            {!patients.length && <p className="text-sm text-gray-500 py-4">No patients found.</p>}
+            {!historyRecipients.length && <p className="text-sm text-gray-500 py-4">No WhatsApp messages found.</p>}
           </div>
         </section>
 
         <section className="card p-0 overflow-hidden min-h-[38rem] flex flex-col">
-          {selectedPatient ? (
+          {activePatient ? (
             <>
               <header className="p-5 border-b border-gray-200 flex items-center gap-3">
                 <div className="w-11 h-11 rounded-full bg-[#25D366]/15 flex items-center justify-center">
                   <MessageCircle className="text-[#128C7E]" size={24} />
                 </div>
                 <div>
-                  <h2 className="font-heading font-semibold text-gray-900">{selectedPatient.name}</h2>
-                  <p className="text-sm text-gray-500 flex items-center gap-1"><Smartphone size={14} /> {selectedPatient.phone}</p>
+                  <h2 className="font-heading font-semibold text-gray-900">{activePatient.name}</h2>
+                  <p className="text-sm text-gray-500 flex items-center gap-1"><Smartphone size={14} /> {activePatient.phone}</p>
                 </div>
               </header>
               <div className="flex-1 p-5 space-y-3 overflow-y-auto bg-gray-50/60">
@@ -117,6 +164,7 @@ const WhatsAppMessages = () => {
                       <p className="text-[11px] text-gray-500 mt-2 flex items-center gap-2">
                         {item.direction === "outbound" ? "Sent" : "Received"} · {item.status} · {new Date(item.createdAt).toLocaleString()}
                       </p>
+                      {item.error && <p className="text-xs text-red-600 mt-1 break-words">{item.error}</p>}
                     </div>
                   </div>
                 )) : <div className="h-full flex items-center justify-center text-sm text-gray-500">No WhatsApp messages recorded for this patient.</div>}

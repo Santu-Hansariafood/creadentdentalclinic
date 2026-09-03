@@ -103,6 +103,14 @@ const sendWhatsAppTemplateMessage = ({
 }) =>
   new Promise((resolve) => {
     if (!hasWhatsAppBaseConfig()) {
+      void recordWhatsAppMessage({
+        phone: to,
+        text: `Template: ${templateName}`,
+        messageType: "template",
+        templateName,
+        status: "skipped",
+        error: "WhatsApp configuration is incomplete",
+      });
       return resolve({
         success: false,
         skipped: true,
@@ -111,6 +119,14 @@ const sendWhatsAppTemplateMessage = ({
       });
     }
     if (!to || !templateName) {
+      void recordWhatsAppMessage({
+        phone: to,
+        text: `Template: ${templateName || "unknown"}`,
+        messageType: "template",
+        templateName,
+        status: "skipped",
+        error: "WhatsApp destination or template name is missing",
+      });
       return resolve({
         success: false,
         skipped: true,
@@ -181,6 +197,12 @@ const sendWhatsAppTemplateMessage = ({
 const sendWhatsAppTextMessage = ({ to, text }) =>
   new Promise((resolve) => {
     if (!hasWhatsAppBaseConfig()) {
+      void recordWhatsAppMessage({
+        phone: to,
+        text,
+        status: "skipped",
+        error: "WhatsApp configuration is incomplete",
+      });
       return resolve({
         success: false,
         skipped: true,
@@ -189,6 +211,12 @@ const sendWhatsAppTextMessage = ({ to, text }) =>
       });
     }
     if (!to || !text) {
+      void recordWhatsAppMessage({
+        phone: to,
+        text,
+        status: "skipped",
+        error: "WhatsApp destination or text content is missing",
+      });
       return resolve({
         success: false,
         skipped: true,
