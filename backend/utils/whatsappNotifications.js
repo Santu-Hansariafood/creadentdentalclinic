@@ -582,5 +582,6 @@ module.exports = {
   sendPrescriptionWhatsApp,
   sendWhatsAppTemplateMessage,
   sendWhatsAppTextMessage,
+  recordWhatsAppMessage,
   hasWhatsAppBaseConfig,
 };

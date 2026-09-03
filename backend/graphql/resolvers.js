@@ -201,6 +201,11 @@ const resolvers = {
           }
         : null,
   },
+  WhatsAppMessage: {
+    id: (parent) => (parent.id || parent._id)?.toString(),
+    patientId: (parent) => parent.patientId?.toString(),
+    createdAt: (parent) => toIsoDateString(parent.createdAt),
+  },
   Query: {
     me: async (_, __, { user }) => {
       if (!user) throw new Error("Not authenticated");
@@ -2026,6 +2031,29 @@ const resolvers = {
         : undefined;
       const nextPhone = normalizedPhone || patient.phone;
       const nextEmail = args.email ?? patient.email;
+      let patientUser = patient.userId
+        ? await User.findById(patient.userId)
+        : await User.findOne({
+            role: "patient",
+            $or: [
+              ...(patient.phone ? [{ phone: patient.phone }] : []),
+              ...(patient.email ? [{ email: patient.email }] : []),
+            ],
+          });
+
+      if (nextPhone || nextEmail) {
+        const userConflictQuery = {
+          _id: patientUser ? { $ne: patientUser._id } : { $exists: true },
+          $or: [
+            ...(nextPhone ? [{ phone: nextPhone }] : []),
+            ...(nextEmail ? [{ email: nextEmail }] : []),
+          ],
+        };
+        const conflictingUser = await User.findOne(userConflictQuery);
+        if (conflictingUser) {
+          throw new Error("Another user already uses this phone or email");
+        }
+      }
 
       if (normalizedPhone) {
         args.phone = normalizedPhone;
@@ -2036,11 +2064,6 @@ const resolvers = {
         if (existingPatient) {
           throw new Error("A patient with this phone number already exists");
         }
-      }
-
-      let patientUser = null;
-      if (patient.userId) {
-        patientUser = await User.findById(patient.userId);
       }
 
       if (args.password) {
@@ -2080,6 +2103,7 @@ const resolvers = {
         patientUser.phone = nextPhone;
         patientUser.email = nextEmail || patientUser.email;
         await patientUser.save();
+        patient.userId = patientUser._id;
       }
 
       const updateData = {

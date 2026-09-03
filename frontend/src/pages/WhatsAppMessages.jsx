@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import { MessageCircle, RefreshCw, Send, Smartphone, User } from "lucide-react";
 import toast from "react-hot-toast";
@@ -25,10 +25,6 @@ const WhatsAppMessages = () => {
 
   const patients = patientData?.getPatients?.patients || [];
   const messages = [...(messageData?.getWhatsAppMessages || [])].reverse();
-
-  useEffect(() => {
-    if (!selectedPatient && patients.length) setSelectedPatient(patients[0]);
-  }, [patients, selectedPatient]);
 
   const handleSend = async (event) => {
     event.preventDefault();

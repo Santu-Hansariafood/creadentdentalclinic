@@ -2,6 +2,7 @@ const https = require("https");
 const Appointment = require("../models/Appointment");
 const Patient = require("../models/Patient");
 const User = require("../models/User");
+const { recordWhatsAppMessage } = require("./whatsappNotifications");
 
 const DEFAULT_COUNTRY_CODE = process.env.WHATSAPP_DEFAULT_COUNTRY_CODE || "91";
 const DEFAULT_LANGUAGE_CODE = process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en";
@@ -191,6 +192,19 @@ const sendWhatsAppTemplateMessage = ({ to, templateName, bodyParameters = [] }) 
 
         response.on("end", () => {
           const ok = response.statusCode >= 200 && response.statusCode < 300;
+          let parsedBody = null;
+          try {
+            parsedBody = JSON.parse(responseBody);
+          } catch (_) {}
+          void recordWhatsAppMessage({
+            phone: to,
+            text: `Template: ${templateName}${bodyParameters.length ? ` (${bodyParameters.join(", ")})` : ""}`,
+            messageType: "template",
+            templateName,
+            status: ok ? "sent" : "failed",
+            messageId: parsedBody?.messages?.[0]?.id,
+            error: ok ? undefined : responseBody,
+          });
           resolve({
             success: ok,
             statusCode: response.statusCode,
@@ -202,6 +216,14 @@ const sendWhatsAppTemplateMessage = ({ to, templateName, bodyParameters = [] }) 
     );
 
     request.on("error", (error) => {
+      void recordWhatsAppMessage({
+        phone: to,
+        text: `Template: ${templateName}`,
+        messageType: "template",
+        templateName,
+        status: "failed",
+        error: error.message,
+      });
       resolve({
         success: false,
         error: error.message,
