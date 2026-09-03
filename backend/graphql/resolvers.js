@@ -14,6 +14,7 @@ const generateToken = require("../utils/generateToken");
 const storageService = require("../utils/storageService");
 const {
   sendAppointmentBookingNotifications,
+  sendAppointmentRescheduleNotification,
 } = require("../utils/appointmentNotifications");
 const { sendPrescriptionEmail } = require("../utils/emailService");
 const {
@@ -1232,6 +1233,23 @@ const resolvers = {
         updatedAppointment.lastNotificationError =
           appointmentNotificationReset.lastNotificationError;
         await updatedAppointment.save();
+
+        try {
+          const whatsappResult = await sendAppointmentRescheduleNotification(
+            updatedAppointment,
+          );
+          console.log("[WHATSAPP] Appointment reschedule notification:", {
+            success: whatsappResult.success,
+            skipped: whatsappResult.skipped,
+            phone: whatsappResult.phone,
+            error: whatsappResult.error,
+          });
+        } catch (error) {
+          console.error(
+            "[WHATSAPP] Appointment reschedule notification failed:",
+            error.message,
+          );
+        }
       }
 
       if (io && updatedAppointment) {

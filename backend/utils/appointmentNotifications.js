@@ -328,6 +328,42 @@ const sendAppointmentBookingNotifications = async (appointment) => {
   await updateNotificationState(appointmentId, updates, errors);
 };
 
+const sendAppointmentRescheduleNotification = async (appointment) => {
+  const templateName =
+    process.env.WHATSAPP_TEMPLATE_APPOINTMENT_RESCHEDULED_PATIENT;
+  const patientContact = await resolvePatientContact(appointment);
+
+  if (!templateName || !patientContact.phone) {
+    return {
+      success: false,
+      skipped: true,
+      error: !templateName
+        ? "Appointment reschedule WhatsApp template is not configured"
+        : "Patient phone number not found",
+    };
+  }
+
+  const { appointmentDate, appointmentTime } =
+    formatAppointmentDateTimeParts(appointment);
+  const result = await sendWhatsAppTemplateMessage({
+    to: patientContact.phone,
+    templateName,
+    bodyParameters: [
+      patientContact.name,
+      appointmentDate,
+      appointmentDate,
+      appointmentTime,
+      appointment?.type || "",
+    ],
+  });
+
+  return {
+    ...result,
+    phone: patientContact.phone,
+    messageType: "appointment_rescheduled",
+  };
+};
+
 let reminderJobRunning = false;
 
 const sendReminderIfDue = async (appointment, now) => {
@@ -503,5 +539,6 @@ const startAppointmentReminderScheduler = () => {
 module.exports = {
   processAppointmentReminders,
   sendAppointmentBookingNotifications,
+  sendAppointmentRescheduleNotification,
   startAppointmentReminderScheduler,
 };
