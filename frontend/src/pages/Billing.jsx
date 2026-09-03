@@ -443,35 +443,12 @@ const Billing = () => {
       return;
     }
 
-    const invoiceToShare = selectedInvoice;
-
     try {
-      if (invoiceToShare?.id) {
-        const { data } = await sendInvoiceWhatsApp({
-          variables: {
-            invoiceId: invoiceToShare.id,
-            patientId: invoiceToShare.patientId,
-          },
-        });
-
-        const result = data?.sendInvoiceWhatsApp;
-        if (result?.success) {
-          toast.success(
-            result.skipped
-              ? "Payment confirmation prepared for WhatsApp preview"
-              : "Payment confirmation sent via WhatsApp to the patient",
-          );
-        } else if (result?.skipped) {
-          toast("WhatsApp not configured on server. A payment preview is available instead.", {
-            icon: "ℹ️",
-          });
-        }
-      }
+      await refetch();
     } catch (error) {
-      console.warn("Failed to send payment confirmation WhatsApp:", error.message);
+      console.warn("Failed to refresh invoice after payment:", error.message);
     }
 
-    await refetch();
     toast.success("Payment processed successfully!");
     setShowPaymentModal(false);
     setSelectedInvoice(null);

@@ -6,6 +6,7 @@ const Transaction = require("../models/Transaction");
 const Invoice = require("../models/Invoice");
 const Patient = require("../models/Patient");
 const PaymentLedger = require("../models/PaymentLedger");
+const { sendInvoiceWhatsApp } = require("./whatsappNotifications");
 
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
@@ -791,6 +792,19 @@ const handleICICICallback = async (callbackData) => {
     if (!transaction.amountPaidApplied) {
       invoice = await reconcilePaymentToInvoice(transaction);
       console.log("[ICICI] ✅ Payment SUCCESS confirmed via callback. Invoice reconciled for merchantTxnNo:", merchantTxnNo);
+      if (invoice) {
+        try {
+          const whatsappResult = await sendInvoiceWhatsApp(invoice, invoice.patientId);
+          console.log("[WHATSAPP] Payment invoice notification:", {
+            success: whatsappResult.success,
+            skipped: whatsappResult.skipped,
+            phone: whatsappResult.phone,
+            error: whatsappResult.error || whatsappResult.errors,
+          });
+        } catch (error) {
+          console.error("[WHATSAPP] Payment invoice notification failed:", error.message);
+        }
+      }
     } else {
       console.log("[ICICI] SUC status received but amount already applied for merchantTxnNo:", merchantTxnNo);
       invoice = await Invoice.findById(transaction.invoiceId);

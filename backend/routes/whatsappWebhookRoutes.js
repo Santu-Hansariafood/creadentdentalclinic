@@ -63,6 +63,21 @@ router.post("/", (req, res) => {
     entries: Array.isArray(payload.entry) ? payload.entry.length : 0,
   });
 
+  for (const entry of payload.entry || []) {
+    for (const change of entry.changes || []) {
+      const value = change.value || {};
+      for (const status of value.statuses || []) {
+        console.log("[WHATSAPP] Message status:", {
+          id: status.id,
+          recipientId: status.recipient_id,
+          status: status.status,
+          timestamp: status.timestamp,
+          errors: status.errors || [],
+        });
+      }
+    }
+  }
+
   return res.sendStatus(200);
 });
 
