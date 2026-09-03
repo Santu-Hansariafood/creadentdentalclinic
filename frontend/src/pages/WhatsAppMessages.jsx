@@ -7,6 +7,25 @@ import Preloader from "../components/Preloader";
 import { GET_PATIENTS, GET_WHATSAPP_MESSAGES } from "../graphql/queries";
 import { SEND_WHATSAPP_MESSAGE } from "../graphql/mutations";
 
+const getStatusLabel = (status) => {
+  switch (String(status || "").toLowerCase()) {
+    case "read":
+      return "Read";
+    case "delivered":
+      return "Delivered";
+    case "sent":
+      return "Sent";
+    case "received":
+      return "Received";
+    case "failed":
+      return "Failed";
+    case "skipped":
+      return "Skipped";
+    default:
+      return "Pending";
+  }
+};
+
 const WhatsAppMessages = () => {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [message, setMessage] = useState("");
@@ -73,10 +92,10 @@ const WhatsAppMessages = () => {
         setMessage("");
         await refetchMessages();
       } else {
-        toast.error(result?.error || result?.message || "Message was not sent");
+        toast.error(result?.message || "Message was not sent");
       }
-    } catch (error) {
-      toast.error(error.message || "Message was not sent");
+    } catch {
+      toast.error("Message was not sent");
     }
   };
 
@@ -162,9 +181,8 @@ const WhatsAppMessages = () => {
                     <div className={`max-w-[85%] rounded-xl px-4 py-3 ${item.direction === "outbound" ? "bg-[#d9fdd3]" : "bg-white border border-gray-200"}`}>
                       <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">{item.text || "No text content"}</p>
                       <p className="text-[11px] text-gray-500 mt-2 flex items-center gap-2">
-                        {item.direction === "outbound" ? "Sent" : "Received"} · {item.status} · {new Date(item.createdAt).toLocaleString()}
+                        {item.direction === "outbound" ? "Sent" : "Received"} · {getStatusLabel(item.status)} · {new Date(item.createdAt).toLocaleString()}
                       </p>
-                      {item.error && <p className="text-xs text-red-600 mt-1 break-words">{item.error}</p>}
                     </div>
                   </div>
                 )) : <div className="h-full flex items-center justify-center text-sm text-gray-500">No WhatsApp messages recorded for this patient.</div>}
