@@ -1988,15 +1988,7 @@ const resolvers = {
         args.phone = normalizedPhone;
         const existingPatient = await Patient.findOne({
           phone: normalizedPhone,
-          _id: { $ne: id },
-        });
-        if (existingPatient) {
-          throw new Error("A patient with this phone number already exists");
-        }
-      } else if (args.phone) {
-        const existingPatient = await Patient.findOne({
-          phone: args.phone,
-          _id: { $ne: id },
+          _id: { $ne: patient._id },
         });
         if (existingPatient) {
           throw new Error("A patient with this phone number already exists");
