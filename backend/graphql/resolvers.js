@@ -2031,19 +2031,24 @@ const resolvers = {
         : undefined;
       const nextPhone = normalizedPhone || patient.phone;
       const nextEmail = args.email ?? patient.email;
+      const phoneVariants = nextPhone
+        ? [nextPhone, `91${nextPhone}`]
+        : [];
       let patientUser = patient.userId
         ? await User.findById(patient.userId)
         : await User.findOne({
             role: "patient",
             $or: [
-              ...(patient.phone ? [{ phone: patient.phone }] : []),
+              ...(patient.phone
+                ? [{ phone: patient.phone }, { phone: `91${patient.phone}` }]
+                : []),
               ...(patient.email ? [{ email: patient.email }] : []),
             ],
           });
 
-      if (nextPhone || nextEmail) {
+      if (patientUser && (nextPhone || nextEmail)) {
         const userConflictQuery = {
-          _id: patientUser ? { $ne: patientUser._id } : { $exists: true },
+          _id: { $ne: patientUser._id },
           $or: [
             ...(nextPhone ? [{ phone: nextPhone }] : []),
             ...(nextEmail ? [{ email: nextEmail }] : []),

@@ -344,10 +344,13 @@ const PatientRegistration = ({
           : undefined,
     };
 
-    if (data.id) {
+    const patientId =
+      data.id || initialPatient?.id || myPatientData?.getMyPatient?.id;
+
+    if (patientId) {
       await updatePatient({
         variables: {
-          id: data.id,
+          id: patientId,
           ...formattedData,
         },
       });
