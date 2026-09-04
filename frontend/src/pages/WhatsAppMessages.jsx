@@ -29,6 +29,30 @@ const getStatusLabel = (status) => {
   }
 };
 
+const normalizeConversationPhone = (value) =>
+  String(value || "")
+    .replace(/\D/g, "")
+    .slice(-10);
+
+const getConversationKey = (item) =>
+  normalizeConversationPhone(item?.phone) ||
+  String(item?.patientId || item?.id || "");
+
+const isSameConversation = (message, recipient) => {
+  const messagePhone = normalizeConversationPhone(message?.phone);
+  const recipientPhone = normalizeConversationPhone(recipient?.phone);
+
+  if (messagePhone && recipientPhone) {
+    return messagePhone === recipientPhone;
+  }
+
+  if (message?.patientId && recipient?.patientId) {
+    return String(message.patientId) === String(recipient.patientId);
+  }
+
+  return false;
+};
+
 const getDateKey = (value) => {
   const date = new Date(value);
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
@@ -78,11 +102,11 @@ const WhatsAppMessages = () => {
   const patientMap = new Map(patients.map((patient) => [patient.id, patient]));
   const historyRecipients = Array.from(
     allMessages.reduce((recipients, item) => {
-      const key = item.patientId || item.phone;
+      const key = getConversationKey(item);
       const current = recipients.get(key);
       if (!current) {
         recipients.set(key, {
-          id: item.patientId || item.phone,
+          id: key,
           patientId: item.patientId,
           name: item.patientName || patientMap.get(item.patientId)?.name || item.phone,
           phone: item.phone,
@@ -108,12 +132,7 @@ const WhatsAppMessages = () => {
     .sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt));
   const activePatient = selectedPatient || historyRecipients[0] || null;
   const messages = allMessages
-    .filter((item) =>
-      activePatient &&
-      (activePatient.patientId
-        ? item.patientId === activePatient.patientId
-        : item.phone === activePatient.phone),
-    )
+    .filter((item) => activePatient && isSameConversation(item, activePatient))
     .sort((first, second) => new Date(first.createdAt) - new Date(second.createdAt));
   const latestMessageId = messages.length ? messages[messages.length - 1].id : null;
   const unreadCount = allMessages.filter(
@@ -191,7 +210,14 @@ const WhatsAppMessages = () => {
             value={activePatient?.patientId || ""}
             onChange={(event) => {
               const patient = patients.find((item) => item.id === event.target.value);
-              if (patient) void handleSelectPatient({ patientId: patient.id, ...patient });
+              if (patient) {
+                void handleSelectPatient({
+                  id: getConversationKey(patient),
+                  patientId: patient.id,
+                  name: patient.name,
+                  phone: patient.phone,
+                });
+              }
             }}
             className="input-field mb-3"
           >
@@ -239,7 +265,7 @@ const WhatsAppMessages = () => {
                   <p className="text-sm text-gray-500 flex items-center gap-1"><Smartphone size={14} /> {activePatient.phone}</p>
                 </div>
               </header>
-              <div className="flex-1 p-5 space-y-3 overflow-y-auto bg-gray-50/60">
+              <div className="flex-1 px-4 py-5 sm:px-6 space-y-3 overflow-y-auto bg-gray-50/60">
                 {messagesLoading ? <Preloader /> : messages.length ? messages.map((item, index) => {
                   const previousItem = messages[index - 1];
                   const showDate =
@@ -254,10 +280,26 @@ const WhatsAppMessages = () => {
                           </span>
                         </div>
                       )}
-                      <div className={`flex ${item.direction === "outbound" ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[85%] rounded-xl px-4 py-3 ${item.direction === "outbound" ? "bg-[#d9fdd3]" : "bg-white border border-gray-200"}`}>
+                      <div
+                        className={`flex ${
+                          item.direction === "outbound"
+                            ? "justify-end pl-8 sm:pl-16"
+                            : "justify-start pr-8 sm:pr-16"
+                        }`}
+                      >
+                        <div
+                          className={`w-fit max-w-[85%] sm:max-w-[72%] rounded-2xl px-4 py-3 shadow-sm ${
+                            item.direction === "outbound"
+                              ? "bg-[#d9fdd3] text-gray-900"
+                              : "bg-white border border-gray-200 text-gray-800"
+                          }`}
+                        >
                           <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">{item.text || "No text content"}</p>
-                          <p className="text-[11px] text-gray-500 mt-2 flex items-center gap-2">
+                          <p
+                            className={`text-[11px] text-gray-500 mt-2 flex items-center gap-2 ${
+                              item.direction === "outbound" ? "justify-end" : "justify-start"
+                            }`}
+                          >
                             {item.direction === "outbound" ? "Sent" : "Received"} · {getStatusLabel(item.status)} · {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </p>
                         </div>
