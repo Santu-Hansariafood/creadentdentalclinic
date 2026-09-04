@@ -344,6 +344,7 @@ input UpdateMedicineInput {
     messageType: String
     templateName: String
     status: String
+    read: Boolean!
     messageId: String
     error: String
     createdAt: String
@@ -770,6 +771,7 @@ input UpdateMedicineInput {
     ): WhatsAppSendResult!
 
     sendWhatsAppMessage(patientId: ID, phone: String, message: String!): WhatsAppSendResult!
+    markWhatsAppMessagesRead(patientId: ID!): Boolean!
 
     createPrescription(
       patientId: ID!,

@@ -30,23 +30,30 @@ const recordWhatsAppMessage = async ({
   status = "sent",
   messageId,
   error,
+  read = direction === "outbound",
 }) => {
   try {
     const normalizedPhone = normalizePhoneNumber(phone);
     const patient = normalizedPhone
       ? await Patient.findOne({ phone: normalizedPhone.slice(-10) })
       : null;
+    const recipientUser = !patient && normalizedPhone
+      ? await User.findOne({
+          phone: { $in: [normalizedPhone, normalizedPhone.slice(-10)] },
+        })
+      : null;
     await WhatsAppMessage.create({
       direction,
       phone: normalizedPhone || String(phone || ""),
       patientId: patient?._id,
-      patientName: patient?.name,
+      patientName: patient?.name || recipientUser?.name,
       text,
       messageType,
       templateName,
       status,
       messageId,
       error,
+      read,
     });
   } catch (recordError) {
     console.warn("[WHATSAPP] Could not save message history:", recordError.message);

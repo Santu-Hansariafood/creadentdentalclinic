@@ -430,6 +430,7 @@ export const GET_WHATSAPP_MESSAGES = gql`
       messageType
       templateName
       status
+      read
       messageId
       error
       createdAt

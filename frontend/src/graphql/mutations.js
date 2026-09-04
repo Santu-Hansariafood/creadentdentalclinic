@@ -289,6 +289,12 @@ export const SEND_WHATSAPP_MESSAGE = gql`
   }
 `;
 
+export const MARK_WHATSAPP_MESSAGES_READ = gql`
+  mutation MarkWhatsAppMessagesRead($patientId: ID!) {
+    markWhatsAppMessagesRead(patientId: $patientId)
+  }
+`;
+
 export const CREATE_MEDICAL_RECORD = gql`
   mutation CreateMedicalRecord(
     $patientId: ID!

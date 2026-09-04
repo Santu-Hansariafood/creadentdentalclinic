@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const express = require("express");
 const Patient = require("../models/Patient");
+const User = require("../models/User");
 const WhatsAppMessage = require("../models/WhatsAppMessage");
 
 const router = express.Router();
@@ -84,6 +85,9 @@ router.post("/", async (req, res) => {
       for (const message of value.messages || []) {
         const phone = message.from || "";
         const patient = await Patient.findOne({ phone: phone.slice(-10) });
+        const recipientUser = !patient
+          ? await User.findOne({ phone: { $in: [phone, phone.slice(-10)] } })
+          : null;
         const text =
           message.text?.body ||
           message.button?.text ||
@@ -93,10 +97,11 @@ router.post("/", async (req, res) => {
           direction: "inbound",
           phone,
           patientId: patient?._id,
-          patientName: patient?.name,
+          patientName: patient?.name || recipientUser?.name,
           text,
           messageType: message.type || "unknown",
           status: "received",
+          read: false,
           messageId: message.id,
         });
       }

@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import { MessageCircle, RefreshCw, Send, Smartphone, User } from "lucide-react";
 import toast from "react-hot-toast";
 import PageHeader from "../components/PageHeader";
 import Preloader from "../components/Preloader";
 import { GET_PATIENTS, GET_WHATSAPP_MESSAGES } from "../graphql/queries";
-import { SEND_WHATSAPP_MESSAGE } from "../graphql/mutations";
+import {
+  MARK_WHATSAPP_MESSAGES_READ,
+  SEND_WHATSAPP_MESSAGE,
+} from "../graphql/mutations";
 
 const getStatusLabel = (status) => {
   switch (String(status || "").toLowerCase()) {
@@ -26,10 +29,31 @@ const getStatusLabel = (status) => {
   }
 };
 
+const getDateKey = (value) => {
+  const date = new Date(value);
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+};
+
+const getDateLabel = (value) => {
+  const date = new Date(value);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
+  if (getDateKey(date) === getDateKey(today)) return "Today";
+  if (getDateKey(date) === getDateKey(yesterday)) return "Yesterday";
+  return date.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
 const WhatsAppMessages = () => {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
+  const messagesEndRef = useRef(null);
   const { data: patientData, loading: patientsLoading } = useQuery(GET_PATIENTS, {
     variables: { page: 1, limit: 500, search },
   });
@@ -41,6 +65,7 @@ const WhatsAppMessages = () => {
     variables: { limit: 500 },
   });
   const [sendMessage, { loading: sending }] = useMutation(SEND_WHATSAPP_MESSAGE);
+  const [markMessagesRead] = useMutation(MARK_WHATSAPP_MESSAGES_READ);
 
   const patients = patientData?.getPatients?.patients || [];
   const allMessages = messageData?.getWhatsAppMessages || [];
@@ -49,14 +74,22 @@ const WhatsAppMessages = () => {
     allMessages.reduce((recipients, item) => {
       const key = item.patientId || item.phone;
       const current = recipients.get(key);
-      if (!current || new Date(item.createdAt) > new Date(current.createdAt)) {
+      if (!current) {
         recipients.set(key, {
           id: item.patientId || item.phone,
           patientId: item.patientId,
           name: item.patientName || patientMap.get(item.patientId)?.name || item.phone,
           phone: item.phone,
           createdAt: item.createdAt,
+          unreadCount: 0,
         });
+      } else if (new Date(item.createdAt) > new Date(current.createdAt)) {
+        current.name = item.patientName || patientMap.get(item.patientId)?.name || current.name;
+        current.phone = item.phone;
+        current.createdAt = item.createdAt;
+      }
+      if (!item.read && item.direction === "inbound") {
+        recipients.get(key).unreadCount += 1;
       }
       return recipients;
     }, new Map()).values(),
@@ -74,6 +107,22 @@ const WhatsAppMessages = () => {
         : item.phone === activePatient.phone),
     )
     .sort((first, second) => new Date(first.createdAt) - new Date(second.createdAt));
+  const latestMessageId = messages.length ? messages[messages.length - 1].id : null;
+  const unreadCount = allMessages.filter(
+    (item) => item.direction === "inbound" && !item.read,
+  ).length;
+
+  const handleSelectPatient = async (patient) => {
+    setSelectedPatient(patient);
+    if (patient.patientId) {
+      await markMessagesRead({ variables: { patientId: patient.patientId } });
+      await refetchMessages();
+    }
+  };
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [activePatient?.id, messages.length, latestMessageId]);
 
   const handleSend = async (event) => {
     event.preventDefault();
@@ -105,7 +154,7 @@ const WhatsAppMessages = () => {
     <div className="max-w-7xl mx-auto">
       <PageHeader
         title="WhatsApp Messages"
-        subtitle="Review WhatsApp API activity and contact patients directly."
+        subtitle={`Review WhatsApp API activity and contact patients directly. ${unreadCount} unread`}
         action={
           <button
             type="button"
@@ -134,7 +183,7 @@ const WhatsAppMessages = () => {
             value={activePatient?.patientId || ""}
             onChange={(event) => {
               const patient = patients.find((item) => item.id === event.target.value);
-              if (patient) setSelectedPatient({ patientId: patient.id, ...patient });
+              if (patient) void handleSelectPatient({ patientId: patient.id, ...patient });
             }}
             className="input-field mb-3"
           >
@@ -148,7 +197,7 @@ const WhatsAppMessages = () => {
               <button
                 key={patient.id}
                 type="button"
-                onClick={() => setSelectedPatient(patient)}
+                onClick={() => void handleSelectPatient(patient)}
                 className={`w-full text-left p-3 rounded-lg border transition-colors ${
                   activePatient?.id === patient.id
                     ? "border-primary bg-primary/10"
@@ -156,7 +205,14 @@ const WhatsAppMessages = () => {
                 }`}
               >
                 <p className="font-medium text-gray-900 truncate">{patient.name}</p>
-                <p className="text-xs text-gray-500 mt-1">{patient.phone}</p>
+                <div className="flex items-center justify-between gap-2 mt-1">
+                  <p className="text-xs text-gray-500">{patient.phone}</p>
+                  {patient.unreadCount > 0 && (
+                    <span className="min-w-5 h-5 px-1.5 rounded-full bg-green-600 text-white text-[11px] font-semibold flex items-center justify-center">
+                      {patient.unreadCount}
+                    </span>
+                  )}
+                </div>
               </button>
             ))}
             {!historyRecipients.length && <p className="text-sm text-gray-500 py-4">No WhatsApp messages found.</p>}
@@ -176,16 +232,32 @@ const WhatsAppMessages = () => {
                 </div>
               </header>
               <div className="flex-1 p-5 space-y-3 overflow-y-auto bg-gray-50/60">
-                {messagesLoading ? <Preloader /> : messages.length ? messages.map((item) => (
-                  <div key={item.id} className={`flex ${item.direction === "outbound" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[85%] rounded-xl px-4 py-3 ${item.direction === "outbound" ? "bg-[#d9fdd3]" : "bg-white border border-gray-200"}`}>
-                      <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">{item.text || "No text content"}</p>
-                      <p className="text-[11px] text-gray-500 mt-2 flex items-center gap-2">
-                        {item.direction === "outbound" ? "Sent" : "Received"} · {getStatusLabel(item.status)} · {new Date(item.createdAt).toLocaleString()}
-                      </p>
+                {messagesLoading ? <Preloader /> : messages.length ? messages.map((item, index) => {
+                  const previousItem = messages[index - 1];
+                  const showDate =
+                    !previousItem ||
+                    getDateKey(previousItem.createdAt) !== getDateKey(item.createdAt);
+                  return (
+                    <div key={item.id}>
+                      {showDate && (
+                        <div className="flex justify-center my-4">
+                          <span className="px-3 py-1 rounded-full bg-gray-200 text-[11px] font-medium text-gray-600">
+                            {getDateLabel(item.createdAt)}
+                          </span>
+                        </div>
+                      )}
+                      <div className={`flex ${item.direction === "outbound" ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[85%] rounded-xl px-4 py-3 ${item.direction === "outbound" ? "bg-[#d9fdd3]" : "bg-white border border-gray-200"}`}>
+                          <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">{item.text || "No text content"}</p>
+                          <p className="text-[11px] text-gray-500 mt-2 flex items-center gap-2">
+                            {item.direction === "outbound" ? "Sent" : "Received"} · {getStatusLabel(item.status)} · {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )) : <div className="h-full flex items-center justify-center text-sm text-gray-500">No WhatsApp messages recorded for this patient.</div>}
+                  );
+                }) : <div className="h-full flex items-center justify-center text-sm text-gray-500">No WhatsApp messages recorded for this patient.</div>}
+                <div ref={messagesEndRef} />
               </div>
               <form onSubmit={handleSend} className="p-4 border-t border-gray-200 flex gap-2">
                 <textarea

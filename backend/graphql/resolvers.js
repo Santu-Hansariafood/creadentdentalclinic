@@ -23,7 +23,7 @@ const {
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
   sendPrescriptionWhatsApp,
-  sendWhatsAppTextMessage,
+  sendWhatsAppTemplateMessage,
   normalizePhoneNumber,
 } = require("../utils/whatsappNotifications");
 const {
@@ -204,6 +204,7 @@ const resolvers = {
   WhatsAppMessage: {
     id: (parent) => (parent.id || parent._id)?.toString(),
     patientId: (parent) => parent.patientId?.toString(),
+    read: (parent) => parent.read ?? parent.direction === "outbound",
     createdAt: (parent) => toIsoDateString(parent.createdAt),
   },
   Query: {
@@ -932,9 +933,19 @@ const resolvers = {
     getWhatsAppMessages: async (_, { patientId, limit = 100 }, { user }) => {
       requireStaff(user);
       const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 500);
-      return await WhatsAppMessage.find(patientId ? { patientId } : {})
+      const messages = await WhatsAppMessage.find(patientId ? { patientId } : {})
         .sort({ createdAt: -1 })
         .limit(safeLimit);
+      return await Promise.all(
+        messages.map(async (message) => {
+          if (message.patientName || !message.phone) return message;
+          const recipientUser = await User.findOne({
+            phone: { $in: [message.phone, message.phone.slice(-10)] },
+          });
+          if (recipientUser) message.patientName = recipientUser.name;
+          return message;
+        }),
+      );
     },
   },
   Mutation: {
@@ -1675,20 +1686,33 @@ const resolvers = {
       const destination = phone || patient?.phone;
       if (!destination) throw new Error("Patient phone number is required");
 
-      const result = await sendWhatsAppTextMessage({ to: destination, text });
+      const templateName = process.env.WHATSAPP_TEMPLATE_MANUAL_MESSAGE;
+      const result = await sendWhatsAppTemplateMessage({
+        to: normalizePhoneNumber(destination),
+        templateName,
+        bodyParameters: [patient?.name || "Patient", text],
+      });
       return {
         success: result.success,
         skipped: result.skipped,
         message: result.success
-          ? "WhatsApp message sent successfully"
+          ? "WhatsApp template message sent successfully"
           : result.skipped
-            ? "WhatsApp is not configured"
-            : "WhatsApp message failed",
+            ? "WhatsApp template is not configured"
+            : "WhatsApp template message failed",
         phone: result.phone || destination,
         patientName: patient?.name || "",
         error: result.error || null,
         messagePreview: text,
       };
+    },
+    markWhatsAppMessagesRead: async (_, { patientId }, { user }) => {
+      requireStaff(user);
+      await WhatsAppMessage.updateMany(
+        { patientId, direction: "inbound", read: false },
+        { $set: { read: true } },
+      );
+      return true;
     },
     sendPrescriptionEmail: async (
       _,
