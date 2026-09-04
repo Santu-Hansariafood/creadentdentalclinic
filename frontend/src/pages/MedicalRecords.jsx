@@ -990,6 +990,7 @@ const MedicalRecords = () => {
   const { user } = useAuth();
   const client = useApolloClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterType, setFilterType] = useState("All");
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [editingRecord, setEditingRecord] = useState(null);
@@ -997,6 +998,14 @@ const MedicalRecords = () => {
   const [viewerRecord, setViewerRecord] = useState(null);
   const [page, setPage] = useState(1);
   const recordsPerPage = 9;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+      setPage(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const { loading, error, data } = useQuery(GET_MEDICAL_RECORDS, {
     fetchPolicy: "network-only",
@@ -1028,15 +1037,15 @@ const MedicalRecords = () => {
 
   const filteredRecords = medicalRecords.filter((rec) => {
     const matchesSearch =
-      rec.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (rec.diagnosis || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (rec.treatment || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      rec.patientName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      (rec.diagnosis || "").toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      (rec.treatment || "").toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       (rec.patient?.phone || "")
         .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
+        .includes(debouncedSearch.toLowerCase()) ||
       (rec.patient?.patientId || "")
         .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+        .includes(debouncedSearch.toLowerCase());
     const matchesType = filterType === "All" || rec.visitType === filterType;
     return matchesSearch && matchesType;
   });

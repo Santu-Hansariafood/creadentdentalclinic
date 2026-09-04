@@ -322,6 +322,7 @@ const CustomSelect = ({
 const Prescriptions = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [medications, setMedications] = useState([
@@ -332,6 +333,11 @@ const Prescriptions = () => {
     { name: "", critical: false },
   ]);
   const [notes, setNotes] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const { loading, error, data } = useQuery(GET_PRESCRIPTIONS);
   const { data: patientsData } = useQuery(GET_PATIENTS, {
     variables: { limit: 100 },
@@ -413,9 +419,9 @@ const Prescriptions = () => {
 
   const filteredPrescriptions = prescriptions.filter((pres) => {
     const matchesSearch =
-      pres.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pres.patientName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       pres.medications.some((med) =>
-        med.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        med.name.toLowerCase().includes(debouncedSearch.toLowerCase()),
       );
     const matchesStatus =
       filterStatus === "All" || pres.status === filterStatus;

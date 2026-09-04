@@ -1,4 +1,4 @@
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Search,
@@ -22,11 +22,20 @@ import Preloader from "../components/Preloader";
 
 const PaymentLedger = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const limit = 10;
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+      setPage(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const { loading, error, data } = useQuery(GET_PAYMENT_LEDGERS, {
-    variables: { page, limit, search: searchTerm },
+    variables: { page, limit, search: debouncedSearch },
   });
 
   if (loading) return <Preloader />;

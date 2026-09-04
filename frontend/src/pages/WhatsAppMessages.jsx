@@ -53,9 +53,15 @@ const WhatsAppMessages = () => {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const messagesEndRef = useRef(null);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const { data: patientData, loading: patientsLoading } = useQuery(GET_PATIENTS, {
-    variables: { page: 1, limit: 500, search },
+    variables: { page: 1, limit: 500, search: debouncedSearch },
   });
   const {
     data: messageData,
@@ -95,7 +101,9 @@ const WhatsAppMessages = () => {
     }, new Map()).values(),
   )
     .filter((recipient) =>
-      `${recipient.name} ${recipient.phone}`.toLowerCase().includes(search.toLowerCase()),
+      `${recipient.name} ${recipient.phone}`
+        .toLowerCase()
+        .includes(debouncedSearch.toLowerCase()),
     )
     .sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt));
   const activePatient = selectedPatient || historyRecipients[0] || null;

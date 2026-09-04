@@ -265,6 +265,11 @@ const startServer = async () => {
       description:
         "Read the cancellation policy for Creadent Dental Clinic appointments and online payments.",
     },
+    "/delete-account": {
+      title: "Delete Account | Creadent Dental Clinic",
+      description:
+        "Request deletion of your Creadent Dental Clinic account and associated personal information.",
+    },
   };
   const escapeHtml = (value) =>
     value.replace(

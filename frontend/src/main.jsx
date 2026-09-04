@@ -57,10 +57,13 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 });
 
-const updateSW = registerSW({
+registerSW({
   immediate: true,
   onNeedRefresh() {
-    updateSW(true);
+    toast("A new version is available. Refresh when convenient.", {
+      duration: 8000,
+      id: "pwa-update-available",
+    });
   },
   onOfflineReady() {
     toast.success("Offline support is ready.", {

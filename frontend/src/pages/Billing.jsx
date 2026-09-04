@@ -48,6 +48,7 @@ import {
 const Billing = () => {
   const { user, isDemoUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -70,6 +71,11 @@ const Billing = () => {
     discount: 0,
     notes: "",
   });
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const { loading, error, data, refetch } = useQuery(GET_INVOICES, {
     skip: isDemoUser,
@@ -223,8 +229,8 @@ const Billing = () => {
 
   const filteredInvoices = invoices.filter((inv) => {
     const matchesSearch =
-      inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inv.patientName.toLowerCase().includes(searchTerm.toLowerCase());
+      inv.invoiceNumber.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      inv.patientName.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchesStatus = filterStatus === "All" || inv.status === filterStatus;
 
     let matchesDate = true;
