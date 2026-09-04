@@ -75,7 +75,10 @@ const PrescriptionPreview = ({
           </div>
 
           <div className="overflow-y-auto p-6 print:p-0">
-            <PrescriptionDocument prescription={prescription} patient={patient} />
+            <PrescriptionDocument
+              prescription={prescription}
+              patient={patient}
+            />
           </div>
         </motion.div>
       </motion.div>

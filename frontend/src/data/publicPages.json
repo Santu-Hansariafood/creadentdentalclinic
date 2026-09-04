@@ -18,10 +18,7 @@
       "region": "IN-WB",
       "locality": "Salt Lake, Kolkata"
     },
-    "hours": [
-      "Monday to Sunday",
-      "9:00 AM to 8:00 PM"
-    ],
+    "hours": ["Monday to Sunday", "9:00 AM to 8:00 PM"],
     "currency": "INR",
     "currencySymbol": "₹",
     "taxInfo": {

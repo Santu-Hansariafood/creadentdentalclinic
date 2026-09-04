@@ -37,11 +37,12 @@ const recordWhatsAppMessage = async ({
     const patient = normalizedPhone
       ? await Patient.findOne({ phone: normalizedPhone.slice(-10) })
       : null;
-    const recipientUser = !patient && normalizedPhone
-      ? await User.findOne({
-          phone: { $in: [normalizedPhone, normalizedPhone.slice(-10)] },
-        })
-      : null;
+    const recipientUser =
+      !patient && normalizedPhone
+        ? await User.findOne({
+            phone: { $in: [normalizedPhone, normalizedPhone.slice(-10)] },
+          })
+        : null;
     await WhatsAppMessage.create({
       direction,
       phone: normalizedPhone || String(phone || ""),
@@ -56,7 +57,10 @@ const recordWhatsAppMessage = async ({
       read,
     });
   } catch (recordError) {
-    console.warn("[WHATSAPP] Could not save message history:", recordError.message);
+    console.warn(
+      "[WHATSAPP] Could not save message history:",
+      recordError.message,
+    );
   }
 };
 
@@ -502,8 +506,12 @@ const sendInvoiceWhatsApp = async (invoice, patientId) => {
   }
 
   return {
-    success: textResult.success || (results.template && results.template.success) || false,
-    skipped: textResult.skipped && (!results.template || results.template.skipped),
+    success:
+      textResult.success ||
+      (results.template && results.template.success) ||
+      false,
+    skipped:
+      textResult.skipped && (!results.template || results.template.skipped),
     phone: patientContact.phone,
     patient: patientContact,
     errors,
@@ -554,8 +562,12 @@ const sendLoginCredentialsWhatsApp = async (credentials) => {
   }
 
   return {
-    success: textResult.success || (results.template && results.template.success) || false,
-    skipped: textResult.skipped && (!results.template || results.template.skipped),
+    success:
+      textResult.success ||
+      (results.template && results.template.success) ||
+      false,
+    skipped:
+      textResult.skipped && (!results.template || results.template.skipped),
     phone: normalizedPhone,
     errors,
     results,
@@ -593,7 +605,9 @@ const sendPrescriptionWhatsApp = async (prescription, fileUrl = "") => {
     bodyParameters: [
       patientContact.name,
       prescription?.doctorName || "Doctor",
-      `RX-${String(prescription?._id || "PRESCRIPTION").slice(-8).toUpperCase()}`,
+      `RX-${String(prescription?._id || "PRESCRIPTION")
+        .slice(-8)
+        .toUpperCase()}`,
       formatDateIN(prescription?.date),
       prescription?.diagnosis || "Dental consultation",
       medications || "See your patient portal",

@@ -54,7 +54,11 @@ const buildStoragePath = ({ folder = "files", fileName = "file" }) => {
     .join("/");
 
   const originalFileName = path.basename(String(fileName || "file")).trim();
-  if (!originalFileName || originalFileName === "." || originalFileName === "..") {
+  if (
+    !originalFileName ||
+    originalFileName === "." ||
+    originalFileName === ".."
+  ) {
     throw new Error("A valid file name is required");
   }
   return safeFolder ? `${safeFolder}/${originalFileName}` : originalFileName;
@@ -263,9 +267,7 @@ const uploadFile = async ({
     uploaded.fileEntryId || uploaded.id || uploaded._id || null;
 
   if (!url && !fileEntryId) {
-    throw new Error(
-      "SpaceByte returned success without a file URL or file ID",
-    );
+    throw new Error("SpaceByte returned success without a file URL or file ID");
   }
 
   return {
@@ -281,7 +283,9 @@ const uploadFile = async ({
 
     storageKey: uploaded.storageKey || uploaded.path || destination,
 
-    url: url || `${SPACEBYTE.ENDPOINT}/file-entries/${encodeURIComponent(fileEntryId)}`,
+    url:
+      url ||
+      `${SPACEBYTE.ENDPOINT}/file-entries/${encodeURIComponent(fileEntryId)}`,
 
     size: uploaded.size ?? file.size ?? buffer.length,
 
@@ -356,7 +360,10 @@ const saveLocalFile = async (file, storagePath) => {
   fs.mkdirSync(path.dirname(localPath), { recursive: true });
   const buffer = await getFileBuffer(file);
   fs.writeFileSync(localPath, buffer);
-  if (!fs.existsSync(localPath) || fs.statSync(localPath).size !== buffer.length) {
+  if (
+    !fs.existsSync(localPath) ||
+    fs.statSync(localPath).size !== buffer.length
+  ) {
     throw new Error("Local file save failed");
   }
   return {
@@ -371,7 +378,12 @@ const saveLocalFile = async (file, storagePath) => {
   };
 };
 
-const getPresignedUrl = async (storageKey, expiresInSeconds = 86400, fileEntryId, storedUrl) => {
+const getPresignedUrl = async (
+  storageKey,
+  expiresInSeconds = 86400,
+  fileEntryId,
+  storedUrl,
+) => {
   void expiresInSeconds;
   if (storedUrl) return storedUrl;
   if (fileEntryId) {

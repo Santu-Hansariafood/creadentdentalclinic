@@ -171,12 +171,9 @@ export async function generatePrescriptionPDF(
   pdf.text("MEDICAL PRESCRIPTION", MARGIN + 6, y + 7.8);
 
   pdf.setFontSize(9);
-  pdf.text(
-    `Rx No: ${rxId}`,
-    pageWidth - MARGIN - 6,
-    y + 7.8,
-    { align: "right" },
-  );
+  pdf.text(`Rx No: ${rxId}`, pageWidth - MARGIN - 6, y + 7.8, {
+    align: "right",
+  });
 
   y += 20;
 
@@ -205,9 +202,8 @@ export async function generatePrescriptionPDF(
 
   y += 10;
 
-  const patientIdLabel = patient?.patientId || prescription.patientId
-    ? "Patient ID"
-    : null;
+  const patientIdLabel =
+    patient?.patientId || prescription.patientId ? "Patient ID" : null;
   const patientIdValue = patient?.patientId
     ? patient.patientId
     : prescription.patientId
@@ -218,27 +214,21 @@ export async function generatePrescriptionPDF(
 
   const infoLeft = [
     { label: "Name", value: text(prescription.patientName) },
-    patientIdLabel
-      ? { label: patientIdLabel, value: patientIdValue }
-      : null,
+    patientIdLabel ? { label: patientIdLabel, value: patientIdValue } : null,
     patient?.gender ? { label: "Gender", value: patient.gender } : null,
     age ? { label: "Age", value: `${age} yrs` } : null,
     patient?.phone ? { label: "Phone", value: patient.phone } : null,
   ].filter(Boolean);
 
   const infoRight = [
-    patient?.email
-      ? { label: "Email", value: patient.email }
-      : null,
+    patient?.email ? { label: "Email", value: patient.email } : null,
     patient?.dateOfBirth
       ? { label: "DOB", value: formatDate(patient.dateOfBirth) }
       : null,
     patient?.bloodGroup
       ? { label: "Blood Group", value: patient.bloodGroup }
       : null,
-    patient?.address
-      ? { label: "Address", value: patient.address }
-      : null,
+    patient?.address ? { label: "Address", value: patient.address } : null,
   ].filter(Boolean);
 
   const colWidth = (contentWidth - 12) / 2;
@@ -287,9 +277,24 @@ export async function generatePrescriptionPDF(
 
   if (diagnosesList.length > 0) {
     const hasCritical = diagnosesList.some((d) => d.critical);
-    pdf.setFillColor(hasCritical ? 254 : 255, hasCritical ? 242 : 249, hasCritical ? 242 : 230);
-    drawRoundedRect(pdf, MARGIN, y, contentWidth, 14 + diagnosesList.length * 5, 2);
-    pdf.setTextColor(hasCritical ? 185 : 139, hasCritical ? 28 : 105, hasCritical ? 28 : 20);
+    pdf.setFillColor(
+      hasCritical ? 254 : 255,
+      hasCritical ? 242 : 249,
+      hasCritical ? 242 : 230,
+    );
+    drawRoundedRect(
+      pdf,
+      MARGIN,
+      y,
+      contentWidth,
+      14 + diagnosesList.length * 5,
+      2,
+    );
+    pdf.setTextColor(
+      hasCritical ? 185 : 139,
+      hasCritical ? 28 : 105,
+      hasCritical ? 28 : 20,
+    );
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(9);
     pdf.text(
@@ -349,14 +354,7 @@ export async function generatePrescriptionPDF(
   autoTable(pdf, {
     startY: y,
     head: [
-      [
-        "SL.",
-        "MEDICINE NAME",
-        "DOSE",
-        "FREQUENCY",
-        "DURATION",
-        "INSTRUCTIONS",
-      ],
+      ["SL.", "MEDICINE NAME", "DOSE", "FREQUENCY", "DURATION", "INSTRUCTIONS"],
     ],
     body: tableData.length
       ? tableData
@@ -425,7 +423,7 @@ export async function generatePrescriptionPDF(
   y += 3;
 
   pdf.setFillColor(lightR, lightG, lightB);
-  drawRoundedRect(pdf, MARGIN, y, (contentWidth / 2) - 2, 10, 2);
+  drawRoundedRect(pdf, MARGIN, y, contentWidth / 2 - 2, 10, 2);
   pdf.setTextColor(brandR, brandG, brandB);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(8.5);
@@ -433,19 +431,11 @@ export async function generatePrescriptionPDF(
   pdf.setTextColor(20, 20, 20);
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(10);
-  pdf.text(
-    `Dr. ${text(prescription.doctorName)}`,
-    MARGIN + 5,
-    y + 12,
-  );
+  pdf.text(`Dr. ${text(prescription.doctorName)}`, MARGIN + 5, y + 12);
   pdf.setFontSize(8);
   pdf.setTextColor(90, 90, 90);
   pdf.text("Dental Surgeon / Consultant", MARGIN + 5, y + 16);
-  pdf.text(
-    `Issued: ${formatDateTime(prescription.date)}`,
-    MARGIN + 5,
-    y + 20,
-  );
+  pdf.text(`Issued: ${formatDateTime(prescription.date)}`, MARGIN + 5, y + 20);
   if (CLINIC_INFO.validityDays) {
     pdf.setTextColor(brandR, brandG, brandB);
     pdf.text(
@@ -464,7 +454,7 @@ export async function generatePrescriptionPDF(
   pdf.setFont("helvetica", "italic");
   pdf.text(
     "Signature of Prescribing Doctor",
-    signX + ((contentWidth / 2) - 12) / 2 + 10,
+    signX + (contentWidth / 2 - 12) / 2 + 10,
     y + 22,
   );
   pdf.setTextColor(brandR, brandG, brandB);
@@ -472,7 +462,7 @@ export async function generatePrescriptionPDF(
   pdf.setFontSize(10);
   pdf.text(
     `Dr. ${text(prescription.doctorName)}`,
-    signX + ((contentWidth / 2) - 12) / 2 + 10,
+    signX + (contentWidth / 2 - 12) / 2 + 10,
     y + 27,
     { align: "center" },
   );
@@ -481,7 +471,7 @@ export async function generatePrescriptionPDF(
   pdf.setTextColor(90, 90, 90);
   pdf.text(
     "MCI / DCI Registration Verified",
-    signX + ((contentWidth / 2) - 12) / 2 + 10,
+    signX + (contentWidth / 2 - 12) / 2 + 10,
     y + 31,
     { align: "center" },
   );

@@ -541,7 +541,8 @@ const ICICIPayment = ({
                           Pay via OTP
                         </h4>
                         <p className="text-sm text-gray-600 mt-1">
-                          Receive an OTP on the registered mobile number, then complete payment here
+                          Receive an OTP on the registered mobile number, then
+                          complete payment here
                         </p>
                       </div>
                       <ArrowRight size={20} className="text-primary" />

@@ -105,7 +105,8 @@ const Register = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address <span className="text-gray-500 text-xs">(optional)</span>
+                  Email Address{" "}
+                  <span className="text-gray-500 text-xs">(optional)</span>
                 </label>
                 <div className="relative">
                   <Mail

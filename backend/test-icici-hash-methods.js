@@ -11,14 +11,21 @@ require("dotenv").config();
 const ICICI_CONFIG = {
   merchantId: process.env.ICICI_MERCHANT_ID || "100000000007164",
   aggregatorId: process.env.ICICI_AGGREGATOR_ID || "A100000000007164",
-  secretKey: process.env.ICICI_SECRET_KEY || "db06cca0-838b-4e01-8b20-6ac446ffb6bd",
+  secretKey:
+    process.env.ICICI_SECRET_KEY || "db06cca0-838b-4e01-8b20-6ac446ffb6bd",
   currencyCode: process.env.ICICI_CURRENCY_CODE || "356",
   payType: process.env.ICICI_PAY_TYPE || "0",
 };
 
-console.log("╔════════════════════════════════════════════════════════════════╗");
-console.log("║          ICICI Hash Calculation - Method Testing              ║");
-console.log("╚════════════════════════════════════════════════════════════════╝\n");
+console.log(
+  "╔════════════════════════════════════════════════════════════════╗",
+);
+console.log(
+  "║          ICICI Hash Calculation - Method Testing              ║",
+);
+console.log(
+  "╚════════════════════════════════════════════════════════════════╝\n",
+);
 
 // Test payload
 const payload = {
@@ -65,25 +72,49 @@ console.log("\n🔐 Testing Hash Calculation Methods:\n");
 // Method 1: Direct concatenation (no delimiter)
 console.log("METHOD 1: Direct Concatenation (No Delimiter)");
 console.log("─".repeat(60));
-const hash1String = hashFieldOrder.map((field) => String(payload[field] || "")).join("");
-const hash1 = crypto.createHmac("sha256", ICICI_CONFIG.secretKey).update(hash1String).digest("hex").toLowerCase();
-console.log(`Field String (first 100 chars): ${hash1String.substring(0, 100)}...`);
+const hash1String = hashFieldOrder
+  .map((field) => String(payload[field] || ""))
+  .join("");
+const hash1 = crypto
+  .createHmac("sha256", ICICI_CONFIG.secretKey)
+  .update(hash1String)
+  .digest("hex")
+  .toLowerCase();
+console.log(
+  `Field String (first 100 chars): ${hash1String.substring(0, 100)}...`,
+);
 console.log(`Hash: ${hash1}\n`);
 
 // Method 2: Pipe-delimited concatenation
 console.log("METHOD 2: Pipe-Delimited (|)");
 console.log("─".repeat(60));
-const hash2String = hashFieldOrder.map((field) => String(payload[field] || "")).join("|");
-const hash2 = crypto.createHmac("sha256", ICICI_CONFIG.secretKey).update(hash2String).digest("hex").toLowerCase();
-console.log(`Field String (first 100 chars): ${hash2String.substring(0, 100)}...`);
+const hash2String = hashFieldOrder
+  .map((field) => String(payload[field] || ""))
+  .join("|");
+const hash2 = crypto
+  .createHmac("sha256", ICICI_CONFIG.secretKey)
+  .update(hash2String)
+  .digest("hex")
+  .toLowerCase();
+console.log(
+  `Field String (first 100 chars): ${hash2String.substring(0, 100)}...`,
+);
 console.log(`Hash: ${hash2}\n`);
 
 // Method 3: Comma-delimited concatenation
 console.log("METHOD 3: Comma-Delimited (,)");
 console.log("─".repeat(60));
-const hash3String = hashFieldOrder.map((field) => String(payload[field] || "")).join(",");
-const hash3 = crypto.createHmac("sha256", ICICI_CONFIG.secretKey).update(hash3String).digest("hex").toLowerCase();
-console.log(`Field String (first 100 chars): ${hash3String.substring(0, 100)}...`);
+const hash3String = hashFieldOrder
+  .map((field) => String(payload[field] || ""))
+  .join(",");
+const hash3 = crypto
+  .createHmac("sha256", ICICI_CONFIG.secretKey)
+  .update(hash3String)
+  .digest("hex")
+  .toLowerCase();
+console.log(
+  `Field String (first 100 chars): ${hash3String.substring(0, 100)}...`,
+);
 console.log(`Hash: ${hash3}\n`);
 
 // Method 4: Only non-empty fields, no delimiter
@@ -93,8 +124,14 @@ const hash4String = hashFieldOrder
   .filter((field) => payload[field] && String(payload[field]).trim() !== "")
   .map((field) => String(payload[field]))
   .join("");
-const hash4 = crypto.createHmac("sha256", ICICI_CONFIG.secretKey).update(hash4String).digest("hex").toLowerCase();
-console.log(`Field String (first 100 chars): ${hash4String.substring(0, 100)}...`);
+const hash4 = crypto
+  .createHmac("sha256", ICICI_CONFIG.secretKey)
+  .update(hash4String)
+  .digest("hex")
+  .toLowerCase();
+console.log(
+  `Field String (first 100 chars): ${hash4String.substring(0, 100)}...`,
+);
 console.log(`Hash: ${hash4}\n`);
 
 // Method 5: Only non-empty fields, pipe-delimited
@@ -104,16 +141,28 @@ const hash5String = hashFieldOrder
   .filter((field) => payload[field] && String(payload[field]).trim() !== "")
   .map((field) => String(payload[field]))
   .join("|");
-const hash5 = crypto.createHmac("sha256", ICICI_CONFIG.secretKey).update(hash5String).digest("hex").toLowerCase();
-console.log(`Field String (first 100 chars): ${hash5String.substring(0, 100)}...`);
+const hash5 = crypto
+  .createHmac("sha256", ICICI_CONFIG.secretKey)
+  .update(hash5String)
+  .digest("hex")
+  .toLowerCase();
+console.log(
+  `Field String (first 100 chars): ${hash5String.substring(0, 100)}...`,
+);
 console.log(`Hash: ${hash5}\n`);
 
 // Method 6: JSON stringified payload
 console.log("METHOD 6: JSON Stringified Payload (Minified)");
 console.log("─".repeat(60));
 const hash6String = JSON.stringify(payload).replace(/\s+/g, "");
-const hash6 = crypto.createHmac("sha256", ICICI_CONFIG.secretKey).update(hash6String).digest("hex").toLowerCase();
-console.log(`Field String (first 100 chars): ${hash6String.substring(0, 100)}...`);
+const hash6 = crypto
+  .createHmac("sha256", ICICI_CONFIG.secretKey)
+  .update(hash6String)
+  .digest("hex")
+  .toLowerCase();
+console.log(
+  `Field String (first 100 chars): ${hash6String.substring(0, 100)}...`,
+);
 console.log(`Hash: ${hash6}\n`);
 
 // Method 7: Sorted keys, pipe-delimited
@@ -123,8 +172,14 @@ const sortedKeys = Object.keys(payload)
   .filter((key) => payload[key] && String(payload[key]).trim() !== "")
   .sort();
 const hash7String = sortedKeys.map((key) => String(payload[key])).join("|");
-const hash7 = crypto.createHmac("sha256", ICICI_CONFIG.secretKey).update(hash7String).digest("hex").toLowerCase();
-console.log(`Field String (first 100 chars): ${hash7String.substring(0, 100)}...`);
+const hash7 = crypto
+  .createHmac("sha256", ICICI_CONFIG.secretKey)
+  .update(hash7String)
+  .digest("hex")
+  .toLowerCase();
+console.log(
+  `Field String (first 100 chars): ${hash7String.substring(0, 100)}...`,
+);
 console.log(`Hash: ${hash7}\n`);
 
 // Summary
@@ -144,5 +199,7 @@ console.log("2. Update iciciPaymentService.js to use the correct method");
 console.log("3. Or contact ICICI support for hash calculation example");
 console.log("\n📞 ICICI CONTACTS:");
 console.log("   Soumyadip Kar: soumyadip.kar@icici.bank.in");
-console.log("   Khamaruddin Shaik: khamaruddin.shaik@icici.bank.in (9653655391)");
+console.log(
+  "   Khamaruddin Shaik: khamaruddin.shaik@icici.bank.in (9653655391)",
+);
 console.log("   Integration: msintegration@icici.bank.in");

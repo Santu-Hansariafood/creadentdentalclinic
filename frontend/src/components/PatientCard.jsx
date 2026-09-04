@@ -1,13 +1,18 @@
 import { motion } from "framer-motion";
-import { User, Phone, Mail, Calendar, Edit3, Trash2, IdCard } from "lucide-react";
+import {
+  User,
+  Phone,
+  Mail,
+  Calendar,
+  Edit3,
+  Trash2,
+  IdCard,
+} from "lucide-react";
 import { fadeIn } from "../utils/motion";
 
 const PatientCard = ({ patient, delay = 0, onSelect, onEdit, onDelete }) => {
   return (
-    <motion.div
-      {...fadeIn("up", delay)}
-      className="card-hover"
-    >
+    <motion.div {...fadeIn("up", delay)} className="card-hover">
       <div className="flex items-start gap-4">
         <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
           <User size={28} className="text-primary" />
@@ -21,7 +26,9 @@ const PatientCard = ({ patient, delay = 0, onSelect, onEdit, onDelete }) => {
               {patient.patientId && (
                 <div className="flex items-center gap-1 text-xs text-primary bg-primary/5 px-2 py-0.5 rounded-md w-fit mb-2">
                   <IdCard size={12} />
-                  <span className="font-mono font-medium">{patient.patientId}</span>
+                  <span className="font-mono font-medium">
+                    {patient.patientId}
+                  </span>
                 </div>
               )}
             </div>

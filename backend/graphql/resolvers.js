@@ -311,8 +311,12 @@ const resolvers = {
     checkPatientExists: async (_, { phone, email, patientId }) => {
       const normalizedPhone = (phone || "").replace(/\D/g, "").slice(-10);
       const normalizedEmail = email?.trim().toLowerCase();
-      const currentPatient = patientId ? await Patient.findById(patientId) : null;
-      const patientExclusion = currentPatient ? { _id: { $ne: currentPatient._id } } : {};
+      const currentPatient = patientId
+        ? await Patient.findById(patientId)
+        : null;
+      const patientExclusion = currentPatient
+        ? { _id: { $ne: currentPatient._id } }
+        : {};
       const userExclusion = currentPatient?.userId
         ? { _id: { $ne: currentPatient.userId } }
         : {};
@@ -933,7 +937,9 @@ const resolvers = {
     getWhatsAppMessages: async (_, { patientId, limit = 100 }, { user }) => {
       requireStaff(user);
       const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 500);
-      const messages = await WhatsAppMessage.find(patientId ? { patientId } : {})
+      const messages = await WhatsAppMessage.find(
+        patientId ? { patientId } : {},
+      )
         .sort({ createdAt: -1 })
         .limit(safeLimit);
       return await Promise.all(
@@ -1130,7 +1136,10 @@ const resolvers = {
           });
         }
       } catch (error) {
-        console.warn("Forgot password OTP WhatsApp send failed:", error.message);
+        console.warn(
+          "Forgot password OTP WhatsApp send failed:",
+          error.message,
+        );
       }
 
       return true;
@@ -1270,9 +1279,8 @@ const resolvers = {
         await updatedAppointment.save();
 
         try {
-          const whatsappResult = await sendAppointmentRescheduleNotification(
-            updatedAppointment,
-          );
+          const whatsappResult =
+            await sendAppointmentRescheduleNotification(updatedAppointment);
           console.log("[WHATSAPP] Appointment reschedule notification:", {
             success: whatsappResult.success,
             skipped: whatsappResult.skipped,
@@ -2055,9 +2063,7 @@ const resolvers = {
         : undefined;
       const nextPhone = normalizedPhone || patient.phone;
       const nextEmail = args.email ?? patient.email;
-      const phoneVariants = nextPhone
-        ? [nextPhone, `91${nextPhone}`]
-        : [];
+      const phoneVariants = nextPhone ? [nextPhone, `91${nextPhone}`] : [];
       let patientUser = patient.userId
         ? await User.findById(patient.userId)
         : await User.findOne({

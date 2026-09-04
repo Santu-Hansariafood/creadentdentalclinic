@@ -131,7 +131,8 @@ const sendPrescriptionEmail = async ({
     to: patientEmail,
     replyTo: clinicInfo?.email || senderEmail,
     subject: `Your Prescription (${rxId}) from ${senderName}`,
-    text: `Dear ${patientName || "Patient"},\n\n` +
+    text:
+      `Dear ${patientName || "Patient"},\n\n` +
       `Your prescription (${rxId}) from Dr. ${doctorName || "Doctor"} has been attached.\n` +
       `${medicationsText}\n\n` +
       `Call ${clinicInfo?.phone || ""} for any queries.\n\n` +

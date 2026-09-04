@@ -144,13 +144,17 @@ const PaymentForm = ({
 
         {isPatientSelfServe && (
           <div className="mb-4 p-3 rounded-lg border border-primary/20 bg-primary/5 flex items-start gap-3">
-            <UserCircle size={20} className="text-primary flex-shrink-0 mt-0.5" />
+            <UserCircle
+              size={20}
+              className="text-primary flex-shrink-0 mt-0.5"
+            />
             <div className="text-xs">
               <p className="font-semibold text-primary">
                 You are paying your own invoice
               </p>
               <p className="text-gray-600 mt-1">
-                Complete your payment securely through ICICI Bank Payment Gateway.
+                Complete your payment securely through ICICI Bank Payment
+                Gateway.
               </p>
             </div>
           </div>
@@ -183,13 +187,13 @@ const PaymentForm = ({
           Payment Amount
         </label>
         <input
-  type="text"
-  value={`₹${(invoice.balance || 0).toFixed(2)}`}
-  readOnly
-  aria-readonly="true"
-  className="input-field bg-gray-100 cursor-not-allowed font-semibold"
-  required
-/>
+          type="text"
+          value={`₹${(invoice.balance || 0).toFixed(2)}`}
+          readOnly
+          aria-readonly="true"
+          className="input-field bg-gray-100 cursor-not-allowed font-semibold"
+          required
+        />
       </div>
 
       <div>
@@ -236,7 +240,8 @@ const PaymentForm = ({
                     Pay Online — ICICI Bank
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Secure payment through ICICI Bank&apos;s configured payment flow.
+                    Secure payment through ICICI Bank&apos;s configured payment
+                    flow.
                   </p>
                 </div>
               </div>
@@ -269,9 +274,7 @@ const PaymentForm = ({
               paymentMethod === "Cash"
                 ? "border-primary bg-primary/5 shadow-sm"
                 : "border-gray-200 hover:border-gray-300"
-            } ${
-              isPatientSelfServe ? "opacity-60 cursor-not-allowed" : ""
-            }`}
+            } ${isPatientSelfServe ? "opacity-60 cursor-not-allowed" : ""}`}
           >
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-3">
@@ -292,7 +295,9 @@ const PaymentForm = ({
                 <div>
                   <div
                     className={`font-semibold ${
-                      paymentMethod === "Cash" ? "text-primary" : "text-gray-800"
+                      paymentMethod === "Cash"
+                        ? "text-primary"
+                        : "text-gray-800"
                     }`}
                   >
                     Cash
@@ -339,7 +344,8 @@ const PaymentForm = ({
                 Cash payment (in-clinic)
               </p>
               <p className="text-gray-600 mt-1">
-                Record this payment only after the patient has paid in cash at the clinic counter.
+                Record this payment only after the patient has paid in cash at
+                the clinic counter.
               </p>
             </div>
           </div>
@@ -360,8 +366,7 @@ const PaymentForm = ({
           ) : paymentMethod === "ICICI Bank" ? (
             <span className="flex items-center justify-center gap-2">
               <CreditCard size={18} />
-              Continue to payment — Pay ₹
-              {parseFloat(amount || 0).toFixed(2)}
+              Continue to payment — Pay ₹{parseFloat(amount || 0).toFixed(2)}
             </span>
           ) : (
             `Record Cash ₹${parseFloat(amount || 0).toFixed(2)}`
@@ -380,7 +385,9 @@ const PaymentForm = ({
       <div className="flex items-center justify-center gap-4 pt-4 border-t border-gray-200">
         <div className="flex gap-2">
           <CreditCard size={24} className="text-gray-400" />
-          <span className="text-xs text-gray-500">Recorded in billing ledger</span>
+          <span className="text-xs text-gray-500">
+            Recorded in billing ledger
+          </span>
         </div>
       </div>
     </form>

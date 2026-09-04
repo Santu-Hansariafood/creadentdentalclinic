@@ -1,18 +1,18 @@
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, Plus, Pill } from "lucide-react";
 import { fadeIn } from "../utils/motion";
-import MedicineCard from "../components/MedicineCard";
-import MedicineRegistration from "./MedicineRegistration";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_MEDICINES } from "../graphql/queries";
 import { DELETE_MEDICINE } from "../graphql/mutations";
-import Pagination from "../components/Pagination";
 import toast from "react-hot-toast";
 import Preloader from "../components/Preloader";
-import PageHeader from "../components/PageHeader";
+const PageHeader = lazy(() => import("../components/PageHeader"));
+const MedicineCard = lazy(() => import("../components/MedicineCard"));
+const MedicineRegistration = lazy(() => import("./MedicineRegistration"));
+const Pagination = lazy(() => import("../components/Pagination"));
 
 const MedicineList = () => {
   const { user } = useAuth();
@@ -120,9 +120,7 @@ const MedicineList = () => {
         </div>
 
         {loading ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Searching inventory...</p>
-          </div>
+          <Preloader />
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

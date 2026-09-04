@@ -9,13 +9,18 @@ const storageService = require("../utils/storageService");
 const MedicalRecord = require("../models/MedicalRecord");
 const User = require("../models/User");
 
-const tmpDir = fs.existsSync(os.tmpdir()) ? os.tmpdir() : path.join(__dirname, "..", "uploads", "_tmp");
+const tmpDir = fs.existsSync(os.tmpdir())
+  ? os.tmpdir()
+  : path.join(__dirname, "..", "uploads", "_tmp");
 const maxUploadSizeMb = Number(process.env.UPLOAD_MAX_FILE_SIZE_MB || 50);
-const maxUploadSizeBytes = Number.isFinite(maxUploadSizeMb) && maxUploadSizeMb > 0
-  ? maxUploadSizeMb * 1024 * 1024
-  : 50 * 1024 * 1024;
+const maxUploadSizeBytes =
+  Number.isFinite(maxUploadSizeMb) && maxUploadSizeMb > 0
+    ? maxUploadSizeMb * 1024 * 1024
+    : 50 * 1024 * 1024;
 if (!fs.existsSync(tmpDir)) {
-  try { fs.mkdirSync(tmpDir, { recursive: true }); } catch (e) {}
+  try {
+    fs.mkdirSync(tmpDir, { recursive: true });
+  } catch (e) {}
 }
 
 const upload = multer({
@@ -26,7 +31,10 @@ const upload = multer({
     filename: function (req, file, cb) {
       const ts = Date.now();
       const rnd = Math.floor(Math.random() * 99999);
-      const clean = (file.originalname || file.name || "file").replace(/[^a-zA-Z0-9._-]/g, "_");
+      const clean = (file.originalname || file.name || "file").replace(
+        /[^a-zA-Z0-9._-]/g,
+        "_",
+      );
       cb(null, `${ts}_${rnd}_${clean}`);
     },
   }),
@@ -35,18 +43,22 @@ const upload = multer({
 
 const parseUpload = (req, res, next) => {
   const ct = req.headers["content-type"] || "";
-  console.log("[PARSE-UPLOAD] Before multer: ct=%s cl=%s", ct, req.headers["content-length"]);
+  console.log(
+    "[PARSE-UPLOAD] Before multer: ct=%s cl=%s",
+    ct,
+    req.headers["content-length"],
+  );
   if (!/multipart\/form-data/i.test(ct)) {
-    console.warn("[PARSE-UPLOAD] Content-type is NOT multipart/form-data — multer will find no files.");
+    console.warn(
+      "[PARSE-UPLOAD] Content-type is NOT multipart/form-data — multer will find no files.",
+    );
   }
-  // Accept "files" array or "file" single so legacy clients work too
   upload.fields([
     { name: "files", maxCount: 20 },
     { name: "file", maxCount: 10 },
     { name: "files[]", maxCount: 20 },
     { name: "documents", maxCount: 20 },
   ])(req, res, (error) => {
-    // Flatten to req.files array (like array() behavior) so rest of the code is unchanged
     if (!error) {
       const flat = [];
       const obj = req.files || {};
@@ -61,13 +73,18 @@ const parseUpload = (req, res, next) => {
         }
         req.files = flat;
       }
-      console.log("[PARSE-UPLOAD] After multer: fileCount=%d fileFields=%s",
+      console.log(
+        "[PARSE-UPLOAD] After multer: fileCount=%d fileFields=%s",
         (req.files || []).length,
-        Object.keys(obj || {}).join(","));
+        Object.keys(obj || {}).join(","),
+      );
       return next();
     }
     console.error("[PARSE-UPLOAD] Multer error:", error);
-    if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
+    if (
+      error instanceof multer.MulterError &&
+      error.code === "LIMIT_FILE_SIZE"
+    ) {
       return res.status(413).json({
         error: `Each file must be ${maxUploadSizeMb} MB or smaller`,
       });
@@ -96,82 +113,98 @@ const requireAuth = async (req, res, next) => {
   }
 };
 
-router.get("/proxy", (req, res, next) => {
-  if (!req.headers.authorization && req.query.token) {
-    req.headers.authorization = `Bearer ${req.query.token}`;
-  }
-  return requireAuth(req, res, next);
-}, async (req, res) => {
-  try {
-    const providerResponse = await storageService.fetchProviderFile(req.query.url);
-    const contentType = providerResponse.headers.get("content-type");
-    const contentLength = providerResponse.headers.get("content-length");
-    if (contentType) res.setHeader("Content-Type", contentType);
-    if (contentLength) res.setHeader("Content-Length", contentLength);
-    res.setHeader("Cache-Control", "private, max-age=300");
-    return require("stream").Readable.fromWeb(providerResponse.body).pipe(res);
-  } catch (e) {
-    return res.status(404).json({ error: e.message || "File unavailable" });
-  }
-});
-
-router.post(
-  "/upload",
-  requireAuth,
-  parseUpload,
+router.get(
+  "/proxy",
+  (req, res, next) => {
+    if (!req.headers.authorization && req.query.token) {
+      req.headers.authorization = `Bearer ${req.query.token}`;
+    }
+    return requireAuth(req, res, next);
+  },
   async (req, res) => {
-    console.log("[STORAGE-UPLOAD] hit:", {
-      method: req.method,
-      path: req.path,
-      originalUrl: req.originalUrl,
-      user: req.user?._id ? String(req.user._id) : "NO_USER",
-      role: req.user?.role,
-      patientId: req.body?.patientId,
-      recordId: req.body?.recordId,
-      patientName: req.body?.patientName,
-      filesCount: req.files?.length || 0,
-      files: (req.files || []).map((f, idx) => ({
-        idx,
-        fieldname: f.fieldname,
-        originalname: f.originalname,
-        encoding: f.encoding,
-        mimetype: f.mimetype,
-        size: f.size,
-        bytesOnDisk: f.path && require("fs").existsSync(f.path) ? require("fs").statSync(f.path).size : 0,
-      })),
-      bodyKeys: Object.keys(req.body || {}),
-      body: req.body,
-      contentLength: req.headers["content-length"],
-      contentType: req.headers["content-type"],
-    });
     try {
-      const { patientId, recordId } = req.body || {};
-      if (!patientId) {
-        console.log("[STORAGE-UPLOAD] missing patientId");
-        return res.status(400).json({ error: "patientId is required" });
-      }
-      const files = req.files || [];
-      if (files.length === 0) {
-        console.log("[STORAGE-UPLOAD] FATAL no files received after multer parse - raw body inspection:");
-        // Log buffer size via streams if possible
-        console.log("[STORAGE-UPLOAD] Headers at upload:", JSON.stringify({
-          "content-type": req.headers["content-type"],
-          "content-length": req.headers["content-length"],
-          "transfer-encoding": req.headers["transfer-encoding"],
-          "content-disposition": req.headers["content-disposition"],
-        }, null, 2));
-        return res.status(400).json({
-          error: "No files provided",
-          debug: {
-            body: req.body,
-            contentType: req.headers["content-type"],
-            contentLength: req.headers["content-length"],
+      const providerResponse = await storageService.fetchProviderFile(
+        req.query.url,
+      );
+      const contentType = providerResponse.headers.get("content-type");
+      const contentLength = providerResponse.headers.get("content-length");
+      if (contentType) res.setHeader("Content-Type", contentType);
+      if (contentLength) res.setHeader("Content-Length", contentLength);
+      res.setHeader("Cache-Control", "private, max-age=300");
+      return require("stream")
+        .Readable.fromWeb(providerResponse.body)
+        .pipe(res);
+    } catch (e) {
+      return res.status(404).json({ error: e.message || "File unavailable" });
+    }
+  },
+);
+
+router.post("/upload", requireAuth, parseUpload, async (req, res) => {
+  console.log("[STORAGE-UPLOAD] hit:", {
+    method: req.method,
+    path: req.path,
+    originalUrl: req.originalUrl,
+    user: req.user?._id ? String(req.user._id) : "NO_USER",
+    role: req.user?.role,
+    patientId: req.body?.patientId,
+    recordId: req.body?.recordId,
+    patientName: req.body?.patientName,
+    filesCount: req.files?.length || 0,
+    files: (req.files || []).map((f, idx) => ({
+      idx,
+      fieldname: f.fieldname,
+      originalname: f.originalname,
+      encoding: f.encoding,
+      mimetype: f.mimetype,
+      size: f.size,
+      bytesOnDisk:
+        f.path && require("fs").existsSync(f.path)
+          ? require("fs").statSync(f.path).size
+          : 0,
+    })),
+    bodyKeys: Object.keys(req.body || {}),
+    body: req.body,
+    contentLength: req.headers["content-length"],
+    contentType: req.headers["content-type"],
+  });
+  try {
+    const { patientId, recordId } = req.body || {};
+    if (!patientId) {
+      console.log("[STORAGE-UPLOAD] missing patientId");
+      return res.status(400).json({ error: "patientId is required" });
+    }
+    const files = req.files || [];
+    if (files.length === 0) {
+      console.log(
+        "[STORAGE-UPLOAD] FATAL no files received after multer parse - raw body inspection:",
+      );
+      console.log(
+        "[STORAGE-UPLOAD] Headers at upload:",
+        JSON.stringify(
+          {
+            "content-type": req.headers["content-type"],
+            "content-length": req.headers["content-length"],
+            "transfer-encoding": req.headers["transfer-encoding"],
+            "content-disposition": req.headers["content-disposition"],
           },
-        });
-      }
-      const patientName = req.body?.patientName || patientId;
-      const patientFolder = `medical-records/${patientName}`;
-      const outcomes = await Promise.all(files.map(async (f) => {
+          null,
+          2,
+        ),
+      );
+      return res.status(400).json({
+        error: "No files provided",
+        debug: {
+          body: req.body,
+          contentType: req.headers["content-type"],
+          contentLength: req.headers["content-length"],
+        },
+      });
+    }
+    const patientName = req.body?.patientName || patientId;
+    const patientFolder = `medical-records/${patientName}`;
+    const outcomes = await Promise.all(
+      files.map(async (f) => {
         console.log("[STORAGE-UPLOAD] processing file:", {
           originalname: f.originalname,
           size: f.size,
@@ -187,7 +220,10 @@ router.post(
               fileName: f.originalname || f.name || "file",
             });
           } catch (spaceByteError) {
-            console.error("[SPACEBYTE-UPLOAD] falling back to local storage:", spaceByteError.message);
+            console.error(
+              "[SPACEBYTE-UPLOAD] falling back to local storage:",
+              spaceByteError.message,
+            );
             meta = await storageService.saveLocalFile(
               f,
               storageService.buildStoragePath({
@@ -205,51 +241,70 @@ router.post(
           });
           return { status: "fulfilled", value: meta };
         } catch (error) {
-          console.error("[STORAGE-UPLOAD] file failed:", f.originalname, error.message);
+          console.error(
+            "[STORAGE-UPLOAD] file failed:",
+            f.originalname,
+            error.message,
+          );
           return {
             status: "rejected",
-            reason: { name: f.originalname || "file", error: error.message || "Upload failed" },
+            reason: {
+              name: f.originalname || "file",
+              error: error.message || "Upload failed",
+            },
           };
         } finally {
           try {
             if (f.path) fs.unlinkSync(f.path);
           } catch (_) {}
         }
-      }));
-      const attachments = outcomes.filter((item) => item.status === "fulfilled").map((item) => item.value);
-      const failed = outcomes.filter((item) => item.status === "rejected").map((item) => item.reason);
-      console.log("[STORAGE-UPLOAD] complete:", { uploaded: attachments.length, failed: failed.length });
-      return res.status(failed.length ? (attachments.length ? 207 : 502) : 200).json({
+      }),
+    );
+    const attachments = outcomes
+      .filter((item) => item.status === "fulfilled")
+      .map((item) => item.value);
+    const failed = outcomes
+      .filter((item) => item.status === "rejected")
+      .map((item) => item.reason);
+    console.log("[STORAGE-UPLOAD] complete:", {
+      uploaded: attachments.length,
+      failed: failed.length,
+    });
+    return res
+      .status(failed.length ? (attachments.length ? 207 : 502) : 200)
+      .json({
         success: failed.length === 0,
         attachments,
         failed,
-        error: failed.length ? failed.map((item) => item.error).join("; ") : undefined,
+        error: failed.length
+          ? failed.map((item) => item.error).join("; ")
+          : undefined,
       });
-    } catch (e) {
-      console.error("[STORAGE-UPLOAD] ERROR:", e);
-      return res.status(500).json({ error: e.message || "Upload failed" });
-    }
-  },
-);
+  } catch (e) {
+    console.error("[STORAGE-UPLOAD] ERROR:", e);
+    return res.status(500).json({ error: e.message || "Upload failed" });
+  }
+});
 
-router.post(
-  "/attach-to-record/:recordId",
-  requireAuth,
-  async (req, res) => {
-    try {
-      const { attachments } = req.body || {};
-      const recordId = req.params.recordId;
-      const record = await MedicalRecord.findById(recordId);
-      if (!record) return res.status(404).json({ error: "Record not found" });
-      const existing = Array.isArray(record.attachments) ? record.attachments : [];
-      record.attachments = [...existing, ...(Array.isArray(attachments) ? attachments : [])];
-      await record.save();
-      return res.json({ success: true, record });
-    } catch (e) {
-      return res.status(500).json({ error: e.message });
-    }
-  },
-);
+router.post("/attach-to-record/:recordId", requireAuth, async (req, res) => {
+  try {
+    const { attachments } = req.body || {};
+    const recordId = req.params.recordId;
+    const record = await MedicalRecord.findById(recordId);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    const existing = Array.isArray(record.attachments)
+      ? record.attachments
+      : [];
+    record.attachments = [
+      ...existing,
+      ...(Array.isArray(attachments) ? attachments : []),
+    ];
+    await record.save();
+    return res.json({ success: true, record });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+});
 
 router.get("/record-attachments/:recordId", requireAuth, async (req, res) => {
   try {
@@ -265,8 +320,9 @@ router.get("/record-attachments/:recordId", requireAuth, async (req, res) => {
     const list = Array.isArray(record.attachments) ? record.attachments : [];
     const withUrls = [];
     for (const att of list) {
-      const item = (att && att.toObject ? att.toObject() : { ...(att || {}) });
-      item.url = att.url || await storageService.getPresignedUrl(att.storageKey);
+      const item = att && att.toObject ? att.toObject() : { ...(att || {}) };
+      item.url =
+        att.url || (await storageService.getPresignedUrl(att.storageKey));
       withUrls.push(item);
     }
     return res.json({ attachments: withUrls });

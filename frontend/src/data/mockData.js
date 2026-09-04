@@ -638,7 +638,8 @@ export const invoices = [
     paymentMethod: "UPI",
     paymentDate: "2024-06-01",
     insuranceClaim: null,
-    notes: "Partial payment made on day of procedure. Crown placed successfully. Balance due at 2-week follow-up.",
+    notes:
+      "Partial payment made on day of procedure. Crown placed successfully. Balance due at 2-week follow-up.",
   },
   {
     id: 6,
@@ -682,7 +683,8 @@ export const invoices = [
       claimAmount: 2500,
       status: "Pending",
     },
-    notes: "Scheduled extraction. Insurance expected to cover ~60%. Patient responsible for remainder.",
+    notes:
+      "Scheduled extraction. Insurance expected to cover ~60%. Patient responsible for remainder.",
   },
   {
     id: 7,
@@ -721,7 +723,8 @@ export const invoices = [
     paymentMethod: "Card",
     paymentDate: "2024-08-01",
     insuranceClaim: null,
-    notes: "Initial implant consultation. Partial payment received. Implant placement scheduled for next month.",
+    notes:
+      "Initial implant consultation. Partial payment received. Implant placement scheduled for next month.",
   },
   {
     id: 8,
@@ -760,7 +763,8 @@ export const invoices = [
     paymentMethod: null,
     paymentDate: null,
     insuranceClaim: null,
-    notes: "Cosmetic whitening package. Not covered by insurance. Full payment due before treatment.",
+    notes:
+      "Cosmetic whitening package. Not covered by insurance. Full payment due before treatment.",
   },
 ];
 

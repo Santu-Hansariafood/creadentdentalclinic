@@ -30,14 +30,14 @@ const MedicineCard = ({ medicine, delay = 0, onEdit, onDelete }) => {
       </div>
 
       <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-2">
-        <button 
+        <button
           onClick={onEdit}
           className="text-sm text-primary hover:underline font-medium flex items-center gap-1"
         >
           <Edit2 size={14} />
           Edit
         </button>
-        <button 
+        <button
           onClick={onDelete}
           className="text-sm text-red-500 hover:underline font-medium flex items-center gap-1"
         >

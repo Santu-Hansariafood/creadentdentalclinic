@@ -11,11 +11,11 @@ const { sendInvoiceWhatsApp } = require("./whatsappNotifications");
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 const isProduction = process.env.ICICI_ENV === "production";
-const ICICI_BASE_URL = process.env.ICICI_BASE_URL || (
-  isProduction
+const ICICI_BASE_URL =
+  process.env.ICICI_BASE_URL ||
+  (isProduction
     ? "https://pgpay.icicibank.com"
-    : "https://pgpayuat.icici.bank.in"
-);
+    : "https://pgpayuat.icici.bank.in");
 
 const resolveICICIUrl = (envValue, fallbackPath) => {
   const fallback = `${ICICI_BASE_URL}${fallbackPath}`;
@@ -33,18 +33,61 @@ const ICICI_CONFIG = {
   currencyCode: process.env.ICICI_CURRENCY_CODE || "356",
   payType: process.env.ICICI_PAY_TYPE || "0",
   baseUrl: ICICI_BASE_URL,
-  initiateSaleUrl: resolveICICIUrl(process.env.ICICI_INITIATE_SALE_URL || "https://pgpayuat.icici.bank.in/tsp/pg/api/v2/initiateSale", "/tsp/pg/api/v2/initiateSale"),
-  generateOtpUrl: resolveICICIUrl(process.env.ICICI_GENERATE_OTP_URL || "https://pgpayuat.icici.bank.in/tsp/pg/api/v2/generateOTP", "/tsp/pg/api/v2/generateOTP"),
-  verifyOtpUrl: resolveICICIUrl(process.env.ICICI_VERIFY_OTP_URL || "https://pgpayuat.icici.bank.in/tsp/pg/api/v2/verifyOTP", "/tsp/pg/api/v2/verifyOTP"),
-  authorizeUrl: resolveICICIUrl(process.env.ICICI_AUTHORIZE_URL || "https://pgpayuat.icici.bank.in/tsp/pg/api/v2/authorize", "/tsp/pg/api/v2/authorize"),
-  statusCheckUrl: resolveICICIUrl(process.env.ICICI_STATUS_CHECK_URL || "https://pgpayuat.icici.bank.in/tsp/pg/api/command", "/tsp/pg/api/command"),
-  transactionStatusUrl: resolveICICIUrl(process.env.ICICI_TRANSACTION_STATUS_URL || process.env.ICICI_STATUS_CHECK_URL || "https://pgpayuat.icici.bank.in/tsp/pg/api/command", "/tsp/pg/api/command"),
-  refundUrl: resolveICICIUrl(process.env.ICICI_REFUND_URL || "https://pgpayuat.icici.bank.in/tsp/pg/api/command", "/tsp/pg/api/command"),
-  settlementStatusUrl: resolveICICIUrl(process.env.ICICI_SETTLEMENT_STATUS_URL || "https://pgpayuat.icici.bank.in/tsp/pg/api/command", "/tsp/pg/api/command"),
-  settlementSummaryUrl: resolveICICIUrl(process.env.ICICI_SETTLEMENT_SUMMARY_URL || "https://pgpayuat.icici.bank.in/tsp/pg/api/command", "/tsp/pg/api/command"),
-  settlementDetailsUrl: resolveICICIUrl(process.env.ICICI_SETTLEMENT_DETAILS_URL || "https://pgpayuat.icici.bank.in/tsp/pg/api/command", "/tsp/pg/api/command"),
-  returnUrl: process.env.ICICI_RETURN_URL || process.env.ICICI_REDIRECT_URL || "",
-  redirectUrl: process.env.ICICI_REDIRECT_URL || process.env.ICICI_RETURN_URL || "",
+  initiateSaleUrl: resolveICICIUrl(
+    process.env.ICICI_INITIATE_SALE_URL ||
+      "https://pgpayuat.icici.bank.in/tsp/pg/api/v2/initiateSale",
+    "/tsp/pg/api/v2/initiateSale",
+  ),
+  generateOtpUrl: resolveICICIUrl(
+    process.env.ICICI_GENERATE_OTP_URL ||
+      "https://pgpayuat.icici.bank.in/tsp/pg/api/v2/generateOTP",
+    "/tsp/pg/api/v2/generateOTP",
+  ),
+  verifyOtpUrl: resolveICICIUrl(
+    process.env.ICICI_VERIFY_OTP_URL ||
+      "https://pgpayuat.icici.bank.in/tsp/pg/api/v2/verifyOTP",
+    "/tsp/pg/api/v2/verifyOTP",
+  ),
+  authorizeUrl: resolveICICIUrl(
+    process.env.ICICI_AUTHORIZE_URL ||
+      "https://pgpayuat.icici.bank.in/tsp/pg/api/v2/authorize",
+    "/tsp/pg/api/v2/authorize",
+  ),
+  statusCheckUrl: resolveICICIUrl(
+    process.env.ICICI_STATUS_CHECK_URL ||
+      "https://pgpayuat.icici.bank.in/tsp/pg/api/command",
+    "/tsp/pg/api/command",
+  ),
+  transactionStatusUrl: resolveICICIUrl(
+    process.env.ICICI_TRANSACTION_STATUS_URL ||
+      process.env.ICICI_STATUS_CHECK_URL ||
+      "https://pgpayuat.icici.bank.in/tsp/pg/api/command",
+    "/tsp/pg/api/command",
+  ),
+  refundUrl: resolveICICIUrl(
+    process.env.ICICI_REFUND_URL ||
+      "https://pgpayuat.icici.bank.in/tsp/pg/api/command",
+    "/tsp/pg/api/command",
+  ),
+  settlementStatusUrl: resolveICICIUrl(
+    process.env.ICICI_SETTLEMENT_STATUS_URL ||
+      "https://pgpayuat.icici.bank.in/tsp/pg/api/command",
+    "/tsp/pg/api/command",
+  ),
+  settlementSummaryUrl: resolveICICIUrl(
+    process.env.ICICI_SETTLEMENT_SUMMARY_URL ||
+      "https://pgpayuat.icici.bank.in/tsp/pg/api/command",
+    "/tsp/pg/api/command",
+  ),
+  settlementDetailsUrl: resolveICICIUrl(
+    process.env.ICICI_SETTLEMENT_DETAILS_URL ||
+      "https://pgpayuat.icici.bank.in/tsp/pg/api/command",
+    "/tsp/pg/api/command",
+  ),
+  returnUrl:
+    process.env.ICICI_RETURN_URL || process.env.ICICI_REDIRECT_URL || "",
+  redirectUrl:
+    process.env.ICICI_REDIRECT_URL || process.env.ICICI_RETURN_URL || "",
   callbackUrl: process.env.ICICI_CALLBACK_URL || "",
 };
 
@@ -81,9 +124,7 @@ const calculateSecureHashV1 = (params, secretKey) => {
     })
     .sort();
 
-  const concatenated = sortedKeys
-    .map((key) => String(params[key]))
-    .join("");
+  const concatenated = sortedKeys.map((key) => String(params[key])).join("");
 
   return crypto
     .createHmac("sha256", secretKey)
@@ -93,9 +134,10 @@ const calculateSecureHashV1 = (params, secretKey) => {
 };
 
 const calculateSecureHashV2 = (jsonString, secretKey) => {
-  const minified = typeof jsonString === "string"
-    ? jsonString.replace(/\s+/g, "")
-    : JSON.stringify(jsonString);
+  const minified =
+    typeof jsonString === "string"
+      ? jsonString.replace(/\s+/g, "")
+      : JSON.stringify(jsonString);
 
   return crypto
     .createHmac("sha256", secretKey)
@@ -113,7 +155,8 @@ const verifySecureHash = (params, secretKey, receivedHash) => {
       : null;
   return (
     calculated.toLowerCase() === receivedHash.toLowerCase() ||
-    (calculatedJson && calculatedJson.toLowerCase() === receivedHash.toLowerCase())
+    (calculatedJson &&
+      calculatedJson.toLowerCase() === receivedHash.toLowerCase())
   );
 };
 
@@ -128,7 +171,7 @@ const generateICICISalePayload = async ({
 }) => {
   const merchantTxnNo = generateMerchantTxnNo(invoiceId);
   const txnDate = formatTxnDate();
-  
+
   const addlParam1 = "000";
   const addlParam2 = "000";
 
@@ -184,8 +227,6 @@ const generateICICISalePayload = async ({
 const buildICICIRedirectUrl = (redirectURI, tranCtx) => {
   if (!redirectURI) return "";
 
-  // ICICI Orange PG sample flow expects redirectURI to include the transaction context
-  // as a query parameter, e.g. .../authRedirect?tranCtx=XYZ
   if (!tranCtx) return redirectURI;
 
   const separator = redirectURI.includes("?") ? "&" : "?";
@@ -203,7 +244,11 @@ const isSuccessfulICICIResponse = (responseCode) =>
 
 const normalizeICICIStatus = (status, responseCode, fallback = "REQ") => {
   const normalizedStatus = String(status || "").toUpperCase();
-  if (["SUC", "REJ", "ERR", "REQ", "PENDING", "INITIATED"].includes(normalizedStatus)) {
+  if (
+    ["SUC", "REJ", "ERR", "REQ", "PENDING", "INITIATED"].includes(
+      normalizedStatus,
+    )
+  ) {
     return normalizedStatus;
   }
   if (isSuccessfulICICIResponse(responseCode)) return "SUC";
@@ -234,7 +279,10 @@ const cleanupUnsuccessfulTransaction = async (transaction, reason = "") => {
   try {
     await Transaction.deleteOne({ _id: transaction._id });
   } catch (delErr) {
-    console.error("[ICICI] Failed to delete unsuccessful transaction:", delErr.message);
+    console.error(
+      "[ICICI] Failed to delete unsuccessful transaction:",
+      delErr.message,
+    );
   }
 };
 
@@ -349,7 +397,9 @@ const initiateSale = async ({
     const responseIndicatesFailure =
       responseCode !== "R1000" ||
       ["REJ", "ERR", "FAILED", "FAIL"].includes(
-        String(responseData.txnStatus || nestedResponse.txnStatus || "").toUpperCase(),
+        String(
+          responseData.txnStatus || nestedResponse.txnStatus || "",
+        ).toUpperCase(),
       );
 
     transaction.txnStatus = normalizeICICIStatus(
@@ -373,7 +423,10 @@ const initiateSale = async ({
     transaction.rawResponse = responseData;
     await transaction.save();
 
-    if (responseIndicatesFailure || (!normalizedRedirectURI && !otpFlowAvailable)) {
+    if (
+      responseIndicatesFailure ||
+      (!normalizedRedirectURI && !otpFlowAvailable)
+    ) {
       const gatewayMessage =
         responseData.respDescription ||
         responseData.responseDescription ||
@@ -417,13 +470,17 @@ const initiateSale = async ({
     }
 
     if (result.status === 401 || result.status === 403) {
-      errorMessage = `❌ Authentication Failed (${result.status}): Invalid Merchant ID or Secret Key. Verify ICICI_MERCHANT_ID and ICICI_SECRET_KEY in .env`;
+      errorMessage = `Authentication Failed (${result.status}): Invalid Merchant ID or Secret Key. Verify ICICI_MERCHANT_ID and ICICI_SECRET_KEY in .env`;
     } else if (result.status === 400) {
-      errorMessage = `❌ Invalid Request Payload (${result.status}): ${errorMessage}`;
+      errorMessage = `Invalid Request Payload (${result.status}): ${errorMessage}`;
     } else if (result.status === 500) {
-      errorMessage = `❌ ICICI Server Error (${result.status}): The payment gateway encountered an error. Please try again.`;
-    } else if (result.error?.includes?.("ETIMEDOUT") || result.error?.includes?.("ECONNREFUSED")) {
-      errorMessage = "❌ Network Error: Cannot reach ICICI API. Check internet connection and firewall.";
+      errorMessage = `ICICI Server Error (${result.status}): The payment gateway encountered an error. Please try again.`;
+    } else if (
+      result.error?.includes?.("ETIMEDOUT") ||
+      result.error?.includes?.("ECONNREFUSED")
+    ) {
+      errorMessage =
+        "Network Error: Cannot reach ICICI API. Check internet connection and firewall.";
     }
 
     transaction.rawResponse = { error: errorMessage, status: result.status };
@@ -464,7 +521,10 @@ const generateOTP = async ({ transactionId, tranCtx }) => {
 
   if (result.success && result.data) {
     transaction.otpGenerated = true;
-    transaction.rawResponse = { ...transaction.rawResponse, generateOtp: result.data };
+    transaction.rawResponse = {
+      ...transaction.rawResponse,
+      generateOtp: result.data,
+    };
     await transaction.save();
   }
 
@@ -496,7 +556,10 @@ const verifyOTP = async ({ transactionId, tranCtx, otpValue }) => {
   if (result.success && result.data) {
     transaction.otpVerified =
       result.data.txnStatus === "SUC" || result.data.otpVerified === true;
-    transaction.rawResponse = { ...transaction.rawResponse, verifyOtp: result.data };
+    transaction.rawResponse = {
+      ...transaction.rawResponse,
+      verifyOtp: result.data,
+    };
     await transaction.save();
   }
 
@@ -695,9 +758,9 @@ const reconcilePaymentToInvoice = async (transaction) => {
     cd: Number(invoice.discount || 0),
     bankCharges: Number(
       transaction.rawCallback?.oth_charge ||
-      transaction.rawCallback?.othCharge ||
-      transaction.rawResponse?.oth_charge ||
-      0,
+        transaction.rawCallback?.othCharge ||
+        transaction.rawResponse?.oth_charge ||
+        0,
     ),
     balance: invoice.balance,
     status: invoice.status === "Paid" ? "Paid" : "Partial",
@@ -736,12 +799,15 @@ const handleICICICallback = async (callbackData) => {
   let hashValid = false;
 
   if (receivedHash) {
-    hashValid = verifySecureHash(callbackData, ICICI_CONFIG.secretKey, receivedHash);
+    hashValid = verifySecureHash(
+      callbackData,
+      ICICI_CONFIG.secretKey,
+      receivedHash,
+    );
     if (!hashValid) {
       console.warn("[ICICI] Hash verification failed for txn:", merchantTxnNo);
     }
   } else {
-    // proceed without hash verification if not provided
     hashValid = true;
   }
 
@@ -786,15 +852,20 @@ const handleICICICallback = async (callbackData) => {
 
   await transaction.save();
 
-  // ✅ CRITICAL: Only update invoice when ICICI confirms SUC via callback
   let invoice = null;
   if (transaction.txnStatus === "SUC") {
     if (!transaction.amountPaidApplied) {
       invoice = await reconcilePaymentToInvoice(transaction);
-      console.log("[ICICI] ✅ Payment SUCCESS confirmed via callback. Invoice reconciled for merchantTxnNo:", merchantTxnNo);
+      console.log(
+        "[ICICI] ✅ Payment SUCCESS confirmed via callback. Invoice reconciled for merchantTxnNo:",
+        merchantTxnNo,
+      );
       if (invoice) {
         try {
-          const whatsappResult = await sendInvoiceWhatsApp(invoice, invoice.patientId);
+          const whatsappResult = await sendInvoiceWhatsApp(
+            invoice,
+            invoice.patientId,
+          );
           console.log("[WHATSAPP] Payment invoice notification:", {
             success: whatsappResult.success,
             skipped: whatsappResult.skipped,
@@ -802,15 +873,26 @@ const handleICICICallback = async (callbackData) => {
             error: whatsappResult.error || whatsappResult.errors,
           });
         } catch (error) {
-          console.error("[WHATSAPP] Payment invoice notification failed:", error.message);
+          console.error(
+            "[WHATSAPP] Payment invoice notification failed:",
+            error.message,
+          );
         }
       }
     } else {
-      console.log("[ICICI] SUC status received but amount already applied for merchantTxnNo:", merchantTxnNo);
+      console.log(
+        "[ICICI] SUC status received but amount already applied for merchantTxnNo:",
+        merchantTxnNo,
+      );
       invoice = await Invoice.findById(transaction.invoiceId);
     }
   } else if (transaction.txnStatus !== "SUC") {
-    console.log("[ICICI] Callback received with status:", transaction.txnStatus, "(not successful) for merchantTxnNo:", merchantTxnNo);
+    console.log(
+      "[ICICI] Callback received with status:",
+      transaction.txnStatus,
+      "(not successful) for merchantTxnNo:",
+      merchantTxnNo,
+    );
     await cleanupUnsuccessfulTransaction(
       transaction,
       `Callback processed but status not successful: status=${transaction.txnStatus}, code=${transaction.txnResponseCode}, msg=${transaction.txnResponseMsg}`,
@@ -951,11 +1033,15 @@ const cleanupStaleTransactions = async (olderThanHours = 24) => {
   });
 
   if (staleTxns.length === 0) {
-    console.log(`[ICICI] 🧹 Stale cleanup: No stale transactions found older than ${olderThanHours}h.`);
+    console.log(
+      `[ICICI] 🧹 Stale cleanup: No stale transactions found older than ${olderThanHours}h.`,
+    );
     return { cleaned: 0 };
   }
 
-  console.log(`[ICICI] 🧹 Stale cleanup: Found ${staleTxns.length} stale transaction(s) older than ${olderThanHours}h.`);
+  console.log(
+    `[ICICI] 🧹 Stale cleanup: Found ${staleTxns.length} stale transaction(s) older than ${olderThanHours}h.`,
+  );
 
   for (const txn of staleTxns) {
     await cleanupUnsuccessfulTransaction(
@@ -964,7 +1050,10 @@ const cleanupStaleTransactions = async (olderThanHours = 24) => {
     );
   }
 
-  return { cleaned: staleTxns.length, merchantTxnNos: staleTxns.map((t) => t.merchantTxnNo) };
+  return {
+    cleaned: staleTxns.length,
+    merchantTxnNos: staleTxns.map((t) => t.merchantTxnNo),
+  };
 };
 
 module.exports = {

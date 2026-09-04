@@ -170,16 +170,16 @@ const AppointmentCard = ({
 
       {onAction && appointment.status === "Scheduled" && (
         <div className="mt-4 flex flex-wrap gap-2">
-          {today || past ? (
-            !isDone && (
-              <button
-                onClick={() => onAction("complete", appointment)}
-                className="btn-success flex-1 text-sm py-2"
-              >
-                Mark Done
-              </button>
-            )
-          ) : null}
+          {today || past
+            ? !isDone && (
+                <button
+                  onClick={() => onAction("complete", appointment)}
+                  className="btn-success flex-1 text-sm py-2"
+                >
+                  Mark Done
+                </button>
+              )
+            : null}
           <button
             onClick={() => onAction("reschedule", appointment)}
             className="btn-outline flex-1 text-sm py-2"

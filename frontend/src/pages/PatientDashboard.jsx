@@ -9,9 +9,6 @@ import {
   Clock,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import DashboardCard from "../components/DashboardCard";
-import PageHeader from "../components/PageHeader";
-import AppointmentCard from "../components/AppointmentCard";
 import { fadeIn, staggerContainer } from "../utils/motion";
 import { useQuery } from "@apollo/client";
 import {
@@ -23,6 +20,10 @@ import {
 import SEO from "../components/SEO";
 import { Suspense } from "react";
 import Preloader from "../components/Preloader";
+import { lazy } from "react";
+const DashboardCard = lazy(() => import("../components/DashboardCard"));
+const PageHeader = lazy(() => import("../components/PageHeader"));
+const AppointmentCard = lazy(() => import("../components/AppointmentCard"));
 
 const PatientDashboard = () => {
   const { user } = useAuth();

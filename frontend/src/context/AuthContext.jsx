@@ -8,7 +8,6 @@ const AuthContext = createContext();
 
 const AUTH_KEYS = ["token", "user"];
 
-
 const clearNonAuthCache = () => {
   try {
     const toKeep = {};
@@ -52,7 +51,7 @@ export const AuthProvider = ({ children }) => {
 
   const [user, setUser] = useState(initialUser);
   const [isAuthenticated, setIsAuthenticated] = useState(
-    Boolean(initialToken && initialUser)
+    Boolean(initialToken && initialUser),
   );
   const [loading, setLoading] = useState(Boolean(initialToken));
 
@@ -64,7 +63,8 @@ export const AuthProvider = ({ children }) => {
       clearNonAuthCache();
     };
     window.addEventListener("beforeunload", beforeUnloadHandler);
-    return () => window.removeEventListener("beforeunload", beforeUnloadHandler);
+    return () =>
+      window.removeEventListener("beforeunload", beforeUnloadHandler);
   }, []);
 
   const isDemoSession = false;
@@ -91,7 +91,6 @@ export const AuthProvider = ({ children }) => {
 
     if (meError) {
       console.warn("GET_ME error:", meError);
-      // Never keep a cached role active when the server cannot verify its token.
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       setUser(null);
@@ -128,7 +127,7 @@ export const AuthProvider = ({ children }) => {
           if (rememberMe) {
             localStorage.setItem(
               "rememberedPhone",
-              userData.phone || cleanPhone
+              userData.phone || cleanPhone,
             );
           } else {
             localStorage.removeItem("rememberedPhone");
@@ -142,9 +141,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Login mutation error:", error);
       const msg =
-        error?.graphQLErrors?.[0]?.message ||
-        error?.message ||
-        "Login failed";
+        error?.graphQLErrors?.[0]?.message || error?.message || "Login failed";
       toast.error(msg);
       return { success: false };
     }

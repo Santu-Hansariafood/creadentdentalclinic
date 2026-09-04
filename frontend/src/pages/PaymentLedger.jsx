@@ -56,7 +56,11 @@ const PaymentLedger = () => {
   const filteredLedgers = paymentLedgers;
 
   const exportReport = () => {
-    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const pdf = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4",
+    });
     const money = (value) => Number(value || 0).toFixed(2);
     const columns = [
       "SL NO",
@@ -93,11 +97,13 @@ const PaymentLedger = () => {
     const totals = filteredLedgers.reduce(
       (result, ledger) => ({
         gst: result.gst + Number(ledger.gst || 0),
-        credit: result.credit + Number(ledger.credit ?? ledger.paymentAmount ?? 0),
+        credit:
+          result.credit + Number(ledger.credit ?? ledger.paymentAmount ?? 0),
         claims: result.claims + Number(ledger.claims || 0),
         cd: result.cd + Number(ledger.cd || 0),
         bankCharges: result.bankCharges + Number(ledger.bankCharges || 0),
-        balance: result.balance + Number(ledger.balance ?? ledger.dueAmount ?? 0),
+        balance:
+          result.balance + Number(ledger.balance ?? ledger.dueAmount ?? 0),
       }),
       { gst: 0, credit: 0, claims: 0, cd: 0, bankCharges: 0, balance: 0 },
     );
@@ -125,23 +131,29 @@ const PaymentLedger = () => {
         11: { cellWidth: 20 },
         12: { cellWidth: 42 },
       },
-      foot: [[
-        "TOTAL",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        money(totals.gst),
-        money(totals.credit),
-        money(totals.claims),
-        money(totals.cd),
-        money(totals.bankCharges),
-        money(totals.balance),
-        `${filteredLedgers.length} entries`,
-      ]],
-      footStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: "bold" },
+      foot: [
+        [
+          "TOTAL",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          money(totals.gst),
+          money(totals.credit),
+          money(totals.claims),
+          money(totals.cd),
+          money(totals.bankCharges),
+          money(totals.balance),
+          `${filteredLedgers.length} entries`,
+        ],
+      ],
+      footStyles: {
+        fillColor: [241, 245, 249],
+        textColor: [15, 23, 42],
+        fontStyle: "bold",
+      },
     });
     pdf.save(`payment-ledger-mis-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
@@ -213,12 +225,23 @@ const PaymentLedger = () => {
               <h2 className="font-semibold text-gray-900">Payment by mode</h2>
             </div>
             <div className="mt-4 space-y-3">
-              {paymentModeTotals.length ? paymentModeTotals.map((item) => (
-                <div key={item.name} className="flex items-center justify-between border-b border-gray-100 pb-2 text-sm">
-                  <span className="text-gray-600">{item.name} ({item.count})</span>
-                  <span className="font-semibold text-gray-900">₹{item.amount.toLocaleString()}</span>
-                </div>
-              )) : <p className="text-sm text-gray-500">No mode data available.</p>}
+              {paymentModeTotals.length ? (
+                paymentModeTotals.map((item) => (
+                  <div
+                    key={item.name}
+                    className="flex items-center justify-between border-b border-gray-100 pb-2 text-sm"
+                  >
+                    <span className="text-gray-600">
+                      {item.name} ({item.count})
+                    </span>
+                    <span className="font-semibold text-gray-900">
+                      ₹{item.amount.toLocaleString()}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">No mode data available.</p>
+              )}
             </div>
           </section>
           <section className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
@@ -227,12 +250,25 @@ const PaymentLedger = () => {
               <h2 className="font-semibold text-gray-900">Payment by status</h2>
             </div>
             <div className="mt-4 space-y-3">
-              {statusTotals.length ? statusTotals.map((item) => (
-                <div key={item.name} className="flex items-center justify-between border-b border-gray-100 pb-2 text-sm">
-                  <span className="text-gray-600">{item.name} ({item.count})</span>
-                  <span className="font-semibold text-gray-900">₹{item.amount.toLocaleString()}</span>
-                </div>
-              )) : <p className="text-sm text-gray-500">No status data available.</p>}
+              {statusTotals.length ? (
+                statusTotals.map((item) => (
+                  <div
+                    key={item.name}
+                    className="flex items-center justify-between border-b border-gray-100 pb-2 text-sm"
+                  >
+                    <span className="text-gray-600">
+                      {item.name} ({item.count})
+                    </span>
+                    <span className="font-semibold text-gray-900">
+                      ₹{item.amount.toLocaleString()}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">
+                  No status data available.
+                </p>
+              )}
             </div>
           </section>
         </div>

@@ -1,6 +1,17 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle, Calendar, Clock, Download, Eye, FileText, Loader2, Mail, Pill, Stethoscope } from "lucide-react";
+import {
+  AlertTriangle,
+  Calendar,
+  Clock,
+  Download,
+  Eye,
+  FileText,
+  Loader2,
+  Mail,
+  Pill,
+  Stethoscope,
+} from "lucide-react";
 import { formatDate } from "../utils/dateUtils";
 import { fadeIn } from "../utils/motion";
 import toast from "react-hot-toast";
@@ -39,11 +50,9 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
     try {
       let pdfDataUri = "";
       try {
-        const result = await generatePrescriptionPDF(
-          prescription,
-          patient,
-          { save: false },
-        );
+        const result = await generatePrescriptionPDF(prescription, patient, {
+          save: false,
+        });
         pdfDataUri = result?.dataUriString || "";
       } catch (pdfErr) {
         console.warn("Could not attach PDF:", pdfErr);
@@ -73,7 +82,8 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
     } catch (err) {
       console.error("Error sending email:", err);
       toast.error(
-        err?.message || "An error occurred while sending the prescription email",
+        err?.message ||
+          "An error occurred while sending the prescription email",
       );
     } finally {
       setSendingEmail(false);
@@ -117,26 +127,28 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
                     </span>
                   )}
                 </p>
-              <div className="flex items-center gap-2 flex-wrap mt-2">
-                {(prescription.diagnoses?.length
-                  ? prescription.diagnoses
-                  : prescription.diagnosis
-                    ? [{ name: prescription.diagnosis, critical: false }]
-                    : []
-                ).map((d, i) => (
-                  <span
-                    key={i}
-                    className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${
-                      d.critical
-                        ? "bg-red-100 text-red-700 border border-red-200 font-bold"
-                        : "bg-gray-100 text-gray-700 border border-gray-200"
-                    }`}
-                  >
-                    {d.critical && <AlertTriangle size={10} className="mr-1" />}
-                    {d.name}
-                  </span>
-                ))}
-              </div>
+                <div className="flex items-center gap-2 flex-wrap mt-2">
+                  {(prescription.diagnoses?.length
+                    ? prescription.diagnoses
+                    : prescription.diagnosis
+                      ? [{ name: prescription.diagnosis, critical: false }]
+                      : []
+                  ).map((d, i) => (
+                    <span
+                      key={i}
+                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${
+                        d.critical
+                          ? "bg-red-100 text-red-700 border border-red-200 font-bold"
+                          : "bg-gray-100 text-gray-700 border border-gray-200"
+                      }`}
+                    >
+                      {d.critical && (
+                        <AlertTriangle size={10} className="mr-1" />
+                      )}
+                      {d.name}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -245,7 +257,8 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
           </div>
           {!patient?.email && (
             <p className="mt-2 text-[11px] text-amber-600 bg-amber-50 px-2.5 py-1 rounded">
-              ⚠ Patient email not registered. Please update patient profile to enable email.
+              ⚠ Patient email not registered. Please update patient profile to
+              enable email.
             </p>
           )}
         </div>

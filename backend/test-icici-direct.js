@@ -16,27 +16,41 @@ const ICICI_CONFIG = {
   env: process.env.ICICI_ENV || "uat",
   currencyCode: process.env.ICICI_CURRENCY_CODE || "356",
   payType: process.env.ICICI_PAY_TYPE || "0",
-  initiateSaleUrl: process.env.ICICI_INITIATE_SALE_URL || "https://pgpayuat.icici.bank.in/tsp/pg/api/v2/initiateSale",
+  initiateSaleUrl:
+    process.env.ICICI_INITIATE_SALE_URL ||
+    "https://pgpayuat.icici.bank.in/tsp/pg/api/v2/initiateSale",
 };
 
-console.log("╔════════════════════════════════════════════════════════════════╗");
-console.log("║            ICICI Payment Gateway - Direct API Test             ║");
-console.log("╚════════════════════════════════════════════════════════════════╝\n");
+console.log(
+  "╔════════════════════════════════════════════════════════════════╗",
+);
+console.log(
+  "║            ICICI Payment Gateway - Direct API Test             ║",
+);
+console.log(
+  "╚════════════════════════════════════════════════════════════════╝\n",
+);
 
 // Step 1: Show Configuration
 console.log("📋 Configuration:");
 console.log("   Environment:", ICICI_CONFIG.env);
 console.log("   Merchant ID:", ICICI_CONFIG.merchantId);
-console.log("   Aggregator ID:", ICICI_CONFIG.aggregatorId || "❌ Missing (REQUIRED!)");
-console.log("   Secret Key:", ICICI_CONFIG.secretKey ? "✅ Configured" : "❌ Missing");
+console.log(
+  "   Aggregator ID:",
+  ICICI_CONFIG.aggregatorId || "❌ Missing (REQUIRED!)",
+);
+console.log(
+  "   Secret Key:",
+  ICICI_CONFIG.secretKey ? "✅ Configured" : "❌ Missing",
+);
 console.log("   API URL:", ICICI_CONFIG.initiateSaleUrl);
 console.log(
   "   Return URL:",
-  process.env.ICICI_RETURN_URL || "❌ Not configured"
+  process.env.ICICI_RETURN_URL || "❌ Not configured",
 );
 console.log(
   "   Callback URL:",
-  process.env.ICICI_CALLBACK_URL || "❌ Not configured"
+  process.env.ICICI_CALLBACK_URL || "❌ Not configured",
 );
 
 // Validation
@@ -45,7 +59,9 @@ if (!ICICI_CONFIG.merchantId) {
   process.exit(1);
 }
 if (!ICICI_CONFIG.aggregatorId) {
-  console.error("\n❌ ERROR: ICICI_AGGREGATOR_ID not configured in .env (REQUIRED!)");
+  console.error(
+    "\n❌ ERROR: ICICI_AGGREGATOR_ID not configured in .env (REQUIRED!)",
+  );
   process.exit(1);
 }
 if (!ICICI_CONFIG.secretKey) {
@@ -87,7 +103,8 @@ const payload = {
   payType: ICICI_CONFIG.payType,
   addlParam1: "000",
   addlParam2: "000",
-  returnURL: process.env.ICICI_RETURN_URL || "http://localhost:25000/api/icici/response",
+  returnURL:
+    process.env.ICICI_RETURN_URL || "http://localhost:25000/api/icici/response",
 };
 
 console.log("   Merchant Txn No:", merchantTxnNo);
@@ -126,7 +143,7 @@ console.log("   Hash string:", hashString.substring(0, 100) + "...");
 
 const secureHash = crypto
   .createHmac("sha256", ICICI_CONFIG.secretKey)
-  .update(hashString)
+  .update(hashString);
 // Step 4: Add hash to payload
 const payloadWithHash = {
   ...payload,
@@ -148,7 +165,7 @@ console.log(`   POST ${ICICI_CONFIG.initiateSaleUrl}`);
           securehash: secureHash,
         },
         timeout: 30000,
-      }
+      },
     );
 
     console.log("\n✅ SUCCESS! ICICI API Responded");
@@ -159,16 +176,22 @@ console.log(`   POST ${ICICI_CONFIG.initiateSaleUrl}`);
     console.log("\n📊 Response Analysis:");
     if (response.data.redirectURI) {
       console.log("   ✅ redirectURI Present");
-      console.log("   Value:", response.data.redirectURI.substring(0, 80) + "...");
+      console.log(
+        "   Value:",
+        response.data.redirectURI.substring(0, 80) + "...",
+      );
       console.log("\n🎉 Payment initiation successful!");
       console.log("   You can now test the redirect flow in the application.");
     } else {
-      console.log(
-        "   ⚠️  redirectURI NOT PRESENT in response"
-      );
+      console.log("   ⚠️  redirectURI NOT PRESENT in response");
       console.log("   Response Code:", response.data.responseCode);
-      console.log("   Response Description:", response.data.responseDescription);
-      console.log("   This indicates the merchant may not be properly configured.");
+      console.log(
+        "   Response Description:",
+        response.data.responseDescription,
+      );
+      console.log(
+        "   This indicates the merchant may not be properly configured.",
+      );
       console.log("   Check with ICICI support.");
     }
 
@@ -194,21 +217,21 @@ console.log(`   POST ${ICICI_CONFIG.initiateSaleUrl}`);
       console.log("\n🔧 Troubleshooting:");
       if (error.response.status === 401 || error.response.status === 403) {
         console.log(
-          "   ❌ Authentication Failed - Check merchant credentials:"
+          "   ❌ Authentication Failed - Check merchant credentials:",
         );
         console.log(`      - ICICI_MERCHANT_ID: ${ICICI_CONFIG.merchantId}`);
-        console.log(`      - ICICI_AGGREGATOR_ID: ${ICICI_CONFIG.aggregatorId}`);
+        console.log(
+          `      - ICICI_AGGREGATOR_ID: ${ICICI_CONFIG.aggregatorId}`,
+        );
         console.log("      - ICICI_SECRET_KEY: Verify correct in .env");
         console.log("      - ICICI_ENV: Should be 'uat' for testing");
       } else if (error.response.status === 400) {
         console.log("   ❌ Invalid Payload - Check required fields:");
         console.log(
-          "      Required: merchantId, aggregatorID, merchantTxnNo, amount, currencyCode, returnURL"
+          "      Required: merchantId, aggregatorID, merchantTxnNo, amount, currencyCode, returnURL",
         );
       } else if (error.response.status === 500) {
-        console.log(
-          "   ❌ Server Error - Contact ICICI support with details"
-        );
+        console.log("   ❌ Server Error - Contact ICICI support with details");
       }
     } else if (error.code === "ETIMEDOUT" || error.code === "ECONNREFUSED") {
       console.log("   ❌ Network Error - Cannot reach ICICI API");

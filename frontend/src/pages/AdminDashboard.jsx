@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { lazy } from "react";
 import { Link } from "react-router-dom";
 import {
   Users,
@@ -9,8 +10,6 @@ import {
   FileText,
   Loader,
 } from "lucide-react";
-import DashboardCard from "../components/DashboardCard";
-import PageHeader from "../components/PageHeader";
 import { fadeIn, staggerContainer } from "../utils/motion";
 import {
   BarChart,
@@ -34,6 +33,8 @@ import {
 import SEO from "../components/SEO";
 import { Suspense } from "react";
 import Preloader from "../components/Preloader";
+const DashboardCard = lazy(() => import("../components/DashboardCard"));
+const PageHeader = lazy(() => import("../components/PageHeader"));
 
 const formatTimeAgo = (dateString) => {
   const date = new Date(dateString);

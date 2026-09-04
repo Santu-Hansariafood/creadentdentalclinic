@@ -62,7 +62,8 @@ const toast = Object.assign(baseToast, {
   done: (id) => toastifyToast.done(id),
   isActive: (id) => toastifyToast.isActive(id),
   clearWaitingQueue: () => toastifyToast.clearWaitingQueue(),
-  custom: (content, options) => toastifyToast(content, normalizeOptions(options)),
+  custom: (content, options) =>
+    toastifyToast(content, normalizeOptions(options)),
 });
 
 export { toast };

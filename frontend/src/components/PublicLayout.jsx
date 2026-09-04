@@ -27,7 +27,9 @@ const PublicLayout = ({ children }) => {
                 <p className="truncate font-heading text-base font-semibold text-gray-900 sm:text-lg">
                   {site.name}
                 </p>
-                <p className="truncate text-xs text-gray-600 sm:text-sm">{site.tagline}</p>
+                <p className="truncate text-xs text-gray-600 sm:text-sm">
+                  {site.tagline}
+                </p>
               </div>
             </Link>
 
@@ -65,7 +67,7 @@ const PublicLayout = ({ children }) => {
                 <Link
                   key={page.slug}
                   to={page.path}
-                    className={`shrink-0 whitespace-nowrap rounded-full px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
+                  className={`shrink-0 whitespace-nowrap rounded-full px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
                     isActive
                       ? "bg-primary text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-primary/10 hover:text-primary"
@@ -150,7 +152,8 @@ const PublicLayout = ({ children }) => {
         </div>
         <div className="border-t border-white/10">
           <div className="mx-auto max-w-7xl px-4 py-4 text-center text-xs text-slate-400 sm:px-6 lg:px-8 lg:text-left">
-            © {new Date().getFullYear()} {site.name} · Trusted dental care in Salt Lake, Kolkata · All rights reserved.
+            © {new Date().getFullYear()} {site.name} · Trusted dental care in
+            Salt Lake, Kolkata · All rights reserved.
           </div>
         </div>
       </footer>

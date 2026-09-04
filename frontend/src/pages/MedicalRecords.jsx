@@ -1038,8 +1038,12 @@ const MedicalRecords = () => {
   const filteredRecords = medicalRecords.filter((rec) => {
     const matchesSearch =
       rec.patientName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      (rec.diagnosis || "").toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      (rec.treatment || "").toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      (rec.diagnosis || "")
+        .toLowerCase()
+        .includes(debouncedSearch.toLowerCase()) ||
+      (rec.treatment || "")
+        .toLowerCase()
+        .includes(debouncedSearch.toLowerCase()) ||
       (rec.patient?.phone || "")
         .toLowerCase()
         .includes(debouncedSearch.toLowerCase()) ||

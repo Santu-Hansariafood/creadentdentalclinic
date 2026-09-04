@@ -149,7 +149,11 @@ const buildTemplatePayload = ({ to, templateName, bodyParameters = [] }) => {
   return payload;
 };
 
-const sendWhatsAppTemplateMessage = ({ to, templateName, bodyParameters = [] }) =>
+const sendWhatsAppTemplateMessage = ({
+  to,
+  templateName,
+  bodyParameters = [],
+}) =>
   new Promise((resolve) => {
     if (!hasWhatsAppBaseConfig()) {
       return resolve({
@@ -391,7 +395,8 @@ let reminderJobRunning = false;
 const sendReminderIfDue = async (appointment, now) => {
   const patientTemplate =
     process.env.WHATSAPP_TEMPLATE_APPOINTMENT_REMINDER_PATIENT;
-  const doctorTemplate = process.env.WHATSAPP_TEMPLATE_APPOINTMENT_REMINDER_DOCTOR;
+  const doctorTemplate =
+    process.env.WHATSAPP_TEMPLATE_APPOINTMENT_REMINDER_DOCTOR;
   if (!patientTemplate && !doctorTemplate) {
     return;
   }
@@ -401,9 +406,15 @@ const sendReminderIfDue = async (appointment, now) => {
     return;
   }
 
-  const oneDayBefore = new Date(appointmentDateTime.getTime() - 24 * 60 * 60 * 1000);
-  const sixHoursBefore = new Date(appointmentDateTime.getTime() - 6 * 60 * 60 * 1000);
-  const oneHourBefore = new Date(appointmentDateTime.getTime() - 60 * 60 * 1000);
+  const oneDayBefore = new Date(
+    appointmentDateTime.getTime() - 24 * 60 * 60 * 1000,
+  );
+  const sixHoursBefore = new Date(
+    appointmentDateTime.getTime() - 6 * 60 * 60 * 1000,
+  );
+  const oneHourBefore = new Date(
+    appointmentDateTime.getTime() - 60 * 60 * 1000,
+  );
 
   const { appointmentDate, appointmentTime } =
     formatAppointmentDateTimeParts(appointment);
@@ -553,7 +564,10 @@ const startAppointmentReminderScheduler = () => {
 
   setInterval(() => {
     processAppointmentReminders().catch((error) => {
-      console.error("Scheduled appointment reminder run failed:", error.message);
+      console.error(
+        "Scheduled appointment reminder run failed:",
+        error.message,
+      );
     });
   }, DEFAULT_POLL_INTERVAL_MS);
 };

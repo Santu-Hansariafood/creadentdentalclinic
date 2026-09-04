@@ -2,13 +2,14 @@ import { useState, useRef, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Send, Paperclip, Search, User } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import ChatMessage from "../components/ChatMessage";
 import { fadeIn } from "../utils/motion";
 import toast from "react-hot-toast";
 import { useQuery } from "@apollo/client";
 import { GET_CONVERSATIONS, GET_CHAT_MESSAGES } from "../graphql/queries";
 import Preloader from "../components/Preloader";
-import PageHeader from "../components/PageHeader";
+import { lazy } from "react";
+const PageHeader = lazy(() => import("../components/PageHeader"));
+const ChatMessage = lazy(() => import("../components/ChatMessage"));
 
 const Chat = () => {
   const { user } = useAuth();

@@ -17,7 +17,14 @@ import { generateInvoicePDF } from "../utils/pdfGenerator";
 import { format } from "date-fns";
 import { useAuth } from "../context/AuthContext";
 
-const InvoiceCard = ({ invoice, delay = 0, onPay, onEdit, onDelete, onShareWhatsApp }) => {
+const InvoiceCard = ({
+  invoice,
+  delay = 0,
+  onPay,
+  onEdit,
+  onDelete,
+  onShareWhatsApp,
+}) => {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin" || user?.role === "employee";
   const formatCurrency = (amount = 0) => `₹${Number(amount || 0).toFixed(2)}`;
@@ -195,7 +202,10 @@ const InvoiceCard = ({ invoice, delay = 0, onPay, onEdit, onDelete, onShareWhats
 
       <div className="flex gap-2 flex-wrap">
         {invoice.balance > 0 && onPay && (
-          <button onClick={() => onPay(invoice)} className="btn-primary flex-1 min-w-[120px]">
+          <button
+            onClick={() => onPay(invoice)}
+            className="btn-primary flex-1 min-w-[120px]"
+          >
             <IndianRupee size={18} className="inline mr-2" />
             Pay {formatCurrency(invoice.balance)}
           </button>
@@ -253,7 +263,8 @@ const InvoiceCard = ({ invoice, delay = 0, onPay, onEdit, onDelete, onShareWhats
         )}
 
         {(invoice.status === "Unpaid" || invoice.status === "Partial") &&
-          !hasInstallmentPlan && isAdmin && (
+          !hasInstallmentPlan &&
+          isAdmin && (
             <button
               onClick={() => toast.info("Installment plan setup")}
               className="btn-outline"

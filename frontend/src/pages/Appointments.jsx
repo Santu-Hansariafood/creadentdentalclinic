@@ -1,5 +1,6 @@
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
+import { lazy } from "react";
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -11,7 +12,6 @@ import {
   XCircle,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import AppointmentCard from "../components/AppointmentCard";
 import { fadeIn, staggerContainer } from "../utils/motion";
 import toast from "react-hot-toast";
 import { useQuery, useMutation } from "@apollo/client";
@@ -23,6 +23,8 @@ import {
 import { CREATE_APPOINTMENT, UPDATE_APPOINTMENT } from "../graphql/mutations";
 import Preloader from "../components/Preloader";
 import Pagination from "../components/Pagination";
+const AppointmentCard = lazy(() => import("../components/AppointmentCard"));
+
 import {
   isAppointmentPast,
   isAppointmentToday,

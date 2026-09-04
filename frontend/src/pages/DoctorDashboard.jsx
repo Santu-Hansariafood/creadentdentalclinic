@@ -1,11 +1,8 @@
 import { motion } from "framer-motion";
+import { lazy } from "react";
 import { Link } from "react-router-dom";
 import { Calendar, Users, FileText, Clock, TrendingUp } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import DashboardCard from "../components/DashboardCard";
-import PageHeader from "../components/PageHeader";
-import AppointmentCard from "../components/AppointmentCard";
-import PatientCard from "../components/PatientCard";
 import { fadeIn, staggerContainer } from "../utils/motion";
 import { useQuery } from "@apollo/client";
 import {
@@ -16,6 +13,10 @@ import {
 import SEO from "../components/SEO";
 import { Suspense } from "react";
 import Preloader from "../components/Preloader";
+const DashboardCard = lazy(() => import("../components/DashboardCard"));
+const PageHeader = lazy(() => import("../components/PageHeader"));
+const AppointmentCard = lazy(() => import("../components/AppointmentCard"));
+const PatientCard = lazy(() => import("../components/PatientCard"));
 
 const DoctorDashboard = () => {
   const { user } = useAuth();
@@ -33,7 +34,7 @@ const DoctorDashboard = () => {
   );
 
   if (statsLoading || aptsLoading || patientsLoading) {
-    return <div className="p-8 text-center">Loading dashboard...</div>;
+    return <Preloader />;
   }
 
   const stats = statsData?.getDashboardStats?.doctor || {};

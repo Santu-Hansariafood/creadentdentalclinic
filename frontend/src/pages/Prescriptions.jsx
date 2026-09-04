@@ -124,16 +124,17 @@ const AutocompleteCombobox = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const selectedOption = options.find(
-    (o) => getOptionValue(o) === value
-  ) || null;
+  const selectedOption =
+    options.find((o) => getOptionValue(o) === value) || null;
 
-  const displayValue = selectedOption ? getOptionLabel(selectedOption) : searchTerm;
+  const displayValue = selectedOption
+    ? getOptionLabel(selectedOption)
+    : searchTerm;
 
   const filteredOptions = useMemo(() => {
     if (!searchTerm) return options;
     return options.filter((o) =>
-      getOptionLabel(o).toLowerCase().includes(searchTerm.toLowerCase())
+      getOptionLabel(o).toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [options, searchTerm, getOptionLabel]);
 
@@ -171,7 +172,9 @@ const AutocompleteCombobox = ({
         <ChevronDown
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none transition-transform"
           size={16}
-          style={{ transform: `translateY(-50%) rotate(${isOpen ? 180 : 0}deg)` }}
+          style={{
+            transform: `translateY(-50%) rotate(${isOpen ? 180 : 0}deg)`,
+          }}
         />
       </div>
 
@@ -195,7 +198,9 @@ const AutocompleteCombobox = ({
                     setIsOpen(false);
                   }}
                   className={`px-3 py-2 text-sm cursor-pointer border-b border-gray-50 last:border-b-0 hover:bg-primary/5 ${
-                    isSelected ? "bg-primary/10 text-primary font-semibold" : "text-gray-700"
+                    isSelected
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-gray-700"
                   }`}
                 >
                   {optionLabel}
@@ -240,7 +245,9 @@ const CustomSelect = ({
         className="input-field flex items-center justify-between cursor-pointer bg-white min-h-[42px]"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className={`text-sm ${value ? "text-gray-900" : "text-gray-400"}`}>
+        <span
+          className={`text-sm ${value ? "text-gray-900" : "text-gray-400"}`}
+        >
           {value || placeholder}
         </span>
         {value && (
@@ -296,7 +303,9 @@ const CustomSelect = ({
                 setCustomValue("");
               }}
               className={`px-3 py-2 text-sm cursor-pointer border-b border-gray-50 last:border-b-0 hover:bg-primary/5 ${
-                value === opt ? "bg-primary/10 text-primary font-semibold" : "text-gray-700"
+                value === opt
+                  ? "bg-primary/10 text-primary font-semibold"
+                  : "text-gray-700"
               }`}
             >
               {opt}
@@ -326,12 +335,17 @@ const Prescriptions = () => {
   const [filterStatus, setFilterStatus] = useState("All");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [medications, setMedications] = useState([
-    { name: "", dosage: "", dosageForm: "", frequency: "", duration: "", instructions: "" },
+    {
+      name: "",
+      dosage: "",
+      dosageForm: "",
+      frequency: "",
+      duration: "",
+      instructions: "",
+    },
   ]);
   const [selectedPatientId, setSelectedPatientId] = useState("");
-  const [diagnoses, setDiagnoses] = useState([
-    { name: "", critical: false },
-  ]);
+  const [diagnoses, setDiagnoses] = useState([{ name: "", critical: false }]);
   const [notes, setNotes] = useState("");
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 500);
@@ -384,7 +398,14 @@ const Prescriptions = () => {
   const addMedication = () => {
     setMedications([
       ...medications,
-      { name: "", dosage: "", dosageForm: "", frequency: "", duration: "", instructions: "" },
+      {
+        name: "",
+        dosage: "",
+        dosageForm: "",
+        frequency: "",
+        duration: "",
+        instructions: "",
+      },
     ]);
   };
 
@@ -470,7 +491,14 @@ const Prescriptions = () => {
           diagnosis: diagnosisText,
           diagnoses: validDiagnoses,
           medications: medications.map(
-            ({ name, dosage, dosageForm, frequency, duration, instructions }) => ({
+            ({
+              name,
+              dosage,
+              dosageForm,
+              frequency,
+              duration,
+              instructions,
+            }) => ({
               name,
               dosage,
               dosageForm,
@@ -487,14 +515,25 @@ const Prescriptions = () => {
       toast.success("Prescription created successfully!");
       setShowCreateForm(false);
       setMedications([
-        { name: "", dosage: "", dosageForm: "", frequency: "", duration: "", instructions: "" },
+        {
+          name: "",
+          dosage: "",
+          dosageForm: "",
+          frequency: "",
+          duration: "",
+          instructions: "",
+        },
       ]);
       setSelectedPatientId("");
       setDiagnoses([{ name: "", critical: false }]);
       setNotes("");
 
       const generatedPdf = await downloadPrescription(
-        { ...newPrescription, patient: selectedPatient, diagnoses: validDiagnoses },
+        {
+          ...newPrescription,
+          patient: selectedPatient,
+          diagnoses: validDiagnoses,
+        },
         selectedPatient,
       );
 
@@ -511,11 +550,15 @@ const Prescriptions = () => {
           if (response?.success) {
             toast.success("Prescription link sent to the patient's WhatsApp");
           } else if (!response?.skipped) {
-            toast.error(response?.message || "Prescription link could not be sent");
+            toast.error(
+              response?.message || "Prescription link could not be sent",
+            );
           }
         } catch (whatsappError) {
           console.error("Prescription WhatsApp error:", whatsappError);
-          toast.error("Prescription saved, but WhatsApp link could not be sent");
+          toast.error(
+            "Prescription saved, but WhatsApp link could not be sent",
+          );
         }
       }
 
@@ -525,7 +568,11 @@ const Prescriptions = () => {
           let pdfDataUri = "";
           try {
             const pdfResult = await generatePrescriptionPDF(
-              { ...newPrescription, patient: selectedPatient, diagnoses: validDiagnoses },
+              {
+                ...newPrescription,
+                patient: selectedPatient,
+                diagnoses: validDiagnoses,
+              },
               selectedPatient,
               { save: false },
             );
@@ -545,7 +592,14 @@ const Prescriptions = () => {
               diagnoses: validDiagnoses,
               notes,
               medications: medications.map(
-                ({ name, dosage, dosageForm, frequency, duration, instructions }) => ({
+                ({
+                  name,
+                  dosage,
+                  dosageForm,
+                  frequency,
+                  duration,
+                  instructions,
+                }) => ({
                   name,
                   dosage,
                   dosageForm,
@@ -643,7 +697,10 @@ const Prescriptions = () => {
             <form onSubmit={handleCreatePrescription} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Patient Name * <span className="text-gray-400 font-normal">(type to search)</span>
+                  Patient Name *{" "}
+                  <span className="text-gray-400 font-normal">
+                    (type to search)
+                  </span>
                 </label>
                 <AutocompleteCombobox
                   options={patients}
@@ -665,7 +722,7 @@ const Prescriptions = () => {
                       Diagnosis / Clinical Findings *
                     </h3>
                     <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                      {diagnoses.filter(d => d.name.trim()).length} added
+                      {diagnoses.filter((d) => d.name.trim()).length} added
                     </span>
                   </div>
                   <button
@@ -706,21 +763,32 @@ const Prescriptions = () => {
                           required={index === 0}
                         />
                       </div>
-                      <label className={`flex items-center gap-1.5 px-3 py-2.5 rounded-lg cursor-pointer border transition-all select-none flex-shrink-0 ${
-                        diag.critical
-                          ? "bg-red-100 border-red-300 text-red-700"
-                          : "bg-white border-gray-200 text-gray-600 hover:border-red-200 hover:bg-red-50"
-                      }`}>
+                      <label
+                        className={`flex items-center gap-1.5 px-3 py-2.5 rounded-lg cursor-pointer border transition-all select-none flex-shrink-0 ${
+                          diag.critical
+                            ? "bg-red-100 border-red-300 text-red-700"
+                            : "bg-white border-gray-200 text-gray-600 hover:border-red-200 hover:bg-red-50"
+                        }`}
+                      >
                         <input
                           type="checkbox"
                           className="w-4 h-4 accent-red-600 cursor-pointer"
                           checked={diag.critical}
                           onChange={(e) =>
-                            handleDiagnosisChange(index, "critical", e.target.checked)
+                            handleDiagnosisChange(
+                              index,
+                              "critical",
+                              e.target.checked,
+                            )
                           }
                         />
-                        <AlertTriangle size={14} className={diag.critical ? "text-red-600" : ""} />
-                        <span className="text-xs font-medium whitespace-nowrap">Critical</span>
+                        <AlertTriangle
+                          size={14}
+                          className={diag.critical ? "text-red-600" : ""}
+                        />
+                        <span className="text-xs font-medium whitespace-nowrap">
+                          Critical
+                        </span>
                       </label>
                       {diagnoses.length > 1 && (
                         <button
@@ -743,7 +811,8 @@ const Prescriptions = () => {
                       Medication List & Doses
                     </h3>
                     <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                      {medications.length} medicine{medications.length !== 1 ? "s" : ""}
+                      {medications.length} medicine
+                      {medications.length !== 1 ? "s" : ""}
                     </span>
                   </div>
                   <button
@@ -787,7 +856,10 @@ const Prescriptions = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                         <div className="lg:col-span-3">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Medication Name * <span className="text-gray-400 font-normal">(type to search)</span>
+                            Medication Name *{" "}
+                            <span className="text-gray-400 font-normal">
+                              (type to search)
+                            </span>
                           </label>
                           <AutocompleteCombobox
                             options={medicines}
@@ -795,7 +867,9 @@ const Prescriptions = () => {
                               medicines.find((m) => m.name === med.name)?.id ||
                               ""
                             }
-                            onChange={(val) => handleMedicationSelect(index, val)}
+                            onChange={(val) =>
+                              handleMedicationSelect(index, val)
+                            }
                             placeholder="Search medicine from inventory..."
                             getOptionLabel={(m) =>
                               `${m.name}${m.dosageForm ? ` [${m.dosageForm}]` : ""}${m.dosageStrength ? ` - ${m.dosageStrength}` : ""}${m.category ? ` (${m.category})` : ""}`
@@ -811,7 +885,9 @@ const Prescriptions = () => {
                           </label>
                           <div className="input-field bg-gray-50/80 text-gray-600 flex items-center text-sm min-h-[42px]">
                             {med.dosageForm || (
-                              <span className="text-gray-400 italic">Auto-filled when medicine selected</span>
+                              <span className="text-gray-400 italic">
+                                Auto-filled when medicine selected
+                              </span>
                             )}
                           </div>
                         </div>
@@ -823,7 +899,9 @@ const Prescriptions = () => {
                           <CustomSelect
                             options={DOSAGE_OPTIONS}
                             value={med.dosage}
-                            onChange={(val) => handleMedicationChange(index, "dosage", val)}
+                            onChange={(val) =>
+                              handleMedicationChange(index, "dosage", val)
+                            }
                             placeholder="e.g., 500mg (or type custom)"
                             required
                           />
@@ -836,7 +914,9 @@ const Prescriptions = () => {
                           <CustomSelect
                             options={FREQUENCY_OPTIONS}
                             value={med.frequency}
-                            onChange={(val) => handleMedicationChange(index, "frequency", val)}
+                            onChange={(val) =>
+                              handleMedicationChange(index, "frequency", val)
+                            }
                             placeholder="e.g., Thrice daily (or type custom)"
                             required
                           />
@@ -849,7 +929,9 @@ const Prescriptions = () => {
                           <CustomSelect
                             options={DURATION_OPTIONS}
                             value={med.duration}
-                            onChange={(val) => handleMedicationChange(index, "duration", val)}
+                            onChange={(val) =>
+                              handleMedicationChange(index, "duration", val)
+                            }
                             placeholder="e.g., 7 days (or type custom)"
                             required
                           />
@@ -862,7 +944,9 @@ const Prescriptions = () => {
                           <CustomSelect
                             options={INSTRUCTION_OPTIONS}
                             value={med.instructions}
-                            onChange={(val) => handleMedicationChange(index, "instructions", val)}
+                            onChange={(val) =>
+                              handleMedicationChange(index, "instructions", val)
+                            }
                             placeholder="e.g., Take after meals (or type custom)"
                             required
                           />

@@ -176,7 +176,7 @@ const PrescriptionDocument = ({ prescription, patient }) => {
         </div>
       </div>
 
-      {((prescription.diagnoses?.length) || prescription.diagnosis) && (
+      {(prescription.diagnoses?.length || prescription.diagnosis) && (
         <div className="mb-5">
           <p className="font-bold text-sm mb-2 flex items-center gap-2">
             <span className="text-primary">Diagnosis / Clinical Findings:</span>
@@ -192,13 +192,18 @@ const PrescriptionDocument = ({ prescription, patient }) => {
                   d.critical ? "text-red-600 font-bold" : "text-gray-800"
                 }`}
               >
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0"
+                <span
+                  className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0"
                   style={{
                     backgroundColor: d.critical ? "#dc2626" : "#007FAF",
                   }}
                 />
                 <span>
-                  {d.critical && <span className="inline-block mr-1.5 px-1.5 py-0.5 rounded text-[10px] bg-red-100 text-red-700 border border-red-200 align-middle">CRITICAL</span>}
+                  {d.critical && (
+                    <span className="inline-block mr-1.5 px-1.5 py-0.5 rounded text-[10px] bg-red-100 text-red-700 border border-red-200 align-middle">
+                      CRITICAL
+                    </span>
+                  )}
                   {d.name}
                 </span>
               </li>

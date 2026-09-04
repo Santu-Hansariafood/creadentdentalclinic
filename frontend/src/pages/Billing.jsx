@@ -20,9 +20,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import InvoiceCard from "../components/InvoiceCard";
-import PaymentModal from "../components/PaymentModal";
-import PaymentMethodCard from "../components/PaymentMethodCard";
 import { fadeIn, staggerContainer } from "../utils/motion";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
@@ -39,11 +36,16 @@ import {
 } from "../graphql/mutations";
 import { generateInvoicePDF } from "../utils/pdfGenerator";
 import Preloader from "../components/Preloader";
-import PageHeader from "../components/PageHeader";
+const PageHeader = lazy(() => import("../components/PageHeader"));
+const InvoiceCard = lazy(() => import("../components/InvoiceCard"));
+const PaymentModal = lazy(() => import("../components/PaymentModal"));
+const PaymentMethodCard = lazy(() => import("../components/PaymentMethodCard"));
+
 import {
   invoices as mockInvoices,
   patients as mockPatients,
 } from "../data/mockData";
+import { lazy } from "react";
 
 const Billing = () => {
   const { user, isDemoUser } = useAuth();
