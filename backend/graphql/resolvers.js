@@ -1330,6 +1330,11 @@ const resolvers = {
           if (whatsappResult.results?.employees?.some((result) => result.success)) {
             notificationUpdates.rescheduleEmployeeNotificationSentAt = new Date();
           }
+          if (whatsappResult.error) {
+            notificationUpdates.lastNotificationError = whatsappResult.error;
+          } else if (Object.keys(notificationUpdates).length) {
+            notificationUpdates.lastNotificationError = undefined;
+          }
           if (Object.keys(notificationUpdates).length) {
             await Appointment.findByIdAndUpdate(id, notificationUpdates);
           }
@@ -1337,6 +1342,7 @@ const resolvers = {
             success: whatsappResult.success,
             skipped: whatsappResult.skipped,
             phone: whatsappResult.phone,
+            templateName: whatsappResult.templateName,
             error: whatsappResult.error,
           });
         } catch (error) {

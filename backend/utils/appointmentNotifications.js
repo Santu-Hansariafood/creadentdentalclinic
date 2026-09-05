@@ -496,6 +496,8 @@ const sendAppointmentRescheduleNotification = async (
       results.employees.every((result) => result.skipped),
     results,
     error: deliveryErrors.length ? deliveryErrors.join(" | ") : null,
+    phone: patientContact.phone,
+    templateName: patientTemplateName,
   };
 };
 
