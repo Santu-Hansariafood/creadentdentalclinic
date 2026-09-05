@@ -33,7 +33,9 @@ const processCallback = async (req, res, isRedirect = false) => {
     const callbackProcessed = result.transaction?.callbackProcessed ? "1" : "0";
 
     const paymentConfirmed =
-      status === "SUC" && callbackProcessed === "1" ? "1" : "0";
+      status === "SUC" && callbackProcessed === "1" && hashValid === "1"
+        ? "1"
+        : "0";
     const redirectUrl = buildPaymentResultUrl(redirectBase, {
       paymentStatus: status,
       invoiceId,

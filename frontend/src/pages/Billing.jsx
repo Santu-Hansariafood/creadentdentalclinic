@@ -137,20 +137,26 @@ const Billing = () => {
     const invoiceId = params.get("invoiceId");
     const transactionId = params.get("transactionId");
     const hashValid = params.get("hashValid");
+    const paymentConfirmed = params.get("paymentConfirmed") === "1";
+    const callbackProcessed = params.get("callbackProcessed") === "1";
     const error = params.get("error");
 
     if (paymentStatus && (invoiceId || transactionId)) {
       const statusLabels = {
-        SUC: "Payment completed successfully!",
+        SUC: paymentConfirmed
+          ? "Payment completed successfully!"
+          : "Payment return received. We are waiting for bank confirmation.",
         REJ: "Payment was rejected by the bank.",
         ERR: "Payment encountered an error.",
         REQ: "Payment is still being processed.",
         PENDING: "Payment is pending completion.",
       };
       const statusIcon =
-        paymentStatus === "SUC"
+        paymentStatus === "SUC" && paymentConfirmed && hashValid === "1"
           ? "success"
-          : paymentStatus === "REQ" || paymentStatus === "PENDING"
+          : paymentStatus === "SUC" ||
+              paymentStatus === "REQ" ||
+              paymentStatus === "PENDING"
             ? "info"
             : "error";
       const message =
@@ -164,6 +170,8 @@ const Billing = () => {
         invoiceId,
         transactionId,
         hashValid: hashValid === "1",
+        paymentConfirmed,
+        callbackProcessed,
         message,
         icon: statusIcon,
       });
@@ -183,6 +191,8 @@ const Billing = () => {
       cleanUrl.searchParams.delete("invoiceId");
       cleanUrl.searchParams.delete("transactionId");
       cleanUrl.searchParams.delete("hashValid");
+      cleanUrl.searchParams.delete("callbackProcessed");
+      cleanUrl.searchParams.delete("paymentConfirmed");
       cleanUrl.searchParams.delete("error");
       window.history.replaceState({}, document.title, cleanUrl.toString());
 
