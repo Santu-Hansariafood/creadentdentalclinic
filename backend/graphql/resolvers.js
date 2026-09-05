@@ -1113,7 +1113,7 @@ const resolvers = {
     forgotPassword: async (_, { phone }) => {
       const normalizedPhone = (phone || "").replace(/\D/g, "").slice(-10);
       const users = await User.find({
-        $or: [{ phone }, { phone: normalizedPhone }],
+        phone: normalizedPhone,
       });
 
       const rolePriority = {
@@ -1130,11 +1130,22 @@ const resolvers = {
       }
 
       const user = users[0];
+      const now = Date.now();
+      const windowStartedAt = user.passwordResetRequestWindowStartedAt?.getTime() || 0;
+      const withinRateLimitWindow = now - windowStartedAt < 60 * 60 * 1000;
+      if (!withinRateLimitWindow) {
+        user.passwordResetRequestCount = 0;
+        user.passwordResetRequestWindowStartedAt = new Date(now);
+      }
+      if ((user.passwordResetRequestCount || 0) >= 3) {
+        throw new Error("Too many password reset requests. Try again after one hour.");
+      }
 
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
       user.resetPasswordOTP = otp;
       user.resetPasswordOTPExpires = Date.now() + 10 * 60 * 1000;
+      user.passwordResetRequestCount = (user.passwordResetRequestCount || 0) + 1;
       await user.save();
 
       try {
@@ -1181,6 +1192,8 @@ const resolvers = {
       user.password = newPassword;
       user.resetPasswordOTP = undefined;
       user.resetPasswordOTPExpires = undefined;
+      user.passwordResetRequestCount = 0;
+      user.passwordResetRequestWindowStartedAt = undefined;
       await user.save();
 
       return true;
@@ -1270,6 +1283,9 @@ const resolvers = {
         args.date || args.time
           ? {
               reminderOneDaySentAt: null,
+              reschedulePatientNotificationSentAt: null,
+              rescheduleDoctorNotificationSentAt: null,
+              rescheduleEmployeeNotificationSentAt: null,
               lastNotificationError: null,
             }
           : {};
@@ -1287,6 +1303,12 @@ const resolvers = {
         updatedAppointment.reminderPatientSixHoursSentAt = null;
         updatedAppointment.reminderDoctorOneDaySentAt = null;
         updatedAppointment.reminderDoctorOneHourSentAt = null;
+        updatedAppointment.reschedulePatientNotificationSentAt =
+          appointmentNotificationReset.reschedulePatientNotificationSentAt;
+        updatedAppointment.rescheduleDoctorNotificationSentAt =
+          appointmentNotificationReset.rescheduleDoctorNotificationSentAt;
+        updatedAppointment.rescheduleEmployeeNotificationSentAt =
+          appointmentNotificationReset.rescheduleEmployeeNotificationSentAt;
         updatedAppointment.lastNotificationError =
           appointmentNotificationReset.lastNotificationError;
         await updatedAppointment.save();
@@ -1297,6 +1319,19 @@ const resolvers = {
               updatedAppointment,
               previousAppointmentDate,
             );
+          const notificationUpdates = {};
+          if (whatsappResult.results?.patient?.success) {
+            notificationUpdates.reschedulePatientNotificationSentAt = new Date();
+          }
+          if (whatsappResult.results?.doctor?.success) {
+            notificationUpdates.rescheduleDoctorNotificationSentAt = new Date();
+          }
+          if (whatsappResult.results?.employees?.some((result) => result.success)) {
+            notificationUpdates.rescheduleEmployeeNotificationSentAt = new Date();
+          }
+          if (Object.keys(notificationUpdates).length) {
+            await Appointment.findByIdAndUpdate(id, notificationUpdates);
+          }
           console.log("[WHATSAPP] Appointment reschedule notification:", {
             success: whatsappResult.success,
             skipped: whatsappResult.skipped,

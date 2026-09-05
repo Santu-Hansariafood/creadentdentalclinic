@@ -378,38 +378,98 @@ const sendAppointmentRescheduleNotification = async (
   appointment,
   previousAppointmentDate,
 ) => {
-  const templateName =
+  const patientTemplateName =
     process.env.WHATSAPP_TEMPLATE_APPOINTMENT_RESCHEDULED_PATIENT;
-  const patientContact = await resolvePatientContact(appointment);
-
-  if (!templateName || !patientContact.phone) {
-    return {
-      success: false,
-      skipped: true,
-      error: !templateName
-        ? "Appointment reschedule WhatsApp template is not configured"
-        : "Patient phone number not found",
-    };
-  }
+  const doctorTemplateName =
+    process.env.WHATSAPP_TEMPLATE_APPOINTMENT_RESCHEDULED_DOCTOR ||
+    patientTemplateName;
+  const employeeTemplateName =
+    process.env.WHATSAPP_TEMPLATE_APPOINTMENT_RESCHEDULED_EMPLOYEE ||
+    patientTemplateName;
+  const [patientContact, doctorContact, employees] = await Promise.all([
+    resolvePatientContact(appointment),
+    resolveDoctorContact(appointment),
+    User.find({ role: "employee" }).select("name phone"),
+  ]);
 
   const { appointmentDate, appointmentTime } =
     formatAppointmentDateTimeParts(appointment);
-  const result = await sendWhatsAppTemplateMessage({
-    to: patientContact.phone,
-    templateName,
-    bodyParameters: [
-      patientContact.name,
-      formatAppointmentDate(previousAppointmentDate),
-      appointmentDate,
-      appointmentTime,
-      appointment?.type || "",
-    ],
-  });
+  const previousDate = formatAppointmentDate(previousAppointmentDate);
+  const commonParameters = [
+    previousDate,
+    appointmentDate,
+    appointmentTime,
+    appointment?.type || "",
+  ];
+  const results = {
+    patient: { success: false, skipped: true, error: "Not configured" },
+    doctor: { success: false, skipped: true, error: "Not configured" },
+    employees: [],
+  };
+
+  if (
+    !appointment.reschedulePatientNotificationSentAt &&
+    patientContact.phone &&
+    patientTemplateName
+  ) {
+    results.patient = await sendWhatsAppTemplateMessage({
+      to: patientContact.phone,
+      templateName: patientTemplateName,
+      bodyParameters: [patientContact.name, ...commonParameters],
+    });
+  }
+
+  if (
+    !appointment.rescheduleDoctorNotificationSentAt &&
+    doctorContact.phone &&
+    doctorTemplateName
+  ) {
+    results.doctor = await sendWhatsAppTemplateMessage({
+      to: doctorContact.phone,
+      templateName: doctorTemplateName,
+      bodyParameters:
+        doctorTemplateName === patientTemplateName
+          ? [doctorContact.name, ...commonParameters]
+          : [
+              doctorContact.name,
+              appointment?.patientName || "Patient",
+              ...commonParameters,
+            ],
+    });
+  }
+
+  if (!appointment.rescheduleEmployeeNotificationSentAt && employeeTemplateName) {
+    results.employees = await Promise.all(
+      employees
+        .filter((employee) => normalizePhoneNumber(employee.phone))
+        .map((employee) =>
+          sendWhatsAppTemplateMessage({
+            to: normalizePhoneNumber(employee.phone),
+            templateName: employeeTemplateName,
+            bodyParameters:
+              employeeTemplateName === patientTemplateName
+                ? [employee.name || "Employee", ...commonParameters]
+                : [
+                    employee.name || "Employee",
+                    appointment?.patientName || "Patient",
+                    appointment?.doctorName || "Doctor",
+                    ...commonParameters,
+                  ],
+          }),
+        ),
+    );
+  }
 
   return {
-    ...result,
-    phone: patientContact.phone,
-    messageType: "appointment_rescheduled",
+    success:
+      results.patient.success ||
+      results.doctor.success ||
+      results.employees.some((result) => result.success),
+    skipped:
+      results.patient.skipped &&
+      results.doctor.skipped &&
+      results.employees.every((result) => result.skipped),
+    results,
   };
 };
 

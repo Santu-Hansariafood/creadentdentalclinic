@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema(
     license: { type: String },
     resetPasswordOTP: { type: String },
     resetPasswordOTPExpires: { type: Date },
+    passwordResetRequestCount: { type: Number, default: 0 },
+    passwordResetRequestWindowStartedAt: { type: Date },
   },
   { timestamps: true },
 );

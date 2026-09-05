@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
+const { sendForgotPasswordOtpWhatsApp, normalizePhoneNumber } = require("../utils/whatsappNotifications");
 
 const login = async (req, res) => {
   const { phone, password } = req.body;
@@ -99,10 +100,22 @@ const register = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   const { phone } = req.body;
+  const normalizedPhone = normalizePhoneNumber(phone);
 
-  const user = await User.findOne({ phone });
+  const user = await User.findOne({ phone: normalizedPhone.slice(-10) });
   if (!user) {
     res.status(404).json({ message: "User not found with this mobile number" });
+    return;
+  }
+
+  const now = Date.now();
+  const windowStartedAt = user.passwordResetRequestWindowStartedAt?.getTime() || 0;
+  if (now - windowStartedAt >= 60 * 60 * 1000) {
+    user.passwordResetRequestCount = 0;
+    user.passwordResetRequestWindowStartedAt = new Date(now);
+  }
+  if ((user.passwordResetRequestCount || 0) >= 3) {
+    res.status(429).json({ message: "Too many password reset requests. Try again after one hour." });
     return;
   }
 
@@ -110,7 +123,17 @@ const forgotPassword = async (req, res) => {
 
   user.resetPasswordOTP = otp;
   user.resetPasswordOTPExpires = Date.now() + 10 * 60 * 1000;
+  user.passwordResetRequestCount = (user.passwordResetRequestCount || 0) + 1;
+  if (!user.passwordResetRequestWindowStartedAt) {
+    user.passwordResetRequestWindowStartedAt = new Date(now);
+  }
   await user.save();
+
+  try {
+    await sendForgotPasswordOtpWhatsApp({ phone: normalizedPhone, otp });
+  } catch (error) {
+    console.warn("Forgot password OTP WhatsApp send failed:", error.message);
+  }
 
   res.json({ success: true });
 };
@@ -132,6 +155,8 @@ const resetPassword = async (req, res) => {
   user.password = newPassword;
   user.resetPasswordOTP = undefined;
   user.resetPasswordOTPExpires = undefined;
+  user.passwordResetRequestCount = 0;
+  user.passwordResetRequestWindowStartedAt = undefined;
   await user.save();
 
   res.json({ success: true });

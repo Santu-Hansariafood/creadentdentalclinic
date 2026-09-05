@@ -780,6 +780,21 @@ const reconcilePaymentToInvoice = async (transaction) => {
     currencyCode: transaction.currencyCode,
   });
 
+  try {
+    const whatsappResult = await sendInvoiceWhatsApp(invoice, invoice.patientId);
+    console.log("[WHATSAPP] Payment invoice notification:", {
+      success: whatsappResult.success,
+      skipped: whatsappResult.skipped,
+      phone: whatsappResult.phone,
+      error: whatsappResult.error || whatsappResult.errors,
+    });
+  } catch (error) {
+    console.error(
+      "[WHATSAPP] Payment invoice notification failed:",
+      error.message,
+    );
+  }
+
   if (!transaction.paymentThankYouSentAt) {
     try {
       const reviewResult = await sendPaymentThankYouReviewWhatsApp(invoice);
@@ -884,25 +899,6 @@ const handleICICICallback = async (callbackData) => {
         "[ICICI] ✅ Payment SUCCESS confirmed via callback. Invoice reconciled for merchantTxnNo:",
         merchantTxnNo,
       );
-      if (invoice) {
-        try {
-          const whatsappResult = await sendInvoiceWhatsApp(
-            invoice,
-            invoice.patientId,
-          );
-          console.log("[WHATSAPP] Payment invoice notification:", {
-            success: whatsappResult.success,
-            skipped: whatsappResult.skipped,
-            phone: whatsappResult.phone,
-            error: whatsappResult.error || whatsappResult.errors,
-          });
-        } catch (error) {
-          console.error(
-            "[WHATSAPP] Payment invoice notification failed:",
-            error.message,
-          );
-        }
-      }
     } else {
       console.log(
         "[ICICI] SUC status received but amount already applied for merchantTxnNo:",
