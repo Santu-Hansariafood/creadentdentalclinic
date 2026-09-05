@@ -1430,7 +1430,28 @@ const resolvers = {
       const savedInvoice = await invoice.save();
       if (savedInvoice.balance > 0 && !savedInvoice.paymentLinkSentAt) {
         try {
-          const paymentLinkResult = await sendInvoicePaymentLinkWhatsApp(savedInvoice);
+          let directPaymentLink = "";
+          try {
+            const paymentInitiation = await initiateSale({
+              invoiceId: savedInvoice._id,
+              patientId: savedInvoice.patientId,
+              amount: savedInvoice.balance,
+              payType: "0",
+            });
+            if (paymentInitiation.apiSuccess && paymentInitiation.redirectURI) {
+              directPaymentLink = paymentInitiation.redirectURI;
+            }
+          } catch (error) {
+            console.warn(
+              "Direct ICICI payment-link creation failed; using billing link:",
+              error.message,
+            );
+          }
+
+          const paymentLinkResult = await sendInvoicePaymentLinkWhatsApp(
+            savedInvoice,
+            directPaymentLink,
+          );
           if (paymentLinkResult.success) {
             savedInvoice.paymentLinkSentAt = new Date();
             await savedInvoice.save();

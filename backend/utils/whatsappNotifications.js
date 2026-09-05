@@ -649,13 +649,13 @@ const sendInvoiceWhatsApp = async (invoice, patientId) => {
 const buildInvoicePaymentLink = (invoiceId) =>
   `${FRONTEND_URL}/login?redirect=${encodeURIComponent(`/patient/billing?invoiceId=${invoiceId}`)}`;
 
-const sendInvoicePaymentLinkWhatsApp = async (invoice) => {
+const sendInvoicePaymentLinkWhatsApp = async (invoice, directPaymentLink = "") => {
   const patientContact = await resolvePatientContact(invoice?.patientId);
   if (!patientContact.phone) {
     return { success: false, error: "Patient phone number not found" };
   }
 
-  const paymentLink = buildInvoicePaymentLink(invoice._id || invoice.id);
+  const paymentLink = directPaymentLink || buildInvoicePaymentLink(invoice._id || invoice.id);
   const message = `*Creadent Dental Clinic*
 
 Dear ${patientContact.name || "Patient"},
