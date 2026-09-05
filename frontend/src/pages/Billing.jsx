@@ -67,9 +67,7 @@ const Billing = () => {
     patientId: "",
     patientName: "",
     date: format(new Date(), "yyyy-MM-dd"),
-    dueDate: "",
     items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
-    tax: 0,
     discount: 0,
     notes: "",
   });
@@ -112,9 +110,7 @@ const Billing = () => {
     patientId: "",
     patientName: "",
     date: "",
-    dueDate: "",
     items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
-    tax: 0,
     discount: 0,
     notes: "",
     amountPaid: 0,
@@ -280,7 +276,7 @@ const Billing = () => {
   const pendingCount = filteredInvoices.filter((inv) => inv.balance > 0).length;
 
   const subtotal = newInvoice.items.reduce((sum, item) => sum + item.total, 0);
-  const totalAmount = subtotal + newInvoice.tax - newInvoice.discount;
+  const totalAmount = subtotal - newInvoice.discount;
 
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...newInvoice.items];
@@ -340,9 +336,7 @@ const Billing = () => {
       patientId: "",
       patientName: "",
       date: format(new Date(), "yyyy-MM-dd"),
-      dueDate: "",
       items: [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
-      tax: 0,
       discount: 0,
       notes: "",
     });
@@ -492,7 +486,7 @@ const Billing = () => {
     0,
   );
   const editTotalAmount =
-    editSubtotal + (editInvoiceForm.tax || 0) - (editInvoiceForm.discount || 0);
+    editSubtotal - (editInvoiceForm.discount || 0);
 
   const handleEditItemChange = (index, field, value) => {
     const updatedItems = [...editInvoiceForm.items];
@@ -530,7 +524,6 @@ const Billing = () => {
       date: invoice.date
         ? invoice.date.split("T")[0]
         : format(new Date(), "yyyy-MM-dd"),
-      dueDate: invoice.dueDate ? invoice.dueDate.split("T")[0] : "",
       items:
         invoice.items?.length > 0
           ? invoice.items.map((item) => ({
@@ -540,7 +533,6 @@ const Billing = () => {
               total: item.total || (item.quantity || 0) * (item.unitPrice || 0),
             }))
           : [{ description: "", quantity: 1, unitPrice: 0, total: 0 }],
-      tax: invoice.tax || 0,
       discount: invoice.discount || 0,
       notes: invoice.notes || "",
       amountPaid: invoice.amountPaid || 0,
@@ -582,10 +574,8 @@ const Billing = () => {
           patientId: editInvoiceForm.patientId,
           patientName: editInvoiceForm.patientName,
           date: editInvoiceForm.date,
-          dueDate: editInvoiceForm.dueDate,
           items: editInvoiceForm.items,
           subtotal: editSubtotal,
-          tax: editInvoiceForm.tax,
           discount: editInvoiceForm.discount,
           total: editTotalAmount,
           amountPaid: editInvoiceForm.amountPaid,
@@ -955,35 +945,6 @@ const Billing = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Due Date
-                  </label>
-                  <input
-                    type="date"
-                    className="input-field"
-                    value={newInvoice.dueDate}
-                    onChange={(e) =>
-                      setNewInvoice({ ...newInvoice, dueDate: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tax (%)
-                  </label>
-                  <input
-                    type="number"
-                    className="input-field"
-                    value={newInvoice.tax}
-                    onChange={(e) =>
-                      setNewInvoice({
-                        ...newInvoice,
-                        tax: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Discount
                   </label>
                   <input
@@ -1184,12 +1145,6 @@ const Billing = () => {
                 <div className="flex items-center gap-4">
                   <span className="text-gray-600">Subtotal:</span>
                   <span className="font-medium">₹{subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-gray-600">Tax:</span>
-                  <span className="font-medium">
-                    ₹{newInvoice.tax.toFixed(2)}
-                  </span>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-gray-600">Discount:</span>
@@ -1682,38 +1637,6 @@ const Billing = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Due Date
-                    </label>
-                    <input
-                      type="date"
-                      className="input-field"
-                      value={editInvoiceForm.dueDate}
-                      onChange={(e) =>
-                        setEditInvoiceForm({
-                          ...editInvoiceForm,
-                          dueDate: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Tax (%)
-                    </label>
-                    <input
-                      type="number"
-                      className="input-field"
-                      value={editInvoiceForm.tax}
-                      onChange={(e) =>
-                        setEditInvoiceForm({
-                          ...editInvoiceForm,
-                          tax: parseFloat(e.target.value) || 0,
-                        })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Discount
                     </label>
                     <input
@@ -1865,12 +1788,6 @@ const Billing = () => {
                     <span className="text-gray-600">Subtotal:</span>
                     <span className="font-medium">
                       ₹{editSubtotal.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-gray-600">Tax:</span>
-                    <span className="font-medium">
-                      ₹{(editInvoiceForm.tax || 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center gap-4">

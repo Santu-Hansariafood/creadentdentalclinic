@@ -389,10 +389,8 @@ export const CREATE_INVOICE = gql`
     $patientId: ID!
     $patientName: String!
     $date: String!
-    $dueDate: String
     $items: [InvoiceItemInput]
     $subtotal: Float!
-    $tax: Float
     $discount: Float
     $total: Float!
     $balance: Float!
@@ -403,10 +401,8 @@ export const CREATE_INVOICE = gql`
       patientId: $patientId
       patientName: $patientName
       date: $date
-      dueDate: $dueDate
       items: $items
       subtotal: $subtotal
-      tax: $tax
       discount: $discount
       total: $total
       balance: $balance
@@ -416,7 +412,6 @@ export const CREATE_INVOICE = gql`
       patientId
       patientName
       date
-      dueDate
       items {
         description
         quantity
@@ -424,7 +419,6 @@ export const CREATE_INVOICE = gql`
         total
       }
       subtotal
-      tax
       discount
       total
       amountPaid
@@ -460,7 +454,6 @@ export const RECORD_INVOICE_PAYMENT = gql`
       patientId
       patientName
       date
-      dueDate
       items {
         description
         quantity
@@ -468,7 +461,6 @@ export const RECORD_INVOICE_PAYMENT = gql`
         total
       }
       subtotal
-      tax
       discount
       total
       amountPaid
@@ -637,10 +629,8 @@ export const UPDATE_INVOICE = gql`
     $patientId: ID
     $patientName: String
     $date: String
-    $dueDate: String
     $items: [InvoiceItemInput]
     $subtotal: Float
-    $tax: Float
     $discount: Float
     $total: Float
     $balance: Float
@@ -656,10 +646,8 @@ export const UPDATE_INVOICE = gql`
       patientId: $patientId
       patientName: $patientName
       date: $date
-      dueDate: $dueDate
       items: $items
       subtotal: $subtotal
-      tax: $tax
       discount: $discount
       total: $total
       balance: $balance
@@ -674,7 +662,6 @@ export const UPDATE_INVOICE = gql`
       patientId
       patientName
       date
-      dueDate
       items {
         description
         quantity
@@ -682,7 +669,6 @@ export const UPDATE_INVOICE = gql`
         total
       }
       subtotal
-      tax
       discount
       total
       amountPaid

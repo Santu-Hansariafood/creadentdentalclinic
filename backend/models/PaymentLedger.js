@@ -10,7 +10,6 @@ const paymentLedgerSchema = new mongoose.Schema(
     referenceNo: { type: String, default: "-" },
     paymentAmount: { type: Number, required: true },
     dueAmount: { type: Number, required: true },
-    gst: { type: Number, default: 0 },
     credit: { type: Number, default: 0 },
     claims: { type: Number, default: 0 },
     cd: { type: Number, default: 0 },

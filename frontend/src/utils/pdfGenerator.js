@@ -152,20 +152,12 @@ export const generateInvoicePDF = async (invoice) => {
     align: "right",
     },
   );
-  doc.text(
-    `Due Date: ${formatPdfDate(invoice.dueDate, invoice.date, invoice.createdAt)}`,
-    rightColX,
-    y + 8,
-    {
-    align: "right",
-    },
-  );
   if (invoice.status === "Paid" || invoice.paymentDate) {
     doc.setTextColor(16, 185, 129);
     doc.text(
       `Received Date: ${formatPdfDate(invoice.paymentDate, invoice.date, invoice.createdAt)}`,
       rightColX,
-      y + 14,
+      y + 8,
       { align: "right" },
     );
     doc.setTextColor(0, 0, 0);
@@ -241,11 +233,6 @@ export const generateInvoicePDF = async (invoice) => {
   const summaryX = pageWidth - 80;
   doc.text("Subtotal:", summaryX, y);
   doc.text(formatCurrency(invoice.subtotal), pageWidth - margin, y, {
-    align: "right",
-  });
-  y += 6;
-  doc.text("Tax:", summaryX, y);
-  doc.text(formatCurrency(invoice.tax), pageWidth - margin, y, {
     align: "right",
   });
   y += 6;

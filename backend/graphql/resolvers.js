@@ -1538,7 +1538,6 @@ const resolvers = {
         referenceNo: savedInvoice.invoiceNumber,
         paymentAmount,
         dueAmount: savedInvoice.balance,
-        gst: Number(savedInvoice.tax || 0),
         credit: paymentAmount,
         claims: Number(savedInvoice.insuranceClaim?.claimAmount || 0),
         cd: Number(savedInvoice.discount || 0),

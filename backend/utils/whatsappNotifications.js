@@ -139,7 +139,6 @@ const createInvoicePdfBuffer = (invoice, patientContact) =>
     document.fontSize(10).fillColor("#111827");
     document.text(`Invoice #: ${invoice.invoiceNumber || "-"}`);
     document.text(`Date: ${formatDateIN(invoice.date || invoice.createdAt) || formatDateIN(new Date())}`);
-    document.text(`Due Date: ${formatDateIN(invoice.dueDate) || "-"}`);
     if (invoice.paymentDate) document.text(`Paid Date: ${formatDateIN(invoice.paymentDate)}`);
     document.moveDown();
     document.text(`Bill To: ${patientContact.name || invoice.patientName || "Patient"}`);
@@ -152,7 +151,6 @@ const createInvoicePdfBuffer = (invoice, patientContact) =>
     });
     document.moveDown();
     document.text(`Subtotal: ${formatCurrencyINR(invoice.subtotal || 0)}`);
-    document.text(`Tax: ${formatCurrencyINR(invoice.tax || 0)}`);
     document.text(`Total: ${formatCurrencyINR(invoice.total || 0)}`);
     document.text(`Paid: ${formatCurrencyINR(invoice.amountPaid || 0)}`);
     document.font("Helvetica-Bold").text(`Balance Due: ${formatCurrencyINR(invoice.balance || 0)}`);
@@ -468,7 +466,6 @@ Your invoice has been generated.
 
 📄 Invoice No: *${invoice.invoiceNumber || "-"}*
 📅 Invoice Date: *${formatDateIN(invoice.date)}*
-${invoice.dueDate ? `📅 Due Date: *${formatDateIN(invoice.dueDate)}*\n` : ""}
 💵 Invoice Total: *${formatCurrencyINR(total)}*
 ${statusLine}
 

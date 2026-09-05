@@ -165,7 +165,6 @@ export const GET_INVOICES = gql`
       patientName
       date
       createdAt
-      dueDate
       items {
         description
         quantity
@@ -173,7 +172,6 @@ export const GET_INVOICES = gql`
         total
       }
       subtotal
-      tax
       discount
       total
       amountPaid
@@ -242,7 +240,6 @@ export const GET_PAYMENT_LEDGERS = gql`
         referenceNo
         paymentAmount
         dueAmount
-        gst
         credit
         claims
         cd

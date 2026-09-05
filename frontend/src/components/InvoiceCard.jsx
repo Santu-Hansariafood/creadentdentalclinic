@@ -75,10 +75,6 @@ const InvoiceCard = ({
           <Calendar size={16} />
           <span>Date: {formatDate(invoice.date, "MMM dd, yyyy")}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Calendar size={16} />
-          <span>Due: {formatDate(invoice.dueDate, "MMM dd, yyyy")}</span>
-        </div>
         {invoice.paymentMethod && (
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <CreditCard size={16} />
@@ -124,10 +120,6 @@ const InvoiceCard = ({
         <div className="flex justify-between text-sm text-gray-600">
           <span>Subtotal:</span>
           <span>{formatCurrency(invoice.subtotal)}</span>
-        </div>
-        <div className="flex justify-between text-sm text-gray-600">
-          <span>Tax:</span>
-          <span>{formatCurrency(invoice.tax)}</span>
         </div>
         {invoice.discount > 0 && (
           <div className="flex justify-between text-sm text-success">

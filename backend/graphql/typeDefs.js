@@ -126,10 +126,8 @@ input UpdateMedicineInput {
     patientName: String!
     date: String!
     createdAt: String
-    dueDate: String
     items: [InvoiceItem]
     subtotal: Float!
-    tax: Float
     discount: Float
     total: Float!
     amountPaid: Float
@@ -238,7 +236,6 @@ input UpdateMedicineInput {
     referenceNo: String
     paymentAmount: Float!
     dueAmount: Float!
-    gst: Float
     credit: Float
     claims: Float
     cd: Float
@@ -720,10 +717,8 @@ input UpdateMedicineInput {
       patientId: ID!,
       patientName: String!,
       date: String!,
-      dueDate: String,
       items: [InvoiceItemInput],
       subtotal: Float!,
-      tax: Float,
       discount: Float,
       total: Float!,
       balance: Float!,
@@ -743,10 +738,8 @@ input UpdateMedicineInput {
       patientId: ID,
       patientName: String,
       date: String,
-      dueDate: String,
       items: [InvoiceItemInput],
       subtotal: Float,
-      tax: Float,
       discount: Float,
       total: Float,
       balance: Float,

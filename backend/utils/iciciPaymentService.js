@@ -761,7 +761,6 @@ const reconcilePaymentToInvoice = async (transaction) => {
     referenceNo: transaction.pgTxnNo || transaction.merchantTxnNo,
     paymentAmount: actualPayment,
     dueAmount: invoice.balance,
-    gst: Number(invoice.tax || 0),
     credit: actualPayment,
     claims: Number(invoice.insuranceClaim?.claimAmount || 0),
     cd: Number(invoice.discount || 0),

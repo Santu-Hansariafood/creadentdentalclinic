@@ -70,7 +70,6 @@ const PaymentLedger = () => {
       "TRANSACTION ID",
       "MERCHANT TXN NO",
       "PG TXN NO",
-      "GST (Rs.)",
       "CREDIT (Rs.)",
       "CLAIMS (Rs.)",
       "CD (Rs.)",
@@ -86,7 +85,6 @@ const PaymentLedger = () => {
       ledger.transactionId || "-",
       ledger.merchantTxnNo || "-",
       ledger.pgTxnNo || "-",
-      money(ledger.gst),
       money(ledger.credit ?? ledger.paymentAmount),
       money(ledger.claims),
       money(ledger.cd),
@@ -96,7 +94,6 @@ const PaymentLedger = () => {
     ]);
     const totals = filteredLedgers.reduce(
       (result, ledger) => ({
-        gst: result.gst + Number(ledger.gst || 0),
         credit:
           result.credit + Number(ledger.credit ?? ledger.paymentAmount ?? 0),
         claims: result.claims + Number(ledger.claims || 0),
@@ -105,7 +102,7 @@ const PaymentLedger = () => {
         balance:
           result.balance + Number(ledger.balance ?? ledger.dueAmount ?? 0),
       }),
-      { gst: 0, credit: 0, claims: 0, cd: 0, bankCharges: 0, balance: 0 },
+      { credit: 0, claims: 0, cd: 0, bankCharges: 0, balance: 0 },
     );
 
     pdf.setFontSize(16);
@@ -124,12 +121,11 @@ const PaymentLedger = () => {
         4: { cellWidth: 28 },
         5: { cellWidth: 28 },
         6: { cellWidth: 28 },
-        7: { cellWidth: 18 },
+        7: { cellWidth: 22 },
         8: { cellWidth: 18 },
-        9: { cellWidth: 16 },
-        10: { cellWidth: 22 },
-        11: { cellWidth: 20 },
-        12: { cellWidth: 42 },
+        9: { cellWidth: 22 },
+        10: { cellWidth: 20 },
+        11: { cellWidth: 42 },
       },
       foot: [
         [
@@ -140,7 +136,6 @@ const PaymentLedger = () => {
           "",
           "",
           "",
-          money(totals.gst),
           money(totals.credit),
           money(totals.claims),
           money(totals.cd),

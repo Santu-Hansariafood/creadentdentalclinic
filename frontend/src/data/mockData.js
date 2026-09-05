@@ -445,7 +445,6 @@ export const invoices = [
     patientId: 1,
     patientName: "John Doe",
     date: "2024-05-20",
-    dueDate: "2024-06-20",
     items: [
       {
         description: "Root Canal Treatment - Tooth #14",
@@ -462,7 +461,6 @@ export const invoices = [
       },
     ],
     subtotal: 1400,
-    tax: 112,
     discount: 0,
     total: 1512,
     amountPaid: 1512,
@@ -484,7 +482,6 @@ export const invoices = [
     patientId: 2,
     patientName: "Jane Smith",
     date: "2024-02-20",
-    dueDate: "2024-03-20",
     items: [
       {
         description: "Composite Filling - Tooth #26",
@@ -500,7 +497,6 @@ export const invoices = [
       },
     ],
     subtotal: 330,
-    tax: 26.4,
     discount: 33,
     total: 323.4,
     amountPaid: 323.4,
@@ -523,7 +519,6 @@ export const invoices = [
     patientId: 3,
     patientName: "Robert Johnson",
     date: "2023-12-10",
-    dueDate: "2024-01-10",
     items: [
       {
         description: "Deep Cleaning (Scaling & Root Planing) - Full Mouth",
@@ -545,7 +540,6 @@ export const invoices = [
       },
     ],
     subtotal: 1070,
-    tax: 85.6,
     discount: 0,
     total: 1155.6,
     amountPaid: 500,
@@ -568,7 +562,6 @@ export const invoices = [
     patientId: 1,
     patientName: "John Doe",
     date: "2024-01-15",
-    dueDate: "2024-02-15",
     items: [
       {
         description: "Professional Teeth Cleaning",
@@ -590,7 +583,6 @@ export const invoices = [
       },
     ],
     subtotal: 280,
-    tax: 22.4,
     discount: 0,
     total: 302.4,
     amountPaid: 302.4,
@@ -607,7 +599,6 @@ export const invoices = [
     patientId: 1,
     patientName: "John Doe",
     date: "2024-06-01",
-    dueDate: "2024-07-01",
     items: [
       {
         description: "Crown Placement - Tooth #11 (Porcelain Fused to Metal)",
@@ -629,7 +620,6 @@ export const invoices = [
       },
     ],
     subtotal: 5100,
-    tax: 408,
     discount: 0,
     total: 5508,
     amountPaid: 2000,
@@ -647,7 +637,6 @@ export const invoices = [
     patientId: 1,
     patientName: "John Doe",
     date: "2024-07-15",
-    dueDate: "2024-08-15",
     items: [
       {
         description: "Wisdom Tooth Extraction - Lower Left (Impacted)",
@@ -669,7 +658,6 @@ export const invoices = [
       },
     ],
     subtotal: 3950,
-    tax: 316,
     discount: 200,
     total: 4066,
     amountPaid: 0,
@@ -692,7 +680,6 @@ export const invoices = [
     patientId: "demo-patient-9999",
     patientName: "Demo Patient",
     date: "2024-08-01",
-    dueDate: "2024-09-01",
     items: [
       {
         description: "Dental Implant Consultation",
@@ -714,7 +701,6 @@ export const invoices = [
       },
     ],
     subtotal: 2000,
-    tax: 160,
     discount: 0,
     total: 2160,
     amountPaid: 800,
@@ -732,7 +718,6 @@ export const invoices = [
     patientId: "demo-patient-9999",
     patientName: "Demo Patient",
     date: "2024-08-10",
-    dueDate: "2024-09-10",
     items: [
       {
         description: "Teeth Whitening (Professional In-Office)",
@@ -754,7 +739,6 @@ export const invoices = [
       },
     ],
     subtotal: 3600,
-    tax: 288,
     discount: 300,
     total: 3588,
     amountPaid: 0,
