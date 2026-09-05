@@ -8,7 +8,11 @@ const DEFAULT_BUSINESS_SCHEMA = {
   "@id": "https://creadentsmiles.com",
   url: "https://creadentsmiles.com",
   telephone: "+91 62923 00343",
+  email: "info@creadentdentalclinic.com",
   priceRange: "₹200-₹5000",
+  currenciesAccepted: "INR",
+  paymentAccepted: "UPI, Credit Card, Debit Card, Net Banking, Wallet",
+  medicalSpecialty: "Dentistry",
   address: {
     "@type": "PostalAddress",
     streetAddress: "BD-85, Salt Lake Rd, AD Block, Sector 1, Bidhannagar",
@@ -45,8 +49,8 @@ const DEFAULT_BUSINESS_SCHEMA = {
 };
 
 const SEO = ({
-  title = "Best Dental Clinic in Kolkata | Creadent Dental Clinic",
-  description = "Creadent Dental Clinic is the best dental clinic in Kolkata offering advanced dental care, root canal, teeth whitening, implants & more. Book your appointment today!",
+  title = "Creadent Dental Clinic | Dentist in Salt Lake, Kolkata",
+  description = "Creadent Dental Clinic in Salt Lake, Kolkata offers root canal treatment, dental implants, braces, teeth whitening, and family dental care.",
   keywords = "best dental clinic in Kolkata, dentist near me, root canal treatment Kolkata, teeth whitening, dental implants, Creadent Dental Clinic, dental clinic Kolkata, orthodontist Kolkata, pediatric dentist Kolkata, cosmetic dentistry",
   image = "/logo/logo.png",
   imageWidth = "512",
@@ -105,6 +109,14 @@ const SEO = ({
     }
     schemaList.push(businessSchema);
   }
+
+  schemaList.push({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Creadent Dental Clinic",
+    url: baseUrl,
+    inLanguage: "en-IN",
+  });
 
   if (breadcrumbs && breadcrumbs.length) {
     schemaList.push({

@@ -71,48 +71,6 @@ const PublicContentPage = ({ pageSlug }) => {
     },
   };
 
-  const dentistSchema = {
-    "@context": "https://schema.org",
-    "@type": "Dentist",
-    name: site.name,
-    image: `${site.website}/logo/logo.png`,
-    url: site.website,
-    telephone: site.phoneDisplay,
-    email: site.email,
-    priceRange: "₹200-₹5000",
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: site.addressLines[0],
-      addressLocality: "Kolkata",
-      addressRegion: "West Bengal",
-      postalCode: "700064",
-      addressCountry: "IN",
-    },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: Number(site.geo?.latitude || 22.5855),
-      longitude: Number(site.geo?.longitude || 88.4017),
-    },
-    openingHoursSpecification: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-          "Sunday",
-        ],
-        opens: "09:00",
-        closes: "20:00",
-      },
-    ],
-    areaServed: ["Salt Lake", "Bidhannagar", "Kolkata", "West Bengal"],
-    medicalSpecialty: "Dentistry",
-  };
-
   const faqSchema = page.faq?.length
     ? {
         "@context": "https://schema.org",
@@ -128,7 +86,7 @@ const PublicContentPage = ({ pageSlug }) => {
       }
     : null;
 
-  const structuredData = [webPageSchema, breadcrumbSchema, dentistSchema];
+  const structuredData = [webPageSchema, breadcrumbSchema];
   if (faqSchema) structuredData.push(faqSchema);
 
   const renderCtaLink = (href, label, className) =>
