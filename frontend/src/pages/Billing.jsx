@@ -190,16 +190,13 @@ const Billing = () => {
     }
   }, [refetch]);
 
-  if (!isDemoUser && loading) return <Preloader />;
-  if (!isDemoUser && error)
-    return (
-      <div className="p-6 text-center text-red-500">Error: {error.message}</div>
-    );
-
   const allInvoices = isDemoUser ? demoInvoiceList : data?.getInvoices || [];
   const patients = isDemoUser
     ? mockPatients
     : patientsData?.getPatients?.patients || [];
+  const myPatient = isDemoUser
+    ? { id: user?.id, ...user }
+    : myPatientData?.getMyPatient;
 
   useEffect(() => {
     const invoiceId = new URLSearchParams(window.location.search).get("invoiceId");
@@ -212,15 +209,19 @@ const Billing = () => {
     );
     setShowPaymentModal(true);
   }, [allInvoices, myPatient, patients, selectedInvoice]);
+
+  if (!isDemoUser && loading) return <Preloader />;
+  if (!isDemoUser && error)
+    return (
+      <div className="p-6 text-center text-red-500">Error: {error.message}</div>
+    );
+
   const enrichInvoiceWithPatient = (invoice) => ({
     ...invoice,
     patient: patients.find(
       (patient) => String(patient.id) === String(invoice.patientId),
     ),
   });
-  const myPatient = isDemoUser
-    ? { id: user?.id, ...user }
-    : myPatientData?.getMyPatient;
   const buildPatientPassword = (phone = "") =>
     `${new Date().getFullYear()}${phone.slice(-4)}`;
 
