@@ -1470,7 +1470,13 @@ const Billing = () => {
                             {inv.invoiceNumber}
                           </p>
                           <p className="text-sm text-gray-600">
-                            {format(new Date(inv.date), "MMM dd, yyyy")}
+                            Invoice date: {format(new Date(inv.date), "dd/MM/yyyy")}
+                          </p>
+                          <p className="text-sm text-success">
+                            Paid date: {format(
+                              new Date(inv.paymentDate || inv.date),
+                              "dd/MM/yyyy",
+                            )}
                           </p>
                         </div>
                         <div className="text-right">
