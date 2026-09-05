@@ -5,7 +5,15 @@ import QRCode from "qrcode";
 const formatCurrency = (amount = 0) => `Rs. ${Number(amount || 0).toFixed(2)}`;
 const formatPdfDate = (value, formatStr = "dd/MM/yyyy") => {
   if (!value) return "-";
-  const date = new Date(value);
+  const rawValue = String(value).trim();
+  const localDateMatch = rawValue.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const date = localDateMatch
+    ? new Date(
+        Number(localDateMatch[3]),
+        Number(localDateMatch[2]) - 1,
+        Number(localDateMatch[1]),
+      )
+    : new Date(value);
   return Number.isNaN(date.getTime()) ? "-" : format(date, formatStr);
 };
 
@@ -124,16 +132,21 @@ export const generateInvoicePDF = async (invoice) => {
   doc.text(`Invoice #: ${invoice.invoiceNumber}`, rightColX, y - 4, {
     align: "right",
   });
-  doc.text(`Date: ${formatPdfDate(invoice.date || invoice.createdAt || new Date())}`, rightColX, y + 2, {
+  doc.text(
+    `Date: ${formatPdfDate(invoice.date || invoice.createdAt || new Date())}`,
+    rightColX,
+    y + 2,
+    {
     align: "right",
-  });
+    },
+  );
   doc.text(`Due Date: ${formatPdfDate(invoice.dueDate)}`, rightColX, y + 8, {
     align: "right",
   });
   if (invoice.status === "Paid" || invoice.paymentDate) {
     doc.setTextColor(16, 185, 129);
     doc.text(
-      `Received Date: ${formatPdfDate(invoice.paymentDate || invoice.date)}`,
+      `Received Date: ${formatPdfDate(invoice.paymentDate || invoice.date || invoice.createdAt || new Date())}`,
       rightColX,
       y + 14,
       { align: "right" },

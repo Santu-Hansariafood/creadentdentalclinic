@@ -125,6 +125,7 @@ input UpdateMedicineInput {
     patientId: ID!
     patientName: String!
     date: String!
+    createdAt: String
     dueDate: String
     items: [InvoiceItem]
     subtotal: Float!

@@ -164,6 +164,7 @@ export const GET_INVOICES = gql`
       patientId
       patientName
       date
+      createdAt
       dueDate
       items {
         description
