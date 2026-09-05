@@ -12,7 +12,9 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
-  const { data: notifData } = useQuery(GET_NOTIFICATIONS);
+  const { data: notifData } = useQuery(GET_NOTIFICATIONS, {
+    pollInterval: 15000,
+  });
   const notifications = notifData?.getNotifications || [];
   const unreadNotifications = notifications.filter((n) => !n.read);
 

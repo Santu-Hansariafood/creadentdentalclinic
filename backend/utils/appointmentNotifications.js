@@ -156,6 +156,14 @@ const sendWhatsAppTemplateMessage = ({
 }) =>
   new Promise((resolve) => {
     if (!hasWhatsAppBaseConfig()) {
+        void recordWhatsAppMessage({
+          phone: to,
+          text: `Template: ${templateName || "unknown"}`,
+          messageType: "appointment_rescheduled",
+          templateName,
+          status: "skipped",
+          error: "WhatsApp configuration is incomplete",
+        });
       return resolve({
         success: false,
         skipped: true,
@@ -165,6 +173,14 @@ const sendWhatsAppTemplateMessage = ({
     }
 
     if (!to || !templateName) {
+      void recordWhatsAppMessage({
+        phone: to,
+        text: `Template: ${templateName || "unknown"}`,
+        messageType: "appointment_rescheduled",
+        templateName,
+        status: "skipped",
+        error: "WhatsApp destination or template name is missing",
+      });
       return resolve({
         success: false,
         skipped: true,
@@ -354,7 +370,10 @@ const sendAppointmentBookingNotifications = async (appointment) => {
   await updateNotificationState(appointmentId, updates, errors);
 };
 
-const sendAppointmentRescheduleNotification = async (appointment) => {
+const sendAppointmentRescheduleNotification = async (
+  appointment,
+  previousAppointmentDate,
+) => {
   const templateName =
     process.env.WHATSAPP_TEMPLATE_APPOINTMENT_RESCHEDULED_PATIENT;
   const patientContact = await resolvePatientContact(appointment);
@@ -376,7 +395,7 @@ const sendAppointmentRescheduleNotification = async (appointment) => {
     templateName,
     bodyParameters: [
       patientContact.name,
-      appointmentDate,
+      formatAppointmentDate(previousAppointmentDate),
       appointmentDate,
       appointmentTime,
       appointment?.type || "",

@@ -24,6 +24,7 @@ const {
   sendForgotPasswordOtpWhatsApp,
   sendPrescriptionWhatsApp,
   sendWhatsAppTemplateMessage,
+  sendWhatsAppTextMessage,
   normalizePhoneNumber,
 } = require("../utils/whatsappNotifications");
 const {
@@ -1253,6 +1254,9 @@ const resolvers = {
     },
     updateAppointment: async (_, { id, ...args }, { io, user }) => {
       requireStaff(user);
+      const existingAppointment = await Appointment.findById(id);
+      if (!existingAppointment) return null;
+      const previousAppointmentDate = existingAppointment.date;
       const appointmentNotificationReset =
         args.date || args.time
           ? {
@@ -1280,7 +1284,10 @@ const resolvers = {
 
         try {
           const whatsappResult =
-            await sendAppointmentRescheduleNotification(updatedAppointment);
+            await sendAppointmentRescheduleNotification(
+              updatedAppointment,
+              previousAppointmentDate,
+            );
           console.log("[WHATSAPP] Appointment reschedule notification:", {
             success: whatsappResult.success,
             skipped: whatsappResult.skipped,
@@ -1302,6 +1309,20 @@ const resolvers = {
         if (args.date || args.time) {
           message = `Appointment for ${updatedAppointment.patientName} has been rescheduled to ${updatedAppointment.date} at ${updatedAppointment.time}`;
           type = "APPOINTMENT_RESCHEDULED";
+
+          const patient = await Patient.findById(updatedAppointment.patientId);
+          const recipients = [patient?.userId].filter(Boolean);
+          const staff = await User.find({ role: { $in: ["admin", "doctor", "employee"] } }).select("_id");
+          recipients.push(...staff.map((recipient) => recipient._id));
+          await Notification.insertMany(
+            recipients.map((recipientId) => ({
+              userId: recipientId,
+              type,
+              title: "Appointment rescheduled",
+              message,
+              priority: "high",
+            })),
+          );
         }
 
         io.emit("notification", {
@@ -1694,21 +1715,31 @@ const resolvers = {
       const destination = phone || patient?.phone;
       if (!destination) throw new Error("Patient phone number is required");
 
+      const normalizedDestination = normalizePhoneNumber(destination);
       const templateName = process.env.WHATSAPP_TEMPLATE_MANUAL_MESSAGE;
-      const result = await sendWhatsAppTemplateMessage({
-        to: normalizePhoneNumber(destination),
-        templateName,
-        bodyParameters: [patient?.name || "Patient", text],
-      });
+      const result = templateName
+        ? await sendWhatsAppTemplateMessage({
+            to: normalizedDestination,
+            templateName,
+            bodyParameters: [patient?.name || "Patient", text],
+          })
+        : await sendWhatsAppTextMessage({
+            to: normalizedDestination,
+            text,
+          });
       return {
         success: result.success,
         skipped: result.skipped,
         message: result.success
-          ? "WhatsApp template message sent successfully"
+          ? templateName
+            ? "WhatsApp template message sent successfully"
+            : "WhatsApp message sent successfully"
           : result.skipped
-            ? "WhatsApp template is not configured"
-            : "WhatsApp template message failed",
-        phone: result.phone || destination,
+            ? templateName
+              ? "WhatsApp template is not configured"
+              : "WhatsApp is not configured"
+            : "WhatsApp message failed",
+        phone: result.phone || normalizedDestination,
         patientName: patient?.name || "",
         error: result.error || null,
         messagePreview: text,
