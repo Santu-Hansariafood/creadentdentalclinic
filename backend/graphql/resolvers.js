@@ -1385,6 +1385,11 @@ const resolvers = {
 
       return updatedAppointment;
     },
+    deleteAppointment: async (_, { id }, { user }) => {
+      requireStaff(user);
+      const appointment = await Appointment.findByIdAndDelete(id);
+      return Boolean(appointment);
+    },
     createMedicalRecord: async (_, args) => {
       const record = new MedicalRecord(args);
       await record.save();

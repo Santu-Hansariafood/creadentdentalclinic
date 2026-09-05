@@ -179,6 +179,12 @@ export const UPDATE_APPOINTMENT = gql`
   }
 `;
 
+export const DELETE_APPOINTMENT = gql`
+  mutation DeleteAppointment($id: ID!) {
+    deleteAppointment(id: $id)
+  }
+`;
+
 export const CREATE_PRESCRIPTION = gql`
   mutation CreatePrescription(
     $patientId: ID!

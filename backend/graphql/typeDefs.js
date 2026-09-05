@@ -683,6 +683,8 @@ input UpdateMedicineInput {
       notes: String
     ): Appointment
 
+    deleteAppointment(id: ID!): Boolean
+
     createMedicalRecord(
       patientId: ID!,
       patientName: String!,

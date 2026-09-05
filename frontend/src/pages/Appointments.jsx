@@ -20,7 +20,11 @@ import {
   GET_USERS_BY_ROLE,
   GET_PATIENTS,
 } from "../graphql/queries";
-import { CREATE_APPOINTMENT, UPDATE_APPOINTMENT } from "../graphql/mutations";
+import {
+  CREATE_APPOINTMENT,
+  UPDATE_APPOINTMENT,
+  DELETE_APPOINTMENT,
+} from "../graphql/mutations";
 import Preloader from "../components/Preloader";
 import Pagination from "../components/Pagination";
 const AppointmentCard = lazy(() => import("../components/AppointmentCard"));
@@ -113,6 +117,9 @@ const Appointments = () => {
   });
 
   const [updateAppointment] = useMutation(UPDATE_APPOINTMENT, {
+    refetchQueries: [{ query: GET_APPOINTMENTS }],
+  });
+  const [deleteAppointment] = useMutation(DELETE_APPOINTMENT, {
     refetchQueries: [{ query: GET_APPOINTMENTS }],
   });
 
@@ -224,7 +231,17 @@ const Appointments = () => {
   };
 
   const handleAppointmentAction = async (action, appointment) => {
-    if (action === "reschedule") {
+    if (action === "delete") {
+      if (!window.confirm(`Delete the appointment for ${appointment.patientName}?`)) {
+        return;
+      }
+      try {
+        await deleteAppointment({ variables: { id: appointment.id } });
+        toast.success("Appointment deleted successfully");
+      } catch (err) {
+        toast.error(err.message || "Failed to delete appointment");
+      }
+    } else if (action === "reschedule") {
       setReschedulingAppointment(appointment);
       setRescheduleData({
         date: appointment.date.split("T")[0],
@@ -593,7 +610,10 @@ const Appointments = () => {
                   appointment={apt}
                   delay={index * 0.05}
                   onAction={handleAppointmentAction}
+                  canDelete={user.role !== "patient"}
                   showPatient={user.role !== "patient"}
+                  onAction={handleAppointmentAction}
+                  canDelete={user.role !== "patient"}
                 />
               ))}
             </div>
@@ -653,7 +673,10 @@ const Appointments = () => {
                   appointment={apt}
                   delay={index * 0.05}
                   onAction={handleAppointmentAction}
+                  canDelete={user.role !== "patient"}
                   showPatient={user.role !== "patient"}
+                  onAction={handleAppointmentAction}
+                  canDelete={user.role !== "patient"}
                 />
               ))}
             </div>
