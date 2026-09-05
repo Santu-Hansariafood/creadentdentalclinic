@@ -29,6 +29,29 @@ const getStatusLabel = (status) => {
   }
 };
 
+const TemplateMessage = ({ message }) => (
+  <div className="space-y-2">
+    <div className="rounded-lg border border-emerald-200 bg-white/70 px-3 py-2">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
+        WhatsApp template
+      </p>
+      <p className="mt-1 break-all text-sm font-semibold text-gray-900">
+        {message.templateName || "Unnamed template"}
+      </p>
+    </div>
+    {message.templateParameters?.length ? (
+      <div className="space-y-1 text-xs text-gray-700">
+        {message.templateParameters.map((parameter, index) => (
+          <p key={`${message.id}-parameter-${index}`}>
+            <span className="font-semibold">{`{{${index + 1}}}`}</span>{" "}
+            {parameter || "-"}
+          </p>
+        ))}
+      </div>
+    ) : null}
+  </div>
+);
+
 const normalizeConversationPhone = (value) =>
   String(value || "")
     .replace(/\D/g, "")
@@ -352,7 +375,11 @@ const WhatsAppMessages = () => {
                               : "bg-white border border-gray-200 text-gray-800"
                           }`}
                         >
-                          <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">{item.text || "No text content"}</p>
+                          {item.messageType === "template" ? (
+                            <TemplateMessage message={item} />
+                          ) : (
+                            <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">{item.text || "No text content"}</p>
+                          )}
                           <p
                             className={`text-[11px] text-gray-500 mt-2 flex items-center gap-2 ${
                               item.direction === "outbound" ? "justify-end" : "justify-start"

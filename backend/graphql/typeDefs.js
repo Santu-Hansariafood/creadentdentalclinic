@@ -343,6 +343,7 @@ input UpdateMedicineInput {
     text: String
     messageType: String
     templateName: String
+    templateParameters: [String]
     status: String
     read: Boolean!
     messageId: String

@@ -429,6 +429,7 @@ export const GET_WHATSAPP_MESSAGES = gql`
       text
       messageType
       templateName
+      templateParameters
       status
       read
       messageId

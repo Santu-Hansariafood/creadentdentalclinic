@@ -13,6 +13,7 @@ const whatsAppMessageSchema = new mongoose.Schema(
     text: { type: String, default: "" },
     messageType: { type: String, default: "text" },
     templateName: { type: String },
+    templateParameters: { type: [String], default: undefined },
     status: {
       type: String,
       enum: ["sent", "delivered", "read", "failed", "received", "skipped"],

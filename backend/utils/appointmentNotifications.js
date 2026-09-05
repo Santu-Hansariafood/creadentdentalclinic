@@ -161,6 +161,7 @@ const sendWhatsAppTemplateMessage = ({
           text: `Template: ${templateName || "unknown"}`,
           messageType: "appointment_rescheduled",
           templateName,
+          templateParameters: bodyParameters.map((value) => String(value ?? "")),
           status: "skipped",
           error: "WhatsApp configuration is incomplete",
         });
@@ -178,6 +179,7 @@ const sendWhatsAppTemplateMessage = ({
         text: `Template: ${templateName || "unknown"}`,
         messageType: "appointment_rescheduled",
         templateName,
+        templateParameters: bodyParameters.map((value) => String(value ?? "")),
         status: "skipped",
         error: "WhatsApp destination or template name is missing",
       });
@@ -221,6 +223,7 @@ const sendWhatsAppTemplateMessage = ({
             text: `Template: ${templateName}${bodyParameters.length ? ` (${bodyParameters.join(", ")})` : ""}`,
             messageType: "template",
             templateName,
+            templateParameters: bodyParameters.map((value) => String(value ?? "")),
             status: ok ? "sent" : "failed",
             messageId: parsedBody?.messages?.[0]?.id,
             error: ok ? undefined : responseBody,
@@ -241,6 +244,7 @@ const sendWhatsAppTemplateMessage = ({
         text: `Template: ${templateName}`,
         messageType: "template",
         templateName,
+        templateParameters: bodyParameters.map((value) => String(value ?? "")),
         status: "failed",
         error: error.message,
       });
