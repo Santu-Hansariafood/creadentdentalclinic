@@ -722,6 +722,12 @@ const reconcilePaymentToInvoice = async (transaction) => {
     return;
   }
 
+  const paymentConfirmedAt =
+    transaction.paymentConfirmedAt ||
+    transaction.callbackProcessedAt ||
+    new Date();
+  transaction.paymentConfirmedAt = paymentConfirmedAt;
+
   invoice.amountPaid = (invoice.amountPaid || 0) + actualPayment;
   invoice.balance = Math.max(0, invoice.total - invoice.amountPaid);
   invoice.status =
@@ -731,7 +737,7 @@ const reconcilePaymentToInvoice = async (transaction) => {
         ? "Partial"
         : "Unpaid";
   invoice.paymentMethod = "ICICI Bank";
-  invoice.paymentDate = new Date();
+  invoice.paymentDate = paymentConfirmedAt;
   invoice.transactionId = transaction._id.toString();
   invoice.merchantTxnNo = transaction.merchantTxnNo;
   invoice.pgTxnNo = transaction.pgTxnNo;
