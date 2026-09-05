@@ -342,7 +342,7 @@ const sendAppointmentBookingNotifications = async (appointment) => {
 
     if (patientResult.success) {
       updates.bookingPatientNotificationSentAt = new Date();
-    } else if (!patientResult.skipped) {
+    } else {
       errors.push(`Patient booking message failed: ${patientResult.error}`);
     }
   } else if (!appointment?.bookingPatientNotificationSentAt) {
@@ -372,7 +372,7 @@ const sendAppointmentBookingNotifications = async (appointment) => {
 
     if (doctorResult.success) {
       updates.bookingDoctorNotificationSentAt = new Date();
-    } else if (!doctorResult.skipped) {
+    } else {
       errors.push(`Doctor booking message failed: ${doctorResult.error}`);
     }
   } else if (!appointment?.bookingDoctorNotificationSentAt) {
@@ -538,7 +538,7 @@ const sendReminderIfDue = async (appointment, now) => {
     now < sixHoursBefore
   ) {
     const patientContact = await resolvePatientContact(appointment);
-    if (patientContact.phone) {
+    if (patientTemplate && patientContact.phone) {
       const result = await sendWhatsAppTemplateMessage({
         to: patientContact.phone,
         templateName: patientTemplate,
@@ -553,9 +553,15 @@ const sendReminderIfDue = async (appointment, now) => {
 
       if (result.success) {
         updates.reminderOneDaySentAt = new Date();
-      } else if (!result.skipped) {
+      } else {
         errors.push(`Patient 1 day reminder failed: ${result.error}`);
       }
+    } else {
+      errors.push(
+        !patientTemplate
+          ? "Patient reminder template is not configured"
+          : "Patient phone number not found for 1 day reminder",
+      );
     }
   }
 
@@ -565,7 +571,7 @@ const sendReminderIfDue = async (appointment, now) => {
     now < appointmentDateTime
   ) {
     const patientContact = await resolvePatientContact(appointment);
-    if (patientContact.phone) {
+    if (patientTemplate && patientContact.phone) {
       const result = await sendWhatsAppTemplateMessage({
         to: patientContact.phone,
         templateName: patientTemplate,
@@ -580,9 +586,15 @@ const sendReminderIfDue = async (appointment, now) => {
 
       if (result.success) {
         updates.reminderPatientSixHoursSentAt = new Date();
-      } else if (!result.skipped) {
+      } else {
         errors.push(`Patient 6 hour reminder failed: ${result.error}`);
       }
+    } else {
+      errors.push(
+        !patientTemplate
+          ? "Patient reminder template is not configured"
+          : "Patient phone number not found for 6 hour reminder",
+      );
     }
   }
 
@@ -591,6 +603,7 @@ const sendReminderIfDue = async (appointment, now) => {
     !appointment.reminderDoctorOneDaySentAt &&
     now >= oneDayBefore &&
     now < oneHourBefore &&
+    doctorTemplate &&
     doctorContact.phone
   ) {
     const result = await sendWhatsAppTemplateMessage({
@@ -607,15 +620,26 @@ const sendReminderIfDue = async (appointment, now) => {
 
     if (result.success) {
       updates.reminderDoctorOneDaySentAt = new Date();
-    } else if (!result.skipped) {
+    } else {
       errors.push(`Doctor 1 day reminder failed: ${result.error}`);
     }
+  } else if (
+    !appointment.reminderDoctorOneDaySentAt &&
+    now >= oneDayBefore &&
+    now < oneHourBefore
+  ) {
+    errors.push(
+      !doctorTemplate
+        ? "Doctor reminder template is not configured"
+        : "Doctor phone number not found for 1 day reminder",
+    );
   }
 
   if (
     !appointment.reminderDoctorOneHourSentAt &&
     now >= oneHourBefore &&
     now < appointmentDateTime &&
+    doctorTemplate &&
     doctorContact.phone
   ) {
     const result = await sendWhatsAppTemplateMessage({
@@ -632,9 +656,19 @@ const sendReminderIfDue = async (appointment, now) => {
 
     if (result.success) {
       updates.reminderDoctorOneHourSentAt = new Date();
-    } else if (!result.skipped) {
+    } else {
       errors.push(`Doctor 1 hour reminder failed: ${result.error}`);
     }
+  } else if (
+    !appointment.reminderDoctorOneHourSentAt &&
+    now >= oneHourBefore &&
+    now < appointmentDateTime
+  ) {
+    errors.push(
+      !doctorTemplate
+        ? "Doctor reminder template is not configured"
+        : "Doctor phone number not found for 1 hour reminder",
+    );
   }
 
   await updateNotificationState(appointment._id, updates, errors);

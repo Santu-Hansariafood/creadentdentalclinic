@@ -21,6 +21,9 @@ const PublicLayout = ({ children }) => {
                   src="/logo/logo.png"
                   alt={`${site.name} logo`}
                   className="h-8 w-8 object-contain"
+                  width="32"
+                  height="32"
+                  fetchPriority="high"
                 />
               </div>
               <div className="min-w-0">
@@ -92,6 +95,9 @@ const PublicLayout = ({ children }) => {
                   src="/logo/logo.png"
                   alt={`${site.name} logo`}
                   className="h-7 w-7 object-contain"
+                  width="28"
+                  height="28"
+                  loading="lazy"
                 />
               </div>
               <div>
