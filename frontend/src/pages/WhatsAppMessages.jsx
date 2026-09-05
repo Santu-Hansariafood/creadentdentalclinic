@@ -79,6 +79,10 @@ const WhatsAppMessages = () => {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasOlderMessages, setHasOlderMessages] = useState(true);
+  const messagePageSize = 30;
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search.trim()), 500);
     return () => clearTimeout(timer);
@@ -91,8 +95,9 @@ const WhatsAppMessages = () => {
     data: messageData,
     loading: messagesLoading,
     refetch: refetchMessages,
+    fetchMore: fetchMoreMessages,
   } = useQuery(GET_WHATSAPP_MESSAGES, {
-    variables: { limit: 500 },
+    variables: { limit: messagePageSize },
   });
   const [sendMessage, { loading: sending }] = useMutation(SEND_WHATSAPP_MESSAGE);
   const [markMessagesRead] = useMutation(MARK_WHATSAPP_MESSAGES_READ);
@@ -139,6 +144,46 @@ const WhatsAppMessages = () => {
     (item) => item.direction === "inbound" && !item.read,
   ).length;
 
+  const handleLoadOlder = async () => {
+    if (loadingOlder || !hasOlderMessages || !allMessages.length) return;
+    const oldestMessage = allMessages.reduce((oldest, item) =>
+      new Date(item.createdAt) < new Date(oldest.createdAt) ? item : oldest,
+    );
+    const container = messagesContainerRef.current;
+    const previousScrollHeight = container?.scrollHeight || 0;
+    const previousScrollTop = container?.scrollTop || 0;
+    setLoadingOlder(true);
+    try {
+      const { data } = await fetchMoreMessages({
+        variables: {
+          limit: messagePageSize,
+          before: oldestMessage.createdAt,
+        },
+        updateQuery: (previousResult, { fetchMoreResult }) => {
+          const olderMessages = fetchMoreResult?.getWhatsAppMessages || [];
+          if (!olderMessages.length) return previousResult;
+          return {
+            ...previousResult,
+            getWhatsAppMessages: [
+              ...(previousResult.getWhatsAppMessages || []),
+              ...olderMessages,
+            ],
+          };
+        },
+      });
+      if ((data?.getWhatsAppMessages || []).length < messagePageSize) {
+        setHasOlderMessages(false);
+      }
+      requestAnimationFrame(() => {
+        if (!container) return;
+        container.scrollTop =
+          previousScrollTop + container.scrollHeight - previousScrollHeight;
+      });
+    } finally {
+      setLoadingOlder(false);
+    }
+  };
+
   const handleSelectPatient = async (patient) => {
     setSelectedPatient(patient);
     if (patient.patientId) {
@@ -149,7 +194,7 @@ const WhatsAppMessages = () => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activePatient?.id, messages.length, latestMessageId]);
+  }, [activePatient?.id, latestMessageId]);
 
   const handleSend = async (event) => {
     event.preventDefault();
@@ -265,7 +310,20 @@ const WhatsAppMessages = () => {
                   <p className="text-sm text-gray-500 flex items-center gap-1"><Smartphone size={14} /> {activePatient.phone}</p>
                 </div>
               </header>
-              <div className="flex-1 px-4 py-5 sm:px-6 space-y-3 overflow-y-auto bg-gray-50/60">
+              <div
+                ref={messagesContainerRef}
+                onScroll={(event) => {
+                  if (event.currentTarget.scrollTop <= 80) {
+                    void handleLoadOlder();
+                  }
+                }}
+                className="flex-1 px-4 py-5 sm:px-6 space-y-3 overflow-y-auto bg-gray-50/60"
+              >
+                {loadingOlder && (
+                  <p className="py-2 text-center text-xs text-gray-500">
+                    Loading previous messages...
+                  </p>
+                )}
                 {messagesLoading ? <Preloader /> : messages.length ? messages.map((item, index) => {
                   const previousItem = messages[index - 1];
                   const showDate =

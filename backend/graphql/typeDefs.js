@@ -623,7 +623,7 @@ input UpdateMedicineInput {
     getRecentActivities(limit: Int): [Activity]
     getTransactions(page: Int, limit: Int, invoiceId: ID, patientId: ID, txnStatus: String): PaginatedTransactions
     getTransaction(id: ID!): Transaction
-    getWhatsAppMessages(patientId: ID, limit: Int): [WhatsAppMessage]!
+    getWhatsAppMessages(patientId: ID, limit: Int, before: String): [WhatsAppMessage]!
   }
 
   type Mutation {

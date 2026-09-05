@@ -935,12 +935,21 @@ const resolvers = {
       }
       return transaction;
     },
-    getWhatsAppMessages: async (_, { patientId, limit = 100 }, { user }) => {
+    getWhatsAppMessages: async (
+      _,
+      { patientId, limit = 30, before },
+      { user },
+    ) => {
       requireStaff(user);
-      const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 500);
-      const messages = await WhatsAppMessage.find(
-        patientId ? { patientId } : {},
-      )
+      const safeLimit = Math.min(Math.max(Number(limit) || 30, 1), 100);
+      const query = patientId ? { patientId } : {};
+      if (before) {
+        const beforeDate = new Date(before);
+        if (!Number.isNaN(beforeDate.getTime())) {
+          query.createdAt = { $lt: beforeDate };
+        }
+      }
+      const messages = await WhatsAppMessage.find(query)
         .sort({ createdAt: -1 })
         .limit(safeLimit);
       return await Promise.all(

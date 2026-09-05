@@ -419,8 +419,8 @@ export const CHECK_PATIENT_EXISTS = gql`
 `;
 
 export const GET_WHATSAPP_MESSAGES = gql`
-  query GetWhatsAppMessages($patientId: ID, $limit: Int) {
-    getWhatsAppMessages(patientId: $patientId, limit: $limit) {
+  query GetWhatsAppMessages($patientId: ID, $limit: Int, $before: String) {
+    getWhatsAppMessages(patientId: $patientId, limit: $limit, before: $before) {
       id
       direction
       phone
