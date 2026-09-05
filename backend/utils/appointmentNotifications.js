@@ -345,6 +345,12 @@ const sendAppointmentBookingNotifications = async (appointment) => {
     } else if (!patientResult.skipped) {
       errors.push(`Patient booking message failed: ${patientResult.error}`);
     }
+  } else if (!appointment?.bookingPatientNotificationSentAt) {
+    errors.push(
+      !patientTemplate
+        ? "Patient booking WhatsApp template is not configured"
+        : "Patient phone number not found for booking confirmation",
+    );
   }
 
   if (
@@ -369,6 +375,12 @@ const sendAppointmentBookingNotifications = async (appointment) => {
     } else if (!doctorResult.skipped) {
       errors.push(`Doctor booking message failed: ${doctorResult.error}`);
     }
+  } else if (!appointment?.bookingDoctorNotificationSentAt) {
+    errors.push(
+      !doctorTemplate
+        ? "Doctor booking WhatsApp template is not configured"
+        : "Doctor phone number not found for booking confirmation",
+    );
   }
 
   await updateNotificationState(appointmentId, updates, errors);
@@ -460,6 +472,19 @@ const sendAppointmentRescheduleNotification = async (
     );
   }
 
+  const deliveryErrors = [];
+  if (!results.patient.success) {
+    deliveryErrors.push(`Patient reschedule message: ${results.patient.error || "not sent"}`);
+  }
+  if (!results.doctor.success) {
+    deliveryErrors.push(`Doctor reschedule message: ${results.doctor.error || "not sent"}`);
+  }
+  if (!results.employees.length) {
+    deliveryErrors.push("Employee reschedule message: no employee recipient was sent");
+  } else if (results.employees.some((result) => !result.success)) {
+    deliveryErrors.push("Employee reschedule message: one or more deliveries failed");
+  }
+
   return {
     success:
       results.patient.success ||
@@ -470,6 +495,7 @@ const sendAppointmentRescheduleNotification = async (
       results.doctor.skipped &&
       results.employees.every((result) => result.skipped),
     results,
+    error: deliveryErrors.length ? deliveryErrors.join(" | ") : null,
   };
 };
 

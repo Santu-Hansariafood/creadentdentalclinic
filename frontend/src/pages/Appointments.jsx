@@ -482,7 +482,7 @@ const Appointments = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Reason for Visit *
+                  Reason for Visit (Optional)
                 </label>
                 <textarea
                   name="reason"
@@ -491,7 +491,6 @@ const Appointments = () => {
                   className="input-field"
                   rows={3}
                   placeholder="Describe your dental concern or reason for visit"
-                  required
                 />
               </div>
               <div className="flex gap-3">
