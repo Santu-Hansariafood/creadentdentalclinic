@@ -1731,6 +1731,7 @@ const resolvers = {
             to: normalizedDestination,
             templateName,
             bodyParameters: [patient?.name || "Patient", text],
+            displayText: text,
           })
         : await sendWhatsAppTextMessage({
             to: normalizedDestination,

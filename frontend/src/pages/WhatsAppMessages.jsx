@@ -49,6 +49,11 @@ const TemplateMessage = ({ message }) => (
         ))}
       </div>
     ) : null}
+    {message.text && !message.text.startsWith("Template:") ? (
+      <p className="whitespace-pre-wrap break-words text-sm text-gray-800">
+        {message.text}
+      </p>
+    ) : null}
   </div>
 );
 

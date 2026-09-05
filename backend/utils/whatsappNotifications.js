@@ -113,6 +113,7 @@ const sendWhatsAppTemplateMessage = ({
   to,
   templateName,
   bodyParameters = [],
+  displayText,
 }) =>
   new Promise((resolve) => {
     if (!hasWhatsAppBaseConfig()) {
@@ -173,7 +174,9 @@ const sendWhatsAppTemplateMessage = ({
           } catch (_) {}
           void recordWhatsAppMessage({
             phone: to,
-            text: `Template: ${templateName}${bodyParameters.length ? ` (${bodyParameters.join(", ")})` : ""}`,
+            text:
+              displayText ||
+              `Template: ${templateName}${bodyParameters.length ? ` (${bodyParameters.join(", ")})` : ""}`,
             messageType: "template",
             templateName,
             templateParameters: bodyParameters.map((value) => String(value ?? "")),
@@ -193,7 +196,7 @@ const sendWhatsAppTemplateMessage = ({
     request.on("error", (error) => {
       void recordWhatsAppMessage({
         phone: to,
-        text: `Template: ${templateName}`,
+        text: displayText || `Template: ${templateName}`,
         messageType: "template",
         templateName,
         templateParameters: bodyParameters.map((value) => String(value ?? "")),
