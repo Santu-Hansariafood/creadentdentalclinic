@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import QRCode from "qrcode";
 
 const formatCurrency = (amount = 0) => `Rs. ${Number(amount || 0).toFixed(2)}`;
-const formatPdfDate = (value, formatStr = "MMM dd, yyyy") => {
+const formatPdfDate = (value, formatStr = "dd/MM/yyyy") => {
   if (!value) return "-";
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? "-" : format(date, formatStr);
@@ -124,7 +124,7 @@ export const generateInvoicePDF = async (invoice) => {
   doc.text(`Invoice #: ${invoice.invoiceNumber}`, rightColX, y - 4, {
     align: "right",
   });
-  doc.text(`Date: ${formatPdfDate(invoice.date)}`, rightColX, y + 2, {
+  doc.text(`Date: ${formatPdfDate(invoice.date || invoice.createdAt || new Date())}`, rightColX, y + 2, {
     align: "right",
   });
   doc.text(`Due Date: ${formatPdfDate(invoice.dueDate)}`, rightColX, y + 8, {

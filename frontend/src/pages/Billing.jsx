@@ -200,6 +200,18 @@ const Billing = () => {
   const patients = isDemoUser
     ? mockPatients
     : patientsData?.getPatients?.patients || [];
+
+  useEffect(() => {
+    const invoiceId = new URLSearchParams(window.location.search).get("invoiceId");
+    if (!invoiceId || !allInvoices.length || selectedInvoice) return;
+    const invoice = allInvoices.find((item) => String(item.id) === invoiceId);
+    if (!invoice || invoice.balance <= 0) return;
+    setSelectedInvoice(invoice);
+    setSelectedPatientForPayment(
+      patients.find((patient) => patient.id === invoice.patientId) || myPatient || null,
+    );
+    setShowPaymentModal(true);
+  }, [allInvoices, myPatient, patients, selectedInvoice]);
   const enrichInvoiceWithPatient = (invoice) => ({
     ...invoice,
     patient: patients.find(

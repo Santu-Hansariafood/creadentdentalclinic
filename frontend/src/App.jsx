@@ -112,6 +112,8 @@ const App = () => {
   }
 
   const getDashboardRoute = () => {
+    const redirect = new URLSearchParams(location.search).get("redirect");
+    if (redirect && redirect.startsWith("/")) return redirect;
     if (!user || !user.role) return "/login";
     switch (user.role) {
       case "patient":

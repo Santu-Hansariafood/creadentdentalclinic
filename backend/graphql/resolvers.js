@@ -20,6 +20,7 @@ const {
 const { sendPrescriptionEmail } = require("../utils/emailService");
 const {
   sendInvoiceWhatsApp,
+  sendInvoicePaymentLinkWhatsApp,
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
   sendPrescriptionWhatsApp,
@@ -1421,11 +1422,24 @@ const resolvers = {
       }
       const invoice = new Invoice({
         ...args,
+        date: args.date ? new Date(args.date) : new Date(),
         invoiceNumber,
         amountPaid: args.amountPaid || 0,
         status: args.balance > 0 ? "Unpaid" : "Paid",
       });
-      return await invoice.save();
+      const savedInvoice = await invoice.save();
+      if (savedInvoice.balance > 0 && !savedInvoice.paymentLinkSentAt) {
+        try {
+          const paymentLinkResult = await sendInvoicePaymentLinkWhatsApp(savedInvoice);
+          if (paymentLinkResult.success) {
+            savedInvoice.paymentLinkSentAt = new Date();
+            await savedInvoice.save();
+          }
+        } catch (error) {
+          console.warn("Invoice payment-link WhatsApp send failed:", error.message);
+        }
+      }
+      return savedInvoice;
     },
     recordInvoicePayment: async (
       _,

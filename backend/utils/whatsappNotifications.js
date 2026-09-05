@@ -528,6 +528,52 @@ const sendInvoiceWhatsApp = async (invoice, patientId) => {
   };
 };
 
+const buildInvoicePaymentLink = (invoiceId) =>
+  `${FRONTEND_URL}/login?redirect=${encodeURIComponent(`/patient/billing?invoiceId=${invoiceId}`)}`;
+
+const sendInvoicePaymentLinkWhatsApp = async (invoice) => {
+  const patientContact = await resolvePatientContact(invoice?.patientId);
+  if (!patientContact.phone) {
+    return { success: false, error: "Patient phone number not found" };
+  }
+
+  const paymentLink = buildInvoicePaymentLink(invoice._id || invoice.id);
+  const message = `*Creadent Dental Clinic*
+
+Dear ${patientContact.name || "Patient"},
+
+Your invoice *${invoice.invoiceNumber || "-"}* is ready.
+Amount due: *${formatCurrencyINR(invoice.balance || invoice.total || 0)}*
+
+Complete your payment securely here:
+${paymentLink}
+
+Regards,
+Team Creadent Dental Clinic`;
+  const templateName = process.env.WHATSAPP_TEMPLATE_INVOICE_PAYMENT_LINK;
+  const result = templateName
+    ? await sendWhatsAppTemplateMessage({
+        to: patientContact.phone,
+        templateName,
+        bodyParameters: [
+          patientContact.name,
+          invoice.invoiceNumber || "-",
+          formatCurrencyINR(invoice.balance || invoice.total || 0),
+          paymentLink,
+        ],
+        displayText: message,
+      })
+    : await sendWhatsAppTextMessage({ to: patientContact.phone, text: message });
+
+  return {
+    ...result,
+    phone: patientContact.phone,
+    patient: patientContact,
+    paymentLink,
+    messagePreview: message,
+  };
+};
+
 const buildPaymentThankYouMessage = ({ patientName, invoice, reviewLink }) => {
   return `*Creadent Dental Clinic*
 
@@ -686,6 +732,7 @@ module.exports = {
   buildInvoiceMessage,
   buildLoginCredentialsMessage,
   sendInvoiceWhatsApp,
+  sendInvoicePaymentLinkWhatsApp,
   sendPaymentThankYouReviewWhatsApp,
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
