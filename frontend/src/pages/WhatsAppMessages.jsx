@@ -29,33 +29,71 @@ const getStatusLabel = (status) => {
   }
 };
 
-const TemplateMessage = ({ message }) => (
-  <div className="space-y-2">
-    <div className="rounded-lg border border-emerald-200 bg-white/70 px-3 py-2">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
-        WhatsApp template
-      </p>
-      <p className="mt-1 break-all text-sm font-semibold text-gray-900">
-        {message.templateName || "Unnamed template"}
-      </p>
-    </div>
-    {message.templateParameters?.length ? (
-      <div className="space-y-1 text-xs text-gray-700">
-        {message.templateParameters.map((parameter, index) => (
-          <p key={`${message.id}-parameter-${index}`}>
-            <span className="font-semibold">{`{{${index + 1}}}`}</span>{" "}
-            {parameter || "-"}
+const TemplateMessage = ({ message }) => {
+  const hasPreview = message.text && !message.text.startsWith("Template:");
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-emerald-200 bg-white/75">
+      <div className="flex items-start justify-between gap-3 border-b border-emerald-100 bg-emerald-50/80 px-3 py-2">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-700">
+            Approved template
           </p>
-        ))}
+          <p className="mt-0.5 break-all text-sm font-semibold text-gray-900">
+            {message.templateName || "Unnamed template"}
+          </p>
+        </div>
+        <span
+          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+            message.status === "sent" || message.status === "delivered" || message.status === "read"
+              ? "bg-emerald-100 text-emerald-700"
+              : "bg-amber-100 text-amber-700"
+          }`}
+        >
+          {getStatusLabel(message.status)}
+        </span>
       </div>
-    ) : null}
-    {message.text && !message.text.startsWith("Template:") ? (
-      <p className="whitespace-pre-wrap break-words text-sm text-gray-800">
-        {message.text}
-      </p>
-    ) : null}
-  </div>
-);
+
+      <div className="space-y-3 px-3 py-3">
+        {hasPreview ? (
+          <div>
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+              Message preview
+            </p>
+            <p className="whitespace-pre-wrap break-words text-sm leading-5 text-gray-800">
+              {message.text}
+            </p>
+          </div>
+        ) : null}
+
+        {message.templateParameters?.length ? (
+          <div>
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+              Template variables
+            </p>
+            <div className="space-y-1.5">
+              {message.templateParameters.map((parameter, index) => (
+                <div
+                  key={`${message.id}-parameter-${index}`}
+                  className="flex gap-2 text-xs text-gray-700"
+                >
+                  <span className="font-semibold text-emerald-700">{`{{${index + 1}}}`}</span>
+                  <span className="min-w-0 break-words">{parameter || "-"}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {!hasPreview && !message.templateParameters?.length ? (
+          <p className="text-xs text-gray-500">
+            Template content is managed in Meta WhatsApp Manager.
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+};
 
 const normalizeConversationPhone = (value) =>
   String(value || "")
