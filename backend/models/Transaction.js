@@ -45,6 +45,7 @@ const transactionSchema = new mongoose.Schema(
     refundStatus: { type: String },
     secureHash: { type: String },
     amountPaidApplied: { type: Number, default: 0 },
+    paymentThankYouSentAt: { type: Date },
     hashVerified: { type: Boolean, default: false },
     callbackProcessed: { type: Boolean, default: false },
     callbackProcessedAt: { type: Date },

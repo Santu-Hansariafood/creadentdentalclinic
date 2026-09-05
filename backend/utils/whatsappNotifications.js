@@ -6,6 +6,7 @@ const WhatsAppMessage = require("../models/WhatsAppMessage");
 const DEFAULT_COUNTRY_CODE = process.env.WHATSAPP_DEFAULT_COUNTRY_CODE || "91";
 const DEFAULT_LANGUAGE_CODE = process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en";
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://creadentsmiles.com";
+const REVIEW_LINK = process.env.WHATSAPP_REVIEW_LINK || "";
 
 const toObjectIdString = (value) => {
   if (!value) return "";
@@ -527,6 +528,58 @@ const sendInvoiceWhatsApp = async (invoice, patientId) => {
   };
 };
 
+const buildPaymentThankYouMessage = ({ patientName, invoice, reviewLink }) => {
+  return `*Creadent Dental Clinic*
+
+Dear ${patientName || "Patient"},
+
+Thank you for your successful payment for invoice ${invoice?.invoiceNumber || "-"}.
+We appreciate your trust in Creadent Dental Clinic.
+
+Please share your experience with us${reviewLink ? `:
+${reviewLink}` : "."}
+
+Thank you,
+Team Creadent Dental Clinic`;
+};
+
+const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
+  const patientContact = await resolvePatientContact(invoice?.patientId);
+  if (!patientContact.phone) {
+    return { success: false, error: "Patient phone number not found" };
+  }
+
+  const message = buildPaymentThankYouMessage({
+    patientName: patientContact.name,
+    invoice,
+    reviewLink: REVIEW_LINK,
+  });
+  const templateName = process.env.WHATSAPP_TEMPLATE_PAYMENT_THANK_YOU;
+  const result = templateName
+    ? await sendWhatsAppTemplateMessage({
+        to: patientContact.phone,
+        templateName,
+        bodyParameters: [
+          patientContact.name,
+          invoice?.invoiceNumber || "-",
+          formatCurrencyINR(invoice?.amountPaid || invoice?.total || 0),
+          REVIEW_LINK || "-",
+        ],
+        displayText: message,
+      })
+    : await sendWhatsAppTextMessage({
+        to: patientContact.phone,
+        text: message,
+      });
+
+  return {
+    ...result,
+    phone: patientContact.phone,
+    patient: patientContact,
+    messagePreview: message,
+  };
+};
+
 const sendLoginCredentialsWhatsApp = async (credentials) => {
   const templateName = process.env.WHATSAPP_TEMPLATE_LOGIN_CREDENTIALS;
   const normalizedPhone = normalizePhoneNumber(credentials.phone);
@@ -633,6 +686,7 @@ module.exports = {
   buildInvoiceMessage,
   buildLoginCredentialsMessage,
   sendInvoiceWhatsApp,
+  sendPaymentThankYouReviewWhatsApp,
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
   sendPrescriptionWhatsApp,

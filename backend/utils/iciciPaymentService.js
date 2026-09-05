@@ -6,7 +6,10 @@ const Transaction = require("../models/Transaction");
 const Invoice = require("../models/Invoice");
 const Patient = require("../models/Patient");
 const PaymentLedger = require("../models/PaymentLedger");
-const { sendInvoiceWhatsApp } = require("./whatsappNotifications");
+const {
+  sendInvoiceWhatsApp,
+  sendPaymentThankYouReviewWhatsApp,
+} = require("./whatsappNotifications");
 
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
@@ -776,6 +779,27 @@ const reconcilePaymentToInvoice = async (transaction) => {
     txnResponseMsg: transaction.txnResponseMsg,
     currencyCode: transaction.currencyCode,
   });
+
+  if (!transaction.paymentThankYouSentAt) {
+    try {
+      const reviewResult = await sendPaymentThankYouReviewWhatsApp(invoice);
+      if (reviewResult.success) {
+        transaction.paymentThankYouSentAt = new Date();
+        await transaction.save();
+      }
+      console.log("[WHATSAPP] Payment thank-you/review notification:", {
+        success: reviewResult.success,
+        skipped: reviewResult.skipped,
+        phone: reviewResult.phone,
+        error: reviewResult.error,
+      });
+    } catch (error) {
+      console.error(
+        "[WHATSAPP] Payment thank-you/review notification failed:",
+        error.message,
+      );
+    }
+  }
 
   return invoice;
 };
