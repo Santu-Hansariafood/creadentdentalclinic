@@ -1386,7 +1386,9 @@ const resolvers = {
       return updatedAppointment;
     },
     deleteAppointment: async (_, { id }, { user }) => {
-      requireStaff(user);
+      if (!user || user.role !== "admin") {
+        throw new Error("Unauthorized: Only admins can delete appointments");
+      }
       const appointment = await Appointment.findByIdAndDelete(id);
       return Boolean(appointment);
     },

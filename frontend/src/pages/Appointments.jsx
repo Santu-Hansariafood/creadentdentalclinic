@@ -610,10 +610,10 @@ const Appointments = () => {
                   appointment={apt}
                   delay={index * 0.05}
                   onAction={handleAppointmentAction}
-                  canDelete={user.role !== "patient"}
+                  canDelete={user.role === "admin"}
                   showPatient={user.role !== "patient"}
                   onAction={handleAppointmentAction}
-                  canDelete={user.role !== "patient"}
+                  canDelete={user.role === "admin"}
                 />
               ))}
             </div>
@@ -673,10 +673,10 @@ const Appointments = () => {
                   appointment={apt}
                   delay={index * 0.05}
                   onAction={handleAppointmentAction}
-                  canDelete={user.role !== "patient"}
+                  canDelete={user.role === "admin"}
                   showPatient={user.role !== "patient"}
                   onAction={handleAppointmentAction}
-                  canDelete={user.role !== "patient"}
+                  canDelete={user.role === "admin"}
                 />
               ))}
             </div>
