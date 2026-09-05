@@ -1639,6 +1639,7 @@ const resolvers = {
               ? result.errors.join(" | ")
               : result.error || null,
           messagePreview: result.messagePreview || "",
+          fileUrl: result.fileUrl || "",
         };
       } catch (err) {
         return {

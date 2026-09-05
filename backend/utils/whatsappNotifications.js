@@ -1,7 +1,9 @@
 const https = require("https");
+const PDFDocument = require("pdfkit");
 const Patient = require("../models/Patient");
 const User = require("../models/User");
 const WhatsAppMessage = require("../models/WhatsAppMessage");
+const storageService = require("./storageService");
 
 const DEFAULT_COUNTRY_CODE = process.env.WHATSAPP_DEFAULT_COUNTRY_CODE || "91";
 const DEFAULT_LANGUAGE_CODE = process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en";
@@ -109,6 +111,97 @@ const buildTextPayload = ({ to, text }) => {
     },
   };
 };
+
+const buildDocumentPayload = ({ to, documentUrl, fileName, caption }) => ({
+  messaging_product: "whatsapp",
+  to,
+  type: "document",
+  document: {
+    link: documentUrl,
+    filename: fileName,
+    caption,
+  },
+});
+
+const createInvoicePdfBuffer = (invoice, patientContact) =>
+  new Promise((resolve, reject) => {
+    const document = new PDFDocument({ size: "A4", margin: 48 });
+    const chunks = [];
+    document.on("data", (chunk) => chunks.push(chunk));
+    document.on("end", () => resolve(Buffer.concat(chunks)));
+    document.on("error", reject);
+
+    document.fontSize(18).fillColor("#0f766e").text("Creadent Multispeciality Dental Clinic");
+    document.fontSize(9).fillColor("#475569").text("BD-85, Salt Lake Rd, BD Block, Sector 1, Bidhannagar, Kolkata, West Bengal 700064");
+    document.text("Phone: +91 6292300343 | Email: creadentmultispecialitydentalc@gmail.com");
+    document.moveDown(1.5);
+    document.fontSize(22).fillColor("#0f766e").text(invoice.status === "Paid" ? "RECEIPT" : "INVOICE");
+    document.fontSize(10).fillColor("#111827");
+    document.text(`Invoice #: ${invoice.invoiceNumber || "-"}`);
+    document.text(`Date: ${formatDateIN(invoice.date || invoice.createdAt) || formatDateIN(new Date())}`);
+    document.text(`Due Date: ${formatDateIN(invoice.dueDate) || "-"}`);
+    if (invoice.paymentDate) document.text(`Paid Date: ${formatDateIN(invoice.paymentDate)}`);
+    document.moveDown();
+    document.text(`Bill To: ${patientContact.name || invoice.patientName || "Patient"}`);
+    if (patientContact.rawPhone) document.text(`Mobile: ${patientContact.rawPhone}`);
+    document.moveDown();
+    document.font("Helvetica-Bold").text("Description                         Qty       Amount");
+    document.font("Helvetica");
+    (invoice.items || []).forEach((item) => {
+      document.text(`${item.description || "Treatment"}    ${item.quantity || 1}       ${formatCurrencyINR(item.total || 0)}`);
+    });
+    document.moveDown();
+    document.text(`Subtotal: ${formatCurrencyINR(invoice.subtotal || 0)}`);
+    document.text(`Tax: ${formatCurrencyINR(invoice.tax || 0)}`);
+    document.text(`Total: ${formatCurrencyINR(invoice.total || 0)}`);
+    document.text(`Paid: ${formatCurrencyINR(invoice.amountPaid || 0)}`);
+    document.font("Helvetica-Bold").text(`Balance Due: ${formatCurrencyINR(invoice.balance || 0)}`);
+    document.end();
+  });
+
+const sendWhatsAppDocumentMessage = ({ to, documentUrl, fileName, caption }) =>
+  new Promise((resolve) => {
+    if (!hasWhatsAppBaseConfig()) {
+      return resolve({ success: false, skipped: true, error: "WhatsApp configuration is incomplete" });
+    }
+    if (!to || !documentUrl) {
+      return resolve({ success: false, skipped: true, error: "WhatsApp document recipient or URL is missing" });
+    }
+    const payload = JSON.stringify(buildDocumentPayload({ to, documentUrl, fileName, caption }));
+    const request = https.request(
+      {
+        hostname: "graph.facebook.com",
+        path: `/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(payload),
+        },
+      },
+      (response) => {
+        let responseBody = "";
+        response.on("data", (chunk) => { responseBody += chunk; });
+        response.on("end", () => {
+          const ok = response.statusCode >= 200 && response.statusCode < 300;
+          let parsedBody = null;
+          try { parsedBody = JSON.parse(responseBody); } catch (_) {}
+          void recordWhatsAppMessage({
+            phone: to,
+            text: caption || `Invoice PDF: ${fileName}`,
+            messageType: "document",
+            status: ok ? "sent" : "failed",
+            messageId: parsedBody?.messages?.[0]?.id,
+            error: ok ? undefined : responseBody,
+          });
+          resolve({ success: ok, statusCode: response.statusCode, error: ok ? null : responseBody });
+        });
+      },
+    );
+    request.on("error", (error) => resolve({ success: false, error: error.message }));
+    request.write(payload);
+    request.end();
+  });
 
 const sendWhatsAppTemplateMessage = ({
   to,
@@ -485,6 +578,29 @@ const sendInvoiceWhatsApp = async (invoice, patientId) => {
 
   const errors = [];
   const results = {};
+  let invoicePdfUrl = "";
+
+  try {
+    const pdfBuffer = await createInvoicePdfBuffer(invoice, patientContact);
+    const fileName = `Invoice_${invoice.invoiceNumber || invoice._id}.pdf`;
+    const uploadedPdf = await storageService.uploadFile({
+      file: { buffer: pdfBuffer, mimetype: "application/pdf", size: pdfBuffer.length },
+      folder: "invoices",
+      fileName,
+    });
+    invoicePdfUrl = uploadedPdf.url;
+    results.document = await sendWhatsAppDocumentMessage({
+      to: patientContact.phone,
+      documentUrl: uploadedPdf.url,
+      fileName,
+      caption: `Bill copy for ${invoice.invoiceNumber || "your invoice"}`,
+    });
+    if (!results.document.success && !results.document.skipped) {
+      errors.push(`Invoice PDF failed: ${results.document.error}`);
+    }
+  } catch (error) {
+    errors.push(`Invoice PDF preparation failed: ${error.message}`);
+  }
 
   if (patientTemplate) {
     const templateResult = await sendWhatsAppTemplateMessage({
@@ -517,6 +633,7 @@ const sendInvoiceWhatsApp = async (invoice, patientId) => {
     success:
       textResult.success ||
       (results.template && results.template.success) ||
+      (results.document && results.document.success) ||
       false,
     skipped:
       textResult.skipped && (!results.template || results.template.skipped),
@@ -525,6 +642,7 @@ const sendInvoiceWhatsApp = async (invoice, patientId) => {
     errors,
     results,
     messagePreview: detailedMessage,
+    fileUrl: invoicePdfUrl,
   };
 };
 
@@ -733,6 +851,7 @@ module.exports = {
   buildLoginCredentialsMessage,
   sendInvoiceWhatsApp,
   sendInvoicePaymentLinkWhatsApp,
+  sendWhatsAppDocumentMessage,
   sendPaymentThankYouReviewWhatsApp,
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
