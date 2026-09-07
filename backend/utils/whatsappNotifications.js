@@ -143,6 +143,7 @@ const buildTextPayload = ({ to, text }) => {
   return {
     messaging_product: "whatsapp",
     to,
+    type: "text",
     text: {
       preview_url: true,
       body: String(text ?? ""),

@@ -1818,22 +1818,33 @@ const resolvers = {
 
       const normalizedDestination = normalizePhoneNumber(destination);
       const templateName = process.env.WHATSAPP_TEMPLATE_MANUAL_MESSAGE;
-      const result = templateName
-        ? await sendWhatsAppTemplateMessage({
-            to: normalizedDestination,
-            templateName,
-            bodyParameters: [patient?.name || "Patient", text],
-            displayText: text,
-          })
-        : await sendWhatsAppTextMessage({
+      let result;
+      let usedTemplate = false;
+      if (templateName) {
+        result = await sendWhatsAppTemplateMessage({
+          to: normalizedDestination,
+          templateName,
+          bodyParameters: [patient?.name || "Patient", text],
+          displayText: text,
+        });
+        usedTemplate = result.success;
+        if (!result.success && !result.skipped) {
+          result = await sendWhatsAppTextMessage({
             to: normalizedDestination,
             text,
           });
+        }
+      } else {
+        result = await sendWhatsAppTextMessage({
+          to: normalizedDestination,
+          text,
+        });
+      }
       return {
         success: result.success,
         skipped: result.skipped,
         message: result.success
-          ? templateName
+          ? usedTemplate
             ? "WhatsApp template message sent successfully"
             : "WhatsApp message sent successfully"
           : result.skipped
