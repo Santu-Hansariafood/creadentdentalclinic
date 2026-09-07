@@ -1,19 +1,13 @@
-const https = require("https");
 const Appointment = require("../models/Appointment");
 const Patient = require("../models/Patient");
 const User = require("../models/User");
-const { recordWhatsAppMessage } = require("./whatsappNotifications");
+const {
+  normalizePhoneNumber,
+  sendWhatsAppTemplateMessage,
+  sendWhatsAppTextMessage,
+  recordWhatsAppMessage,
+} = require("./whatsappNotifications");
 
-const DEFAULT_COUNTRY_CODE = process.env.WHATSAPP_DEFAULT_COUNTRY_CODE || "91";
-const normalizeTemplateLanguage = (value) => {
-  const [language, region] = String(value || "en").replace("-", "_").split("_");
-  return region
-    ? `${language.toLowerCase()}_${region.toUpperCase()}`
-    : language.toLowerCase();
-};
-const DEFAULT_LANGUAGE_CODE = normalizeTemplateLanguage(
-  process.env.WHATSAPP_TEMPLATE_LANGUAGE,
-);
 const DEFAULT_POLL_INTERVAL_MS = Number(
   process.env.WHATSAPP_REMINDER_POLL_INTERVAL_MS || 300000,
 );
@@ -21,17 +15,6 @@ const DEFAULT_POLL_INTERVAL_MS = Number(
 const toObjectIdString = (value) => {
   if (!value) return "";
   return value.toString();
-};
-
-const normalizePhoneNumber = (phone) => {
-  const digitsOnly = String(phone || "").replace(/\D/g, "");
-  if (!digitsOnly) return "";
-
-  if (digitsOnly.length === 10) {
-    return `${DEFAULT_COUNTRY_CODE}${digitsOnly}`;
-  }
-
-  return digitsOnly;
 };
 
 const parseAppointmentTime = (timeLabel) => {
@@ -123,162 +106,142 @@ const formatAppointmentDateTimeParts = (appointment) => {
   };
 };
 
-const hasWhatsAppBaseConfig = () => {
-  return Boolean(
-    process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID,
-  );
-};
+const buildAppointmentBookedPatientMessage = (patientContact, doctorContact, appointmentDate, appointmentTime, appointmentType) => `*🏥 Creadent Dental Clinic - Appointment Confirmed*
 
-const getWhatsAppErrorMessage = (responseBody, fallback) => {
-  try {
-    const error = JSON.parse(responseBody)?.error;
-    if (error?.message) {
-      return [error.message, error.code && `code ${error.code}`, error.type]
-        .filter(Boolean)
-        .join(" | ");
-    }
-  } catch (_) {}
-  return fallback || responseBody || "WhatsApp request failed";
-};
+Dear ${patientContact.name || "Patient"},
 
-const buildTemplatePayload = ({ to, templateName, bodyParameters = [] }) => {
-  const payload = {
-    messaging_product: "whatsapp",
-    to,
-    type: "template",
-    template: {
-      name: templateName,
-      language: {
-        code: DEFAULT_LANGUAGE_CODE,
-      },
-    },
-  };
+Your appointment has been successfully booked.
 
-  if (bodyParameters.length > 0) {
-    payload.template.components = [
-      {
-        type: "body",
-        parameters: bodyParameters.map((text) => ({
-          type: "text",
-          text: String(text ?? ""),
-        })),
-      },
-    ];
-  }
+👨‍⚕️ *Doctor:* ${doctorContact.name || "Doctor"}
+📅 *Date:* ${appointmentDate}
+⏰ *Time:* ${appointmentTime}
+${appointmentType ? `🏷️ *Type:* ${appointmentType}\n` : ""}
+📍 *Clinic:* Creadent Multispeciality Dental Clinic
+   BD-85, Salt Lake Rd, BD Block, Sector 1, Bidhannagar, Kolkata - 700064
 
-  return payload;
-};
+📞 For any queries, call us at: +91 6292300343
 
-const sendWhatsAppTemplateMessage = ({
+Please arrive 10 minutes before your scheduled time.
+
+Regards,
+Team Creadent Dental Clinic`;
+
+const buildAppointmentBookedDoctorMessage = (doctorContact, patientContact, appointmentDate, appointmentTime, appointmentType) => `*🏥 New Appointment Booking*
+
+Dear Dr. ${doctorContact.name || "Doctor"},
+
+A new appointment has been scheduled.
+
+👤 *Patient:* ${patientContact.name || "Patient"}
+📅 *Date:* ${appointmentDate}
+⏰ *Time:* ${appointmentTime}
+${appointmentType ? `🏷️ *Type:* ${appointmentType}\n` : ""}
+📱 Patient Mobile: ${patientContact.phone || "Not available"}
+
+Regards,
+Creadent Dental Clinic`;
+
+const buildAppointmentReminderPatientMessage = (patientContact, doctorName, appointmentDate, appointmentTime, whenText) => `*⏰ Creadent Dental Clinic - Appointment Reminder*
+
+Dear ${patientContact.name || "Patient"},
+
+This is a friendly reminder that your dental appointment is ${whenText}.
+
+👨‍⚕️ *Doctor:* ${doctorName || "Doctor"}
+📅 *Date:* ${appointmentDate}
+⏰ *Time:* ${appointmentTime}
+
+📍 *Address:*
+Creadent Multispeciality Dental Clinic
+BD-85, Salt Lake Rd, BD Block, Sector 1
+Bidhannagar, Kolkata - 700064
+
+📞 To reschedule, call: +91 6292300343
+
+Please arrive 10 minutes early.
+
+Regards,
+Team Creadent Dental Clinic`;
+
+const buildAppointmentReminderDoctorMessage = (doctorContact, patientName, appointmentDate, appointmentTime, whenText) => `*⏰ Doctor Appointment Reminder*
+
+Dear Dr. ${doctorContact.name || "Doctor"},
+
+You have an appointment ${whenText}.
+
+👤 *Patient:* ${patientName || "Patient"}
+📅 *Date:* ${appointmentDate}
+⏰ *Time:* ${appointmentTime}
+
+Regards,
+Creadent Dental Clinic`;
+
+const buildAppointmentRescheduledPatientMessage = (patientContact, previousDate, appointmentDate, appointmentTime, appointmentType) => `*🔄 Creadent Dental Clinic - Appointment Rescheduled*
+
+Dear ${patientContact.name || "Patient"},
+
+Your appointment has been rescheduled.
+
+📅 *Previous Date:* ${previousDate || "-"}
+🗓️ *New Date:* ${appointmentDate}
+⏰ *New Time:* ${appointmentTime}
+${appointmentType ? `🏷️ *Type:* ${appointmentType}\n` : ""}
+📍 *Clinic:* Creadent Multispeciality Dental Clinic
+   BD-85, Salt Lake Rd, BD Block, Sector 1, Bidhannagar, Kolkata - 700064
+
+📞 For queries: +91 6292300343
+
+Regards,
+Team Creadent Dental Clinic`;
+
+const buildAppointmentRescheduledDoctorMessage = (doctorContact, patientName, previousDate, appointmentDate, appointmentTime, appointmentType) => `*🔄 Appointment Rescheduled*
+
+Dear Dr. ${doctorContact.name || "Doctor"},
+
+An appointment has been rescheduled.
+
+👤 *Patient:* ${patientName || "Patient"}
+📅 *Previous Date:* ${previousDate || "-"}
+🗓️ *New Date:* ${appointmentDate}
+⏰ *New Time:* ${appointmentTime}
+${appointmentType ? `🏷️ *Type:* ${appointmentType}\n` : ""}
+Regards,
+Creadent Dental Clinic`;
+
+const buildAppointmentRescheduledEmployeeMessage = (employeeName, patientName, doctorName, previousDate, appointmentDate, appointmentTime, appointmentType) => `*🔄 Appointment Rescheduled - Staff Alert*
+
+Hi ${employeeName || "Team"},
+
+An appointment has been rescheduled.
+
+👤 *Patient:* ${patientName || "Patient"}
+👨‍⚕️ *Doctor:* ${doctorName || "Doctor"}
+📅 *Previous Date:* ${previousDate || "-"}
+🗓️ *New Date:* ${appointmentDate}
+⏰ *New Time:* ${appointmentTime}
+${appointmentType ? `🏷️ *Type:* ${appointmentType}\n` : ""}
+Regards,
+Creadent Dental Clinic Management`;
+
+const sendTemplateWithFallback = async ({
   to,
   templateName,
   bodyParameters = [],
-}) =>
-  new Promise((resolve) => {
-    if (!hasWhatsAppBaseConfig()) {
-        void recordWhatsAppMessage({
-          phone: to,
-          text: `Template: ${templateName || "unknown"}`,
-          messageType: "appointment_rescheduled",
-          templateName,
-          templateParameters: bodyParameters.map((value) => String(value ?? "")),
-          status: "skipped",
-          error: "WhatsApp configuration is incomplete",
-        });
-      return resolve({
-        success: false,
-        skipped: true,
-        error:
-          "WhatsApp configuration is incomplete. Set WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID.",
-      });
-    }
-
-    if (!to || !templateName) {
-      void recordWhatsAppMessage({
-        phone: to,
-        text: `Template: ${templateName || "unknown"}`,
-        messageType: "appointment_rescheduled",
-        templateName,
-        templateParameters: bodyParameters.map((value) => String(value ?? "")),
-        status: "skipped",
-        error: "WhatsApp destination or template name is missing",
-      });
-      return resolve({
-        success: false,
-        skipped: true,
-        error: "WhatsApp destination or template name is missing.",
-      });
-    }
-
-    const payload = JSON.stringify(
-      buildTemplatePayload({ to, templateName, bodyParameters }),
-    );
-
-    const request = https.request(
-      {
-        hostname: "graph.facebook.com",
-        path: `/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
-          "Content-Type": "application/json",
-          "Content-Length": Buffer.byteLength(payload),
-        },
-      },
-      (response) => {
-        let responseBody = "";
-
-        response.on("data", (chunk) => {
-          responseBody += chunk;
-        });
-
-        response.on("end", () => {
-          const ok = response.statusCode >= 200 && response.statusCode < 300;
-          let parsedBody = null;
-          try {
-            parsedBody = JSON.parse(responseBody);
-          } catch (_) {}
-          void recordWhatsAppMessage({
-            phone: to,
-            text: `Template: ${templateName}${bodyParameters.length ? ` (${bodyParameters.join(", ")})` : ""}`,
-            messageType: "template",
-            templateName,
-            templateParameters: bodyParameters.map((value) => String(value ?? "")),
-            status: ok ? "sent" : "failed",
-            messageId: parsedBody?.messages?.[0]?.id,
-            error: ok ? undefined : responseBody,
-          });
-          resolve({
-            success: ok,
-            statusCode: response.statusCode,
-            body: responseBody,
-            error: ok
-              ? null
-              : getWhatsAppErrorMessage(responseBody, response.statusMessage),
-          });
-        });
-      },
-    );
-
-    request.on("error", (error) => {
-      void recordWhatsAppMessage({
-        phone: to,
-        text: `Template: ${templateName}`,
-        messageType: "template",
-        templateName,
-        templateParameters: bodyParameters.map((value) => String(value ?? "")),
-        status: "failed",
-        error: error.message,
-      });
-      resolve({
-        success: false,
-        error: error.message,
-      });
+  fallbackText,
+}) => {
+  if (templateName) {
+    const templateResult = await sendWhatsAppTemplateMessage({
+      to,
+      templateName,
+      bodyParameters,
+      displayText: fallbackText,
     });
-
-    request.write(payload);
-    request.end();
-  });
+    if (templateResult.success || templateResult.skipped) {
+      return templateResult;
+    }
+  }
+  return await sendWhatsAppTextMessage({ to, text: fallbackText });
+};
 
 const resolvePatientContact = async (appointment) => {
   const appointmentPatientId = toObjectIdString(appointment?.patientId);
@@ -347,10 +310,16 @@ const sendAppointmentBookingNotifications = async (appointment) => {
 
   if (
     !appointment?.bookingPatientNotificationSentAt &&
-    patientTemplate &&
     patientContact.phone
   ) {
-    const patientResult = await sendWhatsAppTemplateMessage({
+    const fallbackText = buildAppointmentBookedPatientMessage(
+      patientContact,
+      doctorContact,
+      appointmentDate,
+      appointmentTime,
+      appointment?.type || "",
+    );
+    const patientResult = await sendTemplateWithFallback({
       to: patientContact.phone,
       templateName: patientTemplate,
       bodyParameters: [
@@ -360,6 +329,7 @@ const sendAppointmentBookingNotifications = async (appointment) => {
         appointmentTime,
         appointment?.type || "",
       ],
+      fallbackText,
     });
 
     if (patientResult.success) {
@@ -369,18 +339,22 @@ const sendAppointmentBookingNotifications = async (appointment) => {
     }
   } else if (!appointment?.bookingPatientNotificationSentAt) {
     errors.push(
-      !patientTemplate
-        ? "Patient booking WhatsApp template is not configured"
-        : "Patient phone number not found for booking confirmation",
+      "Patient phone number not found for booking confirmation",
     );
   }
 
   if (
     !appointment?.bookingDoctorNotificationSentAt &&
-    doctorTemplate &&
     doctorContact.phone
   ) {
-    const doctorResult = await sendWhatsAppTemplateMessage({
+    const fallbackText = buildAppointmentBookedDoctorMessage(
+      doctorContact,
+      patientContact,
+      appointmentDate,
+      appointmentTime,
+      appointment?.type || "",
+    );
+    const doctorResult = await sendTemplateWithFallback({
       to: doctorContact.phone,
       templateName: doctorTemplate,
       bodyParameters: [
@@ -390,6 +364,7 @@ const sendAppointmentBookingNotifications = async (appointment) => {
         appointmentTime,
         appointment?.type || "",
       ],
+      fallbackText,
     });
 
     if (doctorResult.success) {
@@ -399,9 +374,7 @@ const sendAppointmentBookingNotifications = async (appointment) => {
     }
   } else if (!appointment?.bookingDoctorNotificationSentAt) {
     errors.push(
-      !doctorTemplate
-        ? "Doctor booking WhatsApp template is not configured"
-        : "Doctor phone number not found for booking confirmation",
+      "Doctor phone number not found for booking confirmation",
     );
   }
 
@@ -443,55 +416,98 @@ const sendAppointmentRescheduleNotification = async (
 
   if (
     !appointment.reschedulePatientNotificationSentAt &&
-    patientContact.phone &&
-    patientTemplateName
+    patientContact.phone
   ) {
-    results.patient = await sendWhatsAppTemplateMessage({
+    const fallbackText = buildAppointmentRescheduledPatientMessage(
+      patientContact,
+      previousDate,
+      appointmentDate,
+      appointmentTime,
+      appointment?.type || "",
+    );
+    results.patient = await sendTemplateWithFallback({
       to: patientContact.phone,
       templateName: patientTemplateName,
       bodyParameters: [patientContact.name, ...commonParameters],
+      fallbackText,
     });
+    if (results.patient.success) {
+      await Appointment.findByIdAndUpdate(appointment._id, {
+        reschedulePatientNotificationSentAt: new Date(),
+      }).catch(() => {});
+    }
   }
 
   if (
     !appointment.rescheduleDoctorNotificationSentAt &&
-    doctorContact.phone &&
-    doctorTemplateName
+    doctorContact.phone
   ) {
-    results.doctor = await sendWhatsAppTemplateMessage({
+    const doctorParams =
+      doctorTemplateName === patientTemplateName
+        ? [doctorContact.name, ...commonParameters]
+        : [
+            doctorContact.name,
+            appointment?.patientName || "Patient",
+            ...commonParameters,
+          ];
+    const fallbackText = buildAppointmentRescheduledDoctorMessage(
+      doctorContact,
+      appointment?.patientName || patientContact.name,
+      previousDate,
+      appointmentDate,
+      appointmentTime,
+      appointment?.type || "",
+    );
+    results.doctor = await sendTemplateWithFallback({
       to: doctorContact.phone,
       templateName: doctorTemplateName,
-      bodyParameters:
-        doctorTemplateName === patientTemplateName
-          ? [doctorContact.name, ...commonParameters]
-          : [
-              doctorContact.name,
-              appointment?.patientName || "Patient",
-              ...commonParameters,
-            ],
+      bodyParameters: doctorParams,
+      fallbackText,
     });
+    if (results.doctor.success) {
+      await Appointment.findByIdAndUpdate(appointment._id, {
+        rescheduleDoctorNotificationSentAt: new Date(),
+      }).catch(() => {});
+    }
   }
 
-  if (!appointment.rescheduleEmployeeNotificationSentAt && employeeTemplateName) {
+  if (!appointment.rescheduleEmployeeNotificationSentAt) {
     results.employees = await Promise.all(
       employees
         .filter((employee) => normalizePhoneNumber(employee.phone))
-        .map((employee) =>
-          sendWhatsAppTemplateMessage({
+        .map(async (employee) => {
+          const employeeParams =
+            employeeTemplateName === patientTemplateName
+              ? [employee.name || "Employee", ...commonParameters]
+              : [
+                  employee.name || "Employee",
+                  appointment?.patientName || patientContact.name,
+                  appointment?.doctorName || doctorContact.name,
+                  ...commonParameters,
+                ];
+          const fallbackText = buildAppointmentRescheduledEmployeeMessage(
+            employee.name || "Employee",
+            appointment?.patientName || patientContact.name,
+            appointment?.doctorName || doctorContact.name,
+            previousDate,
+            appointmentDate,
+            appointmentTime,
+            appointment?.type || "",
+          );
+          const empResult = await sendTemplateWithFallback({
             to: normalizePhoneNumber(employee.phone),
             templateName: employeeTemplateName,
-            bodyParameters:
-              employeeTemplateName === patientTemplateName
-                ? [employee.name || "Employee", ...commonParameters]
-                : [
-                    employee.name || "Employee",
-                    appointment?.patientName || "Patient",
-                    appointment?.doctorName || "Doctor",
-                    ...commonParameters,
-                  ],
-          }),
-        ),
+            bodyParameters: employeeParams,
+            fallbackText,
+          });
+          return empResult;
+        }),
     );
+    if (results.employees.some((r) => r.success)) {
+      await Appointment.findByIdAndUpdate(appointment._id, {
+        rescheduleEmployeeNotificationSentAt: new Date(),
+      }).catch(() => {});
+    }
   }
 
   const deliveryErrors = [];
@@ -505,6 +521,12 @@ const sendAppointmentRescheduleNotification = async (
     deliveryErrors.push("Employee reschedule message: no employee recipient was sent");
   } else if (results.employees.some((result) => !result.success)) {
     deliveryErrors.push("Employee reschedule message: one or more deliveries failed");
+  }
+
+  if (deliveryErrors.length > 0) {
+    await Appointment.findByIdAndUpdate(appointment._id, {
+      lastNotificationError: deliveryErrors.join(" | "),
+    }).catch(() => {});
   }
 
   return {
@@ -530,9 +552,6 @@ const sendReminderIfDue = async (appointment, now) => {
     process.env.WHATSAPP_TEMPLATE_APPOINTMENT_REMINDER_PATIENT;
   const doctorTemplate =
     process.env.WHATSAPP_TEMPLATE_APPOINTMENT_REMINDER_DOCTOR;
-  if (!patientTemplate && !doctorTemplate) {
-    return;
-  }
 
   const appointmentDateTime = getAppointmentDateTime(appointment);
   if (!appointmentDateTime || appointmentDateTime <= now) {
@@ -560,8 +579,16 @@ const sendReminderIfDue = async (appointment, now) => {
     now < sixHoursBefore
   ) {
     const patientContact = await resolvePatientContact(appointment);
-    if (patientTemplate && patientContact.phone) {
-      const result = await sendWhatsAppTemplateMessage({
+    if (patientContact.phone) {
+      const whenText = "tomorrow";
+      const fallbackText = buildAppointmentReminderPatientMessage(
+        patientContact,
+        appointment?.doctorName || "Doctor",
+        appointmentDate,
+        appointmentTime,
+        whenText,
+      );
+      const result = await sendTemplateWithFallback({
         to: patientContact.phone,
         templateName: patientTemplate,
         bodyParameters: [
@@ -569,8 +596,9 @@ const sendReminderIfDue = async (appointment, now) => {
           appointment?.doctorName || "Doctor",
           appointmentDate,
           appointmentTime,
-          "tomorrow",
+          whenText,
         ],
+        fallbackText,
       });
 
       if (result.success) {
@@ -579,11 +607,7 @@ const sendReminderIfDue = async (appointment, now) => {
         errors.push(`Patient 1 day reminder failed: ${result.error}`);
       }
     } else {
-      errors.push(
-        !patientTemplate
-          ? "Patient reminder template is not configured"
-          : "Patient phone number not found for 1 day reminder",
-      );
+      errors.push("Patient phone number not found for 1 day reminder");
     }
   }
 
@@ -593,8 +617,16 @@ const sendReminderIfDue = async (appointment, now) => {
     now < appointmentDateTime
   ) {
     const patientContact = await resolvePatientContact(appointment);
-    if (patientTemplate && patientContact.phone) {
-      const result = await sendWhatsAppTemplateMessage({
+    if (patientContact.phone) {
+      const whenText = "in 6 hours";
+      const fallbackText = buildAppointmentReminderPatientMessage(
+        patientContact,
+        appointment?.doctorName || "Doctor",
+        appointmentDate,
+        appointmentTime,
+        whenText,
+      );
+      const result = await sendTemplateWithFallback({
         to: patientContact.phone,
         templateName: patientTemplate,
         bodyParameters: [
@@ -602,8 +634,9 @@ const sendReminderIfDue = async (appointment, now) => {
           appointment?.doctorName || "Doctor",
           appointmentDate,
           appointmentTime,
-          "in 6 hours",
+          whenText,
         ],
+        fallbackText,
       });
 
       if (result.success) {
@@ -612,11 +645,7 @@ const sendReminderIfDue = async (appointment, now) => {
         errors.push(`Patient 6 hour reminder failed: ${result.error}`);
       }
     } else {
-      errors.push(
-        !patientTemplate
-          ? "Patient reminder template is not configured"
-          : "Patient phone number not found for 6 hour reminder",
-      );
+      errors.push("Patient phone number not found for 6 hour reminder");
     }
   }
 
@@ -625,10 +654,17 @@ const sendReminderIfDue = async (appointment, now) => {
     !appointment.reminderDoctorOneDaySentAt &&
     now >= oneDayBefore &&
     now < oneHourBefore &&
-    doctorTemplate &&
     doctorContact.phone
   ) {
-    const result = await sendWhatsAppTemplateMessage({
+    const whenText = "tomorrow";
+    const fallbackText = buildAppointmentReminderDoctorMessage(
+      doctorContact,
+      appointment?.patientName || "Patient",
+      appointmentDate,
+      appointmentTime,
+      whenText,
+    );
+    const result = await sendTemplateWithFallback({
       to: doctorContact.phone,
       templateName: doctorTemplate,
       bodyParameters: [
@@ -636,8 +672,9 @@ const sendReminderIfDue = async (appointment, now) => {
         appointment?.patientName || "Patient",
         appointmentDate,
         appointmentTime,
-        "tomorrow",
+        whenText,
       ],
+      fallbackText,
     });
 
     if (result.success) {
@@ -651,9 +688,7 @@ const sendReminderIfDue = async (appointment, now) => {
     now < oneHourBefore
   ) {
     errors.push(
-      !doctorTemplate
-        ? "Doctor reminder template is not configured"
-        : "Doctor phone number not found for 1 day reminder",
+      "Doctor phone number not found for 1 day reminder",
     );
   }
 
@@ -661,10 +696,17 @@ const sendReminderIfDue = async (appointment, now) => {
     !appointment.reminderDoctorOneHourSentAt &&
     now >= oneHourBefore &&
     now < appointmentDateTime &&
-    doctorTemplate &&
     doctorContact.phone
   ) {
-    const result = await sendWhatsAppTemplateMessage({
+    const whenText = "in 1 hour";
+    const fallbackText = buildAppointmentReminderDoctorMessage(
+      doctorContact,
+      appointment?.patientName || "Patient",
+      appointmentDate,
+      appointmentTime,
+      whenText,
+    );
+    const result = await sendTemplateWithFallback({
       to: doctorContact.phone,
       templateName: doctorTemplate,
       bodyParameters: [
@@ -672,8 +714,9 @@ const sendReminderIfDue = async (appointment, now) => {
         appointment?.patientName || "Patient",
         appointmentDate,
         appointmentTime,
-        "in 1 hour",
+        whenText,
       ],
+      fallbackText,
     });
 
     if (result.success) {
@@ -687,9 +730,7 @@ const sendReminderIfDue = async (appointment, now) => {
     now < appointmentDateTime
   ) {
     errors.push(
-      !doctorTemplate
-        ? "Doctor reminder template is not configured"
-        : "Doctor phone number not found for 1 hour reminder",
+      "Doctor phone number not found for 1 hour reminder",
     );
   }
 

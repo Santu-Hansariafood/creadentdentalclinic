@@ -716,26 +716,39 @@ ${paymentLink}
 Regards,
 Team Creadent Dental Clinic`;
   const templateName = process.env.WHATSAPP_TEMPLATE_INVOICE_PAYMENT_LINK;
-  const result = templateName
-    ? await sendWhatsAppTemplateMessage({
-        to: patientContact.phone,
-        templateName,
-        bodyParameters: [
-          patientContact.name,
-          invoice.invoiceNumber || "-",
-          formatCurrencyINR(invoice.balance || invoice.total || 0),
-          paymentLink,
-        ],
-        displayText: message,
-      })
-    : await sendWhatsAppTextMessage({ to: patientContact.phone, text: message });
+  const results = {};
+  let finalResult;
+
+  if (templateName) {
+    const templateResult = await sendWhatsAppTemplateMessage({
+      to: patientContact.phone,
+      templateName,
+      bodyParameters: [
+        patientContact.name,
+        invoice.invoiceNumber || "-",
+        formatCurrencyINR(invoice.balance || invoice.total || 0),
+        paymentLink,
+      ],
+      displayText: message,
+    });
+    results.template = templateResult;
+    if (templateResult.success || templateResult.skipped) {
+      finalResult = templateResult;
+    }
+  }
+
+  if (!finalResult) {
+    finalResult = await sendWhatsAppTextMessage({ to: patientContact.phone, text: message });
+    results.text = finalResult;
+  }
 
   return {
-    ...result,
+    ...finalResult,
     phone: patientContact.phone,
     patient: patientContact,
     paymentLink,
     messagePreview: message,
+    results,
   };
 };
 
@@ -766,28 +779,41 @@ const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
     reviewLink: REVIEW_LINK,
   });
   const templateName = process.env.WHATSAPP_TEMPLATE_PAYMENT_THANK_YOU;
-  const result = templateName
-    ? await sendWhatsAppTemplateMessage({
-        to: patientContact.phone,
-        templateName,
-        bodyParameters: [
-          patientContact.name,
-          invoice?.invoiceNumber || "-",
-          formatCurrencyINR(invoice?.amountPaid || invoice?.total || 0),
-          REVIEW_LINK || "-",
-        ],
-        displayText: message,
-      })
-    : await sendWhatsAppTextMessage({
-        to: patientContact.phone,
-        text: message,
-      });
+  const results = {};
+  let finalResult;
+
+  if (templateName) {
+    const templateResult = await sendWhatsAppTemplateMessage({
+      to: patientContact.phone,
+      templateName,
+      bodyParameters: [
+        patientContact.name,
+        invoice?.invoiceNumber || "-",
+        formatCurrencyINR(invoice?.amountPaid || invoice?.total || 0),
+        REVIEW_LINK || "-",
+      ],
+      displayText: message,
+    });
+    results.template = templateResult;
+    if (templateResult.success || templateResult.skipped) {
+      finalResult = templateResult;
+    }
+  }
+
+  if (!finalResult) {
+    finalResult = await sendWhatsAppTextMessage({
+      to: patientContact.phone,
+      text: message,
+    });
+    results.text = finalResult;
+  }
 
   return {
-    ...result,
+    ...finalResult,
     phone: patientContact.phone,
     patient: patientContact,
     messagePreview: message,
+    results,
   };
 };
 
@@ -846,20 +872,45 @@ const sendLoginCredentialsWhatsApp = async (credentials) => {
   };
 };
 
+const buildPrescriptionMessage = (prescription, patientContact, fileUrl = "") => {
+  const medications = (prescription?.medications || [])
+    .map((medicine, idx) => {
+      const parts = [medicine.name, medicine.dosage, medicine.frequency, medicine.duration].filter(Boolean);
+      return `  ${idx + 1}. ${parts.join(" - ")}`;
+    })
+    .filter(Boolean)
+    .join("\n");
+
+  const rxId = `RX-${String(prescription?._id || "PRESCRIPTION").slice(-8).toUpperCase()}`;
+
+  return `*Creadent Dental Clinic - Prescription*
+
+Dear ${patientContact.name || "Patient"},
+
+Your prescription is ready.
+
+📋 *Prescription ID:* ${rxId}
+👨‍⚕️ *Doctor:* ${prescription?.doctorName || "Doctor"}
+📅 *Date:* ${formatDateIN(prescription?.date) || formatDateIN(new Date())}
+🩺 *Diagnosis:* ${prescription?.diagnosis || "Dental consultation"}
+
+${medications ? `💊 *Medications:*\n${medications}\n` : ""}
+📝 *Doctor's Notes:*
+${prescription?.notes || "Follow the instructions on your medication labels. Maintain good oral hygiene and visit us for regular checkups."}
+
+${fileUrl ? `📎 *View/Download Prescription:*\n${fileUrl}\n` : `You can also view this prescription in your patient portal:\n${FRONTEND_URL}/patient/prescriptions\n`}
+📞 For queries: +91 6292300343
+
+Regards,
+Team Creadent Dental Clinic`;
+};
+
 const sendPrescriptionWhatsApp = async (prescription, fileUrl = "") => {
   const templateName = process.env.WHATSAPP_TEMPLATE_PRESCRIPTION;
   const patientContact = await resolvePatientContact(prescription?.patientId);
 
   if (!patientContact.phone) {
     return { success: false, error: "Patient phone number not found" };
-  }
-
-  if (!templateName) {
-    return {
-      success: false,
-      skipped: true,
-      error: "WHATSAPP_TEMPLATE_PRESCRIPTION is not configured",
-    };
   }
 
   const medications = (prescription?.medications || [])
@@ -870,23 +921,48 @@ const sendPrescriptionWhatsApp = async (prescription, fileUrl = "") => {
     )
     .filter(Boolean)
     .join(", ");
-  const result = await sendWhatsAppTemplateMessage({
-    to: patientContact.phone,
-    templateName,
-    bodyParameters: [
-      patientContact.name,
-      prescription?.doctorName || "Doctor",
-      `RX-${String(prescription?._id || "PRESCRIPTION")
-        .slice(-8)
-        .toUpperCase()}`,
-      formatDateIN(prescription?.date),
-      prescription?.diagnosis || "Dental consultation",
-      medications || "See your patient portal",
-      fileUrl || `${FRONTEND_URL}/patient/prescriptions`,
-    ],
-  });
+  const message = buildPrescriptionMessage(prescription, patientContact, fileUrl);
+  const results = {};
+  let finalResult;
 
-  return { ...result, phone: patientContact.phone, patient: patientContact };
+  if (templateName) {
+    const templateResult = await sendWhatsAppTemplateMessage({
+      to: patientContact.phone,
+      templateName,
+      bodyParameters: [
+        patientContact.name,
+        prescription?.doctorName || "Doctor",
+        `RX-${String(prescription?._id || "PRESCRIPTION")
+          .slice(-8)
+          .toUpperCase()}`,
+        formatDateIN(prescription?.date),
+        prescription?.diagnosis || "Dental consultation",
+        medications || "See your patient portal",
+        fileUrl || `${FRONTEND_URL}/patient/prescriptions`,
+      ],
+      displayText: message,
+    });
+    results.template = templateResult;
+    if (templateResult.success || templateResult.skipped) {
+      finalResult = templateResult;
+    }
+  }
+
+  if (!finalResult) {
+    finalResult = await sendWhatsAppTextMessage({
+      to: patientContact.phone,
+      text: message,
+    });
+    results.text = finalResult;
+  }
+
+  return {
+    ...finalResult,
+    phone: patientContact.phone,
+    patient: patientContact,
+    messagePreview: message,
+    results,
+  };
 };
 
 module.exports = {
@@ -896,6 +972,7 @@ module.exports = {
   formatDateIN,
   buildInvoiceMessage,
   buildLoginCredentialsMessage,
+  buildPrescriptionMessage,
   sendInvoiceWhatsApp,
   sendInvoicePaymentLinkWhatsApp,
   sendWhatsAppDocumentMessage,
