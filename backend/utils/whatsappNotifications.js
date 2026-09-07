@@ -6,7 +6,15 @@ const WhatsAppMessage = require("../models/WhatsAppMessage");
 const storageService = require("./storageService");
 
 const DEFAULT_COUNTRY_CODE = process.env.WHATSAPP_DEFAULT_COUNTRY_CODE || "91";
-const DEFAULT_LANGUAGE_CODE = process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en";
+const normalizeTemplateLanguage = (value) => {
+  const [language, region] = String(value || "en").replace("-", "_").split("_");
+  return region
+    ? `${language.toLowerCase()}_${region.toUpperCase()}`
+    : language.toLowerCase();
+};
+const DEFAULT_LANGUAGE_CODE = normalizeTemplateLanguage(
+  process.env.WHATSAPP_TEMPLATE_LANGUAGE,
+);
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://creadentsmiles.com";
 const REVIEW_LINK = process.env.WHATSAPP_REVIEW_LINK || "";
 
@@ -75,7 +83,12 @@ const hasWhatsAppBaseConfig = () => {
   );
 };
 
-const buildTemplatePayload = ({ to, templateName, bodyParameters = [] }) => {
+const buildTemplatePayload = ({
+  to,
+  templateName,
+  bodyParameters = [],
+  buttonParameters = [],
+}) => {
   const payload = {
     messaging_product: "whatsapp",
     to,
@@ -87,16 +100,29 @@ const buildTemplatePayload = ({ to, templateName, bodyParameters = [] }) => {
       },
     },
   };
+  const components = [];
   if (bodyParameters.length > 0) {
-    payload.template.components = [
-      {
-        type: "body",
-        parameters: bodyParameters.map((text) => ({
-          type: "text",
-          text: String(text ?? ""),
-        })),
-      },
-    ];
+    components.push({
+      type: "body",
+      parameters: bodyParameters.map((text) => ({
+        type: "text",
+        text: String(text ?? ""),
+      })),
+    });
+  }
+  if (buttonParameters.length > 0) {
+    components.push({
+      type: "button",
+      sub_type: "copy_code",
+      index: "0",
+      parameters: buttonParameters.map((text) => ({
+        type: "text",
+        text: String(text ?? ""),
+      })),
+    });
+  }
+  if (components.length > 0) {
+    payload.template.components = components;
   }
   return payload;
 };
@@ -205,6 +231,7 @@ const sendWhatsAppTemplateMessage = ({
   to,
   templateName,
   bodyParameters = [],
+  buttonParameters = [],
   displayText,
 }) =>
   new Promise((resolve) => {
@@ -240,7 +267,12 @@ const sendWhatsAppTemplateMessage = ({
       });
     }
     const payload = JSON.stringify(
-      buildTemplatePayload({ to, templateName, bodyParameters }),
+      buildTemplatePayload({
+        to,
+        templateName,
+        bodyParameters,
+        buttonParameters,
+      }),
     );
     const request = https.request(
       {
@@ -542,6 +574,7 @@ const sendForgotPasswordOtpWhatsApp = async ({ phone, otp }) => {
       to: normalizedPhone,
       templateName,
       bodyParameters: [otp || "-"],
+      buttonParameters: [otp || "-"],
     });
     if (templateResult.success || templateResult.skipped) {
       return {

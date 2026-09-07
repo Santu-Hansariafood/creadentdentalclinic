@@ -5,7 +5,15 @@ const User = require("../models/User");
 const { recordWhatsAppMessage } = require("./whatsappNotifications");
 
 const DEFAULT_COUNTRY_CODE = process.env.WHATSAPP_DEFAULT_COUNTRY_CODE || "91";
-const DEFAULT_LANGUAGE_CODE = process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en";
+const normalizeTemplateLanguage = (value) => {
+  const [language, region] = String(value || "en").replace("-", "_").split("_");
+  return region
+    ? `${language.toLowerCase()}_${region.toUpperCase()}`
+    : language.toLowerCase();
+};
+const DEFAULT_LANGUAGE_CODE = normalizeTemplateLanguage(
+  process.env.WHATSAPP_TEMPLATE_LANGUAGE,
+);
 const DEFAULT_POLL_INTERVAL_MS = Number(
   process.env.WHATSAPP_REMINDER_POLL_INTERVAL_MS || 300000,
 );

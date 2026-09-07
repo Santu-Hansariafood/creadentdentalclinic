@@ -1152,16 +1152,22 @@ const resolvers = {
       try {
         const phoneNumber = normalizePhoneNumber(user.phone);
         if (phoneNumber) {
-          await sendForgotPasswordOtpWhatsApp({
+          const whatsappResult = await sendForgotPasswordOtpWhatsApp({
             phone: phoneNumber,
             otp,
           });
+          if (!whatsappResult.success) {
+            throw new Error(
+              whatsappResult.error || "WhatsApp OTP could not be delivered",
+            );
+          }
         }
       } catch (error) {
         console.warn(
           "Forgot password OTP WhatsApp send failed:",
           error.message,
         );
+        throw new Error("Could not send the password reset OTP on WhatsApp");
       }
 
       return true;

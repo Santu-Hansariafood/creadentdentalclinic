@@ -130,9 +130,20 @@ const forgotPassword = async (req, res) => {
   await user.save();
 
   try {
-    await sendForgotPasswordOtpWhatsApp({ phone: normalizedPhone, otp });
+    const whatsappResult = await sendForgotPasswordOtpWhatsApp({
+      phone: normalizedPhone,
+      otp,
+    });
+    if (!whatsappResult.success) {
+      res.status(502).json({
+        message: whatsappResult.error || "Could not send the password reset OTP on WhatsApp",
+      });
+      return;
+    }
   } catch (error) {
     console.warn("Forgot password OTP WhatsApp send failed:", error.message);
+    res.status(502).json({ message: "Could not send the password reset OTP on WhatsApp" });
+    return;
   }
 
   res.json({ success: true });
