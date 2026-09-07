@@ -48,6 +48,7 @@ input UpdateMedicineInput {
     status: String
     reason: String
     notes: String
+    lastNotificationError: String
   }
 
   type Attachment {

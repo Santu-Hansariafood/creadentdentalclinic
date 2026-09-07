@@ -72,6 +72,7 @@ export const GET_APPOINTMENTS = gql`
         status
         reason
         notes
+        lastNotificationError
       }
       totalCount
       totalPages

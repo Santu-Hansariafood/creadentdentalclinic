@@ -1356,6 +1356,9 @@ const resolvers = {
             "[WHATSAPP] Appointment reschedule notification failed:",
             error.message,
           );
+          await Appointment.findByIdAndUpdate(id, {
+            lastNotificationError: error.message,
+          });
         }
       }
 

@@ -83,6 +83,18 @@ const hasWhatsAppBaseConfig = () => {
   );
 };
 
+const getWhatsAppErrorMessage = (responseBody, fallback) => {
+  try {
+    const error = JSON.parse(responseBody)?.error;
+    if (error?.message) {
+      return [error.message, error.code && `code ${error.code}`, error.type]
+        .filter(Boolean)
+        .join(" | ");
+    }
+  } catch (_) {}
+  return fallback || responseBody || "WhatsApp request failed";
+};
+
 const buildTemplatePayload = ({
   to,
   templateName,
@@ -312,7 +324,9 @@ const sendWhatsAppTemplateMessage = ({
             success: ok,
             statusCode: response.statusCode,
             body: responseBody,
-            error: ok ? null : responseBody,
+            error: ok
+              ? null
+              : getWhatsAppErrorMessage(responseBody, response.statusMessage),
           });
         });
       },
@@ -399,7 +413,9 @@ const sendWhatsAppTextMessage = ({ to, text }) =>
             success: ok,
             statusCode: response.statusCode,
             body: responseBody,
-            error: ok ? null : responseBody,
+            error: ok
+              ? null
+              : getWhatsAppErrorMessage(responseBody, response.statusMessage),
           });
         });
       },
