@@ -18,27 +18,6 @@ const DEFAULT_LANGUAGE_CODE = normalizeTemplateLanguage(
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://creadentsmiles.com";
 const REVIEW_LINK = process.env.WHATSAPP_REVIEW_LINK || "";
 
-const getTemplateBodyParameterCount = (templateKey) => {
-  const value = process.env[
-    `WHATSAPP_TEMPLATE_${templateKey}_BODY_PARAMETER_COUNT`
-  ];
-  if (value === undefined || value === "") return null;
-  const count = Number(value);
-  return Number.isInteger(count) && count >= 0 ? count : null;
-};
-
-const validateTemplateParameters = (templateKey, templateName, bodyParameters) => {
-  if (!templateName) return "WhatsApp template name is not configured";
-  const expectedCount = getTemplateBodyParameterCount(templateKey);
-  if (expectedCount === null) {
-    return `WHATSAPP_TEMPLATE_${templateKey}_BODY_PARAMETER_COUNT is not configured`;
-  }
-  if (bodyParameters.length !== expectedCount) {
-    return `WhatsApp template ${templateName} expects ${expectedCount} body parameters, received ${bodyParameters.length}`;
-  }
-  return null;
-};
-
 const toObjectIdString = (value) => {
   if (!value) return "";
   return value.toString();
@@ -63,16 +42,12 @@ const recordWhatsAppMessage = async ({
   status = "sent",
   messageId,
   error,
-  invoiceId,
-  eventType,
   read = direction === "outbound",
 }) => {
   try {
     const normalizedPhone = normalizePhoneNumber(phone);
     const patient = normalizedPhone
-      ? await Patient.findOne({
-          phone: { $in: [normalizedPhone, normalizedPhone.slice(-10)] },
-        })
+      ? await Patient.findOne({ phone: normalizedPhone.slice(-10) })
       : null;
     const recipientUser =
       !patient && normalizedPhone
@@ -89,8 +64,6 @@ const recordWhatsAppMessage = async ({
       messageType,
       templateName,
       templateParameters,
-      invoiceId,
-      eventType,
       status,
       messageId,
       error,
@@ -127,8 +100,6 @@ const buildTemplatePayload = ({
   templateName,
   bodyParameters = [],
   buttonParameters = [],
-  buttonType,
-  buttonIndex = "0",
 }) => {
   const payload = {
     messaging_product: "whatsapp",
@@ -151,11 +122,11 @@ const buildTemplatePayload = ({
       })),
     });
   }
-  if (buttonType && buttonParameters.length > 0) {
+  if (buttonParameters.length > 0) {
     components.push({
       type: "button",
-      sub_type: buttonType,
-      index: String(buttonIndex),
+      sub_type: "copy_code",
+      index: "0",
       parameters: buttonParameters.map((text) => ({
         type: "text",
         text: String(text ?? ""),
@@ -212,30 +183,10 @@ const createInvoicePdfBuffer = (invoice, patientContact) =>
     document.text(`Bill To: ${patientContact.name || invoice.patientName || "Patient"}`);
     if (patientContact.rawPhone) document.text(`Mobile: ${patientContact.rawPhone}`);
     document.moveDown();
-    const tableTop = document.y;
-    const descriptionX = document.page.margins.left;
-    const quantityX = 410;
-    const amountX = 455;
-    document.font("Helvetica-Bold");
-    document.text("Description", descriptionX, tableTop, { width: 350 });
-    document.text("Qty", quantityX, tableTop, { width: 35, align: "right" });
-    document.text("Amount", amountX, tableTop, { width: 92, align: "right" });
-    document.moveDown(0.5);
+    document.font("Helvetica-Bold").text("Description                         Qty       Amount");
     document.font("Helvetica");
     (invoice.items || []).forEach((item) => {
-      const rowTop = document.y;
-      document.text(item.description || "Treatment", descriptionX, rowTop, {
-        width: 350,
-      });
-      document.text(String(item.quantity || 1), quantityX, rowTop, {
-        width: 35,
-        align: "right",
-      });
-      document.text(formatCurrencyINR(item.total || 0), amountX, rowTop, {
-        width: 92,
-        align: "right",
-      });
-      document.moveDown(0.35);
+      document.text(`${item.description || "Treatment"}    ${item.quantity || 1}       ${formatCurrencyINR(item.total || 0)}`);
     });
     document.moveDown();
     document.text(`Subtotal: ${formatCurrencyINR(invoice.subtotal || 0)}`);
@@ -245,37 +196,12 @@ const createInvoicePdfBuffer = (invoice, patientContact) =>
     document.end();
   });
 
-const sendWhatsAppDocumentMessage = ({
-  to,
-  documentUrl,
-  fileName,
-  caption,
-  invoiceId,
-  eventType,
-}) =>
+const sendWhatsAppDocumentMessage = ({ to, documentUrl, fileName, caption }) =>
   new Promise((resolve) => {
     if (!hasWhatsAppBaseConfig()) {
-      void recordWhatsAppMessage({
-        phone: to,
-        text: caption || `Invoice PDF: ${fileName}`,
-        messageType: "document",
-        invoiceId,
-        eventType,
-        status: "skipped",
-        error: "WhatsApp configuration is incomplete",
-      });
       return resolve({ success: false, skipped: true, error: "WhatsApp configuration is incomplete" });
     }
     if (!to || !documentUrl) {
-      void recordWhatsAppMessage({
-        phone: to,
-        text: caption || `Invoice PDF: ${fileName}`,
-        messageType: "document",
-        invoiceId,
-        eventType,
-        status: "skipped",
-        error: "WhatsApp document recipient or URL is missing",
-      });
       return resolve({ success: false, skipped: true, error: "WhatsApp document recipient or URL is missing" });
     }
     const payload = JSON.stringify(buildDocumentPayload({ to, documentUrl, fileName, caption }));
@@ -301,33 +227,15 @@ const sendWhatsAppDocumentMessage = ({
             phone: to,
             text: caption || `Invoice PDF: ${fileName}`,
             messageType: "document",
-              invoiceId,
-              eventType,
             status: ok ? "sent" : "failed",
             messageId: parsedBody?.messages?.[0]?.id,
-              error: ok ? undefined : getWhatsAppErrorMessage(responseBody, response.statusMessage),
+            error: ok ? undefined : responseBody,
           });
-            resolve({
-              success: ok,
-              statusCode: response.statusCode,
-              messageId: parsedBody?.messages?.[0]?.id,
-              error: ok ? null : getWhatsAppErrorMessage(responseBody, response.statusMessage),
-            });
+          resolve({ success: ok, statusCode: response.statusCode, error: ok ? null : responseBody });
         });
       },
     );
-      request.on("error", (error) => {
-        void recordWhatsAppMessage({
-          phone: to,
-          text: caption || `Invoice PDF: ${fileName}`,
-          messageType: "document",
-          invoiceId,
-          eventType,
-          status: "failed",
-          error: error.message,
-        });
-        resolve({ success: false, error: error.message });
-      });
+    request.on("error", (error) => resolve({ success: false, error: error.message }));
     request.write(payload);
     request.end();
   });
@@ -337,11 +245,6 @@ const sendWhatsAppTemplateMessage = ({
   templateName,
   bodyParameters = [],
   buttonParameters = [],
-  buttonType,
-  buttonIndex,
-  templateKey,
-  invoiceId,
-  eventType,
   displayText,
 }) =>
   new Promise((resolve) => {
@@ -351,8 +254,6 @@ const sendWhatsAppTemplateMessage = ({
         text: `Template: ${templateName}`,
         messageType: "template",
         templateName,
-        invoiceId,
-        eventType,
         status: "skipped",
         error: "WhatsApp configuration is incomplete",
       });
@@ -363,31 +264,12 @@ const sendWhatsAppTemplateMessage = ({
           "WhatsApp configuration is incomplete. Set WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID.",
       });
     }
-    const validationError = templateKey
-      ? validateTemplateParameters(templateKey, templateName, bodyParameters)
-      : null;
-    if (validationError) {
-      void recordWhatsAppMessage({
-        phone: to,
-        text: displayText || `Template: ${templateName || "unknown"}`,
-        messageType: "template",
-        templateName,
-        templateParameters: bodyParameters.map((value) => String(value ?? "")),
-        invoiceId,
-        eventType,
-        status: "skipped",
-        error: validationError,
-      });
-      return resolve({ success: false, skipped: true, error: validationError });
-    }
     if (!to || !templateName) {
       void recordWhatsAppMessage({
         phone: to,
         text: `Template: ${templateName || "unknown"}`,
         messageType: "template",
         templateName,
-        invoiceId,
-        eventType,
         status: "skipped",
         error: "WhatsApp destination or template name is missing",
       });
@@ -403,8 +285,6 @@ const sendWhatsAppTemplateMessage = ({
         templateName,
         bodyParameters,
         buttonParameters,
-        buttonType,
-        buttonIndex,
       }),
     );
     const request = https.request(
@@ -433,12 +313,10 @@ const sendWhatsAppTemplateMessage = ({
             phone: to,
             text:
               displayText ||
-              `Template: ${templateName}`,
+              `Template: ${templateName}${bodyParameters.length ? ` (${bodyParameters.join(", ")})` : ""}`,
             messageType: "template",
             templateName,
             templateParameters: bodyParameters.map((value) => String(value ?? "")),
-            invoiceId,
-            eventType,
             status: ok ? "sent" : "failed",
             messageId: parsedBody?.messages?.[0]?.id,
             error: ok ? undefined : responseBody,
@@ -463,8 +341,6 @@ const sendWhatsAppTemplateMessage = ({
         templateParameters: bodyParameters.map((value) => String(value ?? "")),
         status: "failed",
         error: error.message,
-        invoiceId,
-        eventType,
       });
       resolve({
         success: false,
@@ -717,32 +593,30 @@ const sendForgotPasswordOtpWhatsApp = async ({ phone, otp }) => {
     };
   }
 
-  if (!templateName) {
-    return {
-      success: false,
-      skipped: true,
-      error: "WhatsApp OTP template is not configured",
-      phone: normalizedPhone,
-    };
+  if (templateName) {
+    const templateResult = await sendWhatsAppTemplateMessage({
+      to: normalizedPhone,
+      templateName,
+      bodyParameters: [otp || "-"],
+      buttonParameters: [otp || "-"],
+    });
+    if (templateResult.success || templateResult.skipped) {
+      return {
+        ...templateResult,
+        phone: normalizedPhone,
+      };
+    }
   }
 
-  const templateResult = await sendWhatsAppTemplateMessage({
+  const text = `*Creadent Dental Clinic*\n\nYour password reset OTP is *${otp}*.\nThis code is valid for 10 minutes only.\n\nDo not share this OTP with anyone.\n\nIf you did not request this, please ignore this message.`;
+
+  return await sendWhatsAppTextMessage({
     to: normalizedPhone,
-    templateName,
-    templateKey: "FORGOT_PASSWORD_OTP",
-    bodyParameters: [otp || "-"],
-    buttonType: process.env.WHATSAPP_TEMPLATE_FORGOT_PASSWORD_OTP_BUTTON_TYPE,
-    buttonIndex: process.env.WHATSAPP_TEMPLATE_FORGOT_PASSWORD_OTP_BUTTON_INDEX,
+    text,
   });
-  return { ...templateResult, phone: normalizedPhone };
 };
 
-const sendInvoiceWhatsApp = async (
-  invoice,
-  patientId,
-  directPaymentLinkOverride = "",
-  { eventType = "invoice_created", sendTemplate = true } = {},
-) => {
+const sendInvoiceWhatsApp = async (invoice, patientId, directPaymentLinkOverride = "") => {
   const patientContact = await resolvePatientContact(
     patientId || invoice.patientId,
   );
@@ -776,64 +650,38 @@ const sendInvoiceWhatsApp = async (
       file: { buffer: pdfBuffer, mimetype: "application/pdf", size: pdfBuffer.length },
       folder: "invoices",
       fileName,
-      requirePublicUrl: true,
     });
-    if (!uploadedPdf?.url) {
-      throw new Error("Invoice PDF uploaded but no public URL was returned");
-    }
-    const uploadedUrl = new URL(uploadedPdf.url);
-    if (uploadedUrl.protocol !== "https:") {
-      throw new Error("Invoice PDF URL must be a public HTTPS URL");
-    }
     invoicePdfUrl = uploadedPdf.url;
-  } catch (error) {
-    errors.push(`Invoice PDF preparation failed: ${error.message}`);
-  }
-
-  if (sendTemplate) {
-    const templateName = process.env.WHATSAPP_TEMPLATE_INVOICE;
-    results.template = await sendWhatsAppTemplateMessage({
-      to: patientContact.phone,
-      templateName,
-      templateKey: "INVOICE",
-      bodyParameters: [
-        patientContact.name || "Patient",
-        invoice.invoiceNumber || "-",
-        formatCurrencyINR(invoice.total || 0),
-        formatCurrencyINR(invoice.amountPaid || 0),
-        formatCurrencyINR(invoice.balance || 0),
-        directPaymentLink || "-",
-      ],
-      displayText: detailedMessage,
-      invoiceId: invoice?._id || invoice?.id,
-      eventType: `${eventType}_template`,
-    });
-    if (!results.template.success && !results.template.skipped) {
-      errors.push(`Invoice template failed: ${results.template.error}`);
-    }
-  }
-
-  if (invoicePdfUrl) {
-    const fileName = `Invoice_${invoice.invoiceNumber || invoice._id}.pdf`;
     results.document = await sendWhatsAppDocumentMessage({
       to: patientContact.phone,
-      documentUrl: invoicePdfUrl,
+      documentUrl: uploadedPdf.url,
       fileName,
       caption: `Bill copy for ${invoice.invoiceNumber || "your invoice"}`,
-      invoiceId: invoice?._id || invoice?.id,
-      eventType: `${eventType}_document`,
     });
     if (!results.document.success && !results.document.skipped) {
       errors.push(`Invoice PDF failed: ${results.document.error}`);
     }
+  } catch (error) {
+    errors.push(`Invoice PDF preparation failed: ${error.message}`);
+  }
+
+  const textResult = await sendWhatsAppTextMessage({
+    to: patientContact.phone,
+    text: detailedMessage,
+  });
+  results.text = textResult;
+  if (!textResult.success && !textResult.skipped) {
+    errors.push(`WhatsApp message failed: ${textResult.error}`);
   }
 
   return {
     success:
-      Boolean(results.document?.success) &&
-      (!sendTemplate || Boolean(results.template?.success)),
+      (results.text && results.text.success) ||
+      (results.document && results.document.success) ||
+      false,
     skipped:
-      Boolean(results.template?.skipped && (!results.document || results.document.skipped)),
+      Boolean(results.document?.skipped) &&
+      (!results.text || results.text.skipped),
     phone: patientContact.phone,
     patient: patientContact,
     errors,
@@ -901,12 +749,7 @@ Team Creadent Dental Clinic`;
 };
 
 const sendPaymentSuccessWhatsAppBundle = async (invoice) => {
-  const invoiceResult = await sendInvoiceWhatsApp(
-    invoice,
-    invoice?.patientId,
-    "",
-    { eventType: "payment_success", sendTemplate: false },
-  );
+  const invoiceResult = await sendInvoiceWhatsApp(invoice, invoice?.patientId);
   const reviewResult =
     invoice?.status === "Paid"
       ? await sendPaymentThankYouReviewWhatsApp(invoice)
@@ -917,10 +760,7 @@ const sendPaymentSuccessWhatsAppBundle = async (invoice) => {
         };
 
   return {
-    success: Boolean(
-      invoiceResult.success &&
-        (invoice?.status !== "Paid" || reviewResult.success),
-    ),
+    success: Boolean(invoiceResult.success || reviewResult.success),
     invoiceResult,
     reviewResult,
   };
@@ -952,17 +792,15 @@ const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
     };
   }
 
-  const bodyParameters = [
-    patientContact.name,
-    invoice?.invoiceNumber || "-",
-    formatCurrencyINR(invoice?.amountPaid || invoice?.total || 0),
-  ];
-  if (REVIEW_LINK) bodyParameters.push(REVIEW_LINK);
   const templateResult = await sendWhatsAppTemplateMessage({
     to: patientContact.phone,
     templateName,
-    templateKey: "PAYMENT_THANK_YOU",
-    bodyParameters,
+    bodyParameters: [
+      patientContact.name,
+      invoice?.invoiceNumber || "-",
+      formatCurrencyINR(invoice?.amountPaid || invoice?.total || 0),
+      REVIEW_LINK || "-",
+    ],
     displayText: message,
   });
   results.template = templateResult;
@@ -987,31 +825,47 @@ const sendLoginCredentialsWhatsApp = async (credentials) => {
     };
   }
 
-  if (!templateName) {
-    return {
-      success: false,
-      skipped: true,
-      error: "WhatsApp login credentials template is not configured",
-      phone: normalizedPhone,
-    };
+  const errors = [];
+  const results = {};
+
+  if (templateName) {
+    const templateResult = await sendWhatsAppTemplateMessage({
+      to: normalizedPhone,
+      templateName,
+      bodyParameters: [
+        credentials.patientName || "Patient",
+        credentials.phone || "-",
+        credentials.password || "-",
+        `${FRONTEND_URL}/login`,
+      ],
+    });
+    results.template = templateResult;
+    if (!templateResult.success && !templateResult.skipped) {
+      errors.push(`Template message failed: ${templateResult.error}`);
+    }
   }
 
-  const templateResult = await sendWhatsAppTemplateMessage({
+  const detailedMessage = buildLoginCredentialsMessage(credentials);
+  const textResult = await sendWhatsAppTextMessage({
     to: normalizedPhone,
-    templateName,
-    templateKey: "LOGIN_CREDENTIALS",
-    bodyParameters: [
-      credentials.patientName || "Patient",
-      credentials.phone || "-",
-      credentials.password || "-",
-      `${FRONTEND_URL}/login`,
-    ],
+    text: detailedMessage,
   });
+  results.text = textResult;
+  if (!textResult.success && !textResult.skipped) {
+    errors.push(`Text message failed: ${textResult.error}`);
+  }
 
   return {
-    ...templateResult,
+    success:
+      textResult.success ||
+      (results.template && results.template.success) ||
+      false,
+    skipped:
+      textResult.skipped && (!results.template || results.template.skipped),
     phone: normalizedPhone,
-    results: { template: templateResult },
+    errors,
+    results,
+    messagePreview: detailedMessage,
   };
 };
 
@@ -1072,7 +926,6 @@ const sendPrescriptionWhatsApp = async (prescription, fileUrl = "") => {
     const templateResult = await sendWhatsAppTemplateMessage({
       to: patientContact.phone,
       templateName,
-      templateKey: "PRESCRIPTION",
       bodyParameters: [
         patientContact.name,
         prescription?.doctorName || "Doctor",
@@ -1087,16 +940,17 @@ const sendPrescriptionWhatsApp = async (prescription, fileUrl = "") => {
       displayText: message,
     });
     results.template = templateResult;
-    finalResult = templateResult;
+    if (templateResult.success || templateResult.skipped) {
+      finalResult = templateResult;
+    }
   }
 
-  if (!templateName) {
-    finalResult = {
-      success: false,
-      skipped: true,
-      error: "WhatsApp prescription template is not configured",
-    };
-    results.template = finalResult;
+  if (!finalResult) {
+    finalResult = await sendWhatsAppTextMessage({
+      to: patientContact.phone,
+      text: message,
+    });
+    results.text = finalResult;
   }
 
   return {

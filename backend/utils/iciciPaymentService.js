@@ -784,21 +784,10 @@ const reconcilePaymentToInvoice = async (transaction) => {
     currencyCode: transaction.currencyCode,
   });
 
-  const notificationClaim =
-    invoice.status === "Paid"
-      ? await Transaction.findOneAndUpdate(
-          {
-            _id: transaction._id,
-            paymentNotificationStartedAt: { $exists: false },
-          },
-          { $set: { paymentNotificationStartedAt: new Date() } },
-          { new: true },
-        )
-      : null;
-  if (notificationClaim) {
+  if (!transaction.paymentThankYouSentAt) {
     try {
       const notificationResult = await sendPaymentSuccessWhatsAppBundle(invoice);
-      if (notificationResult.success) {
+      if (notificationResult.reviewResult?.success) {
         transaction.paymentThankYouSentAt = new Date();
         await transaction.save();
       }

@@ -31,7 +31,6 @@ const invoiceSchema = new mongoose.Schema(
     paymentMethod: { type: String },
     paymentDate: { type: Date },
     paymentLinkSentAt: { type: Date },
-    whatsappInvoiceNotificationStartedAt: { type: Date },
     transactionId: { type: String },
     merchantTxnNo: { type: String },
     pgTxnNo: { type: String },
