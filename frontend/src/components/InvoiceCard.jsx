@@ -8,7 +8,6 @@ import {
   RefreshCw,
   Pencil,
   Trash2,
-  MessageCircle,
 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import { formatDate } from "../utils/dateUtils";
@@ -23,7 +22,6 @@ const InvoiceCard = ({
   onPay,
   onEdit,
   onDelete,
-  onShareWhatsApp,
 }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin" || user?.role === "employee";
@@ -224,15 +222,6 @@ const InvoiceCard = ({
 
         {isAdmin && (
           <>
-            {onShareWhatsApp && (
-              <button
-                onClick={() => onShareWhatsApp(invoice)}
-                className="btn-outline text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-300"
-                title="Share via WhatsApp"
-              >
-                <MessageCircle size={18} />
-              </button>
-            )}
             {onEdit && (
               <button
                 onClick={() => onEdit(invoice)}

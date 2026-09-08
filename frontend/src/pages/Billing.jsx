@@ -30,7 +30,6 @@ import {
   GENERATE_PATIENT_LOGIN,
   UPDATE_INVOICE,
   DELETE_INVOICE,
-  SEND_INVOICE_WHATSAPP,
   SEND_LOGIN_CREDENTIALS_WHATSAPP,
   RECORD_INVOICE_PAYMENT,
 } from "../graphql/mutations";
@@ -98,7 +97,6 @@ const Billing = () => {
   const [deleteInvoice] = useMutation(DELETE_INVOICE, {
     refetchQueries: [{ query: GET_INVOICES }],
   });
-  const [sendInvoiceWhatsApp] = useMutation(SEND_INVOICE_WHATSAPP);
   const [sendLoginCredentialsWhatsApp] = useMutation(
     SEND_LOGIN_CREDENTIALS_WHATSAPP,
   );
@@ -121,7 +119,6 @@ const Billing = () => {
   const [showWhatsAppPreview, setShowWhatsAppPreview] = useState(false);
   const [whatsAppPreviewData, setWhatsAppPreviewData] = useState(null);
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
-  const [sharingWhatsAppInvoice, setSharingWhatsAppInvoice] = useState(null);
   const [sharingLoginViaWA, setSharingLoginViaWA] = useState(null);
   const [selectedPatientForPayment, setSelectedPatientForPayment] =
     useState(null);
@@ -608,51 +605,6 @@ const Billing = () => {
       setInvoiceToDelete(null);
     } catch (err) {
       toast.error(err.message || "Failed to delete invoice");
-    }
-  };
-
-  const handleShareInvoiceWhatsApp = async (invoice) => {
-    setSharingWhatsAppInvoice(invoice.id);
-    try {
-      const { data } = await sendInvoiceWhatsApp({
-        variables: {
-          invoiceId: invoice.id,
-          patientId: invoice.patientId,
-        },
-      });
-      const result = data?.sendInvoiceWhatsApp;
-      if (result?.success) {
-        toast.success(
-          result.skipped
-            ? "Message ready (WhatsApp not configured on server)"
-            : `Invoice details sent via WhatsApp to ${result.patientName || "patient"}`,
-        );
-        if (result.messagePreview) {
-          setWhatsAppPreviewData({
-            title: "Invoice WhatsApp Message",
-            message: result.messagePreview,
-            phone: result.phone,
-          });
-          setShowWhatsAppPreview(true);
-        }
-      } else if (result?.skipped) {
-        setWhatsAppPreviewData({
-          title: "Invoice WhatsApp Message (Preview - Not Sent)",
-          message: result.messagePreview || "Message content",
-          phone: result.phone,
-          note: "WhatsApp not configured on server. Configure WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID.",
-        });
-        setShowWhatsAppPreview(true);
-        toast("WhatsApp not configured on server. Preview available instead.", {
-          icon: "ℹ️",
-        });
-      } else {
-        toast.error(result?.error || "Failed to send WhatsApp message");
-      }
-    } catch (err) {
-      toast.error(err.message || "Failed to send WhatsApp message");
-    } finally {
-      setSharingWhatsAppInvoice(null);
     }
   };
 
@@ -1451,11 +1403,6 @@ const Billing = () => {
                     invoice={enrichInvoiceWithPatient(invoice)}
                     delay={index * 0.05}
                     onPay={user?.role !== "doctor" ? handlePayment : undefined}
-                    onShareWhatsApp={
-                      user?.role === "admin" || user?.role === "employee"
-                        ? handleShareInvoiceWhatsApp
-                        : undefined
-                    }
                     onEdit={
                       user?.role === "admin" || user?.role === "employee"
                         ? handleEditInvoice

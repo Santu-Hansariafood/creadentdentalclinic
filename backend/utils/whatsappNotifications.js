@@ -617,7 +617,6 @@ const sendForgotPasswordOtpWhatsApp = async ({ phone, otp }) => {
 };
 
 const sendInvoiceWhatsApp = async (invoice, patientId) => {
-  const patientTemplate = process.env.WHATSAPP_TEMPLATE_INVOICE_SHARE;
   const patientContact = await resolvePatientContact(
     patientId || invoice.patientId,
   );
@@ -665,35 +664,23 @@ const sendInvoiceWhatsApp = async (invoice, patientId) => {
     errors.push(`Invoice PDF preparation failed: ${error.message}`);
   }
 
-  if (patientTemplate) {
-    const templateResult = await sendWhatsAppTemplateMessage({
-      to: patientContact.phone,
-      templateName: patientTemplate,
-      bodyParameters: [
-        patientContact.name,
-        invoice.invoiceNumber || "-",
-        formatCurrencyINR(invoice.balance || invoice.total || 0),
-        directPaymentLink || `${FRONTEND_URL}/login`,
-      ],
-    });
-    results.template = templateResult;
-    if (!templateResult.success && !templateResult.skipped) {
-      errors.push(`Template message failed: ${templateResult.error}`);
-    }
-  } else {
-    errors.push(
-      "WHATSAPP_TEMPLATE_INVOICE_SHARE is not configured for invoice notifications",
-    );
+  const textResult = await sendWhatsAppTextMessage({
+    to: patientContact.phone,
+    text: detailedMessage,
+  });
+  results.text = textResult;
+  if (!textResult.success && !textResult.skipped) {
+    errors.push(`WhatsApp message failed: ${textResult.error}`);
   }
 
   return {
     success:
-      (results.template && results.template.success) ||
+      (results.text && results.text.success) ||
       (results.document && results.document.success) ||
       false,
     skipped:
       Boolean(results.document?.skipped) &&
-      (!results.template || results.template.skipped),
+      (!results.text || results.text.skipped),
     phone: patientContact.phone,
     patient: patientContact,
     errors,
@@ -727,42 +714,18 @@ You can pay using UPI, Card, or Net Banking.
 
 Regards,
 Team Creadent Dental Clinic`;
-  const templateName = process.env.WHATSAPP_TEMPLATE_INVOICE_PAYMENT_LINK;
-  const results = {};
-  if (!templateName) {
-    return {
-      success: false,
-      skipped: true,
-      error:
-        "WHATSAPP_TEMPLATE_INVOICE_PAYMENT_LINK is not configured for payment link notifications",
-      phone: patientContact.phone,
-      patient: patientContact,
-      paymentLink,
-      messagePreview: message,
-      results,
-    };
-  }
-
-  const templateResult = await sendWhatsAppTemplateMessage({
+  const textResult = await sendWhatsAppTextMessage({
     to: patientContact.phone,
-    templateName,
-    bodyParameters: [
-      patientContact.name,
-      invoice.invoiceNumber || "-",
-      formatCurrencyINR(invoice.balance || invoice.total || 0),
-      paymentLink,
-    ],
-    displayText: message,
+    text: message,
   });
-  results.template = templateResult;
 
   return {
-    ...templateResult,
+    ...textResult,
     phone: patientContact.phone,
     patient: patientContact,
     paymentLink,
     messagePreview: message,
-    results,
+    results: { text: textResult },
   };
 };
 

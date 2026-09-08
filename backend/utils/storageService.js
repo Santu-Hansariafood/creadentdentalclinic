@@ -137,26 +137,88 @@ const extractUploadedFile = (data) => {
   if (!data) {
     return null;
   }
-  if (data.file) {
-    return data.file;
-  }
-  if (data.data?.file) {
-    return data.data.file;
-  }
-  if (Array.isArray(data.attachments) && data.attachments.length) {
-    return data.attachments[0];
-  }
-  if (Array.isArray(data.data?.attachments) && data.data.attachments.length) {
-    return data.data.attachments[0];
-  }
-  if (data.data) {
-    return data.data;
-  }
-  if (data.url || data.downloadUrl || data.link || data.path) {
-    return data;
-  }
-  return null;
+  const candidates = [
+    data,
+    data.file,
+    data.fileEntry,
+    data.upload,
+    data.data,
+    data.data?.file,
+    data.data?.fileEntry,
+    data.data?.upload,
+    data.result,
+    data.result?.file,
+    data.result?.fileEntry,
+    data.result?.upload,
+    ...(Array.isArray(data.attachments) ? data.attachments : []),
+    ...(Array.isArray(data.data?.attachments) ? data.data.attachments : []),
+  ];
+  return candidates.find(
+    (candidate) =>
+      candidate &&
+      typeof candidate === "object" &&
+      (candidate.url ||
+        candidate.publicUrl ||
+        candidate.downloadUrl ||
+        candidate.download_url ||
+        candidate.fileUrl ||
+        candidate.file_url ||
+        candidate.link ||
+        candidate.path ||
+        candidate.fileEntryId ||
+        candidate.fileId ||
+        candidate.file_id ||
+        candidate.id ||
+        candidate._id),
+  ) || null;
 };
+
+const getUploadedFileUrl = (uploaded) =>
+  uploaded?.url ||
+  uploaded?.publicUrl ||
+  uploaded?.downloadUrl ||
+  uploaded?.download_url ||
+  uploaded?.fileUrl ||
+  uploaded?.file_url ||
+  uploaded?.link ||
+  null;
+
+const getUploadedFileId = (uploaded) =>
+  uploaded?.fileEntryId ||
+  uploaded?.fileId ||
+  uploaded?.file_id ||
+  uploaded?.id ||
+  uploaded?._id ||
+  null;
+
+const getUploadedFilePath = (uploaded) =>
+  uploaded?.storageKey || uploaded?.path || uploaded?.key || null;
+
+const getUploadedFileName = (uploaded, fallback) =>
+  uploaded?.name || uploaded?.fileName || uploaded?.filename || fallback;
+
+const getUploadedFileType = (uploaded, fallback) =>
+  uploaded?.type ||
+  uploaded?.mimeType ||
+  uploaded?.mime_type ||
+  uploaded?.contentType ||
+  fallback;
+
+const getUploadedFileSize = (uploaded, fallback) =>
+  uploaded?.size ?? uploaded?.fileSize ?? uploaded?.file_size ?? fallback;
+
+const getUploadedFileDate = (uploaded) =>
+  uploaded?.uploadedAt || uploaded?.createdAt || uploaded?.created_at || new Date().toISOString();
+
+const getUploadedFileMetadata = (uploaded, originalName, file, buffer, destination) => ({
+  url: getUploadedFileUrl(uploaded),
+  id: getUploadedFileId(uploaded),
+  storageKey: getUploadedFilePath(uploaded) || destination,
+  name: getUploadedFileName(uploaded, originalName),
+  size: getUploadedFileSize(uploaded, file.size ?? buffer.length),
+  type: getUploadedFileType(uploaded, file.mimetype || "application/octet-stream"),
+  uploadedAt: getUploadedFileDate(uploaded),
+});
 
 const uploadFile = async ({
   file,
@@ -261,10 +323,15 @@ const uploadFile = async ({
     );
   }
 
-  const url = uploaded.url || uploaded.downloadUrl || uploaded.link || null;
-
-  const fileEntryId =
-    uploaded.fileEntryId || uploaded.id || uploaded._id || null;
+  const metadata = getUploadedFileMetadata(
+    uploaded,
+    originalName,
+    file,
+    buffer,
+    destination,
+  );
+  const url = metadata.url;
+  const fileEntryId = metadata.id;
 
   if (!url && !fileEntryId) {
     throw new Error("SpaceByte returned success without a file URL or file ID");
@@ -277,25 +344,21 @@ const uploadFile = async ({
 
     fileEntryId,
 
-    name: originalName,
+    name: metadata.name,
 
     originalName,
 
-    storageKey: uploaded.storageKey || uploaded.path || destination,
+    storageKey: metadata.storageKey,
 
     url:
       url ||
       `${SPACEBYTE.ENDPOINT}/file-entries/${encodeURIComponent(fileEntryId)}`,
 
-    size: uploaded.size ?? file.size ?? buffer.length,
+    size: metadata.size,
 
-    type:
-      uploaded.type ||
-      uploaded.mimeType ||
-      file.mimetype ||
-      "application/octet-stream",
+    type: metadata.type,
 
-    uploadedAt: uploaded.uploadedAt || new Date().toISOString(),
+    uploadedAt: metadata.uploadedAt,
 
     raw: data,
   };
