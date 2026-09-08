@@ -1511,9 +1511,13 @@ const resolvers = {
         ) {
           throw new Error("Unauthorized: You can only pay your own invoices");
         }
-        if (paymentMethod && paymentMethod.toLowerCase() === "cash") {
+        if (
+          paymentMethod &&
+          paymentMethod.toLowerCase() === "cash" &&
+          user.role !== "admin"
+        ) {
           throw new Error(
-            "Unauthorized: Cash payments must be recorded by clinic staff. Use ICICI Bank payment gateway to pay online.",
+            "Unauthorized: Cash payments must be recorded by an administrator. Use ICICI Bank payment gateway to pay online.",
           );
         }
       }

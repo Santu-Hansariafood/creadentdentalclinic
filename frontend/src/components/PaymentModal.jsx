@@ -25,6 +25,7 @@ const PaymentForm = ({
 }) => {
   const { user } = useAuth();
   const isPatientSelfServe = user?.role === "patient";
+  const canRecordCashPayment = user?.role === "admin";
 
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
@@ -63,8 +64,8 @@ const PaymentForm = ({
       return;
     }
 
-    if (paymentMethod === "Cash" && isPatientSelfServe) {
-      toast.error("Cash payment must be recorded by clinic staff");
+    if (paymentMethod === "Cash" && !canRecordCashPayment) {
+      toast.error("Cash payment must be recorded by an administrator");
       return;
     }
 
@@ -266,16 +267,16 @@ const PaymentForm = ({
             </div>
           </button>
 
-          <button
-            type="button"
-            onClick={() => setPaymentMethod("Cash")}
-            disabled={isPatientSelfServe}
-            className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+          {canRecordCashPayment && (
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("Cash")}
+              className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
               paymentMethod === "Cash"
                 ? "border-primary bg-primary/5 shadow-sm"
                 : "border-gray-200 hover:border-gray-300"
-            } ${isPatientSelfServe ? "opacity-60 cursor-not-allowed" : ""}`}
-          >
+              }`}
+            >
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-3">
                 <div
@@ -316,7 +317,8 @@ const PaymentForm = ({
                 }
               />
             </div>
-          </button>
+            </button>
+          )}
         </div>
 
         {paymentMethod === "ICICI Bank" && (

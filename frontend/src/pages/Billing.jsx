@@ -845,63 +845,6 @@ const Billing = () => {
           }
         />
 
-        {generatedLogin && !generatedLogin.preview && (
-          <motion.div
-            {...fadeIn("up", 0.05)}
-            className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-4"
-          >
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-green-900">
-                  Patient login generated for {generatedLogin.patientName}
-                </p>
-                <p className="text-sm text-green-800 mt-1">
-                  Phone: {generatedLogin.phone} | Password:{" "}
-                  <span className="font-semibold">
-                    {generatedLogin.password}
-                  </span>
-                </p>
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={() => handleShareLoginWhatsApp(generatedLogin)}
-                  disabled={sharingLoginViaWA === generatedLogin.patientId}
-                  className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg text-sm font-medium transition-colors"
-                >
-                  {sharingLoginViaWA === generatedLogin.patientId ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <MessageCircle size={16} />
-                  )}
-                  Send WhatsApp
-                </button>
-                <button
-                  onClick={() => {
-                    const loginMsg = `🏥 CREADENT DENTAL CLINIC\n\nDear ${generatedLogin.patientName},\n\nYour secure patient portal login:\n📱 Mobile: ${generatedLogin.phone}\n🔑 Password: ${generatedLogin.password}\n\n🔐 Login here: https://creadentsmiles.com/login\n\nAfter login, go to Billing & Payments to pay invoices.\n\nRegards,\nTeam Creadent`;
-                    handleDirectWhatsAppShare(generatedLogin.phone, loginMsg);
-                  }}
-                  className="flex items-center gap-2 px-3 py-2 border border-green-500 text-green-700 hover:bg-green-100 rounded-lg text-sm font-medium transition-colors"
-                >
-                  <ExternalLink size={16} />
-                  Open WA
-                </button>
-                <button
-                  onClick={() => {
-                    const text = `Patient Login - ${generatedLogin.patientName}\nPhone: ${generatedLogin.phone}\nPassword: ${generatedLogin.password}\nLogin: https://creadentsmiles.com/login`;
-                    if (navigator.clipboard) {
-                      navigator.clipboard.writeText(text);
-                      toast.success("Credentials copied to clipboard");
-                    }
-                  }}
-                  className="flex items-center gap-2 px-3 py-2 border border-green-500 text-green-700 hover:bg-green-100 rounded-lg text-sm font-medium transition-colors"
-                >
-                  <Copy size={16} />
-                  Copy
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
 
         {showCreateInvoice && (
           <motion.div {...fadeIn("up")} className="card mb-8">

@@ -718,7 +718,7 @@ const sendInvoicePaymentLinkWhatsApp = async (invoice, directPaymentLink = "") =
 Dear ${patientContact.name || "Patient"},
 
 Your invoice *${invoice.invoiceNumber || "-"}* is ready.
-Amount due: *${formatCurrencyINR(invoice.balance || invoice.total || 0)}*
+Payment amount: *${formatCurrencyINR(invoice.balance || invoice.total || 0)}*
 
 Please click the secure payment link below to complete your payment:
 ${paymentLink}
