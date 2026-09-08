@@ -616,14 +616,19 @@ const sendForgotPasswordOtpWhatsApp = async ({ phone, otp }) => {
   });
 };
 
-const sendInvoiceWhatsApp = async (invoice, patientId) => {
+const sendInvoiceWhatsApp = async (
+  invoice,
+  patientId,
+  directPaymentLink = "",
+) => {
   const patientContact = await resolvePatientContact(
     patientId || invoice.patientId,
   );
-  const directPaymentLink =
-    Number(invoice?.balance || 0) > 0
+  const paymentLink =
+    directPaymentLink ||
+    (Number(invoice?.balance || 0) > 0
       ? buildInvoicePaymentLink(invoice?._id || invoice?.id)
-      : "";
+      : "");
 
   if (!patientContact.phone) {
     return {
@@ -639,7 +644,7 @@ const sendInvoiceWhatsApp = async (invoice, patientId) => {
   const detailedMessage = buildInvoiceMessage(
     invoice,
     patientContact,
-    directPaymentLink,
+    paymentLink,
   );
 
   try {
@@ -659,6 +664,9 @@ const sendInvoiceWhatsApp = async (invoice, patientId) => {
     });
     if (!results.document.success && !results.document.skipped) {
       errors.push(`Invoice PDF failed: ${results.document.error}`);
+    }
+    if (!results.document.success && results.document.skipped) {
+      errors.push(`Invoice PDF was not attached: ${results.document.error}`);
     }
   } catch (error) {
     errors.push(`Invoice PDF preparation failed: ${error.message}`);

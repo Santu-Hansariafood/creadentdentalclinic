@@ -25,7 +25,7 @@ const PaymentForm = ({
 }) => {
   const { user } = useAuth();
   const isPatientSelfServe = user?.role === "patient";
-  const canRecordCashPayment = user?.role === "admin";
+  const canRecordCashPayment = ["admin", "employee"].includes(user?.role);
 
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
@@ -33,7 +33,7 @@ const PaymentForm = ({
   const [paymentMethod, setPaymentMethod] = useState(
     isPatientSelfServe ? "ICICI Bank" : "ICICI Bank",
   );
-  const [showICICIPayment, setShowICICIPayment] = useState(true);
+  const [showICICIPayment, setShowICICIPayment] = useState(false);
   const [recordInvoicePayment] = useMutation(RECORD_INVOICE_PAYMENT);
 
   if (showICICIPayment && paymentMethod === "ICICI Bank") {
@@ -65,7 +65,7 @@ const PaymentForm = ({
     }
 
     if (paymentMethod === "Cash" && !canRecordCashPayment) {
-      toast.error("Cash payment must be recorded by an administrator");
+      toast.error("Cash payment must be recorded by clinic staff");
       return;
     }
 
@@ -304,9 +304,7 @@ const PaymentForm = ({
                     Cash
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    {isPatientSelfServe
-                      ? "For staff use only"
-                      : "Record an in-clinic cash payment"}
+                    "Record an in-clinic cash payment"
                   </p>
                 </div>
               </div>
@@ -338,7 +336,7 @@ const PaymentForm = ({
           </div>
         )}
 
-        {paymentMethod === "Cash" && !isPatientSelfServe && (
+        {paymentMethod === "Cash" && canRecordCashPayment && (
           <div className="mt-4 p-3 rounded-lg border border-warning/30 bg-warning/5 flex items-start gap-3">
             <Wallet size={20} className="text-warning flex-shrink-0 mt-0.5" />
             <div className="text-xs">
