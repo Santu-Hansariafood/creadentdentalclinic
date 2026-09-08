@@ -1451,6 +1451,9 @@ const resolvers = {
       });
       const savedInvoice = await invoice.save();
       if (!savedInvoice.paymentLinkSentAt) {
+        // #region debug-point H5:create-invoice-postsave
+        (()=>{const fs=require('fs'),p='.dbg/billing-payments-messaging-issues.env';let u='http://127.0.0.1:7777/event',s='billing-payments-messaging-issues';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',body:JSON.stringify({sessionId:s,runId:'pre',hypothesisId:'E',location:'resolvers.js:1453',msg:'[DEBUG] createInvoice post-save WhatsApp trigger',data:{invoiceId:savedInvoice?._id?.toString?.()||'',balance:Number(savedInvoice?.balance||0),paymentLinkSentAt:savedInvoice?.paymentLinkSentAt||null,invoiceNumber:savedInvoice?.invoiceNumber||''},ts:Date.now()})}).catch(()=>{})})();
+        // #endregion
         try {
           let directPaymentLink = "";
           if (savedInvoice.balance > 0) {
@@ -2380,6 +2383,9 @@ const resolvers = {
       },
       { user },
     ) => {
+      // #region debug-point H1:icici-resolver-entry
+      (()=>{const fs=require('fs'),p='.dbg/billing-payments-messaging-issues.env';let u='http://127.0.0.1:7777/event',s='billing-payments-messaging-issues';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',body:JSON.stringify({sessionId:s,runId:'pre',hypothesisId:'A',location:'resolvers.js:2371',msg:'[DEBUG] iciciInitiateSale resolver called',data:{invoiceId:invoiceId?.toString?.()||'',patientId:patientId?.toString?.()||'',amount,payType,customerEmailID,customerMobileNo,authUser:user?._id?.toString?.()||'',userRole:user?.role||'none'},ts:Date.now()})}).catch(()=>{})})();
+      // #endregion
       if (!user) throw new Error("Not authenticated");
       if (user.role === "doctor")
         throw new Error("Unauthorized: Doctors cannot initiate payments");

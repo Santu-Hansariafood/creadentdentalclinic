@@ -67,6 +67,9 @@ const ICICIPayment = ({
   const numericAmount = Number(invoice.balance || 0);
 
   const handleInitiateSale = async () => {
+    // #region debug-point A:frontend-initiate-sale
+    fetch("http://127.0.0.1:7777/event",{method:"POST",body:JSON.stringify({sessionId:"billing-payments-messaging-issues",runId:"pre",hypothesisId:"A",location:"ICICIPayment.jsx:69",msg:"[DEBUG] ICICIPayment handleInitiateSale called",data:{invoiceId:invoice?.id||'',invoiceBalance:numericAmount,invoicePatientId:patient?.id||invoice?.patientId||'',payType,customerEmailID:patient?.email||invoice?.patientEmail||'',customerMobileNo:patient?.phone||invoice?.patientPhone||''},ts:Date.now()})}).catch(()=>{});
+    // #endregion
     if (!numericAmount || numericAmount <= 0) {
       toast.error("Invalid invoice balance");
       return;

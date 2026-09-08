@@ -73,6 +73,10 @@ router.all("/response", parseICICIBody, (req, res) =>
   processCallback(req, res, true),
 );
 
+router.all("/payment-return", parseICICIBody, (req, res) =>
+  processCallback(req, res, true),
+);
+
 router.post("/status-check", express.json(), async (req, res) => {
   try {
     const { transactionId, merchantTxnNo } = req.body || {};
@@ -118,13 +122,13 @@ router.get("/diagnostic", (req, res) => {
       merchantIdConfigured: !!process.env.ICICI_MERCHANT_ID,
       secretKeyConfigured: !!process.env.ICICI_SECRET_KEY,
       callbackUrlConfigured: !!process.env.ICICI_CALLBACK_URL,
-      redirectUrlConfigured: !!process.env.ICICI_REDIRECT_URL,
+      redirectUrlConfigured: !!(process.env.ICICI_REDIRECT_URL || process.env.ICICI_RETURN_URL || process.env.ICICI_PAYMENT_RETURN_URL),
       currencyCode: process.env.ICICI_CURRENCY_CODE || "356",
       payType: process.env.ICICI_PAY_TYPE || "0",
     },
     urls: {
       callbackUrl: process.env.ICICI_CALLBACK_URL,
-      redirectUrl: process.env.ICICI_REDIRECT_URL,
+      redirectUrl: process.env.ICICI_REDIRECT_URL || process.env.ICICI_RETURN_URL || process.env.ICICI_PAYMENT_RETURN_URL,
       initiateSaleUrl:
         process.env.ICICI_ENV === "production"
           ? "https://pgpay.icicibank.com/pg/api/v2/initiateSale"
@@ -134,7 +138,7 @@ router.get("/diagnostic", (req, res) => {
       !process.env.ICICI_MERCHANT_ID && "⚠️  ICICI_MERCHANT_ID not set",
       !process.env.ICICI_SECRET_KEY && "⚠️  ICICI_SECRET_KEY not set",
       !process.env.ICICI_CALLBACK_URL && "⚠️  ICICI_CALLBACK_URL not set",
-      !process.env.ICICI_REDIRECT_URL && "⚠️  ICICI_REDIRECT_URL not set",
+      !(process.env.ICICI_REDIRECT_URL || process.env.ICICI_RETURN_URL || process.env.ICICI_PAYMENT_RETURN_URL) && "⚠️  ICICI_REDIRECT_URL not set",
       process.env.ICICI_ENV === "production" &&
         process.env.ICICI_MERCHANT_ID?.includes("7164") &&
         "⚠️  Using test merchant ID in production mode",
