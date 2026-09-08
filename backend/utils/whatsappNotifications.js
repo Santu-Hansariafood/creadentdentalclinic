@@ -353,9 +353,6 @@ const sendWhatsAppTemplateMessage = ({
 
 const sendWhatsAppTextMessage = ({ to, text }) =>
   new Promise((resolve) => {
-    // #region debug-point C:wa-base-config-check
-    (()=>{const fs=require('fs'),p='.dbg/billing-payments-messaging-issues.env';let u='http://127.0.0.1:7777/event',s='billing-payments-messaging-issues';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',body:JSON.stringify({sessionId:s,runId:'pre',hypothesisId:'C',location:'whatsappNotifications.js:354',msg:'[DEBUG] sendWhatsAppTextMessage called',data:{to:normalizePhoneNumber(to),hasBaseConfig:hasWhatsAppBaseConfig(),accessTokenSet:!!process.env.WHATSAPP_ACCESS_TOKEN,phoneNumberIdSet:!!process.env.WHATSAPP_PHONE_NUMBER_ID,textLen:(text||'').length,textPreview:(text||'').slice(0,100)},ts:Date.now()})}).catch(()=>{})})();
-    // #endregion
     if (!hasWhatsAppBaseConfig()) {
       void recordWhatsAppMessage({
         phone: to,
@@ -624,9 +621,6 @@ const sendInvoiceWhatsApp = async (
   patientId,
   directPaymentLink = "",
 ) => {
-  // #region debug-point C:send-invoice-wa-entry
-  (()=>{const fs=require('fs'),p='.dbg/billing-payments-messaging-issues.env';let u='http://127.0.0.1:7777/event',s='billing-payments-messaging-issues';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',body:JSON.stringify({sessionId:s,runId:'pre',hypothesisId:'C',location:'whatsappNotifications.js:619',msg:'[DEBUG] sendInvoiceWhatsApp called',data:{invoiceId:invoice?._id?.toString?.()||invoice?.id||'',patientId:patientId?.toString?.()||invoice?.patientId?.toString?.()||'',hasDirectPaymentLink:!!directPaymentLink,hasBaseConfig:hasWhatsAppBaseConfig(),balance:Number(invoice?.balance||0),invoiceNumber:invoice?.invoiceNumber||''},ts:Date.now()})}).catch(()=>{})})();
-  // #endregion
   const patientContact = await resolvePatientContact(
     patientId || invoice.patientId,
   );
@@ -781,9 +775,6 @@ const sendPaymentSuccessWhatsAppBundle = async (invoice) => {
 
 const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
   const patientContact = await resolvePatientContact(invoice?.patientId);
-  // #region debug-point C:review-link-entry
-  (()=>{const fs=require('fs'),p='.dbg/billing-payments-messaging-issues.env';let u='http://127.0.0.1:7777/event',s='billing-payments-messaging-issues';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',body:JSON.stringify({sessionId:s,runId:'pre',hypothesisId:'C',location:'whatsappNotifications.js:775',msg:'[DEBUG] sendPaymentThankYouReviewWhatsApp called',data:{invoiceId:invoice?._id?.toString?.()||invoice?.id||'',patientId:invoice?.patientId?.toString?.()||'',phone:patientContact?.phone||'',templateName:process.env.WHATSAPP_TEMPLATE_PAYMENT_THANK_YOU||'',reviewLink:REVIEW_LINK||'',status:invoice?.status||''},ts:Date.now()})}).catch(()=>{})})();
-  // #endregion
   if (!patientContact.phone) {
     return { success: false, error: "Patient phone number not found" };
   }
@@ -795,46 +786,37 @@ const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
   });
   const templateName = process.env.WHATSAPP_TEMPLATE_PAYMENT_THANK_YOU;
   const results = {};
-  const errors = [];
-
-  if (templateName) {
-    const templateResult = await sendWhatsAppTemplateMessage({
-      to: patientContact.phone,
-      templateName,
-      bodyParameters: [
-        patientContact.name,
-        invoice?.invoiceNumber || "-",
-        formatCurrencyINR(invoice?.amountPaid || invoice?.total || 0),
-        REVIEW_LINK || "-",
-      ],
-      displayText: message,
-    });
-    results.template = templateResult;
-    if (!templateResult.success && !templateResult.skipped) {
-      errors.push(`Template message failed: ${templateResult.error}`);
-    }
+  if (!templateName) {
+    return {
+      success: false,
+      skipped: true,
+      error:
+        "WHATSAPP_TEMPLATE_PAYMENT_THANK_YOU is not configured for review notifications",
+      phone: patientContact.phone,
+      patient: patientContact,
+      messagePreview: message,
+      results,
+    };
   }
 
-  const textResult = await sendWhatsAppTextMessage({
+  const templateResult = await sendWhatsAppTemplateMessage({
     to: patientContact.phone,
-    text: message,
+    templateName,
+    bodyParameters: [
+      patientContact.name,
+      invoice?.invoiceNumber || "-",
+      formatCurrencyINR(invoice?.amountPaid || invoice?.total || 0),
+      REVIEW_LINK || "-",
+    ],
+    displayText: message,
   });
-  results.text = textResult;
-  if (!textResult.success && !textResult.skipped) {
-    errors.push(`Text message failed: ${textResult.error}`);
-  }
+  results.template = templateResult;
 
   return {
-    success:
-      textResult.success ||
-      (results.template && results.template.success) ||
-      false,
-    skipped:
-      textResult.skipped && (!results.template || results.template.skipped),
+    ...templateResult,
     phone: patientContact.phone,
     patient: patientContact,
     messagePreview: message,
-    errors,
     results,
   };
 };

@@ -193,12 +193,7 @@ const InvoiceCard = ({
       <div className="flex gap-2 flex-wrap">
         {invoice.balance > 0 && onPay && (
           <button
-            onClick={() => {
-              // #region debug-point A:pay-button-click
-              fetch("http://127.0.0.1:7777/event",{method:"POST",body:JSON.stringify({sessionId:"billing-payments-messaging-issues",runId:"pre",hypothesisId:"A",location:"InvoiceCard.jsx:196",msg:"[DEBUG] InvoiceCard Pay button clicked",data:{invoiceId:invoice?.id||'',invoiceNumber:invoice?.invoiceNumber||'',balance:invoice?.balance||0,hasOnPay:!!onPay},ts:Date.now()})}).catch(()=>{});
-              // #endregion
-              onPay(invoice);
-            }}
+            onClick={() => onPay(invoice)}
             className="btn-primary flex-1 min-w-[120px]"
           >
             <IndianRupee size={18} className="inline mr-2" />

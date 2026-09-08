@@ -87,14 +87,11 @@ const ICICI_CONFIG = {
     "/tsp/pg/api/command",
   ),
   returnUrl:
-    process.env.ICICI_RETURN_URL || process.env.ICICI_REDIRECT_URL || process.env.ICICI_PAYMENT_RETURN_URL || "",
+    process.env.ICICI_RETURN_URL || process.env.ICICI_REDIRECT_URL || "",
   redirectUrl:
-    process.env.ICICI_REDIRECT_URL || process.env.ICICI_RETURN_URL || process.env.ICICI_PAYMENT_RETURN_URL || "",
+    process.env.ICICI_REDIRECT_URL || process.env.ICICI_RETURN_URL || "",
   callbackUrl: process.env.ICICI_CALLBACK_URL || "",
 };
-// #region debug-point B:icici-config
-(()=>{const fs=require('fs'),p='.dbg/billing-payments-messaging-issues.env';let u='http://127.0.0.1:7777/event',s='billing-payments-messaging-issues';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',body:JSON.stringify({sessionId:s,runId:'pre',hypothesisId:'B',location:'iciciPaymentService.js:95',msg:'[DEBUG] ICICI_CONFIG loaded',data:{env:process.env.ICICI_ENV||'',merchantIdSet:!!process.env.ICICI_MERCHANT_ID,secretKeySet:!!process.env.ICICI_SECRET_KEY,payType:process.env.ICICI_PAY_TYPE||'0',returnUrl:process.env.ICICI_RETURN_URL||'',redirectUrl:process.env.ICICI_REDIRECT_URL||'',paymentReturnUrl:process.env.ICICI_PAYMENT_RETURN_URL||'',callbackUrl:process.env.ICICI_CALLBACK_URL||'',initiateSaleUrl:ICICI_CONFIG.initiateSaleUrl,finalReturnUrl:ICICI_CONFIG.returnUrl,finalRedirectUrl:ICICI_CONFIG.redirectUrl},ts:Date.now()})}).catch(()=>{})})();
-// #endregion
 
 const formatTxnDate = (date = new Date()) => {
   const pad = (n) => String(n).padStart(2, "0");
@@ -327,9 +324,6 @@ const initiateSale = async ({
   customerMobileNo,
   payType,
 }) => {
-  // #region debug-point B:initiate-sale-entry
-  (()=>{const fs=require('fs'),p='.dbg/billing-payments-messaging-issues.env';let u='http://127.0.0.1:7777/event',s='billing-payments-messaging-issues';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',body:JSON.stringify({sessionId:s,runId:'pre',hypothesisId:'B',location:'iciciPaymentService.js:322',msg:'[DEBUG] initiateSale called',data:{invoiceId:invoiceId?.toString?.()||'',patientId:patientId?.toString?.()||'',amount,payType,customerEmailID,customerMobileNo,configReturnUrl:ICICI_CONFIG.returnUrl,configRedirectUrl:ICICI_CONFIG.redirectUrl},ts:Date.now()})}).catch(()=>{})})();
-  // #endregion
   const invoice = await Invoice.findById(invoiceId);
   if (!invoice) {
     throw new Error("Invoice not found");
@@ -369,9 +363,6 @@ const initiateSale = async ({
   });
 
   const result = await callICICIAPI(ICICI_CONFIG.initiateSaleUrl, payload);
-  // #region debug-point B:initiate-sale-result
-  (()=>{const fs=require('fs'),p='.dbg/billing-payments-messaging-issues.env';let u='http://127.0.0.1:7777/event',s='billing-payments-messaging-issues';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',body:JSON.stringify({sessionId:s,runId:'pre',hypothesisId:'B',location:'iciciPaymentService.js:371',msg:'[DEBUG] initiateSale callICICIAPI result',data:{success:result.success,status:result.status||0,apiError:result.error?String(result.error).slice(0,300):'',hasData:!!result.data,responseCode:result.data?.responseCode||result.data?.data?.responseCode||'',txnStatus:result.data?.txnStatus||result.data?.data?.txnStatus||'',redirectURI:result.data?.redirectURI||result.data?.data?.redirectURI||'',showOTPCapturePage:result.data?.showOTPCapturePage||result.data?.data?.showOTPCapturePage||'',respMsg:result.data?.respDescription||result.data?.message||result.data?.data?.respDescription||''},ts:Date.now()})}).catch(()=>{})})();
-  // #endregion
 
   if (result.success && result.data) {
     const responseData = result.data;
