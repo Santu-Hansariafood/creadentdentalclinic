@@ -14,9 +14,23 @@ const whatsAppMessageSchema = new mongoose.Schema(
     messageType: { type: String, default: "text" },
     templateName: { type: String },
     templateParameters: { type: [String], default: undefined },
+    invoiceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Invoice",
+      index: true,
+    },
+    eventType: { type: String, index: true },
     status: {
       type: String,
-      enum: ["sent", "delivered", "read", "failed", "received", "skipped"],
+      enum: [
+        "queued",
+        "sent",
+        "delivered",
+        "read",
+        "failed",
+        "received",
+        "skipped",
+      ],
       default: "sent",
       index: true,
     },
@@ -26,6 +40,11 @@ const whatsAppMessageSchema = new mongoose.Schema(
     sentBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true },
+);
+
+whatsAppMessageSchema.index(
+  { invoiceId: 1, eventType: 1, messageType: 1 },
+  { unique: true, sparse: true },
 );
 
 module.exports = mongoose.model("WhatsAppMessage", whatsAppMessageSchema);

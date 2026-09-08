@@ -70,6 +70,20 @@ router.post("/", async (req, res) => {
     for (const change of entry.changes || []) {
       const value = change.value || {};
       for (const status of value.statuses || []) {
+        const statusName = ["sent", "delivered", "read", "failed"].includes(
+          status.status,
+        )
+          ? status.status
+          : "failed";
+        const statusError = status.errors?.[0]
+          ? [
+              status.errors[0].message,
+              status.errors[0].code && `code ${status.errors[0].code}`,
+              status.errors[0].type,
+            ]
+              .filter(Boolean)
+              .join(" | ")
+          : undefined;
         console.log("[WHATSAPP] Message status:", {
           id: status.id,
           recipientId: status.recipient_id,
@@ -79,12 +93,14 @@ router.post("/", async (req, res) => {
         });
         await WhatsAppMessage.findOneAndUpdate(
           { messageId: status.id },
-          { status: status.status, error: status.errors?.[0]?.message },
+          { status: statusName, error: statusError },
         );
       }
       for (const message of value.messages || []) {
         const phone = message.from || "";
-        const patient = await Patient.findOne({ phone: phone.slice(-10) });
+        const patient = await Patient.findOne({
+          phone: { $in: [phone, phone.slice(-10)] },
+        });
         const recipientUser = !patient
           ? await User.findOne({ phone: { $in: [phone, phone.slice(-10)] } })
           : null;
