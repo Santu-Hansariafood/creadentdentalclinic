@@ -271,6 +271,7 @@ Creadent Dental Clinic Management`;
 const sendTemplateWithFallback = async ({
   to,
   templateName,
+  templateKey,
   bodyParameters = [],
   fallbackText,
 }) => {
@@ -278,6 +279,7 @@ const sendTemplateWithFallback = async ({
     const templateResult = await sendWhatsAppTemplateMessage({
       to,
       templateName,
+      templateKey,
       bodyParameters,
       displayText: fallbackText,
     });
@@ -364,6 +366,7 @@ const sendAppointmentBookingNotifications = async (appointment) => {
     const patientResult = await sendTemplateWithFallback({
       to: patientContact.phone,
       templateName: patientTemplate,
+      templateKey: "APPOINTMENT_BOOKED_PATIENT",
       bodyParameters: [
         patientContact.name,
         doctorContact.name,
@@ -394,6 +397,7 @@ const sendAppointmentBookingNotifications = async (appointment) => {
     const doctorResult = await sendTemplateWithFallback({
       to: doctorContact.phone,
       templateName: doctorTemplate,
+      templateKey: "APPOINTMENT_BOOKED_DOCTOR",
       bodyParameters: [
         doctorContact.name,
         patientContact.name,
@@ -463,6 +467,7 @@ const sendAppointmentRescheduleNotification = async (
     results.patient = await sendTemplateWithFallback({
       to: patientContact.phone,
       templateName: patientTemplateName,
+      templateKey: "APPOINTMENT_RESCHEDULED_PATIENT",
       bodyParameters: [patientContact.name, ...commonParameters],
       fallbackText,
     });
@@ -493,6 +498,7 @@ const sendAppointmentRescheduleNotification = async (
     results.doctor = await sendTemplateWithFallback({
       to: doctorContact.phone,
       templateName: doctorTemplateName,
+      templateKey: "APPOINTMENT_RESCHEDULED_DOCTOR",
       bodyParameters: doctorParams,
       fallbackText,
     });
@@ -529,6 +535,7 @@ const sendAppointmentRescheduleNotification = async (
           const empResult = await sendTemplateWithFallback({
             to: normalizePhoneNumber(employee.phone),
             templateName: employeeTemplateName,
+            templateKey: "APPOINTMENT_RESCHEDULED_EMPLOYEE",
             bodyParameters: employeeParams,
             fallbackText,
           });
@@ -631,6 +638,7 @@ const sendReminderIfDue = async (appointment, now) => {
       const result = await sendTemplateWithFallback({
         to: patientContact.phone,
         templateName: patientTemplate,
+        templateKey: "APPOINTMENT_REMINDER_PATIENT",
         bodyParameters: [
           patientContact.name,
           appointment?.doctorName || "Doctor",
@@ -669,6 +677,7 @@ const sendReminderIfDue = async (appointment, now) => {
       const result = await sendTemplateWithFallback({
         to: patientContact.phone,
         templateName: patientTemplate,
+        templateKey: "APPOINTMENT_REMINDER_PATIENT",
         bodyParameters: [
           patientContact.name,
           appointment?.doctorName || "Doctor",
@@ -707,6 +716,7 @@ const sendReminderIfDue = async (appointment, now) => {
     const result = await sendTemplateWithFallback({
       to: doctorContact.phone,
       templateName: doctorTemplate,
+      templateKey: "APPOINTMENT_REMINDER_DOCTOR",
       bodyParameters: [
         doctorContact.name,
         appointment?.patientName || "Patient",
@@ -747,6 +757,7 @@ const sendReminderIfDue = async (appointment, now) => {
     const result = await sendTemplateWithFallback({
       to: doctorContact.phone,
       templateName: doctorTemplate,
+      templateKey: "APPOINTMENT_REMINDER_DOCTOR",
       bodyParameters: [
         doctorContact.name,
         appointment?.patientName || "Patient",

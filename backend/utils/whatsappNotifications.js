@@ -791,7 +791,9 @@ const sendInvoiceWhatsApp = async (
   }
 
   if (sendTemplate) {
-    const templateName = process.env.WHATSAPP_TEMPLATE_INVOICE;
+    const templateName =
+      process.env.WHATSAPP_TEMPLATE_INVOICE ||
+      process.env.WHATSAPP_TEMPLATE_INVOICE_SHARE;
     results.template = await sendWhatsAppTemplateMessage({
       to: patientContact.phone,
       templateName,
@@ -957,7 +959,6 @@ const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
     invoice?.invoiceNumber || "-",
     formatCurrencyINR(invoice?.amountPaid || invoice?.total || 0),
   ];
-  if (REVIEW_LINK) bodyParameters.push(REVIEW_LINK);
   const templateResult = await sendWhatsAppTemplateMessage({
     to: patientContact.phone,
     templateName,

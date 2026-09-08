@@ -1860,6 +1860,7 @@ const resolvers = {
         result = await sendWhatsAppTemplateMessage({
           to: normalizedDestination,
           templateName,
+          templateKey: "MANUAL_MESSAGE",
           bodyParameters: [patient?.name || "Patient", text],
           displayText: text,
         });
