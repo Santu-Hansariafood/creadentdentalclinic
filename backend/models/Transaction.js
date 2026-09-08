@@ -47,6 +47,7 @@ const transactionSchema = new mongoose.Schema(
     amountPaidApplied: { type: Number, default: 0 },
     paymentConfirmedAt: { type: Date },
     paymentThankYouSentAt: { type: Date },
+    paymentNotificationStartedAt: { type: Date },
     hashVerified: { type: Boolean, default: false },
     callbackProcessed: { type: Boolean, default: false },
     callbackProcessedAt: { type: Date },

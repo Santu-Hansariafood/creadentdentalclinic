@@ -225,6 +225,7 @@ const uploadFile = async ({
   folder = "files",
   fileName,
   storagePath,
+  requirePublicUrl = false,
 }) => {
   if (!isConfigured()) {
     throw new Error(
@@ -332,6 +333,10 @@ const uploadFile = async ({
   );
   const url = metadata.url;
   const fileEntryId = metadata.id;
+
+  if (requirePublicUrl && (!url || !/^https:\/\//i.test(url))) {
+    throw new Error("SpaceByte upload completed but no public HTTPS URL was returned");
+  }
 
   if (!url && !fileEntryId) {
     throw new Error("SpaceByte returned success without a file URL or file ID");
