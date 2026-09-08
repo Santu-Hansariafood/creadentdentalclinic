@@ -20,6 +20,7 @@ const {
 const { sendPrescriptionEmail } = require("../utils/emailService");
 const {
   sendInvoiceWhatsApp,
+  sendInvoicePaymentLinkWhatsApp,
   sendPaymentSuccessWhatsAppBundle,
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
@@ -1450,44 +1451,36 @@ const resolvers = {
         status: args.balance > 0 ? "Unpaid" : "Paid",
       });
       const savedInvoice = await invoice.save();
-      if (!savedInvoice.paymentLinkSentAt) {
+      if (savedInvoice.balance > 0 && !savedInvoice.paymentLinkSentAt) {
         try {
           let directPaymentLink = "";
-          if (savedInvoice.balance > 0) {
-            try {
-              const paymentInitiation = await initiateSale({
-                invoiceId: savedInvoice._id,
-                patientId: savedInvoice.patientId,
-                amount: savedInvoice.balance,
-                payType: "0",
-              });
-              if (paymentInitiation.apiSuccess && paymentInitiation.redirectURI) {
-                directPaymentLink = paymentInitiation.redirectURI;
-              }
-            } catch (error) {
-              console.warn(
-                "Direct ICICI payment-link creation failed; using billing link:",
-                error.message,
-              );
+          try {
+            const paymentInitiation = await initiateSale({
+              invoiceId: savedInvoice._id,
+              patientId: savedInvoice.patientId,
+              amount: savedInvoice.balance,
+              payType: "0",
+            });
+            if (paymentInitiation.apiSuccess && paymentInitiation.redirectURI) {
+              directPaymentLink = paymentInitiation.redirectURI;
             }
-          }
-
-          const invoiceMessageResult = await sendInvoiceWhatsApp(
-            savedInvoice,
-            savedInvoice.patientId,
-            directPaymentLink,
-          );
-          if (invoiceMessageResult.success) {
-            savedInvoice.paymentLinkSentAt = new Date();
-            await savedInvoice.save();
-          } else {
+          } catch (error) {
             console.warn(
-              "Automatic invoice WhatsApp message was not sent:",
-              invoiceMessageResult.error || invoiceMessageResult.errors?.join(" | "),
+              "Direct ICICI payment-link creation failed; using billing link:",
+              error.message,
             );
           }
+
+          const paymentLinkResult = await sendInvoicePaymentLinkWhatsApp(
+            savedInvoice,
+            directPaymentLink,
+          );
+          if (paymentLinkResult.success) {
+            savedInvoice.paymentLinkSentAt = new Date();
+            await savedInvoice.save();
+          }
         } catch (error) {
-          console.warn("Automatic invoice WhatsApp send failed:", error.message);
+          console.warn("Invoice payment-link WhatsApp send failed:", error.message);
         }
       }
       return savedInvoice;
@@ -1518,16 +1511,15 @@ const resolvers = {
         ) {
           throw new Error("Unauthorized: You can only pay your own invoices");
         }
-      }
-
-      if (
-        paymentMethod &&
-        paymentMethod.toLowerCase() === "cash" &&
-        !["admin", "employee"].includes(user.role)
-      ) {
-        throw new Error(
-          "Unauthorized: Cash payments must be recorded by clinic staff. Use ICICI Bank payment gateway to pay online.",
-        );
+        if (
+          paymentMethod &&
+          paymentMethod.toLowerCase() === "cash" &&
+          user.role !== "admin"
+        ) {
+          throw new Error(
+            "Unauthorized: Cash payments must be recorded by an administrator. Use ICICI Bank payment gateway to pay online.",
+          );
+        }
       }
 
       const paymentAmount = Number(amount);
