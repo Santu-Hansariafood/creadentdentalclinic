@@ -1451,36 +1451,39 @@ const resolvers = {
         status: args.balance > 0 ? "Unpaid" : "Paid",
       });
       const savedInvoice = await invoice.save();
-      if (savedInvoice.balance > 0 && !savedInvoice.paymentLinkSentAt) {
+      if (!savedInvoice.paymentLinkSentAt) {
         try {
           let directPaymentLink = "";
-          try {
-            const paymentInitiation = await initiateSale({
-              invoiceId: savedInvoice._id,
-              patientId: savedInvoice.patientId,
-              amount: savedInvoice.balance,
-              payType: "0",
-            });
-            if (paymentInitiation.apiSuccess && paymentInitiation.redirectURI) {
-              directPaymentLink = paymentInitiation.redirectURI;
+          if (savedInvoice.balance > 0) {
+            try {
+              const paymentInitiation = await initiateSale({
+                invoiceId: savedInvoice._id,
+                patientId: savedInvoice.patientId,
+                amount: savedInvoice.balance,
+                payType: "0",
+              });
+              if (paymentInitiation.apiSuccess && paymentInitiation.redirectURI) {
+                directPaymentLink = paymentInitiation.redirectURI;
+              }
+            } catch (error) {
+              console.warn(
+                "Direct ICICI payment-link creation failed; using billing link:",
+                error.message,
+              );
             }
-          } catch (error) {
-            console.warn(
-              "Direct ICICI payment-link creation failed; using billing link:",
-              error.message,
-            );
           }
 
-          const paymentLinkResult = await sendInvoicePaymentLinkWhatsApp(
+          const invoiceWhatsAppResult = await sendInvoiceWhatsApp(
             savedInvoice,
+            savedInvoice.patientId,
             directPaymentLink,
           );
-          if (paymentLinkResult.success) {
+          if (invoiceWhatsAppResult.success || invoiceWhatsAppResult.skipped) {
             savedInvoice.paymentLinkSentAt = new Date();
             await savedInvoice.save();
           }
         } catch (error) {
-          console.warn("Invoice payment-link WhatsApp send failed:", error.message);
+          console.warn("Invoice WhatsApp send failed:", error.message);
         }
       }
       return savedInvoice;

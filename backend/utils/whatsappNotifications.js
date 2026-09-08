@@ -616,14 +616,15 @@ const sendForgotPasswordOtpWhatsApp = async ({ phone, otp }) => {
   });
 };
 
-const sendInvoiceWhatsApp = async (invoice, patientId) => {
+const sendInvoiceWhatsApp = async (invoice, patientId, directPaymentLinkOverride = "") => {
   const patientContact = await resolvePatientContact(
     patientId || invoice.patientId,
   );
   const directPaymentLink =
-    Number(invoice?.balance || 0) > 0
+    directPaymentLinkOverride ||
+    (Number(invoice?.balance || 0) > 0
       ? buildInvoicePaymentLink(invoice?._id || invoice?.id)
-      : "";
+      : "");
 
   if (!patientContact.phone) {
     return {
