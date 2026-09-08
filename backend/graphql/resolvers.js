@@ -21,6 +21,7 @@ const { sendPrescriptionEmail } = require("../utils/emailService");
 const {
   sendInvoiceWhatsApp,
   sendInvoicePaymentLinkWhatsApp,
+  sendPaymentSuccessWhatsAppBundle,
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
   sendPrescriptionWhatsApp,
@@ -1556,6 +1557,15 @@ const resolvers = {
         remarks: "Payment recorded by clinic staff",
         invoiceId: savedInvoice._id,
       });
+
+      try {
+        await sendPaymentSuccessWhatsAppBundle(savedInvoice);
+      } catch (error) {
+        console.warn(
+          "Manual payment success WhatsApp notification failed:",
+          error.message,
+        );
+      }
 
       return savedInvoice;
     },

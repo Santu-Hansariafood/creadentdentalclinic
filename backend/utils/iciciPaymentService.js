@@ -7,8 +7,7 @@ const Invoice = require("../models/Invoice");
 const Patient = require("../models/Patient");
 const PaymentLedger = require("../models/PaymentLedger");
 const {
-  sendInvoiceWhatsApp,
-  sendPaymentThankYouReviewWhatsApp,
+  sendPaymentSuccessWhatsAppBundle,
 } = require("./whatsappNotifications");
 
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
@@ -785,37 +784,28 @@ const reconcilePaymentToInvoice = async (transaction) => {
     currencyCode: transaction.currencyCode,
   });
 
-  try {
-    const whatsappResult = await sendInvoiceWhatsApp(invoice, invoice.patientId);
-    console.log("[WHATSAPP] Payment invoice notification:", {
-      success: whatsappResult.success,
-      skipped: whatsappResult.skipped,
-      phone: whatsappResult.phone,
-      error: whatsappResult.error || whatsappResult.errors,
-    });
-  } catch (error) {
-    console.error(
-      "[WHATSAPP] Payment invoice notification failed:",
-      error.message,
-    );
-  }
-
   if (!transaction.paymentThankYouSentAt) {
     try {
-      const reviewResult = await sendPaymentThankYouReviewWhatsApp(invoice);
-      if (reviewResult.success) {
+      const notificationResult = await sendPaymentSuccessWhatsAppBundle(invoice);
+      if (notificationResult.reviewResult?.success) {
         transaction.paymentThankYouSentAt = new Date();
         await transaction.save();
       }
-      console.log("[WHATSAPP] Payment thank-you/review notification:", {
-        success: reviewResult.success,
-        skipped: reviewResult.skipped,
-        phone: reviewResult.phone,
-        error: reviewResult.error,
+      console.log("[WHATSAPP] Payment success notification bundle:", {
+        success: notificationResult.success,
+        invoiceSuccess: notificationResult.invoiceResult?.success,
+        reviewSuccess: notificationResult.reviewResult?.success,
+        phone:
+          notificationResult.reviewResult?.phone ||
+          notificationResult.invoiceResult?.phone,
+        invoiceError:
+          notificationResult.invoiceResult?.error ||
+          notificationResult.invoiceResult?.errors,
+        reviewError: notificationResult.reviewResult?.error,
       });
     } catch (error) {
       console.error(
-        "[WHATSAPP] Payment thank-you/review notification failed:",
+        "[WHATSAPP] Payment success notification bundle failed:",
         error.message,
       );
     }

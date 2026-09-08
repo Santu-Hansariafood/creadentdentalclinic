@@ -106,7 +106,13 @@ const formatAppointmentDateTimeParts = (appointment) => {
   };
 };
 
-const buildAppointmentBookedPatientMessage = (patientContact, doctorContact, appointmentDate, appointmentTime, appointmentType) => `*🏥 Creadent Dental Clinic - Appointment Confirmed*
+const buildAppointmentBookedPatientMessage = (
+  patientContact,
+  doctorContact,
+  appointmentDate,
+  appointmentTime,
+  appointmentType,
+) => `*🏥 Creadent Dental Clinic - Appointment Confirmed*
 
 Dear ${patientContact.name || "Patient"},
 
@@ -126,7 +132,13 @@ Please arrive 10 minutes before your scheduled time.
 Regards,
 Team Creadent Dental Clinic`;
 
-const buildAppointmentBookedDoctorMessage = (doctorContact, patientContact, appointmentDate, appointmentTime, appointmentType) => `*🏥 New Appointment Booking*
+const buildAppointmentBookedDoctorMessage = (
+  doctorContact,
+  patientContact,
+  appointmentDate,
+  appointmentTime,
+  appointmentType,
+) => `*🏥 New Appointment Booking*
 
 Dear ${doctorContact.name || "Doctor"},
 
@@ -141,7 +153,13 @@ ${appointmentType ? `🏷️ *Type:* ${appointmentType}\n` : ""}
 Regards,
 Creadent Dental Clinic`;
 
-const buildAppointmentReminderPatientMessage = (patientContact, doctorName, appointmentDate, appointmentTime, whenText) => `*⏰ Creadent Dental Clinic - Appointment Reminder*
+const buildAppointmentReminderPatientMessage = (
+  patientContact,
+  doctorName,
+  appointmentDate,
+  appointmentTime,
+  whenText,
+) => `*⏰ Creadent Dental Clinic - Appointment Reminder*
 
 Dear ${patientContact.name || "Patient"},
 
@@ -163,7 +181,13 @@ Please arrive 10 minutes early.
 Regards,
 Team Creadent Dental Clinic`;
 
-const buildAppointmentReminderDoctorMessage = (doctorContact, patientName, appointmentDate, appointmentTime, whenText) => `*⏰ Doctor Appointment Reminder*
+const buildAppointmentReminderDoctorMessage = (
+  doctorContact,
+  patientName,
+  appointmentDate,
+  appointmentTime,
+  whenText,
+) => `*⏰ Doctor Appointment Reminder*
 
 Dear ${doctorContact.name || "Doctor"},
 
@@ -176,7 +200,13 @@ You have an appointment ${whenText}.
 Regards,
 Creadent Dental Clinic`;
 
-const buildAppointmentRescheduledPatientMessage = (patientContact, previousDate, appointmentDate, appointmentTime, appointmentType) => `*🔄 Creadent Dental Clinic - Appointment Rescheduled*
+const buildAppointmentRescheduledPatientMessage = (
+  patientContact,
+  previousDate,
+  appointmentDate,
+  appointmentTime,
+  appointmentType,
+) => `*🔄 Creadent Dental Clinic - Appointment Rescheduled*
 
 Dear ${patientContact.name || "Patient"},
 
@@ -194,7 +224,14 @@ ${appointmentType ? `🏷️ *Type:* ${appointmentType}\n` : ""}
 Regards,
 Team Creadent Dental Clinic`;
 
-const buildAppointmentRescheduledDoctorMessage = (doctorContact, patientName, previousDate, appointmentDate, appointmentTime, appointmentType) => `*🔄 Appointment Rescheduled*
+const buildAppointmentRescheduledDoctorMessage = (
+  doctorContact,
+  patientName,
+  previousDate,
+  appointmentDate,
+  appointmentTime,
+  appointmentType,
+) => `*🔄 Appointment Rescheduled*
 
 Dear ${doctorContact.name || "Doctor"},
 
@@ -208,7 +245,15 @@ ${appointmentType ? `🏷️ *Type:* ${appointmentType}\n` : ""}
 Regards,
 Creadent Dental Clinic`;
 
-const buildAppointmentRescheduledEmployeeMessage = (employeeName, patientName, doctorName, previousDate, appointmentDate, appointmentTime, appointmentType) => `*🔄 Appointment Rescheduled - Staff Alert*
+const buildAppointmentRescheduledEmployeeMessage = (
+  employeeName,
+  patientName,
+  doctorName,
+  previousDate,
+  appointmentDate,
+  appointmentTime,
+  appointmentType,
+) => `*🔄 Appointment Rescheduled - Staff Alert*
 
 Hi ${employeeName || "Team"},
 
@@ -308,10 +353,7 @@ const sendAppointmentBookingNotifications = async (appointment) => {
     resolveDoctorContact(appointment),
   ]);
 
-  if (
-    !appointment?.bookingPatientNotificationSentAt &&
-    patientContact.phone
-  ) {
+  if (!appointment?.bookingPatientNotificationSentAt && patientContact.phone) {
     const fallbackText = buildAppointmentBookedPatientMessage(
       patientContact,
       doctorContact,
@@ -338,15 +380,10 @@ const sendAppointmentBookingNotifications = async (appointment) => {
       errors.push(`Patient booking message failed: ${patientResult.error}`);
     }
   } else if (!appointment?.bookingPatientNotificationSentAt) {
-    errors.push(
-      "Patient phone number not found for booking confirmation",
-    );
+    errors.push("Patient phone number not found for booking confirmation");
   }
 
-  if (
-    !appointment?.bookingDoctorNotificationSentAt &&
-    doctorContact.phone
-  ) {
+  if (!appointment?.bookingDoctorNotificationSentAt && doctorContact.phone) {
     const fallbackText = buildAppointmentBookedDoctorMessage(
       doctorContact,
       patientContact,
@@ -373,9 +410,7 @@ const sendAppointmentBookingNotifications = async (appointment) => {
       errors.push(`Doctor booking message failed: ${doctorResult.error}`);
     }
   } else if (!appointment?.bookingDoctorNotificationSentAt) {
-    errors.push(
-      "Doctor phone number not found for booking confirmation",
-    );
+    errors.push("Doctor phone number not found for booking confirmation");
   }
 
   await updateNotificationState(appointmentId, updates, errors);
@@ -438,10 +473,7 @@ const sendAppointmentRescheduleNotification = async (
     }
   }
 
-  if (
-    !appointment.rescheduleDoctorNotificationSentAt &&
-    doctorContact.phone
-  ) {
+  if (!appointment.rescheduleDoctorNotificationSentAt && doctorContact.phone) {
     const doctorParams =
       doctorTemplateName === patientTemplateName
         ? [doctorContact.name, ...commonParameters]
@@ -512,15 +544,23 @@ const sendAppointmentRescheduleNotification = async (
 
   const deliveryErrors = [];
   if (!results.patient.success) {
-    deliveryErrors.push(`Patient reschedule message: ${results.patient.error || "not sent"}`);
+    deliveryErrors.push(
+      `Patient reschedule message: ${results.patient.error || "not sent"}`,
+    );
   }
   if (!results.doctor.success) {
-    deliveryErrors.push(`Doctor reschedule message: ${results.doctor.error || "not sent"}`);
+    deliveryErrors.push(
+      `Doctor reschedule message: ${results.doctor.error || "not sent"}`,
+    );
   }
   if (!results.employees.length) {
-    deliveryErrors.push("Employee reschedule message: no employee recipient was sent");
+    deliveryErrors.push(
+      "Employee reschedule message: no employee recipient was sent",
+    );
   } else if (results.employees.some((result) => !result.success)) {
-    deliveryErrors.push("Employee reschedule message: one or more deliveries failed");
+    deliveryErrors.push(
+      "Employee reschedule message: one or more deliveries failed",
+    );
   }
 
   if (deliveryErrors.length > 0) {
@@ -687,9 +727,7 @@ const sendReminderIfDue = async (appointment, now) => {
     now >= oneDayBefore &&
     now < oneHourBefore
   ) {
-    errors.push(
-      "Doctor phone number not found for 1 day reminder",
-    );
+    errors.push("Doctor phone number not found for 1 day reminder");
   }
 
   if (
@@ -729,9 +767,7 @@ const sendReminderIfDue = async (appointment, now) => {
     now >= oneHourBefore &&
     now < appointmentDateTime
   ) {
-    errors.push(
-      "Doctor phone number not found for 1 hour reminder",
-    );
+    errors.push("Doctor phone number not found for 1 hour reminder");
   }
 
   await updateNotificationState(appointment._id, updates, errors);

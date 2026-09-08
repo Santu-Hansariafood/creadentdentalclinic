@@ -485,12 +485,19 @@ const formatDateIN = (value) => {
   }).format(date);
 };
 
-const buildInvoiceMessage = (invoice, patientContact) => {
+const buildInvoiceMessage = (
+  invoice,
+  patientContact,
+  directPaymentLink = "",
+) => {
   const loginUrl = `${FRONTEND_URL}/login`;
   const billingUrl = `${FRONTEND_URL}/billing`;
   const balance = Number(invoice.balance || invoice.total || 0);
   const total = Number(invoice.total || 0);
   const paid = Number(invoice.amountPaid || 0);
+  const paymentLink =
+    directPaymentLink ||
+    (balance > 0 ? buildInvoicePaymentLink(invoice?._id || invoice?.id) : "");
 
   const itemsList =
     invoice.items
@@ -511,7 +518,7 @@ const buildInvoiceMessage = (invoice, patientContact) => {
 
 Dear ${patientContact.name || "Patient"},
 
-Your invoice has been generated.
+${invoice.status === "Paid" ? "Your payment has been received successfully." : "Your invoice has been generated."}
 
 📄 Invoice No: *${invoice.invoiceNumber || "-"}*
 📅 Invoice Date: *${formatDateIN(invoice.date)}*
@@ -521,14 +528,14 @@ ${statusLine}
 ${itemsList ? `--- Treatment Items ---\n${itemsList}\n` : ""}
 ---
 
-🔐 *Secure Patient Portal Login*
+${paymentLink ? `*Pay Now*\n${paymentLink}\n\n` : ""}
+
+*Secure Patient Portal Login*
 Login Link: ${loginUrl}
 Phone: ${patientContact.rawPhone || "Registered Mobile"}
 Password: Year + Last 4 digits of mobile (e.g., 2026XXXX)
 
-💳 *Make Payment Online*
-After login, visit: ${billingUrl}
-You can pay via UPI, Card, or Net Banking.
+${balance > 0 ? `💳 *Make Payment Online*\nAfter login, visit: ${billingUrl}\nYou can pay via UPI, Card, or Net Banking.\n` : "📎 Your bill/receipt PDF has been shared on WhatsApp for your records.\n"}
 
 📞 For queries: +91 6292300343
 Thank you for choosing Creadent Dental Clinic!
@@ -614,6 +621,10 @@ const sendInvoiceWhatsApp = async (invoice, patientId) => {
   const patientContact = await resolvePatientContact(
     patientId || invoice.patientId,
   );
+  const directPaymentLink =
+    Number(invoice?.balance || 0) > 0
+      ? buildInvoicePaymentLink(invoice?._id || invoice?.id)
+      : "";
 
   if (!patientContact.phone) {
     return {
@@ -657,7 +668,7 @@ const sendInvoiceWhatsApp = async (invoice, patientId) => {
         patientContact.name,
         invoice.invoiceNumber || "-",
         formatCurrencyINR(invoice.balance || invoice.total || 0),
-        `${FRONTEND_URL}/login`,
+        directPaymentLink || `${FRONTEND_URL}/login`,
       ],
     });
     results.template = templateResult;
@@ -666,7 +677,11 @@ const sendInvoiceWhatsApp = async (invoice, patientId) => {
     }
   }
 
-  const detailedMessage = buildInvoiceMessage(invoice, patientContact);
+  const detailedMessage = buildInvoiceMessage(
+    invoice,
+    patientContact,
+    directPaymentLink,
+  );
   const textResult = await sendWhatsAppTextMessage({
     to: patientContact.phone,
     text: detailedMessage,
@@ -710,8 +725,10 @@ Dear ${patientContact.name || "Patient"},
 Your invoice *${invoice.invoiceNumber || "-"}* is ready.
 Amount due: *${formatCurrencyINR(invoice.balance || invoice.total || 0)}*
 
-Complete your payment securely here:
+Please click the secure payment link below to complete your payment:
 ${paymentLink}
+
+You can pay using UPI, Card, or Net Banking.
 
 Regards,
 Team Creadent Dental Clinic`;
@@ -757,7 +774,10 @@ const buildPaymentThankYouMessage = ({ patientName, invoice, reviewLink }) => {
 
 Dear ${patientName || "Patient"},
 
-Thank you for your successful payment for invoice ${invoice?.invoiceNumber || "-"}.
+Thank you for your successful payment for invoice *${invoice?.invoiceNumber || "-"}*.
+Amount received: *${formatCurrencyINR(invoice?.amountPaid || invoice?.total || 0)}*
+
+Your bill/receipt PDF has already been shared on WhatsApp for your records.
 We appreciate your trust in Creadent Dental Clinic.
 
 Please share your experience with us${reviewLink ? `:
@@ -765,6 +785,24 @@ ${reviewLink}` : "."}
 
 Thank you,
 Team Creadent Dental Clinic`;
+};
+
+const sendPaymentSuccessWhatsAppBundle = async (invoice) => {
+  const invoiceResult = await sendInvoiceWhatsApp(invoice, invoice?.patientId);
+  const reviewResult =
+    invoice?.status === "Paid"
+      ? await sendPaymentThankYouReviewWhatsApp(invoice)
+      : {
+          success: false,
+          skipped: true,
+          error: null,
+        };
+
+  return {
+    success: Boolean(invoiceResult.success || reviewResult.success),
+    invoiceResult,
+    reviewResult,
+  };
 };
 
 const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
@@ -977,6 +1015,7 @@ module.exports = {
   sendInvoicePaymentLinkWhatsApp,
   sendWhatsAppDocumentMessage,
   sendPaymentThankYouReviewWhatsApp,
+  sendPaymentSuccessWhatsAppBundle,
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
   sendPrescriptionWhatsApp,
