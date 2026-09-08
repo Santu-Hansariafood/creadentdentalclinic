@@ -128,7 +128,7 @@ Team Creadent Dental Clinic`;
 
 const buildAppointmentBookedDoctorMessage = (doctorContact, patientContact, appointmentDate, appointmentTime, appointmentType) => `*🏥 New Appointment Booking*
 
-Dear Dr. ${doctorContact.name || "Doctor"},
+Dear ${doctorContact.name || "Doctor"},
 
 A new appointment has been scheduled.
 
@@ -165,7 +165,7 @@ Team Creadent Dental Clinic`;
 
 const buildAppointmentReminderDoctorMessage = (doctorContact, patientName, appointmentDate, appointmentTime, whenText) => `*⏰ Doctor Appointment Reminder*
 
-Dear Dr. ${doctorContact.name || "Doctor"},
+Dear ${doctorContact.name || "Doctor"},
 
 You have an appointment ${whenText}.
 
@@ -196,7 +196,7 @@ Team Creadent Dental Clinic`;
 
 const buildAppointmentRescheduledDoctorMessage = (doctorContact, patientName, previousDate, appointmentDate, appointmentTime, appointmentType) => `*🔄 Appointment Rescheduled*
 
-Dear Dr. ${doctorContact.name || "Doctor"},
+Dear ${doctorContact.name || "Doctor"},
 
 An appointment has been rescheduled.
 
