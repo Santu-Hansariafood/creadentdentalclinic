@@ -25,8 +25,7 @@ const {
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
   sendPrescriptionWhatsApp,
-  sendWhatsAppTemplateMessage,
-  sendWhatsAppTextMessage,
+  sendTemplateWithFallback,
   normalizePhoneNumber,
 } = require("../utils/whatsappNotifications");
 const {
@@ -1854,29 +1853,14 @@ const resolvers = {
 
       const normalizedDestination = normalizePhoneNumber(destination);
       const templateName = process.env.WHATSAPP_TEMPLATE_MANUAL_MESSAGE;
-      let result;
-      let usedTemplate = false;
-      if (templateName) {
-        result = await sendWhatsAppTemplateMessage({
-          to: normalizedDestination,
-          templateName,
-          templateKey: "MANUAL_MESSAGE",
-          bodyParameters: [patient?.name || "Patient", text],
-          displayText: text,
-        });
-        usedTemplate = result.success;
-        if (!result.success && !result.skipped) {
-          result = await sendWhatsAppTextMessage({
-            to: normalizedDestination,
-            text,
-          });
-        }
-      } else {
-        result = await sendWhatsAppTextMessage({
-          to: normalizedDestination,
-          text,
-        });
-      }
+      const result = await sendTemplateWithFallback({
+        to: normalizedDestination,
+        templateName,
+        templateKey: "MANUAL_MESSAGE",
+        bodyParameters: [patient?.name || "Patient", text],
+        fallbackText: text,
+      });
+      const usedTemplate = Boolean(templateName && result.success);
       return {
         success: result.success,
         skipped: result.skipped,
