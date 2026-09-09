@@ -152,14 +152,20 @@ const buildTemplatePayload = ({
     });
   }
   if (buttonType && buttonParameters.length > 0) {
+    const normalizedButtonType = String(buttonType || "").toLowerCase();
+    const parameterType =
+      normalizedButtonType === "quick_reply" ? "payload" : "text";
+    const parameterKey = parameterType === "payload" ? "payload" : "text";
     components.push({
       type: "button",
-      sub_type: buttonType,
+      sub_type: normalizedButtonType || undefined,
       index: String(buttonIndex),
-      parameters: buttonParameters.map((text) => ({
-        type: "text",
-        text: String(text ?? ""),
-      })),
+      parameters: buttonParameters
+        .slice(0, 1)
+        .map((value) => ({
+          type: parameterType,
+          [parameterKey]: String(value ?? ""),
+        })),
     });
   }
   if (components.length > 0) {
@@ -475,6 +481,46 @@ const sendWhatsAppTemplateMessage = ({
     request.end();
   });
 
+const sendTemplateWithFallback = async ({
+  to,
+  templateName,
+  templateKey,
+  bodyParameters = [],
+  buttonParameters = [],
+  buttonType,
+  buttonIndex,
+  fallbackText,
+  invoiceId,
+  eventType,
+}) => {
+  if (templateName) {
+    const templateResult = await sendWhatsAppTemplateMessage({
+      to,
+      templateName,
+      templateKey,
+      bodyParameters,
+      buttonParameters,
+      buttonType,
+      buttonIndex,
+      displayText: fallbackText,
+      invoiceId,
+      eventType,
+    });
+    if (templateResult.success) {
+      return templateResult;
+    }
+    if (templateResult.skipped) {
+      const isBaseConfigMissing = String(templateResult.error || "")
+        .toLowerCase()
+        .includes("configuration is incomplete");
+      if (isBaseConfigMissing) {
+        return templateResult;
+      }
+    }
+  }
+  return await sendWhatsAppTextMessage({ to, text: fallbackText });
+};
+
 const sendWhatsAppTextMessage = ({ to, text }) =>
   new Promise((resolve) => {
     if (!hasWhatsAppBaseConfig()) {
@@ -726,13 +772,17 @@ const sendForgotPasswordOtpWhatsApp = async ({ phone, otp }) => {
     };
   }
 
+  const otpValue = otp || "-";
+  const configuredButtonType =
+    process.env.WHATSAPP_TEMPLATE_FORGOT_PASSWORD_OTP_BUTTON_TYPE;
   const templateResult = await sendWhatsAppTemplateMessage({
     to: normalizedPhone,
     templateName,
     templateKey: "FORGOT_PASSWORD_OTP",
-    bodyParameters: [otp || "-"],
-    buttonType: process.env.WHATSAPP_TEMPLATE_FORGOT_PASSWORD_OTP_BUTTON_TYPE,
+    bodyParameters: [otpValue],
+    buttonType: configuredButtonType,
     buttonIndex: process.env.WHATSAPP_TEMPLATE_FORGOT_PASSWORD_OTP_BUTTON_INDEX,
+    buttonParameters: configuredButtonType ? [otpValue] : [],
   });
   return { ...templateResult, phone: normalizedPhone };
 };
@@ -794,7 +844,7 @@ const sendInvoiceWhatsApp = async (
     const templateName =
       process.env.WHATSAPP_TEMPLATE_INVOICE ||
       process.env.WHATSAPP_TEMPLATE_INVOICE_SHARE;
-    results.template = await sendWhatsAppTemplateMessage({
+    results.template = await sendTemplateWithFallback({
       to: patientContact.phone,
       templateName,
       templateKey: "INVOICE",
@@ -806,7 +856,7 @@ const sendInvoiceWhatsApp = async (
         formatCurrencyINR(invoice.balance || 0),
         directPaymentLink || "-",
       ],
-      displayText: detailedMessage,
+      fallbackText: detailedMessage,
       invoiceId: invoice?._id || invoice?.id,
       eventType: `${eventType}_template`,
     });
@@ -869,18 +919,55 @@ You can pay using UPI, Card, or Net Banking.
 
 Regards,
 Team Creadent Dental Clinic`;
-  const textResult = await sendWhatsAppTextMessage({
-    to: patientContact.phone,
-    text: message,
-  });
+
+  const templateName = process.env.WHATSAPP_TEMPLATE_INVOICE_PAYMENT_LINK;
+  const results = {};
+  let finalResult;
+
+  if (templateName) {
+    const templateResult = await sendTemplateWithFallback({
+      to: patientContact.phone,
+      templateName,
+      templateKey: "INVOICE_PAYMENT_LINK",
+      bodyParameters: [
+        patientContact.name || "Patient",
+        invoice.invoiceNumber || "-",
+        formatCurrencyINR(invoice.balance || invoice.total || 0),
+        paymentLink,
+      ],
+      fallbackText: message,
+      invoiceId: invoice?._id || invoice?.id,
+      eventType: "invoice_payment_link",
+    });
+    results.template = templateResult;
+    finalResult = templateResult;
+  } else {
+    finalResult = {
+      success: false,
+      skipped: true,
+      error: "WHATSAPP_TEMPLATE_INVOICE_PAYMENT_LINK is not configured",
+    };
+    results.template = finalResult;
+  }
+
+  if (!templateName || (!finalResult.success && !finalResult.skipped)) {
+    const textResult = await sendWhatsAppTextMessage({
+      to: patientContact.phone,
+      text: message,
+    });
+    results.text = textResult;
+    if (!finalResult.success) {
+      finalResult = textResult;
+    }
+  }
 
   return {
-    ...textResult,
+    ...finalResult,
     phone: patientContact.phone,
     patient: patientContact,
     paymentLink,
     messagePreview: message,
-    results: { text: textResult },
+    results,
   };
 };
 
@@ -941,35 +1028,23 @@ const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
   });
   const templateName = process.env.WHATSAPP_TEMPLATE_PAYMENT_THANK_YOU;
   const results = {};
-  if (!templateName) {
-    return {
-      success: false,
-      skipped: true,
-      error:
-        "WHATSAPP_TEMPLATE_PAYMENT_THANK_YOU is not configured for review notifications",
-      phone: patientContact.phone,
-      patient: patientContact,
-      messagePreview: message,
-      results,
-    };
-  }
 
   const bodyParameters = [
     patientContact.name,
     invoice?.invoiceNumber || "-",
     formatCurrencyINR(invoice?.amountPaid || invoice?.total || 0),
   ];
-  const templateResult = await sendWhatsAppTemplateMessage({
+  const finalResult = await sendTemplateWithFallback({
     to: patientContact.phone,
     templateName,
     templateKey: "PAYMENT_THANK_YOU",
     bodyParameters,
-    displayText: message,
+    fallbackText: message,
   });
-  results.template = templateResult;
+  results.template = finalResult;
 
   return {
-    ...templateResult,
+    ...finalResult,
     phone: patientContact.phone,
     patient: patientContact,
     messagePreview: message,
@@ -988,16 +1063,9 @@ const sendLoginCredentialsWhatsApp = async (credentials) => {
     };
   }
 
-  if (!templateName) {
-    return {
-      success: false,
-      skipped: true,
-      error: "WhatsApp login credentials template is not configured",
-      phone: normalizedPhone,
-    };
-  }
-
-  const templateResult = await sendWhatsAppTemplateMessage({
+  const message = buildLoginCredentialsMessage(credentials);
+  const results = {};
+  const finalResult = await sendTemplateWithFallback({
     to: normalizedPhone,
     templateName,
     templateKey: "LOGIN_CREDENTIALS",
@@ -1007,12 +1075,15 @@ const sendLoginCredentialsWhatsApp = async (credentials) => {
       credentials.password || "-",
       `${FRONTEND_URL}/login`,
     ],
+    fallbackText: message,
   });
+  results.template = finalResult;
 
   return {
-    ...templateResult,
+    ...finalResult,
     phone: normalizedPhone,
-    results: { template: templateResult },
+    messagePreview: message,
+    results,
   };
 };
 
@@ -1067,38 +1138,24 @@ const sendPrescriptionWhatsApp = async (prescription, fileUrl = "") => {
     .join(", ");
   const message = buildPrescriptionMessage(prescription, patientContact, fileUrl);
   const results = {};
-  let finalResult;
-
-  if (templateName) {
-    const templateResult = await sendWhatsAppTemplateMessage({
-      to: patientContact.phone,
-      templateName,
-      templateKey: "PRESCRIPTION",
-      bodyParameters: [
-        patientContact.name,
-        prescription?.doctorName || "Doctor",
-        `RX-${String(prescription?._id || "PRESCRIPTION")
-          .slice(-8)
-          .toUpperCase()}`,
-        formatDateIN(prescription?.date),
-        prescription?.diagnosis || "Dental consultation",
-        medications || "See your patient portal",
-        fileUrl || `${FRONTEND_URL}/patient/prescriptions`,
-      ],
-      displayText: message,
-    });
-    results.template = templateResult;
-    finalResult = templateResult;
-  }
-
-  if (!templateName) {
-    finalResult = {
-      success: false,
-      skipped: true,
-      error: "WhatsApp prescription template is not configured",
-    };
-    results.template = finalResult;
-  }
+  const finalResult = await sendTemplateWithFallback({
+    to: patientContact.phone,
+    templateName,
+    templateKey: "PRESCRIPTION",
+    bodyParameters: [
+      patientContact.name,
+      prescription?.doctorName || "Doctor",
+      `RX-${String(prescription?._id || "PRESCRIPTION")
+        .slice(-8)
+        .toUpperCase()}`,
+      formatDateIN(prescription?.date),
+      prescription?.diagnosis || "Dental consultation",
+      medications || "See your patient portal",
+      fileUrl || `${FRONTEND_URL}/patient/prescriptions`,
+    ],
+    fallbackText: message,
+  });
+  results.template = finalResult;
 
   return {
     ...finalResult,
@@ -1117,6 +1174,7 @@ module.exports = {
   buildInvoiceMessage,
   buildLoginCredentialsMessage,
   buildPrescriptionMessage,
+  buildInvoicePaymentLink,
   sendInvoiceWhatsApp,
   sendInvoicePaymentLinkWhatsApp,
   sendWhatsAppDocumentMessage,
@@ -1127,6 +1185,7 @@ module.exports = {
   sendPrescriptionWhatsApp,
   sendWhatsAppTemplateMessage,
   sendWhatsAppTextMessage,
+  sendTemplateWithFallback,
   recordWhatsAppMessage,
   hasWhatsAppBaseConfig,
 };

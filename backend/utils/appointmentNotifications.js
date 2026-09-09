@@ -3,9 +3,7 @@ const Patient = require("../models/Patient");
 const User = require("../models/User");
 const {
   normalizePhoneNumber,
-  sendWhatsAppTemplateMessage,
-  sendWhatsAppTextMessage,
-  recordWhatsAppMessage,
+  sendTemplateWithFallback,
 } = require("./whatsappNotifications");
 
 const DEFAULT_POLL_INTERVAL_MS = Number(
@@ -268,28 +266,6 @@ ${appointmentType ? `🏷️ *Type:* ${appointmentType}\n` : ""}
 Regards,
 Creadent Dental Clinic Management`;
 
-const sendTemplateWithFallback = async ({
-  to,
-  templateName,
-  templateKey,
-  bodyParameters = [],
-  fallbackText,
-}) => {
-  if (templateName) {
-    const templateResult = await sendWhatsAppTemplateMessage({
-      to,
-      templateName,
-      templateKey,
-      bodyParameters,
-      displayText: fallbackText,
-    });
-    if (templateResult.success || templateResult.skipped) {
-      return templateResult;
-    }
-  }
-  return await sendWhatsAppTextMessage({ to, text: fallbackText });
-};
-
 const resolvePatientContact = async (appointment) => {
   const appointmentPatientId = toObjectIdString(appointment?.patientId);
   let patient =
@@ -479,14 +455,14 @@ const sendAppointmentRescheduleNotification = async (
   }
 
   if (!appointment.rescheduleDoctorNotificationSentAt && doctorContact.phone) {
-    const doctorParams =
-      doctorTemplateName === patientTemplateName
-        ? [doctorContact.name, ...commonParameters]
-        : [
-            doctorContact.name,
-            appointment?.patientName || "Patient",
-            ...commonParameters,
-          ];
+    const usesFallbackTemplate = doctorTemplateName === patientTemplateName;
+    const doctorParams = usesFallbackTemplate
+      ? [doctorContact.name, ...commonParameters]
+      : [
+          doctorContact.name,
+          appointment?.patientName || "Patient",
+          ...commonParameters,
+        ];
     const fallbackText = buildAppointmentRescheduledDoctorMessage(
       doctorContact,
       appointment?.patientName || patientContact.name,
@@ -498,7 +474,9 @@ const sendAppointmentRescheduleNotification = async (
     results.doctor = await sendTemplateWithFallback({
       to: doctorContact.phone,
       templateName: doctorTemplateName,
-      templateKey: "APPOINTMENT_RESCHEDULED_DOCTOR",
+      templateKey: usesFallbackTemplate
+        ? "APPOINTMENT_RESCHEDULED_PATIENT"
+        : "APPOINTMENT_RESCHEDULED_DOCTOR",
       bodyParameters: doctorParams,
       fallbackText,
     });
@@ -514,15 +492,15 @@ const sendAppointmentRescheduleNotification = async (
       employees
         .filter((employee) => normalizePhoneNumber(employee.phone))
         .map(async (employee) => {
-          const employeeParams =
-            employeeTemplateName === patientTemplateName
-              ? [employee.name || "Employee", ...commonParameters]
-              : [
-                  employee.name || "Employee",
-                  appointment?.patientName || patientContact.name,
-                  appointment?.doctorName || doctorContact.name,
-                  ...commonParameters,
-                ];
+          const usesFallbackTemplate = employeeTemplateName === patientTemplateName;
+          const employeeParams = usesFallbackTemplate
+            ? [employee.name || "Employee", ...commonParameters]
+            : [
+                employee.name || "Employee",
+                appointment?.patientName || patientContact.name,
+                appointment?.doctorName || doctorContact.name,
+                ...commonParameters,
+              ];
           const fallbackText = buildAppointmentRescheduledEmployeeMessage(
             employee.name || "Employee",
             appointment?.patientName || patientContact.name,
@@ -535,7 +513,9 @@ const sendAppointmentRescheduleNotification = async (
           const empResult = await sendTemplateWithFallback({
             to: normalizePhoneNumber(employee.phone),
             templateName: employeeTemplateName,
-            templateKey: "APPOINTMENT_RESCHEDULED_EMPLOYEE",
+            templateKey: usesFallbackTemplate
+              ? "APPOINTMENT_RESCHEDULED_PATIENT"
+              : "APPOINTMENT_RESCHEDULED_EMPLOYEE",
             bodyParameters: employeeParams,
             fallbackText,
           });
