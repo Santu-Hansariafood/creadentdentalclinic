@@ -61,7 +61,6 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           globPatterns: ["**/*.{js,css,ico,png,svg,json,woff2}"],
-          globIgnores: ["**/index.html"],
           cleanupOutdatedCaches: true,
           skipWaiting: true,
           clientsClaim: true,
