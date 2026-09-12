@@ -444,7 +444,7 @@ const resolvers = {
         ];
       }
       const appointments = await Appointment.find(query)
-        .sort({ date: 1, time: 1 })
+        .sort({ createdAt: -1, _id: -1 })
         .skip(skip)
         .limit(limit);
       const totalCount = await Appointment.countDocuments(query);

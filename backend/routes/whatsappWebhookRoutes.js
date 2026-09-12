@@ -117,10 +117,24 @@ router.post("/", async (req, res) => {
         const phone = message.from || "";
         const normalizedPhone = normalizePhone(phone);
         const patient = await Patient.findOne({
-          phone: { $in: [phone, normalizedPhone] },
+          $or: [
+            { phone },
+            { phone: normalizedPhone },
+            ...(normalizedPhone
+              ? [{ phone: { $regex: `${normalizedPhone}$` } }]
+              : []),
+          ],
         });
         const recipientUser = !patient
-          ? await User.findOne({ phone: { $in: [phone, normalizedPhone] } })
+          ? await User.findOne({
+              $or: [
+                { phone },
+                { phone: normalizedPhone },
+                ...(normalizedPhone
+                  ? [{ phone: { $regex: `${normalizedPhone}$` } }]
+                  : []),
+              ],
+            })
           : null;
         const text =
           message.text?.body ||
