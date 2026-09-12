@@ -148,9 +148,7 @@ const extractUploadedFile = (data) => {
     data.data?.upload,
     data.result,
     data.result?.file,
-    data.result?.fileEntry,
-    data.result?.upload,
-    ...(Array.isArray(data.attachments) ? data.attachments : []),
+    url,
     ...(Array.isArray(data.data?.attachments) ? data.data.attachments : []),
   ];
   return candidates.find(
@@ -331,8 +329,12 @@ const uploadFile = async ({
     buffer,
     destination,
   );
-  const url = metadata.url;
   const fileEntryId = metadata.id;
+  const url =
+    metadata.url ||
+    (fileEntryId
+      ? `${SPACEBYTE.ENDPOINT}/file-entries/${encodeURIComponent(fileEntryId)}`
+      : null);
 
   if (requirePublicUrl && (!url || !/^https:\/\//i.test(url))) {
     throw new Error("SpaceByte upload completed but no public HTTPS URL was returned");
