@@ -8,6 +8,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   Trash2,
+  Bell,
+  Loader2,
 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import {
@@ -22,6 +24,7 @@ const AppointmentCard = ({
   onAction,
   showPatient = false,
   canDelete = false,
+  sendingReminderId,
 }) => {
   const statusColors = {
     Scheduled: "border-primary bg-primary/5",
@@ -42,6 +45,7 @@ const AppointmentCard = ({
   const isDone = appointment.status === "Completed";
   const isCancelled = appointment.status === "Cancelled";
   const missed = past && !isDone && !isCancelled;
+  const isSendingReminder = sendingReminderId === appointment.id;
 
   return (
     <motion.div
@@ -172,6 +176,19 @@ const AppointmentCard = ({
 
       {onAction && appointment.status === "Scheduled" && (
         <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            onClick={() => onAction("sendReminder", appointment)}
+            disabled={isSendingReminder}
+            className="btn-outline flex-1 text-sm py-2 min-w-[120px] btn-blue"
+            title="Send appointment reminder via WhatsApp"
+          >
+            {isSendingReminder ? (
+              <Loader2 size={16} className="inline mr-1 animate-spin" />
+            ) : (
+              <Bell size={16} className="inline mr-1" />
+            )}
+            {isSendingReminder ? "Sending..." : "Reminder"}
+          </button>
           {today || past
             ? !isDone && (
                 <button
@@ -210,6 +227,19 @@ const AppointmentCard = ({
 
       {onAction && missed && !isDone && !isCancelled && (
         <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            onClick={() => onAction("sendReminder", appointment)}
+            disabled={isSendingReminder}
+            className="btn-outline flex-1 text-sm py-2 min-w-[120px]"
+            title="Send follow-up/reminder via WhatsApp"
+          >
+            {isSendingReminder ? (
+              <Loader2 size={16} className="inline mr-1 animate-spin" />
+            ) : (
+              <Bell size={16} className="inline mr-1" />
+            )}
+            {isSendingReminder ? "Sending..." : "Remind"}
+          </button>
           <button
             onClick={() => onAction("complete", appointment)}
             className="btn-success flex-1 text-sm py-2"

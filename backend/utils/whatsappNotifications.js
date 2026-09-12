@@ -613,9 +613,11 @@ const resolvePatientContact = async (patientIdOrObject) => {
 
   if (typeof patientIdOrObject === "object" && patientIdOrObject !== null) {
     patient = patientIdOrObject;
-    if (patient.userId) {
-      user = await User.findById(patient.userId);
+    const patientId = toObjectIdString(patient.patientId || patient._id || patient.id);
+    if (patientId) {
+      patient = (await Patient.findById(patientId)) || patient;
     }
+    if (patient.userId) user = await User.findById(patient.userId);
   } else {
     const patientId = toObjectIdString(patientIdOrObject);
     patient = patientId
@@ -882,8 +884,8 @@ const sendInvoiceWhatsApp = async (
 
   return {
     success:
-      Boolean(results.document?.success) &&
-      (!sendTemplate || Boolean(results.template?.success)),
+      Boolean(results.document?.success) ||
+      (!invoicePdfUrl && Boolean(results.template?.success)),
     skipped:
       Boolean(results.template?.skipped && (!results.document || results.document.skipped)),
     phone: patientContact.phone,

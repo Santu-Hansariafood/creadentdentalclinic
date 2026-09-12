@@ -185,6 +185,21 @@ export const DELETE_APPOINTMENT = gql`
   }
 `;
 
+export const SEND_APPOINTMENT_REMINDER = gql`
+  mutation SendAppointmentReminder($id: ID!, $reminderType: String) {
+    sendAppointmentReminder(id: $id, reminderType: $reminderType) {
+      success
+      skipped
+      message
+      phone
+      patientName
+      error
+      messagePreview
+      whenText
+    }
+  }
+`;
+
 export const CREATE_PRESCRIPTION = gql`
   mutation CreatePrescription(
     $patientId: ID!
@@ -697,6 +712,8 @@ export const SEND_INVOICE_WHATSAPP = gql`
       patientName
       error
       messagePreview
+      fileUrl
+      whenText
     }
   }
 `;

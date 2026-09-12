@@ -129,24 +129,31 @@ const forgotPassword = async (req, res) => {
   }
   await user.save();
 
+  let whatsappDeliveryError = null;
   try {
     const whatsappResult = await sendForgotPasswordOtpWhatsApp({
       phone: normalizedPhone,
       otp,
     });
-    if (!whatsappResult.success) {
-      res.status(502).json({
-        message: whatsappResult.error || "Could not send the password reset OTP on WhatsApp",
-      });
-      return;
+    if (!whatsappResult.success && !whatsappResult.skipped) {
+      whatsappDeliveryError =
+        whatsappResult.error || "WhatsApp OTP delivery encountered an issue";
     }
   } catch (error) {
     console.warn("Forgot password OTP WhatsApp send failed:", error.message);
-    res.status(502).json({ message: "Could not send the password reset OTP on WhatsApp" });
-    return;
+    whatsappDeliveryError = error.message || "WhatsApp send failed";
+  }
+  if (whatsappDeliveryError) {
+    console.warn(
+      "[auth/forgotPassword] OTP generated but WhatsApp delivery had an issue:",
+      whatsappDeliveryError,
+    );
   }
 
-  res.json({ success: true });
+  res.json({
+    success: true,
+    whatsappWarning: whatsappDeliveryError || undefined,
+  });
 };
 
 const resetPassword = async (req, res) => {

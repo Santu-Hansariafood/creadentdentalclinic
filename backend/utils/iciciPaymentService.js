@@ -391,13 +391,18 @@ const initiateSale = async ({
       "";
     const tranCtx = responseData.tranCtx || nestedResponse.tranCtx || "";
     const normalizedRedirectURI = buildICICIRedirectUrl(redirectURI, tranCtx);
+    const showOTPCapturePage =
+      responseData.showOTPCapturePage || nestedResponse.showOTPCapturePage || "N";
+    const otpCaptureEnabled = ["Y", "TRUE", "1"].includes(
+      String(showOTPCapturePage).toUpperCase(),
+    );
     const otpFlowAvailable =
-      responseData.showOTPCapturePage === "Y" || payload.payType === "1";
+      otpCaptureEnabled || payload.payType === "1";
     const responseCode = String(
       responseData.responseCode || nestedResponse.responseCode || "",
     );
     const responseIndicatesFailure =
-      responseCode !== "R1000" ||
+      !isSuccessfulICICIResponse(responseCode) ||
       ["REJ", "ERR", "FAILED", "FAIL"].includes(
         String(
           responseData.txnStatus || nestedResponse.txnStatus || "",
@@ -421,7 +426,7 @@ const initiateSale = async ({
     transaction.pgTxnNo = responseData.pgTxnNo || nestedResponse.pgTxnNo || "";
     transaction.redirectURI = normalizedRedirectURI;
     transaction.tranCtx = tranCtx;
-    transaction.showOTPCapturePage = responseData.showOTPCapturePage || "N";
+    transaction.showOTPCapturePage = showOTPCapturePage;
     transaction.rawResponse = responseData;
     await transaction.save();
 
@@ -459,9 +464,9 @@ const initiateSale = async ({
       merchantTxnNo: transaction.merchantTxnNo,
       redirectURI: normalizedRedirectURI,
       tranCtx,
-      pgTxnNo: responseData.pgTxnNo,
+      pgTxnNo: responseData.pgTxnNo || nestedResponse.pgTxnNo || "",
       txnStatus: responseData.txnStatus || "REQ",
-      showOTPCapturePage: responseData.showOTPCapturePage || "N",
+      showOTPCapturePage,
       apiSuccess: true,
       apiError: null,
     };

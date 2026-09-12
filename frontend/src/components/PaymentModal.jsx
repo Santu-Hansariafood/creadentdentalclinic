@@ -33,7 +33,7 @@ const PaymentForm = ({
   const [paymentMethod, setPaymentMethod] = useState(
     isPatientSelfServe ? "ICICI Bank" : "ICICI Bank",
   );
-  const [showICICIPayment, setShowICICIPayment] = useState(true);
+  const [showICICIPayment, setShowICICIPayment] = useState(isPatientSelfServe);
   const [recordInvoicePayment] = useMutation(RECORD_INVOICE_PAYMENT);
 
   if (showICICIPayment && paymentMethod === "ICICI Bank") {

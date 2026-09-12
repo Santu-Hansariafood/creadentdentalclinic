@@ -128,8 +128,10 @@ const ICICIPayment = ({
         return;
       }
 
-      const otpFlowAvailable =
-        payType === "1" || result.showOTPCapturePage === "Y";
+      const otpCaptureEnabled = ["Y", "TRUE", "1"].includes(
+        String(result.showOTPCapturePage || "").toUpperCase(),
+      );
+      const otpFlowAvailable = payType === "1" || otpCaptureEnabled;
 
       if (!result.redirectURI && !otpFlowAvailable) {
         const errorMsg =
@@ -147,7 +149,7 @@ const ICICIPayment = ({
       const shouldAutoRedirect =
         payType === "0" &&
         result.redirectURI &&
-        (result.showOTPCapturePage === "N" || !result.showOTPCapturePage);
+        !otpCaptureEnabled;
 
       if (shouldAutoRedirect) {
         setProcessing(false);

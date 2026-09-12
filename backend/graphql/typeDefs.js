@@ -331,6 +331,7 @@ input UpdateMedicineInput {
     error: String
     messagePreview: String
     fileUrl: String
+    whenText: String
   }
 
   type WhatsAppMessage {
@@ -682,6 +683,11 @@ input UpdateMedicineInput {
     ): Appointment
 
     deleteAppointment(id: ID!): Boolean
+
+    sendAppointmentReminder(
+      id: ID!
+      reminderType: String
+    ): WhatsAppSendResult!
 
     createMedicalRecord(
       patientId: ID!,

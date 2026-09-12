@@ -24,6 +24,7 @@ import {
   CREATE_APPOINTMENT,
   UPDATE_APPOINTMENT,
   DELETE_APPOINTMENT,
+  SEND_APPOINTMENT_REMINDER,
 } from "../graphql/mutations";
 import Preloader from "../components/Preloader";
 import Pagination from "../components/Pagination";
@@ -122,9 +123,13 @@ const Appointments = () => {
   const [deleteAppointment] = useMutation(DELETE_APPOINTMENT, {
     refetchQueries: [{ query: GET_APPOINTMENTS }],
   });
+  const [sendAppointmentReminder, { loading: sendingReminder }] = useMutation(
+    SEND_APPOINTMENT_REMINDER,
+  );
 
   const [reschedulingAppointment, setReschedulingAppointment] = useState(null);
   const [rescheduleData, setRescheduleData] = useState({ date: "", time: "" });
+  const [sendingReminderId, setSendingReminderId] = useState(null);
 
   if (loadingApts && !dataApts) return <Preloader />;
   if (errorApts)
@@ -270,6 +275,39 @@ const Appointments = () => {
         toast.success("Appointment marked as Done!");
       } catch (err) {
         toast.error(`Failed to mark done: ${err.message}`);
+      }
+    } else if (action === "sendReminder") {
+      if (!appointment.id) {
+        toast.error("Invalid appointment ID");
+        return;
+      }
+      setSendingReminderId(appointment.id);
+      try {
+        const { data } = await sendAppointmentReminder({
+          variables: {
+            id: appointment.id,
+            reminderType: "manual",
+          },
+        });
+        const result = data?.sendAppointmentReminder;
+        if (result?.success) {
+          toast.success(
+            result.skipped
+              ? "Reminder ready (WhatsApp not configured on server)"
+              : `Reminder sent to ${appointment.patientName || "patient"} on WhatsApp`,
+          );
+        } else if (result?.skipped) {
+          toast(
+            "WhatsApp not configured on server. Reminder prepared but not delivered.",
+            { icon: "ℹ️" },
+          );
+        } else {
+          toast.error(result?.error || "Failed to send reminder");
+        }
+      } catch (err) {
+        toast.error(err.message || "Failed to send reminder");
+      } finally {
+        setSendingReminderId(null);
       }
     }
   };
@@ -612,8 +650,7 @@ const Appointments = () => {
                   onAction={handleAppointmentAction}
                   canDelete={user.role === "admin"}
                   showPatient={user.role !== "patient"}
-                  onAction={handleAppointmentAction}
-                  canDelete={user.role === "admin"}
+                  sendingReminderId={sendingReminderId}
                 />
               ))}
             </div>
@@ -675,8 +712,7 @@ const Appointments = () => {
                   onAction={handleAppointmentAction}
                   canDelete={user.role === "admin"}
                   showPatient={user.role !== "patient"}
-                  onAction={handleAppointmentAction}
-                  canDelete={user.role === "admin"}
+                  sendingReminderId={sendingReminderId}
                 />
               ))}
             </div>

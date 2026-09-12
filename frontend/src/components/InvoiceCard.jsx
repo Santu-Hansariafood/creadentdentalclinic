@@ -8,6 +8,8 @@ import {
   RefreshCw,
   Pencil,
   Trash2,
+  MessageCircle,
+  Loader2,
 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import { formatDate } from "../utils/dateUtils";
@@ -22,9 +24,12 @@ const InvoiceCard = ({
   onPay,
   onEdit,
   onDelete,
+  onSendWhatsApp,
+  sendingWhatsAppId,
 }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin" || user?.role === "employee";
+  const isSendingWA = sendingWhatsAppId === invoice.id;
   const formatCurrency = (amount = 0) => `₹${Number(amount || 0).toFixed(2)}`;
 
   const statusColors = {
@@ -191,6 +196,22 @@ const InvoiceCard = ({
       )}
 
       <div className="flex gap-2 flex-wrap">
+        {onSendWhatsApp && (
+          <button
+            onClick={() => onSendWhatsApp(invoice)}
+            disabled={isSendingWA}
+            className="btn-outline btn-green flex-1 min-w-[150px]"
+            title="Send invoice via WhatsApp"
+          >
+            {isSendingWA ? (
+              <Loader2 size={18} className="inline mr-2 animate-spin" />
+            ) : (
+              <MessageCircle size={18} className="inline mr-2" />
+            )}
+            {isSendingWA ? "Sending..." : "WhatsApp"}
+          </button>
+        )}
+
         {invoice.balance > 0 && onPay && (
           <button
             onClick={() => onPay(invoice)}

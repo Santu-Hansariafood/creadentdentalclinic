@@ -16,6 +16,7 @@ const storageService = require("../utils/storageService");
 const {
   sendAppointmentBookingNotifications,
   sendAppointmentRescheduleNotification,
+  sendManualAppointmentReminder,
 } = require("../utils/appointmentNotifications");
 const { sendPrescriptionEmail } = require("../utils/emailService");
 const {
@@ -1149,6 +1150,7 @@ const resolvers = {
       user.passwordResetRequestCount = (user.passwordResetRequestCount || 0) + 1;
       await user.save();
 
+      let whatsappDeliveryError = null;
       try {
         const phoneNumber = normalizePhoneNumber(user.phone);
         if (phoneNumber) {
@@ -1156,10 +1158,9 @@ const resolvers = {
             phone: phoneNumber,
             otp,
           });
-          if (!whatsappResult.success) {
-            throw new Error(
-              whatsappResult.error || "WhatsApp OTP could not be delivered",
-            );
+          if (!whatsappResult.success && !whatsappResult.skipped) {
+            whatsappDeliveryError =
+              whatsappResult.error || "WhatsApp OTP delivery encountered an issue";
           }
         }
       } catch (error) {
@@ -1167,7 +1168,13 @@ const resolvers = {
           "Forgot password OTP WhatsApp send failed:",
           error.message,
         );
-        throw new Error("Could not send the password reset OTP on WhatsApp");
+        whatsappDeliveryError = error.message || "WhatsApp send failed";
+      }
+      if (whatsappDeliveryError) {
+        console.warn(
+          "[forgotPassword] OTP generated but WhatsApp delivery had an issue:",
+          whatsappDeliveryError,
+        );
       }
 
       return true;
@@ -1400,6 +1407,65 @@ const resolvers = {
       }
       const appointment = await Appointment.findByIdAndDelete(id);
       return Boolean(appointment);
+    },
+    sendAppointmentReminder: async (_, { id, reminderType }, { user }) => {
+      if (!user) {
+        return {
+          success: false,
+          message: "Not authenticated",
+          error: "Not authenticated",
+        };
+      }
+      if (!["admin", "employee", "doctor"].includes(user.role)) {
+        return {
+          success: false,
+          message: "Unauthorized: Staff access required to send reminders",
+          error: "Unauthorized",
+        };
+      }
+      const appointment = await Appointment.findById(id);
+      if (!appointment) {
+        return {
+          success: false,
+          message: "Appointment not found",
+          error: "Appointment not found",
+        };
+      }
+      if (user.role === "doctor" && appointment.doctorId?.toString() !== user._id.toString()) {
+        return {
+          success: false,
+          message: "Unauthorized: Doctor can only send reminders for own appointments",
+          error: "Unauthorized",
+        };
+      }
+      try {
+        const result = await sendManualAppointmentReminder(appointment, {
+          reminderType: reminderType || "manual",
+        });
+        return {
+          success: result.success,
+          skipped: result.skipped,
+          message: result.success
+            ? "Appointment reminder sent via WhatsApp successfully"
+            : result.skipped
+              ? "WhatsApp not configured - reminder prepared but not sent"
+              : "Failed to send WhatsApp reminder",
+          phone: result.phone || "",
+          patientName: result.patientName || "",
+          error:
+            result.errors?.length > 0
+              ? result.errors.join(" | ")
+              : result.error || null,
+          messagePreview: result.messagePreview || "",
+          whenText: result.whenText || "",
+        };
+      } catch (err) {
+        return {
+          success: false,
+          message: "Error sending appointment reminder",
+          error: err?.message || String(err),
+        };
+      }
     },
     createMedicalRecord: async (_, args) => {
       const record = new MedicalRecord(args);
@@ -1700,7 +1766,39 @@ const resolvers = {
       }
 
       try {
-        const result = await sendInvoiceWhatsApp(invoice, patientId);
+        let directPaymentLink = "";
+        if (Number(invoice.balance || 0) > 0) {
+          try {
+            const resolvedPatientId = patientId || invoice.patientId;
+            const paymentInitiation = await initiateSale({
+              invoiceId: invoice._id,
+              patientId: resolvedPatientId,
+              amount: invoice.balance,
+              payType: "0",
+            });
+            if (paymentInitiation.apiSuccess && paymentInitiation.redirectURI) {
+              directPaymentLink = paymentInitiation.redirectURI;
+            }
+          } catch (paymentErr) {
+            console.warn(
+              "[sendInvoiceWhatsApp] Direct ICICI payment-link creation failed; using billing link:",
+              paymentErr.message,
+            );
+          }
+        }
+
+        const result = await sendInvoiceWhatsApp(
+          invoice,
+          patientId || invoice.patientId,
+          directPaymentLink,
+          { eventType: "manual_invoice_share", sendTemplate: true },
+        );
+        if (result.success || result.skipped) {
+          await Invoice.updateOne(
+            { _id: invoice._id },
+            { $set: { paymentLinkSentAt: new Date() } },
+          ).catch(() => {});
+        }
         return {
           success: result.success,
           skipped: result.skipped,

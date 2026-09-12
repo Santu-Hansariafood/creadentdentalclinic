@@ -32,6 +32,7 @@ import {
   DELETE_INVOICE,
   SEND_LOGIN_CREDENTIALS_WHATSAPP,
   RECORD_INVOICE_PAYMENT,
+  SEND_INVOICE_WHATSAPP,
 } from "../graphql/mutations";
 import { generateInvoicePDF } from "../utils/pdfGenerator";
 import Preloader from "../components/Preloader";
@@ -99,6 +100,9 @@ const Billing = () => {
   });
   const [sendLoginCredentialsWhatsApp] = useMutation(
     SEND_LOGIN_CREDENTIALS_WHATSAPP,
+  );
+  const [sendInvoiceWhatsApp, { loading: sendingInvoiceWA }] = useMutation(
+    SEND_INVOICE_WHATSAPP,
   );
 
   const [showEditInvoice, setShowEditInvoice] = useState(false);
@@ -605,6 +609,54 @@ const Billing = () => {
       setInvoiceToDelete(null);
     } catch (err) {
       toast.error(err.message || "Failed to delete invoice");
+    }
+  };
+
+  const handleSendInvoiceWhatsApp = async (invoice) => {
+    if (!invoice) return;
+    setSendingWhatsApp(invoice.id);
+    try {
+      const { data } = await sendInvoiceWhatsApp({
+        variables: {
+          invoiceId: invoice.id,
+          patientId: invoice.patientId,
+        },
+      });
+      const result = data?.sendInvoiceWhatsApp;
+      if (result?.success) {
+        toast.success(
+          result.skipped
+            ? "Invoice message ready (WhatsApp not configured on server)"
+            : `Invoice ${invoice.invoiceNumber} sent via WhatsApp`,
+        );
+        if (result.messagePreview) {
+          setWhatsAppPreviewData({
+            title: `Invoice WhatsApp Message - ${invoice.invoiceNumber}`,
+            message: result.messagePreview,
+            phone: result.phone,
+            fileUrl: result.fileUrl,
+          });
+          setShowWhatsAppPreview(true);
+        }
+      } else if (result?.skipped) {
+        setWhatsAppPreviewData({
+          title: "Invoice WhatsApp Message (Preview - Not Sent)",
+          message: result.messagePreview || "Message content",
+          phone: result.phone,
+          fileUrl: result.fileUrl,
+          note: "WhatsApp not configured on server. Configure WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID.",
+        });
+        setShowWhatsAppPreview(true);
+        toast("WhatsApp not configured on server. Preview available instead.", {
+          icon: "ℹ️",
+        });
+      } else {
+        toast.error(result?.error || "Failed to send invoice WhatsApp");
+      }
+    } catch (err) {
+      toast.error(err.message || "Failed to send invoice WhatsApp");
+    } finally {
+      setSendingWhatsApp(null);
     }
   };
 
@@ -1411,6 +1463,10 @@ const Billing = () => {
                     onDelete={
                       user?.role === "admin" ? handleDeleteInvoice : undefined
                     }
+                    onSendWhatsApp={
+                      user?.role !== "doctor" ? handleSendInvoiceWhatsApp : undefined
+                    }
+                    sendingWhatsAppId={sendingWhatsApp}
                   />
                 </div>
               ))

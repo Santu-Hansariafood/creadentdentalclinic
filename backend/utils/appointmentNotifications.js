@@ -1,9 +1,11 @@
 const Appointment = require("../models/Appointment");
 const Patient = require("../models/Patient");
 const User = require("../models/User");
+const Invoice = require("../models/Invoice");
 const {
   normalizePhoneNumber,
   sendTemplateWithFallback,
+  sendInvoiceWhatsApp,
 } = require("./whatsappNotifications");
 
 const DEFAULT_POLL_INTERVAL_MS = Number(
@@ -807,9 +809,160 @@ const startAppointmentReminderScheduler = () => {
   }, DEFAULT_POLL_INTERVAL_MS);
 };
 
+const sendManualAppointmentReminder = async (appointment, { reminderType = "manual" } = {}) => {
+  const patientTemplate =
+    process.env.WHATSAPP_TEMPLATE_APPOINTMENT_REMINDER_PATIENT;
+  const doctorTemplate =
+    process.env.WHATSAPP_TEMPLATE_APPOINTMENT_REMINDER_DOCTOR;
+
+  const appointmentId = appointment?._id || appointment?.id;
+  if (!appointmentId) {
+    return { success: false, skipped: false, error: "Appointment id is required" };
+  }
+  if (appointment.status !== "Scheduled") {
+    return {
+      success: false,
+      skipped: true,
+      error: "Reminder can only be sent for Scheduled appointments",
+    };
+  }
+
+  const { appointmentDate, appointmentTime } =
+    formatAppointmentDateTimeParts(appointment);
+  const [patientContact, doctorContact] = await Promise.all([
+    resolvePatientContact(appointment),
+    resolveDoctorContact(appointment),
+  ]);
+
+  const whenText = (() => {
+    if (reminderType === "tomorrow") return "tomorrow";
+    if (reminderType === "6hours") return "in 6 hours";
+    if (reminderType === "1hour") return "in 1 hour";
+    return "shortly";
+  })();
+
+  const updates = {};
+  const errors = [];
+  const results = {
+    patient: { success: false, skipped: true, error: "Not sent" },
+    doctor: { success: false, skipped: true, error: "Not sent" },
+  };
+
+  if (patientContact.phone) {
+    const fallbackText = buildAppointmentReminderPatientMessage(
+      patientContact,
+      appointment?.doctorName || doctorContact.name,
+      appointmentDate,
+      appointmentTime,
+      whenText,
+    );
+    const patientResult = await sendTemplateWithFallback({
+      to: patientContact.phone,
+      templateName: patientTemplate,
+      templateKey: "APPOINTMENT_REMINDER_PATIENT",
+      bodyParameters: [
+        patientContact.name,
+        appointment?.doctorName || doctorContact.name,
+        appointmentDate,
+        appointmentTime,
+        whenText,
+      ],
+      fallbackText,
+    });
+    results.patient = patientResult;
+    if (patientResult.success) {
+      updates.reminderOneDaySentAt = new Date();
+    } else {
+      errors.push(`Patient reminder failed: ${patientResult.error || "not sent"}`);
+    }
+
+    const outstandingInvoice = await Invoice.findOne({
+      patientId: appointment.patientId,
+      balance: { $gt: 0 },
+    }).sort({ date: -1, createdAt: -1 });
+
+    if (outstandingInvoice) {
+      const invoiceResult = await sendInvoiceWhatsApp(
+        outstandingInvoice,
+        appointment.patientId,
+        "",
+        { eventType: "appointment_reminder_invoice", sendTemplate: false },
+      );
+      results.invoice = invoiceResult;
+      if (!invoiceResult.success) {
+        errors.push(
+          `Invoice bill failed: ${invoiceResult.errors?.join(" | ") || invoiceResult.error || "not sent"}`,
+        );
+      }
+    }
+  } else {
+    errors.push("Patient phone number not found");
+  }
+
+  if (doctorContact.phone) {
+    const fallbackText = buildAppointmentReminderDoctorMessage(
+      doctorContact,
+      appointment?.patientName || patientContact.name,
+      appointmentDate,
+      appointmentTime,
+      whenText,
+    );
+    const doctorResult = await sendTemplateWithFallback({
+      to: doctorContact.phone,
+      templateName: doctorTemplate,
+      templateKey: "APPOINTMENT_REMINDER_DOCTOR",
+      bodyParameters: [
+        doctorContact.name,
+        appointment?.patientName || patientContact.name,
+        appointmentDate,
+        appointmentTime,
+        whenText,
+      ],
+      fallbackText,
+    });
+    results.doctor = doctorResult;
+    if (doctorResult.success) {
+      updates.reminderDoctorOneDaySentAt = new Date();
+    } else {
+      errors.push(`Doctor reminder failed: ${doctorResult.error || "not sent"}`);
+    }
+  }
+
+  if (Object.keys(updates).length > 0 || errors.length > 0) {
+    await updateNotificationState(appointmentId, updates, errors);
+  }
+
+  const patientMessagePreview = buildAppointmentReminderPatientMessage(
+    patientContact,
+    appointment?.doctorName || doctorContact.name,
+    appointmentDate,
+    appointmentTime,
+    whenText,
+  );
+
+  return {
+    success:
+      (results.patient.success || results.doctor.success) &&
+      (!results.invoice || results.invoice.success),
+    skipped:
+      results.patient.skipped &&
+      results.doctor.skipped &&
+      (!results.invoice || results.invoice.skipped),
+    phone: patientContact.phone,
+    patientName: patientContact.name,
+    doctorName: doctorContact.name,
+    whenText,
+    results,
+    errors,
+    error: errors.length ? errors.join(" | ") : null,
+    messagePreview: patientMessagePreview,
+  };
+};
+
 module.exports = {
   processAppointmentReminders,
   sendAppointmentBookingNotifications,
   sendAppointmentRescheduleNotification,
   startAppointmentReminderScheduler,
+  sendManualAppointmentReminder,
 };
