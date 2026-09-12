@@ -25,6 +25,11 @@ const appointmentSchema = new mongoose.Schema(
     },
     reason: { type: String },
     notes: { type: String },
+    patientResponse: {
+      type: String,
+      enum: ["confirmed", "reschedule_requested"],
+    },
+    patientResponseAt: { type: Date },
     bookingPatientNotificationSentAt: { type: Date },
     bookingDoctorNotificationSentAt: { type: Date },
     reschedulePatientNotificationSentAt: { type: Date },

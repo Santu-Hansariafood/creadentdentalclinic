@@ -72,6 +72,8 @@ export const GET_APPOINTMENTS = gql`
         status
         reason
         notes
+        patientResponse
+        patientResponseAt
         lastNotificationError
       }
       totalCount

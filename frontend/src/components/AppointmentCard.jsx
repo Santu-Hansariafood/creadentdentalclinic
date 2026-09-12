@@ -174,6 +174,20 @@ const AppointmentCard = ({
         </div>
       )}
 
+      {appointment.patientResponse && (
+        <div
+          className={`mt-4 rounded-lg border px-3 py-2 text-sm font-medium ${
+            appointment.patientResponse === "confirmed"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+              : "border-amber-200 bg-amber-50 text-amber-700"
+          }`}
+        >
+          {appointment.patientResponse === "confirmed"
+            ? "Confirmed by patient"
+            : "Reschedule requested by patient"}
+        </div>
+      )}
+
       {onAction && appointment.status === "Scheduled" && (
         <div className="mt-4 flex flex-wrap gap-2">
           <button

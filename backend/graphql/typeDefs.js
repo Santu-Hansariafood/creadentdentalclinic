@@ -48,6 +48,8 @@ input UpdateMedicineInput {
     status: String
     reason: String
     notes: String
+    patientResponse: String
+    patientResponseAt: String
     lastNotificationError: String
   }
 
