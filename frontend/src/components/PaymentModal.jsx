@@ -25,7 +25,8 @@ const PaymentForm = ({
 }) => {
   const { user } = useAuth();
   const isPatientSelfServe = user?.role === "patient";
-  const canRecordCashPayment = user?.role === "admin";
+  const canRecordCashPayment =
+    user?.role === "admin" || user?.role === "employee";
 
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);

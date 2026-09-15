@@ -10,6 +10,8 @@ import {
   Trash2,
   MessageCircle,
   Loader2,
+  Banknote,
+  Wallet,
 } from "lucide-react";
 import { fadeIn } from "../utils/motion";
 import { formatDate } from "../utils/dateUtils";
@@ -80,7 +82,11 @@ const InvoiceCard = ({
         </div>
         {invoice.paymentMethod && (
           <div className="flex items-center gap-2 text-sm text-gray-600">
-            <CreditCard size={16} />
+            {invoice.paymentMethod.toLowerCase() === "cash" ? (
+              <Banknote size={16} className="text-emerald-600" />
+            ) : (
+              <CreditCard size={16} />
+            )}
             <span>
               {invoice.paymentMethod}
               {invoice.cardLast4 && ` •••• ${invoice.cardLast4}`}

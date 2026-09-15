@@ -1588,6 +1588,9 @@ const resolvers = {
         throw new Error("Invoice not found");
       }
 
+      const isCashPayment =
+        paymentMethod && paymentMethod.toLowerCase() === "cash";
+
       if (user.role === "patient") {
         const patient = await Patient.findOne({ userId: user._id });
         if (
@@ -1596,15 +1599,17 @@ const resolvers = {
         ) {
           throw new Error("Unauthorized: You can only pay your own invoices");
         }
-        if (
-          paymentMethod &&
-          paymentMethod.toLowerCase() === "cash" &&
-          user.role !== "admin"
-        ) {
+        if (isCashPayment) {
           throw new Error(
-            "Unauthorized: Cash payments must be recorded by an administrator. Use ICICI Bank payment gateway to pay online.",
+            "Unauthorized: Cash payments must be recorded by clinic staff. Use ICICI Bank payment gateway to pay online.",
           );
         }
+      }
+
+      if (isCashPayment && !["admin", "employee"].includes(user.role)) {
+        throw new Error(
+          "Unauthorized: Only administrators and employees can record cash payments.",
+        );
       }
 
       const paymentAmount = Number(amount);
