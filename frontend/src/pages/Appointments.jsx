@@ -36,29 +36,30 @@ import {
   isAppointmentUpcoming,
 } from "../utils/dateUtils";
 
-const appointmentSlots = [
-  { time: "09:00 AM", available: true },
-  { time: "09:30 AM", available: true },
-  { time: "10:00 AM", available: true },
-  { time: "10:30 AM", available: true },
-  { time: "11:00 AM", available: true },
-  { time: "11:30 AM", available: true },
-  { time: "02:00 PM", available: true },
-  { time: "02:30 PM", available: true },
-  { time: "03:00 PM", available: true },
-  { time: "03:30 PM", available: true },
-  { time: "04:00 PM", available: true },
-  { time: "04:30 PM", available: true },
-  { time: "05:00 PM", available: true },
-  { time: "05:30 PM", available: true },
-  { time: "06:00 PM", available: true },
-  { time: "6:30 PM", available: true },
-  { time: "7:00 PM", available: true },
-  { time: "7:30 PM", available: true },
-  { time: "8:00 PM", available: true },
-  { time: "8:30 PM", available: true },
-  { time: "9:00 PM", available: true },
+const HOUR_OPTIONS = [
+  "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12",
 ];
+const MINUTE_OPTIONS = [
+  "00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55",
+];
+const PERIOD_OPTIONS = ["AM", "PM"];
+
+const parseTimeToParts = (timeStr) => {
+  if (!timeStr) return { hour: "", minute: "", period: "" };
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return { hour: "", minute: "", period: "" };
+  const [, h, m, p] = match;
+  return {
+    hour: h.padStart(2, "0"),
+    minute: m,
+    period: p.toUpperCase(),
+  };
+};
+
+const combineTimeParts = (hour, minute, period) => {
+  if (!hour || !minute || !period) return "";
+  return `${hour}:${minute} ${period}`;
+};
 
 const GROUP_TABS = [
   { value: "all", label: "All Appointments" },
@@ -80,6 +81,9 @@ const Appointments = () => {
     doctorId: "",
     date: "",
     time: "",
+    timeHour: "",
+    timeMinute: "",
+    timePeriod: "",
     type: "",
     reason: "",
   });
@@ -132,7 +136,13 @@ const Appointments = () => {
   );
 
   const [reschedulingAppointment, setReschedulingAppointment] = useState(null);
-  const [rescheduleData, setRescheduleData] = useState({ date: "", time: "" });
+  const [rescheduleData, setRescheduleData] = useState({
+    date: "",
+    time: "",
+    timeHour: "",
+    timeMinute: "",
+    timePeriod: "",
+  });
   const [sendingReminderId, setSendingReminderId] = useState(null);
 
   if (loadingApts && !dataApts) return <Preloader />;
@@ -206,6 +216,11 @@ const Appointments = () => {
   const handleBooking = async (e) => {
     e.preventDefault();
     try {
+      const combinedTime = combineTimeParts(
+        bookingData.timeHour,
+        bookingData.timeMinute,
+        bookingData.timePeriod,
+      );
       const selectedDoctor = doctors.find((d) => d.id === bookingData.doctorId);
       const selectedPatient =
         user.role === "patient"
@@ -219,7 +234,7 @@ const Appointments = () => {
           doctorId: bookingData.doctorId,
           doctorName: selectedDoctor ? selectedDoctor.name : "Unknown",
           date: bookingData.date,
-          time: bookingData.time,
+          time: combinedTime,
           type: bookingData.type,
           reason: bookingData.reason,
         },
@@ -231,6 +246,9 @@ const Appointments = () => {
         doctorId: "",
         date: "",
         time: "",
+        timeHour: "",
+        timeMinute: "",
+        timePeriod: "",
         type: "",
         reason: "",
       });
@@ -252,9 +270,13 @@ const Appointments = () => {
       }
     } else if (action === "reschedule") {
       setReschedulingAppointment(appointment);
+      const parts = parseTimeToParts(appointment.time);
       setRescheduleData({
         date: appointment.date.split("T")[0],
         time: appointment.time,
+        timeHour: parts.hour,
+        timeMinute: parts.minute,
+        timePeriod: parts.period,
       });
     } else if (action === "cancel") {
       try {
@@ -319,11 +341,16 @@ const Appointments = () => {
   const handleReschedule = async (e) => {
     e.preventDefault();
     try {
+      const combinedTime = combineTimeParts(
+        rescheduleData.timeHour,
+        rescheduleData.timeMinute,
+        rescheduleData.timePeriod,
+      );
       await updateAppointment({
         variables: {
           id: reschedulingAppointment.id,
           date: rescheduleData.date,
-          time: rescheduleData.time,
+          time: combinedTime,
         },
       });
       toast.success("Appointment rescheduled successfully!");
@@ -396,25 +423,65 @@ const Appointments = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     New Time Slot *
                   </label>
-                  <select
-                    name="time"
-                    value={rescheduleData.time}
-                    onChange={(e) =>
-                      setRescheduleData({
-                        ...rescheduleData,
-                        time: e.target.value,
-                      })
-                    }
-                    className="input-field"
-                    required
-                  >
-                    <option value="">Select time</option>
-                    {appointmentSlots.map((slot) => (
-                      <option key={slot.time} value={slot.time}>
-                        {slot.time}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="grid grid-cols-3 gap-2">
+                    <select
+                      name="timeHour"
+                      value={rescheduleData.timeHour}
+                      onChange={(e) =>
+                        setRescheduleData({
+                          ...rescheduleData,
+                          timeHour: e.target.value,
+                        })
+                      }
+                      className="input-field"
+                      required
+                    >
+                      <option value="">Hour</option>
+                      {HOUR_OPTIONS.map((h) => (
+                        <option key={h} value={h}>
+                          {h}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      name="timeMinute"
+                      value={rescheduleData.timeMinute}
+                      onChange={(e) =>
+                        setRescheduleData({
+                          ...rescheduleData,
+                          timeMinute: e.target.value,
+                        })
+                      }
+                      className="input-field"
+                      required
+                    >
+                      <option value="">Min</option>
+                      {MINUTE_OPTIONS.map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      name="timePeriod"
+                      value={rescheduleData.timePeriod}
+                      onChange={(e) =>
+                        setRescheduleData({
+                          ...rescheduleData,
+                          timePeriod: e.target.value,
+                        })
+                      }
+                      className="input-field"
+                      required
+                    >
+                      <option value="">AM/PM</option>
+                      {PERIOD_OPTIONS.map((p) => (
+                        <option key={p} value={p}>
+                          {p}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
               <div className="flex gap-3">
@@ -521,22 +588,50 @@ const Appointments = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Time Slot *
                   </label>
-                  <select
-                    name="time"
-                    value={bookingData.time}
-                    onChange={handleBookingChange}
-                    className="input-field"
-                    required
-                  >
-                    <option value="">Select time</option>
-                    {appointmentSlots
-                      .filter((slot) => slot.available)
-                      .map((slot) => (
-                        <option key={slot.time} value={slot.time}>
-                          {slot.time}
+                  <div className="grid grid-cols-3 gap-2">
+                    <select
+                      name="timeHour"
+                      value={bookingData.timeHour}
+                      onChange={handleBookingChange}
+                      className="input-field"
+                      required
+                    >
+                      <option value="">Hour</option>
+                      {HOUR_OPTIONS.map((h) => (
+                        <option key={h} value={h}>
+                          {h}
                         </option>
                       ))}
-                  </select>
+                    </select>
+                    <select
+                      name="timeMinute"
+                      value={bookingData.timeMinute}
+                      onChange={handleBookingChange}
+                      className="input-field"
+                      required
+                    >
+                      <option value="">Min</option>
+                      {MINUTE_OPTIONS.map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      name="timePeriod"
+                      value={bookingData.timePeriod}
+                      onChange={handleBookingChange}
+                      className="input-field"
+                      required
+                    >
+                      <option value="">AM/PM</option>
+                      {PERIOD_OPTIONS.map((p) => (
+                        <option key={p} value={p}>
+                          {p}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
               <div>
