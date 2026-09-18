@@ -753,6 +753,26 @@ Regards,
 Team Creadent Dental Clinic`;
 };
 
+const buildForgotPasswordOtpMessage = ({ otp }) => {
+  return `*🔐 CREADENT DENTAL CLINIC - Password Reset OTP*
+
+Your One-Time Password (OTP) for password reset is:
+
+🔢 *${otp || "-"}*
+
+⏰ This OTP is valid for 10 minutes only.
+
+⚠️ *Security Note:*
+- Do not share this OTP with anyone
+- Our staff will NEVER ask for OTP on call
+- If you did not request this, please ignore this message
+
+📞 For support: +91 6292300343
+
+Regards,
+Team Creadent Dental Clinic`;
+};
+
 const sendForgotPasswordOtpWhatsApp = async ({ phone, otp }) => {
   const normalizedPhone = normalizePhoneNumber(phone);
   const templateName = process.env.WHATSAPP_TEMPLATE_FORGOT_PASSWORD_OTP;
@@ -765,28 +785,33 @@ const sendForgotPasswordOtpWhatsApp = async ({ phone, otp }) => {
     };
   }
 
-  if (!templateName) {
-    return {
-      success: false,
-      skipped: true,
-      error: "WhatsApp OTP template is not configured",
-      phone: normalizedPhone,
-    };
+  const otpValue = otp || "-";
+  const fallbackText = buildForgotPasswordOtpMessage({ otp: otpValue });
+  const results = {};
+
+  if (templateName) {
+    const configuredButtonType =
+      process.env.WHATSAPP_TEMPLATE_FORGOT_PASSWORD_OTP_BUTTON_TYPE;
+    const templateResult = await sendTemplateWithFallback({
+      to: normalizedPhone,
+      templateName,
+      templateKey: "FORGOT_PASSWORD_OTP",
+      bodyParameters: [otpValue],
+      buttonType: configuredButtonType,
+      buttonIndex: process.env.WHATSAPP_TEMPLATE_FORGOT_PASSWORD_OTP_BUTTON_INDEX,
+      buttonParameters: configuredButtonType ? [otpValue] : [],
+      fallbackText,
+    });
+    results.template = templateResult;
+    return { ...templateResult, phone: normalizedPhone, results };
   }
 
-  const otpValue = otp || "-";
-  const configuredButtonType =
-    process.env.WHATSAPP_TEMPLATE_FORGOT_PASSWORD_OTP_BUTTON_TYPE;
-  const templateResult = await sendWhatsAppTemplateMessage({
+  const textResult = await sendWhatsAppTextMessage({
     to: normalizedPhone,
-    templateName,
-    templateKey: "FORGOT_PASSWORD_OTP",
-    bodyParameters: [otpValue],
-    buttonType: configuredButtonType,
-    buttonIndex: process.env.WHATSAPP_TEMPLATE_FORGOT_PASSWORD_OTP_BUTTON_INDEX,
-    buttonParameters: configuredButtonType ? [otpValue] : [],
+    text: fallbackText,
   });
-  return { ...templateResult, phone: normalizedPhone };
+  results.text = textResult;
+  return { ...textResult, phone: normalizedPhone, results };
 };
 
 const sendInvoiceWhatsApp = async (
@@ -882,12 +907,27 @@ const sendInvoiceWhatsApp = async (
     }
   }
 
+  if (!invoicePdfUrl && !sendTemplate) {
+    results.textFallback = await sendWhatsAppTextMessage({
+      to: patientContact.phone,
+      text: detailedMessage,
+    });
+    if (!results.textFallback.success) {
+      errors.push(`Invoice text fallback failed: ${results.textFallback.error}`);
+    }
+  }
+
   return {
     success:
       Boolean(results.document?.success) ||
+      Boolean(results.textFallback?.success) ||
       (!invoicePdfUrl && Boolean(results.template?.success)),
     skipped:
-      Boolean(results.template?.skipped && (!results.document || results.document.skipped)),
+      Boolean(
+        (results.template?.skipped || !sendTemplate) &&
+          (!results.document || results.document.skipped) &&
+          (!results.textFallback || results.textFallback.skipped),
+      ),
     phone: patientContact.phone,
     patient: patientContact,
     errors,
@@ -991,6 +1031,22 @@ Thank you,
 Team Creadent Dental Clinic`;
 };
 
+const buildReviewLinkMessage = ({ patientName, reviewLink }) => {
+  if (!reviewLink) return "";
+  return `*⭐ Share Your Experience ⭐*
+
+Dear ${patientName || "Patient"},
+
+Thank you for choosing Creadent Dental Clinic! We'd love to hear about your visit.
+
+Please take a moment to leave us a review:
+${reviewLink}
+
+Your feedback helps us serve you and our community better.
+
+— Team Creadent Dental Clinic`;
+};
+
 const sendPaymentSuccessWhatsAppBundle = async (invoice) => {
   const invoiceResult = await sendInvoiceWhatsApp(
     invoice,
@@ -1023,12 +1079,17 @@ const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
     return { success: false, error: "Patient phone number not found" };
   }
 
-  const message = buildPaymentThankYouMessage({
+  const fullFallbackMessage = buildPaymentThankYouMessage({
     patientName: patientContact.name,
     invoice,
     reviewLink: REVIEW_LINK,
   });
+  const reviewLinkFollowUp = buildReviewLinkMessage({
+    patientName: patientContact.name,
+    reviewLink: REVIEW_LINK,
+  });
   const templateName = process.env.WHATSAPP_TEMPLATE_PAYMENT_THANK_YOU;
+  const thankYouParamCount = getTemplateBodyParameterCount("PAYMENT_THANK_YOU");
   const results = {};
 
   const bodyParameters = [
@@ -1036,20 +1097,60 @@ const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
     invoice?.invoiceNumber || "-",
     formatCurrencyINR(invoice?.amountPaid || invoice?.total || 0),
   ];
-  const finalResult = await sendTemplateWithFallback({
-    to: patientContact.phone,
-    templateName,
-    templateKey: "PAYMENT_THANK_YOU",
-    bodyParameters,
-    fallbackText: message,
-  });
-  results.template = finalResult;
+
+  let finalResult;
+
+  if (templateName) {
+    const templateResult = await sendWhatsAppTemplateMessage({
+      to: patientContact.phone,
+      templateName,
+      templateKey: "PAYMENT_THANK_YOU",
+      bodyParameters,
+      displayText: fullFallbackMessage,
+    });
+    results.template = templateResult;
+
+    if (templateResult.success) {
+      finalResult = templateResult;
+      if (REVIEW_LINK && (!thankYouParamCount || thankYouParamCount < 4)) {
+        const reviewTextResult = await sendWhatsAppTextMessage({
+          to: patientContact.phone,
+          text: reviewLinkFollowUp,
+        });
+        results.reviewLinkFollowUp = reviewTextResult;
+        if (!reviewTextResult.success) {
+          finalResult = reviewTextResult;
+        }
+      }
+    } else if (
+      templateResult.skipped &&
+      String(templateResult.error || "")
+        .toLowerCase()
+        .includes("configuration is incomplete")
+    ) {
+      finalResult = templateResult;
+    } else {
+      const textResult = await sendWhatsAppTextMessage({
+        to: patientContact.phone,
+        text: fullFallbackMessage,
+      });
+      results.textFallback = textResult;
+      finalResult = textResult;
+    }
+  } else {
+    const textResult = await sendWhatsAppTextMessage({
+      to: patientContact.phone,
+      text: fullFallbackMessage,
+    });
+    results.textFallback = textResult;
+    finalResult = textResult;
+  }
 
   return {
     ...finalResult,
     phone: patientContact.phone,
     patient: patientContact,
-    messagePreview: message,
+    messagePreview: fullFallbackMessage,
     results,
   };
 };
@@ -1177,6 +1278,9 @@ module.exports = {
   buildLoginCredentialsMessage,
   buildPrescriptionMessage,
   buildInvoicePaymentLink,
+  buildForgotPasswordOtpMessage,
+  buildPaymentThankYouMessage,
+  buildReviewLinkMessage,
   sendInvoiceWhatsApp,
   sendInvoicePaymentLinkWhatsApp,
   sendWhatsAppDocumentMessage,
