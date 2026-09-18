@@ -886,7 +886,7 @@ const sendManualAppointmentReminder = async (appointment, { reminderType = "manu
         outstandingInvoice,
         appointment.patientId,
         "",
-        { eventType: "appointment_reminder_invoice", sendTemplate: false },
+        { eventType: "appointment_reminder_invoice", templateOnly: true },
       );
       results.invoice = invoiceResult;
       if (!invoiceResult.success) {

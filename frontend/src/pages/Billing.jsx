@@ -11,7 +11,6 @@ import {
   Trash2,
   Loader2,
   MessageCircle,
-  ExternalLink,
   Copy,
   Pencil,
   X,
@@ -708,16 +707,6 @@ const Billing = () => {
     }
   };
 
-  const handleDirectWhatsAppShare = (phone, text) => {
-    const digitsOnly = (phone || "").replace(/\D/g, "").slice(-10);
-    const waPhone = digitsOnly ? `91${digitsOnly}` : "";
-    const encodedText = encodeURIComponent(text || "");
-    const waUrl = waPhone
-      ? `https://wa.me/${waPhone}?text=${encodedText}`
-      : `https://wa.me/?text=${encodedText}`;
-    window.open(waUrl, "_blank", "noopener,noreferrer");
-  };
-
   return (
     <Suspense fallback={<Preloader />}>
       <div className="max-w-7xl mx-auto">
@@ -967,21 +956,6 @@ const Billing = () => {
                             <MessageCircle size={16} />
                           )}
                           Send Login via WhatsApp
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const loginMsg = `🏥 CREADENT DENTAL CLINIC\n\nDear ${generatedLogin.patientName},\n\nYour secure patient portal login:\n📱 Mobile: ${generatedLogin.phone}\n🔑 Password: ${generatedLogin.password}\n\n🔐 Login here: https://creadentsmiles.com/login\n\nAfter login, visit Billing & Payments to pay invoices online.\n\nRegards,\nTeam Creadent Dental Clinic`;
-                            handleDirectWhatsAppShare(
-                              generatedLogin.phone,
-                              loginMsg,
-                            );
-                          }}
-                          className="flex items-center justify-center gap-2 px-3 py-2 border border-green-500 text-green-700 hover:bg-green-50 rounded-lg text-sm font-medium transition-colors"
-                          title="Open WhatsApp Web directly"
-                        >
-                          <ExternalLink size={16} />
-                          Open WA
                         </button>
                         <button
                           type="button"
@@ -1563,23 +1537,6 @@ const Billing = () => {
                         </option>
                       ))}
                     </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Date
-                    </label>
-                    <input
-                      type="date"
-                      className="input-field"
-                      value={editInvoiceForm.date}
-                      onChange={(e) =>
-                        setEditInvoiceForm({
-                          ...editInvoiceForm,
-                          date: e.target.value,
-                        })
-                      }
-                      required
-                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">

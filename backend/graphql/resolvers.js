@@ -22,7 +22,6 @@ const { sendPrescriptionEmail } = require("../utils/emailService");
 const {
   sendInvoiceWhatsApp,
   sendInvoicePaymentLinkWhatsApp,
-  sendPaymentSuccessWhatsAppBundle,
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
   sendPrescriptionWhatsApp,
@@ -1551,6 +1550,7 @@ const resolvers = {
               savedInvoice,
               savedInvoice.patientId,
               directPaymentLink,
+              { templateOnly: true },
             );
             if (invoiceWhatsAppResult.success || invoiceWhatsAppResult.skipped) {
               await Invoice.updateOne(
@@ -1579,10 +1579,6 @@ const resolvers = {
         throw new Error("Not authenticated");
       }
 
-      if (user.role === "doctor") {
-        throw new Error("Unauthorized: Doctors cannot record invoice payments");
-      }
-
       const invoice = await Invoice.findById(invoiceId);
       if (!invoice) {
         throw new Error("Invoice not found");
@@ -1590,6 +1586,12 @@ const resolvers = {
 
       const isCashPayment =
         paymentMethod && paymentMethod.toLowerCase() === "cash";
+
+      if (user.role === "doctor" && !isCashPayment) {
+        throw new Error(
+          "Unauthorized: Doctors can record invoice payments only when the payment method is cash.",
+        );
+      }
 
       if (user.role === "patient") {
         const patient = await Patient.findOne({ userId: user._id });
@@ -1606,9 +1608,9 @@ const resolvers = {
         }
       }
 
-      if (isCashPayment && !["admin", "employee"].includes(user.role)) {
+      if (isCashPayment && !["admin", "employee", "doctor"].includes(user.role)) {
         throw new Error(
-          "Unauthorized: Only administrators and employees can record cash payments.",
+          "Unauthorized: Only administrators, employees, and doctors can record cash payments.",
         );
       }
 
@@ -1652,15 +1654,18 @@ const resolvers = {
         invoiceId: savedInvoice._id,
       });
 
-      if (savedInvoice.status === "Paid") {
-        try {
-          await sendPaymentSuccessWhatsAppBundle(savedInvoice);
-        } catch (error) {
-          console.warn(
-            "Manual payment success WhatsApp notification failed:",
-            error.message,
-          );
-        }
+      try {
+        await sendInvoiceWhatsApp(
+          savedInvoice,
+          savedInvoice.patientId,
+          "",
+          { eventType: "manual_payment", templateOnly: true },
+        );
+      } catch (error) {
+        console.warn(
+          "Manual payment WhatsApp notification failed:",
+          error.message,
+        );
       }
 
       return savedInvoice;
@@ -1796,7 +1801,7 @@ const resolvers = {
           invoice,
           patientId || invoice.patientId,
           directPaymentLink,
-          { eventType: "manual_invoice_share", sendTemplate: true },
+          { eventType: "manual_invoice_share", templateOnly: true },
         );
         if (result.success || result.skipped) {
           await Invoice.updateOne(

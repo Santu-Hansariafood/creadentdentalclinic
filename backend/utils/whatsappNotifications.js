@@ -818,7 +818,11 @@ const sendInvoiceWhatsApp = async (
   invoice,
   patientId,
   directPaymentLinkOverride = "",
-  { eventType = "invoice_created", sendTemplate = true } = {},
+  {
+    eventType = "invoice_created",
+    sendTemplate = true,
+    templateOnly = false,
+  } = {},
 ) => {
   const patientContact = await resolvePatientContact(
     patientId || invoice.patientId,
@@ -846,47 +850,60 @@ const sendInvoiceWhatsApp = async (
     directPaymentLink,
   );
 
-  try {
-    const pdfBuffer = await createInvoicePdfBuffer(invoice, patientContact);
-    const fileName = `Invoice_${invoice.invoiceNumber || invoice._id}.pdf`;
-    const uploadedPdf = await storageService.uploadFile({
-      file: { buffer: pdfBuffer, mimetype: "application/pdf", size: pdfBuffer.length },
-      folder: "invoices",
-      fileName,
-      requirePublicUrl: true,
-    });
-    if (!uploadedPdf?.url) {
-      throw new Error("Invoice PDF uploaded but no public URL was returned");
+  if (!templateOnly) {
+    try {
+      const pdfBuffer = await createInvoicePdfBuffer(invoice, patientContact);
+      const fileName = `Invoice_${invoice.invoiceNumber || invoice._id}.pdf`;
+      const uploadedPdf = await storageService.uploadFile({
+        file: { buffer: pdfBuffer, mimetype: "application/pdf", size: pdfBuffer.length },
+        folder: "invoices",
+        fileName,
+        requirePublicUrl: true,
+      });
+      if (!uploadedPdf?.url) {
+        throw new Error("Invoice PDF uploaded but no public URL was returned");
+      }
+      const uploadedUrl = new URL(uploadedPdf.url);
+      if (uploadedUrl.protocol !== "https:") {
+        throw new Error("Invoice PDF URL must be a public HTTPS URL");
+      }
+      invoicePdfUrl = uploadedPdf.url;
+    } catch (error) {
+      errors.push(`Invoice PDF preparation failed: ${error.message}`);
     }
-    const uploadedUrl = new URL(uploadedPdf.url);
-    if (uploadedUrl.protocol !== "https:") {
-      throw new Error("Invoice PDF URL must be a public HTTPS URL");
-    }
-    invoicePdfUrl = uploadedPdf.url;
-  } catch (error) {
-    errors.push(`Invoice PDF preparation failed: ${error.message}`);
   }
 
   if (sendTemplate) {
     const templateName =
       process.env.WHATSAPP_TEMPLATE_INVOICE ||
       process.env.WHATSAPP_TEMPLATE_INVOICE_SHARE;
-    results.template = await sendTemplateWithFallback({
-      to: patientContact.phone,
-      templateName,
-      templateKey: "INVOICE",
-      bodyParameters: [
-        patientContact.name || "Patient",
-        invoice.invoiceNumber || "-",
-        formatCurrencyINR(invoice.total || 0),
-        formatCurrencyINR(invoice.amountPaid || 0),
-        formatCurrencyINR(invoice.balance || 0),
-        directPaymentLink || "-",
-      ],
-      fallbackText: detailedMessage,
-      invoiceId: invoice?._id || invoice?.id,
-      eventType: `${eventType}_template`,
-    });
+    const templateParameters = [
+      patientContact.name || "Patient",
+      invoice.invoiceNumber || "-",
+      formatCurrencyINR(invoice.total || 0),
+      formatCurrencyINR(invoice.amountPaid || 0),
+      formatCurrencyINR(invoice.balance || 0),
+      directPaymentLink || "-",
+    ];
+    results.template = templateOnly
+      ? await sendWhatsAppTemplateMessage({
+          to: patientContact.phone,
+          templateName,
+          templateKey: "INVOICE",
+          bodyParameters: templateParameters,
+          displayText: detailedMessage,
+          invoiceId: invoice?._id || invoice?.id,
+          eventType: `${eventType}_template`,
+        })
+      : await sendTemplateWithFallback({
+          to: patientContact.phone,
+          templateName,
+          templateKey: "INVOICE",
+          bodyParameters: templateParameters,
+          fallbackText: detailedMessage,
+          invoiceId: invoice?._id || invoice?.id,
+          eventType: `${eventType}_template`,
+        });
     if (!results.template.success && !results.template.skipped) {
       errors.push(`Invoice template failed: ${results.template.error}`);
     }
@@ -907,7 +924,7 @@ const sendInvoiceWhatsApp = async (
     }
   }
 
-  if (!invoicePdfUrl && !sendTemplate) {
+  if (!templateOnly && !invoicePdfUrl && !sendTemplate) {
     results.textFallback = await sendWhatsAppTextMessage({
       to: patientContact.phone,
       text: detailedMessage,
@@ -1052,7 +1069,7 @@ const sendPaymentSuccessWhatsAppBundle = async (invoice) => {
     invoice,
     invoice?.patientId,
     "",
-    { eventType: "payment_success", sendTemplate: false },
+    { eventType: "payment_success", templateOnly: true },
   );
   const reviewResult =
     invoice?.status === "Paid"
@@ -1084,12 +1101,7 @@ const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
     invoice,
     reviewLink: REVIEW_LINK,
   });
-  const reviewLinkFollowUp = buildReviewLinkMessage({
-    patientName: patientContact.name,
-    reviewLink: REVIEW_LINK,
-  });
   const templateName = process.env.WHATSAPP_TEMPLATE_PAYMENT_THANK_YOU;
-  const thankYouParamCount = getTemplateBodyParameterCount("PAYMENT_THANK_YOU");
   const results = {};
 
   const bodyParameters = [
@@ -1100,51 +1112,14 @@ const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
 
   let finalResult;
 
-  if (templateName) {
-    const templateResult = await sendWhatsAppTemplateMessage({
-      to: patientContact.phone,
-      templateName,
-      templateKey: "PAYMENT_THANK_YOU",
-      bodyParameters,
-      displayText: fullFallbackMessage,
-    });
-    results.template = templateResult;
-
-    if (templateResult.success) {
-      finalResult = templateResult;
-      if (REVIEW_LINK && (!thankYouParamCount || thankYouParamCount < 4)) {
-        const reviewTextResult = await sendWhatsAppTextMessage({
-          to: patientContact.phone,
-          text: reviewLinkFollowUp,
-        });
-        results.reviewLinkFollowUp = reviewTextResult;
-        if (!reviewTextResult.success) {
-          finalResult = reviewTextResult;
-        }
-      }
-    } else if (
-      templateResult.skipped &&
-      String(templateResult.error || "")
-        .toLowerCase()
-        .includes("configuration is incomplete")
-    ) {
-      finalResult = templateResult;
-    } else {
-      const textResult = await sendWhatsAppTextMessage({
-        to: patientContact.phone,
-        text: fullFallbackMessage,
-      });
-      results.textFallback = textResult;
-      finalResult = textResult;
-    }
-  } else {
-    const textResult = await sendWhatsAppTextMessage({
-      to: patientContact.phone,
-      text: fullFallbackMessage,
-    });
-    results.textFallback = textResult;
-    finalResult = textResult;
-  }
+  finalResult = await sendWhatsAppTemplateMessage({
+    to: patientContact.phone,
+    templateName,
+    templateKey: "PAYMENT_THANK_YOU",
+    bodyParameters,
+    displayText: fullFallbackMessage,
+  });
+  results.template = finalResult;
 
   return {
     ...finalResult,
