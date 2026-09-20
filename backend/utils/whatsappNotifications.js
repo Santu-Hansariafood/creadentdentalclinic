@@ -27,6 +27,12 @@ const getTemplateBodyParameterCount = (templateKey) => {
   return Number.isInteger(count) && count >= 0 ? count : null;
 };
 
+const getTemplateLanguage = (templateKey) =>
+  normalizeTemplateLanguage(
+    process.env[`WHATSAPP_TEMPLATE_${templateKey}_LANGUAGE`] ||
+      process.env.WHATSAPP_TEMPLATE_LANGUAGE,
+  );
+
 const validateTemplateParameters = (templateKey, templateName, bodyParameters) => {
   if (!templateName) return "WhatsApp template name is not configured";
   const expectedCount = getTemplateBodyParameterCount(templateKey);
@@ -128,6 +134,7 @@ const getWhatsAppErrorMessage = (responseBody, fallback) => {
 const buildTemplatePayload = ({
   to,
   templateName,
+  languageCode = DEFAULT_LANGUAGE_CODE,
   bodyParameters = [],
   buttonParameters = [],
   buttonType,
@@ -140,7 +147,7 @@ const buildTemplatePayload = ({
     template: {
       name: templateName,
       language: {
-        code: DEFAULT_LANGUAGE_CODE,
+        code: languageCode,
       },
     },
   };
@@ -349,6 +356,7 @@ const sendWhatsAppTemplateMessage = ({
   buttonType,
   buttonIndex,
   templateKey,
+  languageCode,
   invoiceId,
   eventType,
   displayText,
@@ -410,6 +418,7 @@ const sendWhatsAppTemplateMessage = ({
       buildTemplatePayload({
         to,
         templateName,
+        languageCode: languageCode || getTemplateLanguage(templateKey),
         bodyParameters,
         buttonParameters,
         buttonType,
@@ -1119,6 +1128,7 @@ const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
     to: patientContact.phone,
     templateName,
     templateKey: "PAYMENT_THANK_YOU",
+    languageCode: getTemplateLanguage("PAYMENT_THANK_YOU"),
     bodyParameters,
     displayText: fullFallbackMessage,
   });
@@ -1148,6 +1158,7 @@ const sendRateUsWhatsApp = async (invoice) => {
     to: patientContact.phone,
     templateName: process.env.WHATSAPP_TEMPLATE_RATE_US,
     templateKey: "RATE_US",
+    languageCode: getTemplateLanguage("RATE_US"),
     bodyParameters: [patientContact.name || "Patient", reviewLink],
     displayText: message,
     invoiceId: invoice?._id || invoice?.id,
