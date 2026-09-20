@@ -148,7 +148,6 @@ const extractUploadedFile = (data) => {
     data.data?.upload,
     data.result,
     data.result?.file,
-    url,
     ...(Array.isArray(data.data?.attachments) ? data.data.attachments : []),
   ];
   return candidates.find(
