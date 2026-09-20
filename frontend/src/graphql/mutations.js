@@ -718,6 +718,49 @@ export const SEND_INVOICE_WHATSAPP = gql`
   }
 `;
 
+export const SEND_INVOICE_RECEIPT_WHATSAPP = gql`
+  mutation SendInvoiceReceiptWhatsApp($invoiceId: ID!) {
+    sendInvoiceReceiptWhatsApp(invoiceId: $invoiceId) {
+      success
+      skipped
+      message
+      phone
+      patientName
+      error
+      messagePreview
+      fileUrl
+    }
+  }
+`;
+
+export const SEND_PAYMENT_THANK_YOU_WHATSAPP = gql`
+  mutation SendPaymentThankYouWhatsApp($invoiceId: ID!) {
+    sendPaymentThankYouWhatsApp(invoiceId: $invoiceId) {
+      success
+      skipped
+      message
+      phone
+      patientName
+      error
+      messagePreview
+    }
+  }
+`;
+
+export const SEND_RATE_US_WHATSAPP = gql`
+  mutation SendRateUsWhatsApp($invoiceId: ID!) {
+    sendRateUsWhatsApp(invoiceId: $invoiceId) {
+      success
+      skipped
+      message
+      phone
+      patientName
+      error
+      messagePreview
+    }
+  }
+`;
+
 export const SEND_LOGIN_CREDENTIALS_WHATSAPP = gql`
   mutation SendLoginCredentialsWhatsApp(
     $patientId: ID!

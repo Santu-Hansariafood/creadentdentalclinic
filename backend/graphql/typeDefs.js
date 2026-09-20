@@ -763,6 +763,12 @@ input UpdateMedicineInput {
 
     sendInvoiceWhatsApp(invoiceId: ID!, patientId: ID): WhatsAppSendResult!
 
+    sendInvoiceReceiptWhatsApp(invoiceId: ID!): WhatsAppSendResult!
+
+    sendPaymentThankYouWhatsApp(invoiceId: ID!): WhatsAppSendResult!
+
+    sendRateUsWhatsApp(invoiceId: ID!): WhatsAppSendResult!
+
     sendLoginCredentialsWhatsApp(
       patientId: ID!,
       patientName: String!,

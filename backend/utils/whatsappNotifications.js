@@ -1130,6 +1130,35 @@ const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
   };
 };
 
+const sendRateUsWhatsApp = async (invoice) => {
+  const patientContact = await resolvePatientContact(invoice?.patientId);
+  if (!patientContact.phone) {
+    return { success: false, error: "Patient phone number not found" };
+  }
+
+  const reviewLink = REVIEW_LINK || `${FRONTEND_URL}/reviews`;
+  const message = buildReviewLinkMessage({
+    patientName: patientContact.name,
+    reviewLink,
+  });
+  const result = await sendWhatsAppTemplateMessage({
+    to: patientContact.phone,
+    templateName: process.env.WHATSAPP_TEMPLATE_RATE_US,
+    templateKey: "RATE_US",
+    bodyParameters: [patientContact.name || "Patient", reviewLink],
+    displayText: message,
+    invoiceId: invoice?._id || invoice?.id,
+    eventType: "manual_rate_us",
+  });
+
+  return {
+    ...result,
+    phone: patientContact.phone,
+    patient: patientContact,
+    messagePreview: message,
+  };
+};
+
 const sendLoginCredentialsWhatsApp = async (credentials) => {
   const templateName = process.env.WHATSAPP_TEMPLATE_LOGIN_CREDENTIALS;
   const normalizedPhone = normalizePhoneNumber(credentials.phone);
@@ -1260,6 +1289,7 @@ module.exports = {
   sendInvoicePaymentLinkWhatsApp,
   sendWhatsAppDocumentMessage,
   sendPaymentThankYouReviewWhatsApp,
+  sendRateUsWhatsApp,
   sendPaymentSuccessWhatsAppBundle,
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,

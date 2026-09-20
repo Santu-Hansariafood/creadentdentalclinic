@@ -9,6 +9,8 @@ import {
   Pencil,
   Trash2,
   MessageCircle,
+  Send,
+  Star,
   Loader2,
   Banknote,
   Wallet,
@@ -27,6 +29,9 @@ const InvoiceCard = ({
   onEdit,
   onDelete,
   onSendWhatsApp,
+  onSendReceiptWhatsApp,
+  onSendThankYouWhatsApp,
+  onSendRateUsWhatsApp,
   sendingWhatsAppId,
 }) => {
   const { user } = useAuth();
@@ -215,6 +220,42 @@ const InvoiceCard = ({
               <MessageCircle size={18} className="inline mr-2" />
             )}
             {isSendingWA ? "Sending..." : "WhatsApp"}
+          </button>
+        )}
+
+        {invoice.status === "Paid" && onSendReceiptWhatsApp && (
+          <button
+            onClick={() => onSendReceiptWhatsApp(invoice)}
+            disabled={isSendingWA}
+            className="btn-outline btn-green flex-1 min-w-[150px]"
+            title="Send receipt PDF via WhatsApp"
+          >
+            {isSendingWA ? <Loader2 size={18} className="inline mr-2 animate-spin" /> : <Send size={18} className="inline mr-2" />}
+            Receipt WhatsApp
+          </button>
+        )}
+
+        {invoice.status === "Paid" && onSendThankYouWhatsApp && (
+          <button
+            onClick={() => onSendThankYouWhatsApp(invoice)}
+            disabled={isSendingWA}
+            className="btn-outline flex-1 min-w-[140px]"
+            title="Send payment thank-you via WhatsApp"
+          >
+            <MessageCircle size={18} className="inline mr-2" />
+            Thank You
+          </button>
+        )}
+
+        {invoice.status === "Paid" && onSendRateUsWhatsApp && (
+          <button
+            onClick={() => onSendRateUsWhatsApp(invoice)}
+            disabled={isSendingWA}
+            className="btn-outline flex-1 min-w-[120px]"
+            title="Send rate-us message via WhatsApp"
+          >
+            <Star size={18} className="inline mr-2" />
+            Rate Us
           </button>
         )}
 

@@ -32,6 +32,9 @@ import {
   SEND_LOGIN_CREDENTIALS_WHATSAPP,
   RECORD_INVOICE_PAYMENT,
   SEND_INVOICE_WHATSAPP,
+  SEND_INVOICE_RECEIPT_WHATSAPP,
+  SEND_PAYMENT_THANK_YOU_WHATSAPP,
+  SEND_RATE_US_WHATSAPP,
 } from "../graphql/mutations";
 import { generateInvoicePDF } from "../utils/pdfGenerator";
 import Preloader from "../components/Preloader";
@@ -103,6 +106,13 @@ const Billing = () => {
   const [sendInvoiceWhatsApp, { loading: sendingInvoiceWA }] = useMutation(
     SEND_INVOICE_WHATSAPP,
   );
+  const [sendInvoiceReceiptWhatsApp] = useMutation(
+    SEND_INVOICE_RECEIPT_WHATSAPP,
+  );
+  const [sendPaymentThankYouWhatsApp] = useMutation(
+    SEND_PAYMENT_THANK_YOU_WHATSAPP,
+  );
+  const [sendRateUsWhatsApp] = useMutation(SEND_RATE_US_WHATSAPP);
 
   const [showEditInvoice, setShowEditInvoice] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
@@ -654,6 +664,26 @@ const Billing = () => {
       }
     } catch (err) {
       toast.error(err.message || "Failed to send invoice WhatsApp");
+    } finally {
+      setSendingWhatsApp(null);
+    }
+  };
+
+  const handleManualWhatsAppAction = async (invoice, action, sendMessage) => {
+    if (!invoice) return;
+    setSendingWhatsApp(invoice.id);
+    try {
+      const { data } = await sendMessage({
+        variables: { invoiceId: invoice.id },
+      });
+      const result = data?.[action];
+      if (result?.success) {
+        toast.success(result.message || `${action} sent via WhatsApp`);
+      } else {
+        toast.error(result?.error || result?.message || "WhatsApp delivery failed");
+      }
+    } catch (err) {
+      toast.error(err.message || "WhatsApp delivery failed");
     } finally {
       setSendingWhatsApp(null);
     }
@@ -1439,6 +1469,36 @@ const Billing = () => {
                     }
                     onSendWhatsApp={
                       user?.role !== "doctor" ? handleSendInvoiceWhatsApp : undefined
+                    }
+                    onSendReceiptWhatsApp={
+                      ["admin", "employee", "doctor"].includes(user?.role)
+                        ? (invoice) =>
+                            handleManualWhatsAppAction(
+                              invoice,
+                              "sendInvoiceReceiptWhatsApp",
+                              sendInvoiceReceiptWhatsApp,
+                            )
+                        : undefined
+                    }
+                    onSendThankYouWhatsApp={
+                      ["admin", "employee", "doctor"].includes(user?.role)
+                        ? (invoice) =>
+                            handleManualWhatsAppAction(
+                              invoice,
+                              "sendPaymentThankYouWhatsApp",
+                              sendPaymentThankYouWhatsApp,
+                            )
+                        : undefined
+                    }
+                    onSendRateUsWhatsApp={
+                      ["admin", "employee", "doctor"].includes(user?.role)
+                        ? (invoice) =>
+                            handleManualWhatsAppAction(
+                              invoice,
+                              "sendRateUsWhatsApp",
+                              sendRateUsWhatsApp,
+                            )
+                        : undefined
                     }
                     sendingWhatsAppId={sendingWhatsApp}
                   />

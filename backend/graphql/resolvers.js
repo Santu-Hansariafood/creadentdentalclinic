@@ -22,6 +22,8 @@ const { sendPrescriptionEmail } = require("../utils/emailService");
 const {
   sendInvoiceWhatsApp,
   sendInvoicePaymentLinkWhatsApp,
+  sendPaymentThankYouReviewWhatsApp,
+  sendRateUsWhatsApp,
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
   sendPrescriptionWhatsApp,
@@ -1550,7 +1552,7 @@ const resolvers = {
               savedInvoice,
               savedInvoice.patientId,
               directPaymentLink,
-              { templateOnly: true },
+              { eventType: "invoice_created", templateOnly: false },
             );
             if (invoiceWhatsAppResult.success || invoiceWhatsAppResult.skipped) {
               await Invoice.updateOne(
@@ -1801,7 +1803,7 @@ const resolvers = {
           invoice,
           patientId || invoice.patientId,
           directPaymentLink,
-          { eventType: "manual_invoice_share", templateOnly: true },
+          { eventType: "manual_invoice_share", templateOnly: false },
         );
         if (result.success || result.skipped) {
           await Invoice.updateOne(
@@ -1833,6 +1835,72 @@ const resolvers = {
           error: err?.message || String(err),
         };
       }
+    },
+    sendInvoiceReceiptWhatsApp: async (_, { invoiceId }, { user }) => {
+      requireStaff(user);
+      const invoice = await Invoice.findById(invoiceId);
+      if (!invoice) {
+        throw new Error("Invoice not found");
+      }
+
+      const result = await sendInvoiceWhatsApp(
+        invoice,
+        invoice.patientId,
+        "",
+        { eventType: "manual_receipt", templateOnly: false },
+      );
+      return {
+        success: result.success,
+        skipped: result.skipped,
+        message: result.success
+          ? "Receipt PDF and invoice template sent via WhatsApp"
+          : result.skipped
+            ? "WhatsApp is not configured"
+            : "Receipt WhatsApp delivery failed",
+        phone: result.phone || "",
+        patientName: result.patient?.name || "",
+        error: result.errors?.join(" | ") || result.error || null,
+        messagePreview: result.messagePreview || "",
+        fileUrl: result.fileUrl || "",
+      };
+    },
+    sendPaymentThankYouWhatsApp: async (_, { invoiceId }, { user }) => {
+      requireStaff(user);
+      const invoice = await Invoice.findById(invoiceId);
+      if (!invoice) {
+        throw new Error("Invoice not found");
+      }
+      const result = await sendPaymentThankYouReviewWhatsApp(invoice);
+      return {
+        success: result.success,
+        skipped: result.skipped,
+        message: result.success
+          ? "Thank-you template sent via WhatsApp"
+          : "Thank-you WhatsApp delivery failed",
+        phone: result.phone || "",
+        patientName: result.patient?.name || "",
+        error: result.error || null,
+        messagePreview: result.messagePreview || "",
+      };
+    },
+    sendRateUsWhatsApp: async (_, { invoiceId }, { user }) => {
+      requireStaff(user);
+      const invoice = await Invoice.findById(invoiceId);
+      if (!invoice) {
+        throw new Error("Invoice not found");
+      }
+      const result = await sendRateUsWhatsApp(invoice);
+      return {
+        success: result.success,
+        skipped: result.skipped,
+        message: result.success
+          ? "Rate-us template sent via WhatsApp"
+          : "Rate-us WhatsApp delivery failed",
+        phone: result.phone || "",
+        patientName: result.patient?.name || "",
+        error: result.error || null,
+        messagePreview: result.messagePreview || "",
+      };
     },
     sendLoginCredentialsWhatsApp: async (
       _,
