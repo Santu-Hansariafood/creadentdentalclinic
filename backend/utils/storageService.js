@@ -217,6 +217,21 @@ const getUploadedFileMetadata = (uploaded, originalName, file, buffer, destinati
   uploadedAt: getUploadedFileDate(uploaded),
 });
 
+const buildPublicFileUrl = (storageKey) => {
+  if (!process.env.SPACEBYTE_BASE_URL || !storageKey) return null;
+
+  try {
+    const baseUrl = new URL(process.env.SPACEBYTE_BASE_URL);
+    const encodedPath = String(storageKey)
+      .split("/")
+      .map((segment) => encodeURIComponent(segment))
+      .join("/");
+    return new URL(encodedPath, `${baseUrl.toString().replace(/\/+$/, "")}/`).toString();
+  } catch {
+    return null;
+  }
+};
+
 const uploadFile = async ({
   file,
   folder = "files",
@@ -331,6 +346,7 @@ const uploadFile = async ({
   const fileEntryId = metadata.id;
   const url =
     metadata.url ||
+    buildPublicFileUrl(metadata.storageKey) ||
     (fileEntryId
       ? `${SPACEBYTE.ENDPOINT}/file-entries/${encodeURIComponent(fileEntryId)}`
       : null);

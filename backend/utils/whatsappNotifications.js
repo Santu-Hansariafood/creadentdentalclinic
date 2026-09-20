@@ -114,6 +114,9 @@ const getWhatsAppErrorMessage = (responseBody, fallback) => {
   try {
     const error = JSON.parse(responseBody)?.error;
     if (error?.message) {
+      if (String(error.code) === "190") {
+        return "WhatsApp authentication failed (code 190). Replace the expired or revoked WHATSAPP_ACCESS_TOKEN and restart the backend; verify it belongs to the configured WHATSAPP_PHONE_NUMBER_ID.";
+      }
       return [error.message, error.code && `code ${error.code}`, error.type]
         .filter(Boolean)
         .join(" | ");
