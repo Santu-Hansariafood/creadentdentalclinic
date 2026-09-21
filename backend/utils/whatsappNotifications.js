@@ -873,16 +873,22 @@ const sendInvoiceWhatsApp = async (
         file: { buffer: pdfBuffer, mimetype: "application/pdf", size: pdfBuffer.length },
         folder: "invoices",
         fileName,
-        requirePublicUrl: true,
+        requirePublicUrl: false,
       });
-      if (!uploadedPdf?.url) {
-        throw new Error("Invoice PDF uploaded but no public URL was returned");
+      if (!uploadedPdf?.url && !uploadedPdf?.id && !uploadedPdf?.fileEntryId) {
+        throw new Error("Invoice PDF uploaded but no URL or fileEntryId was returned");
       }
-      const uploadedUrl = new URL(uploadedPdf.url);
-      if (uploadedUrl.protocol !== "https:") {
-        throw new Error("Invoice PDF URL must be a public HTTPS URL");
+      let resolvedUrl = uploadedPdf?.url || "";
+      if (!resolvedUrl || !/^https:\/\//i.test(resolvedUrl)) {
+        const fallbackId = uploadedPdf?.fileEntryId || uploadedPdf?.id;
+        if (fallbackId) {
+          const baseEndpoint = (process.env.SPACEBYTE_ENDPOINT || "https://spacebyte.in/api/v1").replace(/\/+$/, "");
+          if (/^https:\/\//i.test(baseEndpoint)) {
+            resolvedUrl = `${baseEndpoint}/file-entries/${encodeURIComponent(fallbackId)}`;
+          }
+        }
       }
-      invoicePdfUrl = uploadedPdf.url;
+      invoicePdfUrl = resolvedUrl;
     } catch (error) {
       errors.push(`Invoice PDF preparation failed: ${error.message}`);
     }
@@ -940,10 +946,33 @@ const sendInvoiceWhatsApp = async (
   }
 
   if (!templateOnly && !sendTemplate) {
-    results.textFallback = await sendWhatsAppTextMessage({
-      to: patientContact.phone,
-      text: detailedMessage,
-    });
+    const templateName =
+      process.env.WHATSAPP_TEMPLATE_INVOICE ||
+      process.env.WHATSAPP_TEMPLATE_INVOICE_SHARE;
+    const templateParameters = [
+      patientContact.name || "Patient",
+      invoice.invoiceNumber || "-",
+      formatCurrencyINR(invoice.total || 0),
+      formatCurrencyINR(invoice.amountPaid || 0),
+      formatCurrencyINR(invoice.balance || 0),
+      directPaymentLink || "-",
+    ];
+    if (templateName) {
+      results.textFallback = await sendTemplateWithFallback({
+        to: patientContact.phone,
+        templateName,
+        templateKey: "INVOICE",
+        bodyParameters: templateParameters,
+        fallbackText: detailedMessage,
+        invoiceId: invoice?._id || invoice?.id,
+        eventType: `${eventType}_text`,
+      });
+    } else {
+      results.textFallback = await sendWhatsAppTextMessage({
+        to: patientContact.phone,
+        text: detailedMessage,
+      });
+    }
     if (!results.textFallback.success && !results.textFallback.skipped) {
       errors.push(`Invoice text message failed: ${results.textFallback.error}`);
     }
@@ -1116,26 +1145,41 @@ const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
     invoice,
     reviewLink: REVIEW_LINK,
   });
-  const result = await sendWhatsAppTextMessage({
-    to: patientContact.phone,
-    text: fullFallbackMessage,
-  });
+  const templateName = process.env.WHATSAPP_TEMPLATE_PAYMENT_THANK_YOU;
+  const results = {};
 
-  void recordWhatsAppMessage({
-    phone: patientContact.phone,
-    text: fullFallbackMessage,
-    messageType: "text",
-    invoiceId: invoice?._id || invoice?.id,
-    eventType: "payment_thank_you",
-    status: result.success ? "sent" : "failed",
-    error: result.success ? undefined : result.error,
-  });
+  const bodyParameters = [
+    patientContact.name,
+    invoice?.invoiceNumber || "-",
+    formatCurrencyINR(invoice?.amountPaid || invoice?.total || 0),
+  ];
+
+  let finalResult;
+
+  if (templateName) {
+    finalResult = await sendTemplateWithFallback({
+      to: patientContact.phone,
+      templateName,
+      templateKey: "PAYMENT_THANK_YOU",
+      languageCode: getTemplateLanguage("PAYMENT_THANK_YOU"),
+      bodyParameters,
+      fallbackText: fullFallbackMessage,
+    });
+    results.template = finalResult;
+  } else {
+    finalResult = await sendWhatsAppTextMessage({
+      to: patientContact.phone,
+      text: fullFallbackMessage,
+    });
+    results.text = finalResult;
+  }
 
   return {
-    ...result,
+    ...finalResult,
     phone: patientContact.phone,
     patient: patientContact,
     messagePreview: fullFallbackMessage,
+    results,
   };
 };
 
@@ -1150,26 +1194,45 @@ const sendRateUsWhatsApp = async (invoice) => {
     patientName: patientContact.name,
     reviewLink,
   });
-  const result = await sendWhatsAppTextMessage({
-    to: patientContact.phone,
-    text: message,
-  });
+  const templateName = process.env.WHATSAPP_TEMPLATE_RATE_US;
+  const results = {};
+  let finalResult;
 
-  void recordWhatsAppMessage({
-    phone: patientContact.phone,
-    text: message,
-    messageType: "text",
-    invoiceId: invoice?._id || invoice?.id,
-    eventType: "manual_rate_us",
-    status: result.success ? "sent" : "failed",
-    error: result.success ? undefined : result.error,
-  });
+  if (templateName) {
+    finalResult = await sendTemplateWithFallback({
+      to: patientContact.phone,
+      templateName,
+      templateKey: "RATE_US",
+      languageCode: getTemplateLanguage("RATE_US"),
+      bodyParameters: [patientContact.name || "Patient", reviewLink],
+      fallbackText: message,
+      invoiceId: invoice?._id || invoice?.id,
+      eventType: "manual_rate_us",
+    });
+    results.template = finalResult;
+  } else {
+    finalResult = await sendWhatsAppTextMessage({
+      to: patientContact.phone,
+      text: message,
+    });
+    void recordWhatsAppMessage({
+      phone: patientContact.phone,
+      text: message,
+      messageType: "text",
+      invoiceId: invoice?._id || invoice?.id,
+      eventType: "manual_rate_us",
+      status: finalResult.success ? "sent" : "failed",
+      error: finalResult.success ? undefined : finalResult.error,
+    });
+    results.text = finalResult;
+  }
 
   return {
-    ...result,
+    ...finalResult,
     phone: patientContact.phone,
     patient: patientContact,
     messagePreview: message,
+    results,
   };
 };
 
