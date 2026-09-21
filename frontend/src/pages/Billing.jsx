@@ -1952,22 +1952,6 @@ const Billing = () => {
               <div className="p-5 border-t border-gray-200 flex flex-col sm:flex-row gap-2 justify-end">
                 <button
                   onClick={() => {
-                    handleDirectWhatsAppShare(
-                      whatsAppPreviewData.phone
-                        ? whatsAppPreviewData.phone
-                            .replace(/^91/, "")
-                            .slice(-10)
-                        : "",
-                      whatsAppPreviewData.message,
-                    );
-                  }}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
-                >
-                  <ExternalLink size={16} />
-                  Open in WhatsApp
-                </button>
-                <button
-                  onClick={() => {
                     if (navigator.clipboard) {
                       navigator.clipboard.writeText(
                         whatsAppPreviewData.message,

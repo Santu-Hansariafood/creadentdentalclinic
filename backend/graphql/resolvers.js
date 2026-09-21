@@ -1853,7 +1853,7 @@ const resolvers = {
         success: result.success,
         skipped: result.skipped,
         message: result.success
-          ? "Receipt PDF and invoice details sent via WhatsApp"
+          ? "Receipt PDF sent via WhatsApp"
           : result.skipped
             ? "WhatsApp is not configured"
             : "Receipt WhatsApp delivery failed",
