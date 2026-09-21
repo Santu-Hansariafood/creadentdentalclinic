@@ -114,6 +114,9 @@ const parseResponse = async (response) => {
 };
 
 const getErrorMessage = (data, status) => {
+  if (status === 401 || status === 403) {
+    return "SpaceByte authentication failed. Replace SPACEBYTE_API_TOKEN (or SPACEBYTE_ACCESS_KEY) with a valid SpaceByte API key and restart the backend.";
+  }
   if (!data) {
     return `HTTP ${status}`;
   }
