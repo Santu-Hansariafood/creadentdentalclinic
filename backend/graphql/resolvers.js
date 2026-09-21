@@ -1847,13 +1847,13 @@ const resolvers = {
         invoice,
         invoice.patientId,
         "",
-        { eventType: "manual_receipt", templateOnly: false },
+        { eventType: "manual_receipt", templateOnly: false, sendTemplate: false },
       );
       return {
         success: result.success,
         skipped: result.skipped,
         message: result.success
-          ? "Receipt PDF and invoice template sent via WhatsApp"
+          ? "Receipt PDF and invoice details sent via WhatsApp"
           : result.skipped
             ? "WhatsApp is not configured"
             : "Receipt WhatsApp delivery failed",
@@ -1875,7 +1875,7 @@ const resolvers = {
         success: result.success,
         skipped: result.skipped,
         message: result.success
-          ? "Thank-you template sent via WhatsApp"
+          ? "Thank-you message sent via WhatsApp"
           : "Thank-you WhatsApp delivery failed",
         phone: result.phone || "",
         patientName: result.patient?.name || "",
@@ -1894,7 +1894,7 @@ const resolvers = {
         success: result.success,
         skipped: result.skipped,
         message: result.success
-          ? "Rate-us template sent via WhatsApp"
+          ? "Rate-us message sent via WhatsApp"
           : "Rate-us WhatsApp delivery failed",
         phone: result.phone || "",
         patientName: result.patient?.name || "",

@@ -939,13 +939,13 @@ const sendInvoiceWhatsApp = async (
     }
   }
 
-  if (!templateOnly && !invoicePdfUrl && !sendTemplate) {
+  if (!templateOnly && !sendTemplate) {
     results.textFallback = await sendWhatsAppTextMessage({
       to: patientContact.phone,
       text: detailedMessage,
     });
-    if (!results.textFallback.success) {
-      errors.push(`Invoice text fallback failed: ${results.textFallback.error}`);
+    if (!results.textFallback.success && !results.textFallback.skipped) {
+      errors.push(`Invoice text message failed: ${results.textFallback.error}`);
     }
   }
 
@@ -1116,33 +1116,26 @@ const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
     invoice,
     reviewLink: REVIEW_LINK,
   });
-  const templateName = process.env.WHATSAPP_TEMPLATE_PAYMENT_THANK_YOU;
-  const results = {};
-
-  const bodyParameters = [
-    patientContact.name,
-    invoice?.invoiceNumber || "-",
-    formatCurrencyINR(invoice?.amountPaid || invoice?.total || 0),
-  ];
-
-  let finalResult;
-
-  finalResult = await sendWhatsAppTemplateMessage({
+  const result = await sendWhatsAppTextMessage({
     to: patientContact.phone,
-    templateName,
-    templateKey: "PAYMENT_THANK_YOU",
-    languageCode: getTemplateLanguage("PAYMENT_THANK_YOU"),
-    bodyParameters,
-    displayText: fullFallbackMessage,
+    text: fullFallbackMessage,
   });
-  results.template = finalResult;
+
+  void recordWhatsAppMessage({
+    phone: patientContact.phone,
+    text: fullFallbackMessage,
+    messageType: "text",
+    invoiceId: invoice?._id || invoice?.id,
+    eventType: "payment_thank_you",
+    status: result.success ? "sent" : "failed",
+    error: result.success ? undefined : result.error,
+  });
 
   return {
-    ...finalResult,
+    ...result,
     phone: patientContact.phone,
     patient: patientContact,
     messagePreview: fullFallbackMessage,
-    results,
   };
 };
 
@@ -1157,15 +1150,19 @@ const sendRateUsWhatsApp = async (invoice) => {
     patientName: patientContact.name,
     reviewLink,
   });
-  const result = await sendWhatsAppTemplateMessage({
+  const result = await sendWhatsAppTextMessage({
     to: patientContact.phone,
-    templateName: process.env.WHATSAPP_TEMPLATE_RATE_US,
-    templateKey: "RATE_US",
-    languageCode: getTemplateLanguage("RATE_US"),
-    bodyParameters: [patientContact.name || "Patient", reviewLink],
-    displayText: message,
+    text: message,
+  });
+
+  void recordWhatsAppMessage({
+    phone: patientContact.phone,
+    text: message,
+    messageType: "text",
     invoiceId: invoice?._id || invoice?.id,
     eventType: "manual_rate_us",
+    status: result.success ? "sent" : "failed",
+    error: result.success ? undefined : result.error,
   });
 
   return {
