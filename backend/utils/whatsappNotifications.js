@@ -123,6 +123,9 @@ const getWhatsAppErrorMessage = (responseBody, fallback) => {
       if (String(error.code) === "190") {
         return "WhatsApp authentication failed (code 190). Replace the expired or revoked WHATSAPP_ACCESS_TOKEN and restart the backend; verify it belongs to the configured WHATSAPP_PHONE_NUMBER_ID.";
       }
+      if (String(error.code) === "132001") {
+        return `${error.message} | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: ${process.env.WHATSAPP_TEMPLATE_PAYMENT_THANK_YOU || "unknown"}/${process.env.WHATSAPP_TEMPLATE_RATE_US || "unknown"}, language: ${DEFAULT_LANGUAGE_CODE}).`;
+      }
       return [error.message, error.code && `code ${error.code}`, error.type]
         .filter(Boolean)
         .join(" | ");
