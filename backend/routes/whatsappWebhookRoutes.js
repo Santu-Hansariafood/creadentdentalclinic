@@ -22,7 +22,15 @@ const getButtonReply = (message) => {
     "";
   const normalized = String(value).trim().toLowerCase();
   if (normalized.includes("confirm")) return "confirmed";
-  if (normalized.includes("reschedul")) return "reschedule_requested";
+  if (
+    normalized.includes("reschedul") ||
+    normalized.includes("schedule_request") ||
+    normalized.includes("schedule request") ||
+    normalized === "schedule" ||
+    normalized === "request_schedule"
+  ) {
+    return "reschedule_requested";
+  }
   return null;
 };
 
