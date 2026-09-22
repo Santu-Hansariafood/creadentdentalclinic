@@ -318,6 +318,7 @@ const postToWhatsApp = ({
   invoiceId,
   eventType,
   read,
+  skipRecord = false,
 }) =>
   new Promise((resolve) => {
     const body = JSON.stringify(payload);
@@ -355,19 +356,21 @@ const postToWhatsApp = ({
             );
           }
 
-          void recordWhatsAppMessage({
-            phone: to,
-            text: text || (templateName ? `Template: ${templateName}` : ""),
-            messageType,
-            templateName,
-            templateParameters,
-            status: ok ? "sent" : "failed",
-            messageId: parsedBody?.messages?.[0]?.id,
-            error: errorMessage,
-            invoiceId,
-            eventType,
-            read,
-          });
+          if (!skipRecord) {
+            void recordWhatsAppMessage({
+              phone: to,
+              text: text || (templateName ? `Template: ${templateName}` : ""),
+              messageType,
+              templateName,
+              templateParameters,
+              status: ok ? "sent" : "failed",
+              messageId: parsedBody?.messages?.[0]?.id,
+              error: errorMessage,
+              invoiceId,
+              eventType,
+              read,
+            });
+          }
 
           resolve({
             success: ok,
@@ -383,18 +386,20 @@ const postToWhatsApp = ({
       console.warn(
         `[WHATSAPP] Request error to=${sanitizeRecipient(to)}: ${error.message}`,
       );
-      void recordWhatsAppMessage({
-        phone: to,
-        text: text || (templateName ? `Template: ${templateName}` : ""),
-        messageType,
-        templateName,
-        templateParameters,
-        status: "failed",
-        error: error.message,
-        invoiceId,
-        eventType,
-        read,
-      });
+      if (!skipRecord) {
+        void recordWhatsAppMessage({
+          phone: to,
+          text: text || (templateName ? `Template: ${templateName}` : ""),
+          messageType,
+          templateName,
+          templateParameters,
+          status: "failed",
+          error: error.message,
+          invoiceId,
+          eventType,
+          read,
+        });
+      }
       resolve({ success: false, error: error.message });
     });
     request.write(body);
@@ -463,18 +468,21 @@ const sendWhatsAppTemplateMessage = ({
   invoiceId,
   eventType,
   displayText,
+  skipRecord = false,
 }) => {
   if (!hasWhatsAppBaseConfig()) {
-    void recordWhatsAppMessage({
-      phone: to,
-      text: `Template: ${templateName}`,
-      messageType: "template",
-      templateName,
-      invoiceId,
-      eventType,
-      status: "skipped",
-      error: "WhatsApp configuration is incomplete",
-    });
+    if (!skipRecord) {
+      void recordWhatsAppMessage({
+        phone: to,
+        text: `Template: ${templateName}`,
+        messageType: "template",
+        templateName,
+        invoiceId,
+        eventType,
+        status: "skipped",
+        error: "WhatsApp configuration is incomplete",
+      });
+    }
     return Promise.resolve({
       success: false,
       skipped: true,
@@ -487,17 +495,19 @@ const sendWhatsAppTemplateMessage = ({
     : null;
   if (validationError) {
     console.warn(`[WHATSAPP] Template validation failed: ${validationError}`);
-    void recordWhatsAppMessage({
-      phone: to,
-      text: displayText || `Template: ${templateName || "unknown"}`,
-      messageType: "template",
-      templateName,
-      templateParameters: bodyParameters.map((value) => String(value ?? "")),
-      invoiceId,
-      eventType,
-      status: "skipped",
-      error: validationError,
-    });
+    if (!skipRecord) {
+      void recordWhatsAppMessage({
+        phone: to,
+        text: displayText || `Template: ${templateName || "unknown"}`,
+        messageType: "template",
+        templateName,
+        templateParameters: bodyParameters.map((value) => String(value ?? "")),
+        invoiceId,
+        eventType,
+        status: "skipped",
+        error: validationError,
+      });
+    }
     return Promise.resolve({
       success: false,
       skipped: true,
@@ -505,16 +515,18 @@ const sendWhatsAppTemplateMessage = ({
     });
   }
   if (!to || !templateName) {
-    void recordWhatsAppMessage({
-      phone: to,
-      text: `Template: ${templateName || "unknown"}`,
-      messageType: "template",
-      templateName,
-      invoiceId,
-      eventType,
-      status: "skipped",
-      error: "WhatsApp destination or template name is missing",
-    });
+    if (!skipRecord) {
+      void recordWhatsAppMessage({
+        phone: to,
+        text: `Template: ${templateName || "unknown"}`,
+        messageType: "template",
+        templateName,
+        invoiceId,
+        eventType,
+        status: "skipped",
+        error: "WhatsApp destination or template name is missing",
+      });
+    }
     return Promise.resolve({
       success: false,
       skipped: true,
@@ -538,6 +550,7 @@ const sendWhatsAppTemplateMessage = ({
     templateParameters: bodyParameters.map((value) => String(value ?? "")),
     invoiceId,
     eventType,
+    skipRecord,
   });
 };
 
@@ -554,8 +567,27 @@ const sendTemplateWithFallback = async ({
   invoiceId,
   eventType,
 }) => {
+  const combined = {
+    to,
+    templateName: templateName || null,
+    templateKey: templateKey || null,
+    templateSuccess: false,
+    templateSkipped: false,
+    templateError: null,
+    fallbackSuccess: false,
+    fallbackSkipped: false,
+    fallbackError: null,
+    usedFallback: false,
+    status: "sent",
+    finalError: null,
+    messageId: null,
+    success: false,
+    skipped: false,
+    error: null,
+  };
+  let templateResult = null;
   if (templateName) {
-    const templateResult = await sendWhatsAppTemplateMessage({
+    templateResult = await sendWhatsAppTemplateMessage({
       to,
       templateName,
       templateKey,
@@ -567,38 +599,133 @@ const sendTemplateWithFallback = async ({
       displayText: fallbackText,
       invoiceId,
       eventType,
+      skipRecord: true,
     });
-    if (templateResult.success) {
-      return templateResult;
+    combined.templateSuccess = Boolean(templateResult?.success);
+    combined.templateSkipped = Boolean(templateResult?.skipped);
+    combined.templateError = templateResult?.error || null;
+    combined.messageId = templateResult?.messageId || combined.messageId;
+    if (templateResult?.success) {
+      combined.status = "sent";
+      combined.success = true;
+      combined.skipped = false;
+      combined.finalError = null;
+      combined.error = null;
     }
+  }
+
+  let shouldTryFallback = false;
+  if (!templateName) {
+    shouldTryFallback = true;
+  } else if (templateResult && !templateResult.success) {
     if (templateResult.skipped) {
       const isBaseConfigMissing = String(templateResult.error || "")
         .toLowerCase()
         .includes("configuration is incomplete");
-      if (isBaseConfigMissing) {
-        return templateResult;
+      if (!isBaseConfigMissing) {
+        shouldTryFallback = true;
+      } else {
+        combined.status = "skipped";
+        combined.skipped = true;
+        combined.error = templateResult.error;
+        combined.finalError = templateResult.error;
       }
-      // Template skipped due to config problem; still try free-form text.
+    } else {
+      shouldTryFallback = true;
     }
   }
-  return await sendWhatsAppTextMessage({
-    to,
-    text: fallbackText,
-    invoiceId,
-    eventType,
-  });
-};
 
-const sendWhatsAppTextMessage = ({ to, text, invoiceId, eventType }) => {
-  if (!hasWhatsAppBaseConfig()) {
-    void recordWhatsAppMessage({
-      phone: to,
-      text,
-      status: "skipped",
-      error: "WhatsApp configuration is incomplete",
+  if (shouldTryFallback) {
+    combined.usedFallback = true;
+    const textResult = await sendWhatsAppTextMessage({
+      to,
+      text: fallbackText,
       invoiceId,
       eventType,
+      skipRecord: true,
     });
+    combined.fallbackSuccess = Boolean(textResult?.success);
+    combined.fallbackSkipped = Boolean(textResult?.skipped);
+    combined.fallbackError = textResult?.error || null;
+    combined.messageId = textResult?.messageId || combined.messageId;
+    if (textResult?.success) {
+      combined.status = "sent";
+      combined.success = true;
+      combined.skipped = false;
+      combined.finalError = null;
+      combined.error = null;
+    } else {
+      if (!combined.error) {
+        combined.error = combined.templateError || textResult?.error || null;
+      }
+      combined.finalError =
+        combined.templateError && textResult?.error
+          ? `Template failed: ${combined.templateError} | Fallback failed: ${textResult?.error}`
+          : combined.templateError || textResult?.error || "Send failed";
+      combined.status = "failed";
+      combined.success = false;
+      combined.skipped = Boolean(textResult?.skipped && !combined.templateError);
+    }
+  }
+
+  const combinedDisplayText = fallbackText || `Template: ${templateName || "unknown"}`;
+  void recordWhatsAppMessage({
+    phone: to,
+    text: combinedDisplayText,
+    messageType: combined.usedFallback ? "text" : "template",
+    templateName: combined.templateName || undefined,
+    templateParameters: bodyParameters.map((value) => String(value ?? "")),
+    status: combined.status,
+    messageId: combined.messageId,
+    error: combined.finalError,
+    invoiceId,
+    eventType: eventType
+      ? `${eventType}${combined.usedFallback ? "_fallback" : ""}`
+      : undefined,
+    templateFailed:
+      combined.templateName && !combined.templateSuccess
+        ? {
+            skipped: combined.templateSkipped,
+            error: combined.templateError,
+          }
+        : undefined,
+    fallbackUsed: combined.usedFallback,
+    fallbackSucceeded: combined.fallbackSuccess,
+  });
+
+  return {
+    success: combined.success,
+    skipped: combined.skipped,
+    error: combined.error,
+    statusCode: templateResult?.statusCode,
+    messageId: combined.messageId,
+    templateName: combined.templateName,
+    templateKey: combined.templateKey,
+    usedFallback: combined.usedFallback,
+    templateSucceeded: combined.templateSuccess,
+    templateFailed:
+      combined.templateName && !combined.templateSuccess
+        ? {
+            skipped: combined.templateSkipped,
+            error: combined.templateError,
+          }
+        : undefined,
+    fallbackSucceeded: combined.fallbackSuccess,
+  };
+};
+
+const sendWhatsAppTextMessage = ({ to, text, invoiceId, eventType, skipRecord = false }) => {
+  if (!hasWhatsAppBaseConfig()) {
+    if (!skipRecord) {
+      void recordWhatsAppMessage({
+        phone: to,
+        text,
+        status: "skipped",
+        error: "WhatsApp configuration is incomplete",
+        invoiceId,
+        eventType,
+      });
+    }
     return Promise.resolve({
       success: false,
       skipped: true,
@@ -607,14 +734,16 @@ const sendWhatsAppTextMessage = ({ to, text, invoiceId, eventType }) => {
     });
   }
   if (!to || !text) {
-    void recordWhatsAppMessage({
-      phone: to,
-      text,
-      status: "skipped",
-      error: "WhatsApp destination or text content is missing",
-      invoiceId,
-      eventType,
-    });
+    if (!skipRecord) {
+      void recordWhatsAppMessage({
+        phone: to,
+        text,
+        status: "skipped",
+        error: "WhatsApp destination or text content is missing",
+        invoiceId,
+        eventType,
+      });
+    }
     return Promise.resolve({
       success: false,
       skipped: true,
@@ -628,6 +757,7 @@ const sendWhatsAppTextMessage = ({ to, text, invoiceId, eventType }) => {
     messageType: "text",
     invoiceId,
     eventType,
+    skipRecord,
   });
 };
 

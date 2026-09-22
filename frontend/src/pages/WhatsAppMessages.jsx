@@ -428,7 +428,21 @@ const WhatsAppMessages = () => {
                               item.direction === "outbound" ? "justify-end" : "justify-start"
                             }`}
                           >
-                            {item.direction === "outbound" ? "Sent" : "Received"} · {getStatusLabel(item.status)} · {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            {item.direction === "outbound"
+                              ? (() => {
+                                  const status = String(item.status || "sent");
+                                  if (status === "failed") return "Failed";
+                                  if (status === "skipped") return "Skipped";
+                                  if (status === "read" || status === "delivered" || status === "sent" || status === "received")
+                                    return getStatusLabel(status);
+                                  return "Sent";
+                                })()
+                              : "Received"}
+                            {" · "}
+                            {new Date(item.createdAt).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </p>
                         </div>
                       </div>
