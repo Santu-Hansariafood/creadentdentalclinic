@@ -900,7 +900,30 @@ const sendInvoiceWhatsApp = async (
         fileName,
         requirePublicUrl: true,
       });
-      invoicePdfUrl = uploadedPdf.url;
+      invoicePdfUrl =
+        uploadedPdf.publicUrl ||
+        (uploadedPdf.url && /^https:\/\//i.test(uploadedPdf.url) ? uploadedPdf.url : null);
+      if (!invoicePdfUrl && process.env.SPACEBYTE_BASE_URL && uploadedPdf.storageKey) {
+        try {
+          const base = new URL(process.env.SPACEBYTE_BASE_URL);
+          const encodedPath = String(uploadedPdf.storageKey)
+            .split("/")
+            .map((segment) => encodeURIComponent(segment))
+            .join("/");
+          invoicePdfUrl = new URL(
+            encodedPath,
+            `${base.toString().replace(/\/+$/, "")}/`,
+          ).toString();
+        } catch (_) {
+          void _;
+        }
+      }
+      if (!invoicePdfUrl) {
+        invoicePdfUrl = uploadedPdf.url || null;
+        if (uploadedPdf.url) {
+          errors.push(`Invoice PDF URL is not publicly reachable (${uploadedPdf.url}); WhatsApp document download may fail`);
+        }
+      }
     } catch (error) {
       errors.push(`Invoice PDF preparation failed: ${error.message}`);
     }

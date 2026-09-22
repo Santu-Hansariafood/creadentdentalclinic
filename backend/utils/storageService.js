@@ -347,15 +347,33 @@ const uploadFile = async ({
     destination,
   );
   const fileEntryId = metadata.id;
-  const url =
-    metadata.url ||
-    buildPublicFileUrl(metadata.storageKey) ||
-    (fileEntryId
-      ? `${SPACEBYTE.ENDPOINT}/file-entries/${encodeURIComponent(fileEntryId)}`
-      : null);
+  const publicBuiltUrl = buildPublicFileUrl(metadata.storageKey);
+  const metadataUrl = metadata.url;
+  const fileEntryEndpointUrl = fileEntryId
+    ? `${SPACEBYTE.ENDPOINT}/file-entries/${encodeURIComponent(fileEntryId)}`
+    : null;
 
-  if (requirePublicUrl && (!url || !/^https:\/\//i.test(url))) {
-    throw new Error("SpaceByte upload completed but no public HTTPS URL was returned");
+  const url = metadataUrl || publicBuiltUrl || fileEntryEndpointUrl;
+
+  const isHttpsUrl = Boolean(url) && /^https:\/\//i.test(String(url));
+
+  if (requirePublicUrl && !isHttpsUrl) {
+    console.warn("[SPACEBYTE-UPLOAD] Could not resolve a public HTTPS URL:", {
+      requirePublicUrl,
+      metadataUrl: metadataUrl || null,
+      publicBuiltUrl: publicBuiltUrl || null,
+      fileEntryEndpointUrl: fileEntryEndpointUrl || null,
+      storageKey: metadata.storageKey || null,
+      fileEntryId: fileEntryId || null,
+      SPACEBYTE_BASE_URL: process.env.SPACEBYTE_BASE_URL || null,
+      finalUrl: url || null,
+    });
+    const fallbackCandidate = publicBuiltUrl || metadataUrl || fileEntryEndpointUrl;
+    if (fallbackCandidate) {
+      console.warn("[SPACEBYTE-UPLOAD] Using non-HTTPS/insecure URL as fallback to avoid aborting downstream send; sharing/downloads may fail:", fallbackCandidate);
+    } else {
+      throw new Error("SpaceByte upload completed but no public HTTPS URL was returned");
+    }
   }
 
   if (!url && !fileEntryId) {
@@ -377,7 +395,11 @@ const uploadFile = async ({
 
     url:
       url ||
-      `${SPACEBYTE.ENDPOINT}/file-entries/${encodeURIComponent(fileEntryId)}`,
+      fileEntryEndpointUrl ||
+      publicBuiltUrl ||
+      `${SPACEBYTE.ENDPOINT}/file-entries/${encodeURIComponent(fileEntryId || "")}`,
+
+    publicUrl: publicBuiltUrl || url || null,
 
     size: metadata.size,
 
