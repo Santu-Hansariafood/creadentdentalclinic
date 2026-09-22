@@ -27,7 +27,7 @@ const {
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
   sendPrescriptionWhatsApp,
-  sendWhatsAppTemplateMessage,
+  sendManualMessageWhatsApp,
   sendTemplateWithFallback,
   normalizePhoneNumber,
 } = require("../utils/whatsappNotifications");
@@ -2021,28 +2021,11 @@ const resolvers = {
     },
     sendWhatsAppMessage: async (_, { patientId, phone, message }, { user }) => {
       requireStaff(user);
-      const text = message?.trim();
-      if (!text) throw new Error("Message cannot be empty");
-
-      let patient = patientId ? await Patient.findById(patientId) : null;
-      const destination = phone || patient?.phone;
-      if (!destination) throw new Error("Patient phone number is required");
-
-      const normalizedDestination = normalizePhoneNumber(destination);
-      if (!patient && normalizedDestination) {
-        patient = await Patient.findOne({
-          phone: {
-            $in: [normalizedDestination, normalizedDestination.slice(-10)],
-          },
-        });
-      }
-      const templateName = process.env.WHATSAPP_TEMPLATE_MANUAL_MESSAGE;
-      const result = await sendWhatsAppTemplateMessage({
-        to: normalizedDestination,
-        templateName,
-        templateKey: "MANUAL_MESSAGE",
-        bodyParameters: [patient?.name || "Patient", text],
-        displayText: text,
+      const result = await sendManualMessageWhatsApp({
+        patientId,
+        phone,
+        message,
+        sentBy: user._id,
       });
       return {
         success: result.success,
@@ -2050,14 +2033,14 @@ const resolvers = {
         message: result.success
           ? "WhatsApp template message sent successfully"
           : result.skipped
-            ? templateName
+            ? process.env.WHATSAPP_TEMPLATE_MANUAL_MESSAGE
               ? "WhatsApp template is not configured"
               : "WhatsApp is not configured"
             : "WhatsApp message failed",
-        phone: result.phone || normalizedDestination,
-        patientName: patient?.name || "",
+        phone: result.phone || "",
+        patientName: result.patient?.name || "",
         error: result.error || null,
-        messagePreview: text,
+        messagePreview: result.messagePreview || message?.trim() || "",
       };
     },
     markWhatsAppMessagesRead: async (_, { patientId }, { user }) => {

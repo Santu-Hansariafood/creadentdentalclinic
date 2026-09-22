@@ -22,6 +22,7 @@ const storageService = require("./utils/storageService");
 const {
   startAppointmentReminderScheduler,
 } = require("./utils/appointmentNotifications");
+const { runWhatsAppSelfAudit } = require("./utils/whatsappNotifications");
 const { cleanupStaleTransactions } = require("./utils/iciciPaymentService");
 const startServer = async () => {
   const app = express();
@@ -110,6 +111,11 @@ const startServer = async () => {
 
   await connectDB();
   await seedAdmin();
+  try {
+    runWhatsAppSelfAudit();
+  } catch (auditErr) {
+    console.warn("WhatsApp self-audit failed at startup:", auditErr.message);
+  }
   startAppointmentReminderScheduler();
 
   if (process.env.ICICI_STALE_CLEANUP_DISABLED !== "true") {

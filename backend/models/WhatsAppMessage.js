@@ -36,6 +36,7 @@ const whatsAppMessageSchema = new mongoose.Schema(
     },
     read: { type: Boolean, default: false, index: true },
     messageId: { type: String, index: true },
+    statusAt: { type: Date },
     error: { type: String },
     sentBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },

@@ -24,7 +24,200 @@ const DEFAULT_LANGUAGE_CODE = normalizeTemplateLanguage(
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://creadentsmiles.com";
 const REVIEW_LINK = process.env.WHATSAPP_REVIEW_LINK || "";
 
+const TEMPLATE_REGISTRY = Object.freeze({
+  APPOINTMENT_BOOKED_PATIENT: {
+    expectedParams: 5,
+    labels: ["patientName", "doctorName", "appointmentDate", "appointmentTime", "appointmentType"],
+    description: "Appointment booked - patient confirmation",
+    required: true,
+  },
+  APPOINTMENT_BOOKED_DOCTOR: {
+    expectedParams: 5,
+    labels: ["doctorName", "patientName", "appointmentDate", "appointmentTime", "appointmentType"],
+    description: "Appointment booked - doctor alert",
+    required: true,
+  },
+  APPOINTMENT_REMINDER_PATIENT: {
+    expectedParams: 5,
+    labels: ["patientName", "doctorName", "appointmentDate", "appointmentTime", "whenText"],
+    description: "Appointment reminder (1d/6h/1h) - patient",
+    required: true,
+  },
+  APPOINTMENT_REMINDER_DOCTOR: {
+    expectedParams: 5,
+    labels: ["doctorName", "patientName", "appointmentDate", "appointmentTime", "whenText"],
+    description: "Appointment reminder (1d/1h) - doctor",
+    required: true,
+  },
+  APPOINTMENT_RESCHEDULED_PATIENT: {
+    expectedParams: 5,
+    labels: ["patientName", "previousDate", "newDate", "newTime", "appointmentType"],
+    description: "Appointment rescheduled - patient",
+    required: true,
+  },
+  APPOINTMENT_RESCHEDULED_DOCTOR: {
+    expectedParams: 6,
+    labels: ["doctorName", "patientName", "previousDate", "newDate", "newTime", "appointmentType"],
+    description: "Appointment rescheduled - doctor",
+    required: true,
+  },
+  APPOINTMENT_RESCHEDULED_EMPLOYEE: {
+    expectedParams: 7,
+    labels: [
+      "employeeName",
+      "patientName",
+      "doctorName",
+      "previousDate",
+      "newDate",
+      "newTime",
+      "appointmentType",
+    ],
+    description: "Appointment rescheduled - staff/employee",
+    required: true,
+  },
+  PRESCRIPTION: {
+    expectedParams: 7,
+    labels: [
+      "patientName",
+      "doctorName",
+      "prescriptionId",
+      "prescriptionDate",
+      "diagnosis",
+      "medications",
+      "fileUrl",
+    ],
+    description: "Prescription ready notification",
+    required: true,
+  },
+  INVOICE: {
+    expectedParams: 6,
+    labels: [
+      "patientName",
+      "invoiceNumber",
+      "invoiceTotal",
+      "amountPaid",
+      "balance",
+      "viewInvoiceLink",
+    ],
+    description: "Invoice/bill share",
+    required: true,
+  },
+  INVOICE_PAYMENT_LINK: {
+    expectedParams: 4,
+    labels: ["patientName", "invoiceNumber", "balance", "paymentLink"],
+    description: "Invoice payment link share",
+    required: true,
+  },
+  LOGIN_CREDENTIALS: {
+    expectedParams: 4,
+    labels: ["patientName", "phone", "password", "loginLink"],
+    description: "Patient login credentials",
+    required: true,
+  },
+  FORGOT_PASSWORD_OTP: {
+    expectedParams: 1,
+    labels: ["otp"],
+    description: "Forgot password OTP (optionally copy-paste button)",
+    required: true,
+  },
+  MANUAL_MESSAGE: {
+    expectedParams: 2,
+    labels: ["patientName", "customMessage"],
+    description: "Manual free-form message template",
+    required: true,
+  },
+  PAYMENT_THANK_YOU: {
+    expectedParams: 3,
+    labels: ["patientName", "invoiceNumber", "amountPaid"],
+    description: "Payment thanks + review request",
+    required: true,
+  },
+  RATE_US: {
+    expectedParams: 2,
+    labels: ["patientName", "reviewLink"],
+    description: "Rate us / Google review request",
+    required: true,
+  },
+});
+
+const getTemplateEnvName = (templateKey) =>
+  process.env[`WHATSAPP_TEMPLATE_${templateKey}`];
+
+const auditWhatsAppTemplateRegistry = ({ includeValues = false } = {}) => {
+  const keys = Object.keys(TEMPLATE_REGISTRY);
+  const results = {};
+  for (const key of keys) {
+    const spec = TEMPLATE_REGISTRY[key];
+    const envName = getTemplateEnvName(key);
+    const envParamCountStr = process.env[`WHATSAPP_TEMPLATE_${key}_BODY_PARAMETER_COUNT`];
+    const envParamCount =
+      envParamCountStr === undefined || envParamCountStr === ""
+        ? null
+        : Number(envParamCountStr);
+    const envLanguageRaw =
+      process.env[`WHATSAPP_TEMPLATE_${key}_LANGUAGE`] ||
+      process.env.WHATSAPP_TEMPLATE_LANGUAGE ||
+      "en_US";
+    const envLanguage = normalizeTemplateLanguage(envLanguageRaw);
+    const paramCountMismatch =
+      envParamCount === null
+        ? "missing"
+        : envParamCount !== spec.expectedParams
+          ? `env=${envParamCount} code=${spec.expectedParams}`
+          : null;
+    const configured = Boolean(envName) && envParamCount !== null;
+    const issues = [];
+    if (!envName) issues.push("template name not set in .env");
+    if (envParamCount === null) issues.push("body parameter count not set in .env");
+    if (paramCountMismatch && paramCountMismatch !== "missing")
+      issues.push(`parameter count mismatch (${paramCountMismatch})`);
+    if (envName && /[A-Z -]/.test(envName))
+      issues.push(
+        "template name contains uppercase/spaces/dashes - Meta template names are lowercase underscore",
+      );
+    results[key] = {
+      description: spec.description,
+      expectedParams: spec.expectedParams,
+      labels: spec.labels,
+      templateName: includeValues ? envName : (envName ? "<configured>" : null),
+      language: envLanguage,
+      configured,
+      status:
+        issues.length === 0
+          ? "ok"
+          : issues.some((issue) => issue.includes("parameter count mismatch"))
+            ? "warn"
+            : "error",
+      issues,
+    };
+  }
+  return {
+    total: keys.length,
+    configured: Object.values(results).filter((r) => r.configured).length,
+    ok: Object.values(results).filter((r) => r.status === "ok").length,
+    warn: Object.values(results).filter((r) => r.status === "warn").length,
+    error: Object.values(results).filter((r) => r.status === "error").length,
+    templates: results,
+  };
+};
+
+const runWhatsAppSelfAudit = () => {
+  const report = auditWhatsAppTemplateRegistry({ includeValues: true });
+  const header = "[WHATSAPP-SELF-AUDIT]";
+  console.log(
+    `${header} ${report.total} templates | ${report.ok} ok | ${report.warn} warn | ${report.error} error | ${report.configured}/${report.total} configured in .env`,
+  );
+  for (const [key, r] of Object.entries(report.templates)) {
+    if (r.status === "ok") continue;
+    console.log(
+      `${header} ${r.status.toUpperCase()} ${key}: ${r.issues.join("; ")} | name=${r.templateName || "NULL"} | params=${r.expectedParams} | lang=${r.language}`,
+    );
+  }
+  return report;
+};
+
 const getTemplateBodyParameterCount = (templateKey) => {
+  if (TEMPLATE_REGISTRY[templateKey]) return TEMPLATE_REGISTRY[templateKey].expectedParams;
   const value =
     process.env[`WHATSAPP_TEMPLATE_${templateKey}_BODY_PARAMETER_COUNT`];
   if (value === undefined || value === "") return null;
@@ -94,6 +287,7 @@ const recordWhatsAppMessage = async ({
   invoiceId,
   eventType,
   read = direction === "outbound",
+  sentBy,
 }) => {
   try {
     const normalizedPhone = normalizePhoneNumber(phone);
@@ -123,6 +317,7 @@ const recordWhatsAppMessage = async ({
       messageId,
       error,
       read,
+      sentBy,
     });
   } catch (recordError) {
     console.warn(
@@ -566,6 +761,7 @@ const sendTemplateWithFallback = async ({
   fallbackText,
   invoiceId,
   eventType,
+  sentBy,
 }) => {
   const combined = {
     to,
@@ -691,6 +887,7 @@ const sendTemplateWithFallback = async ({
         : undefined,
     fallbackUsed: combined.usedFallback,
     fallbackSucceeded: combined.fallbackSuccess,
+    sentBy,
   });
 
   return {
@@ -1296,6 +1493,76 @@ const sendRateUsWhatsApp = async (invoice) => {
   };
 };
 
+const sendManualMessageWhatsApp = async ({
+  patientId,
+  phone,
+  name,
+  message,
+  sentBy,
+}) => {
+  let patientContact = patientId
+    ? await resolvePatientContact(patientId)
+    : { phone: normalizePhoneNumber(phone), name };
+
+  if (!patientId && patientContact.phone) {
+    const patient = await Patient.findOne({
+      phone: {
+        $in: [patientContact.phone, patientContact.phone.slice(-10)],
+      },
+    }).select("_id name phone");
+    if (patient) {
+      patientContact = {
+        name: patient.name || name || "Patient",
+        phone: normalizePhoneNumber(patient.phone),
+        rawPhone: patient.phone,
+      };
+    }
+  }
+
+  if (!patientContact.phone) {
+    return { success: false, error: "Patient phone number not found" };
+  }
+
+  if (!message || !String(message).trim()) {
+    return { success: false, error: "Message content is required" };
+  }
+
+  const trimmedMessage = String(message).trim();
+  const patientName = patientContact.name || name || "Patient";
+
+  const fallbackText = `*Creadent Dental Clinic*
+
+Hi ${patientName},
+
+${trimmedMessage}
+
+Regards,
+Creadent Dental Clinic
++91 6292300343`;
+
+  const templateName = process.env.WHATSAPP_TEMPLATE_MANUAL_MESSAGE;
+  const results = {};
+  const finalResult = await sendTemplateWithFallback({
+    to: patientContact.phone,
+    templateName,
+    templateKey: "MANUAL_MESSAGE",
+    languageCode: getTemplateLanguage("MANUAL_MESSAGE"),
+    bodyParameters: [patientName, trimmedMessage],
+    fallbackText,
+    eventType: "manual_message",
+    sentBy,
+  });
+  results.template = finalResult;
+
+  return {
+    ...finalResult,
+    phone: patientContact.phone,
+    patient: patientContact,
+    messagePreview: fallbackText,
+    results,
+  };
+};
+
 const sendPaymentSuccessWhatsAppBundle = async (invoice) => {
   const invoiceResult = await sendInvoiceWhatsApp(
     invoice,
@@ -1459,6 +1726,9 @@ const sendPrescriptionWhatsApp = async (prescription, fileUrl = "") => {
 };
 
 module.exports = {
+  TEMPLATE_REGISTRY,
+  auditWhatsAppTemplateRegistry,
+  runWhatsAppSelfAudit,
   normalizePhoneNumber,
   toE164Format,
   sanitizeRecipient,
@@ -1477,6 +1747,7 @@ module.exports = {
   sendWhatsAppDocumentMessage,
   sendPaymentThankYouReviewWhatsApp,
   sendRateUsWhatsApp,
+  sendManualMessageWhatsApp,
   sendPaymentSuccessWhatsAppBundle,
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
