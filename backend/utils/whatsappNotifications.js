@@ -50,13 +50,28 @@ const toObjectIdString = (value) => {
   return value.toString();
 };
 
-const normalizePhoneNumber = (phone) => {
-  const digitsOnly = String(phone || "").replace(/\D/g, "");
-  if (!digitsOnly) return "";
-  if (digitsOnly.length === 10) {
-    return `${DEFAULT_COUNTRY_CODE}${digitsOnly}`;
+const toE164Format = (digits, countryCode = DEFAULT_COUNTRY_CODE) => {
+  if (!digits) return "";
+  const clean = String(digits).replace(/\D/g, "");
+  if (!clean) return "";
+  const stripped = clean.startsWith("0") ? clean.slice(1) : clean;
+  if (!stripped) return "";
+  const digitsToFormat =
+    stripped.length === 10 ? `${countryCode}${stripped}` : stripped;
+  return `+${digitsToFormat.replace(/^\+/, "")}`;
+};
+
+const stripNationalTrunkPrefix = (digitsOnly) => {
+  if (!digitsOnly) return digitsOnly;
+  if (digitsOnly.startsWith("0")) {
+    return digitsOnly.slice(1);
   }
   return digitsOnly;
+};
+
+const normalizePhoneNumber = (phone) => {
+  const digitsOnly = String(phone || "").replace(/\D/g, "");
+  return toE164Format(digitsOnly, DEFAULT_COUNTRY_CODE);
 };
 
 const recordWhatsAppMessage = async ({
@@ -1274,6 +1289,7 @@ const sendPrescriptionWhatsApp = async (prescription, fileUrl = "") => {
 
 module.exports = {
   normalizePhoneNumber,
+  toE164Format,
   resolvePatientContact,
   formatCurrencyINR,
   formatDateIN,
