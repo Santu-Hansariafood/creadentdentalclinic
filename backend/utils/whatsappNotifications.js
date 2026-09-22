@@ -504,6 +504,7 @@ const sendTemplateWithFallback = async ({
   buttonParameters = [],
   buttonType,
   buttonIndex,
+  languageCode,
   fallbackText,
   invoiceId,
   eventType,
@@ -513,6 +514,7 @@ const sendTemplateWithFallback = async ({
       to,
       templateName,
       templateKey,
+      languageCode,
       bodyParameters,
       buttonParameters,
       buttonType,
@@ -533,10 +535,10 @@ const sendTemplateWithFallback = async ({
       }
     }
   }
-  return await sendWhatsAppTextMessage({ to, text: fallbackText });
+  return await sendWhatsAppTextMessage({ to, text: fallbackText, invoiceId, eventType });
 };
 
-const sendWhatsAppTextMessage = ({ to, text }) =>
+const sendWhatsAppTextMessage = ({ to, text, invoiceId, eventType }) =>
   new Promise((resolve) => {
     if (!hasWhatsAppBaseConfig()) {
       void recordWhatsAppMessage({
@@ -544,6 +546,8 @@ const sendWhatsAppTextMessage = ({ to, text }) =>
         text,
         status: "skipped",
         error: "WhatsApp configuration is incomplete",
+        invoiceId,
+        eventType,
       });
       return resolve({
         success: false,
@@ -558,6 +562,8 @@ const sendWhatsAppTextMessage = ({ to, text }) =>
         text,
         status: "skipped",
         error: "WhatsApp destination or text content is missing",
+        invoiceId,
+        eventType,
       });
       return resolve({
         success: false,
@@ -594,6 +600,8 @@ const sendWhatsAppTextMessage = ({ to, text }) =>
             status: ok ? "sent" : "failed",
             messageId: parsedBody?.messages?.[0]?.id,
             error: ok ? undefined : responseBody,
+            invoiceId,
+            eventType,
           });
           resolve({
             success: ok,
@@ -612,6 +620,8 @@ const sendWhatsAppTextMessage = ({ to, text }) =>
         text,
         status: "failed",
         error: error.message,
+        invoiceId,
+        eventType,
       });
       resolve({
         success: false,
@@ -893,12 +903,12 @@ const sendInvoiceWhatsApp = async (
       formatCurrencyINR(invoice.balance || 0),
       directPaymentLink || "-",
     ];
-    results.template = await sendWhatsAppTemplateMessage({
+    results.template = await sendTemplateWithFallback({
       to: patientContact.phone,
       templateName,
       templateKey: "INVOICE",
       bodyParameters: templateParameters,
-      displayText: detailedMessage,
+      fallbackText: detailedMessage,
       invoiceId: invoice?._id || invoice?.id,
       eventType: `${eventType}_template`,
     });
@@ -1094,13 +1104,13 @@ const sendPaymentThankYouReviewWhatsApp = async (invoice) => {
     formatCurrencyINR(invoice?.amountPaid || invoice?.total || 0),
   ];
 
-  const finalResult = await sendWhatsAppTemplateMessage({
+  const finalResult = await sendTemplateWithFallback({
     to: patientContact.phone,
     templateName,
     templateKey: "PAYMENT_THANK_YOU",
     languageCode: getTemplateLanguage("PAYMENT_THANK_YOU"),
     bodyParameters,
-    displayText: fullFallbackMessage,
+    fallbackText: fullFallbackMessage,
     eventType: "manual_payment_thank_you",
   });
   results.template = finalResult;
@@ -1127,13 +1137,13 @@ const sendRateUsWhatsApp = async (invoice) => {
   });
   const templateName = process.env.WHATSAPP_TEMPLATE_RATE_US;
   const results = {};
-  const finalResult = await sendWhatsAppTemplateMessage({
+  const finalResult = await sendTemplateWithFallback({
     to: patientContact.phone,
     templateName,
     templateKey: "RATE_US",
     languageCode: getTemplateLanguage("RATE_US"),
     bodyParameters: [patientContact.name || "Patient", reviewLink],
-    displayText: message,
+    fallbackText: message,
     invoiceId: invoice?._id || invoice?.id,
     eventType: "manual_rate_us",
   });
