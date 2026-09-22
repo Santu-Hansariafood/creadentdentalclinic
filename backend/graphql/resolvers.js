@@ -27,6 +27,7 @@ const {
   sendLoginCredentialsWhatsApp,
   sendForgotPasswordOtpWhatsApp,
   sendPrescriptionWhatsApp,
+  sendWhatsAppTemplateMessage,
   sendTemplateWithFallback,
   normalizePhoneNumber,
 } = require("../utils/whatsappNotifications");
@@ -2023,27 +2024,31 @@ const resolvers = {
       const text = message?.trim();
       if (!text) throw new Error("Message cannot be empty");
 
-      const patient = patientId ? await Patient.findById(patientId) : null;
+      let patient = patientId ? await Patient.findById(patientId) : null;
       const destination = phone || patient?.phone;
       if (!destination) throw new Error("Patient phone number is required");
 
       const normalizedDestination = normalizePhoneNumber(destination);
+      if (!patient && normalizedDestination) {
+        patient = await Patient.findOne({
+          phone: {
+            $in: [normalizedDestination, normalizedDestination.slice(-10)],
+          },
+        });
+      }
       const templateName = process.env.WHATSAPP_TEMPLATE_MANUAL_MESSAGE;
-      const result = await sendTemplateWithFallback({
+      const result = await sendWhatsAppTemplateMessage({
         to: normalizedDestination,
         templateName,
         templateKey: "MANUAL_MESSAGE",
         bodyParameters: [patient?.name || "Patient", text],
-        fallbackText: text,
+        displayText: text,
       });
-      const usedTemplate = Boolean(templateName && result.success);
       return {
         success: result.success,
         skipped: result.skipped,
         message: result.success
-          ? usedTemplate
-            ? "WhatsApp template message sent successfully"
-            : "WhatsApp message sent successfully"
+          ? "WhatsApp template message sent successfully"
           : result.skipped
             ? templateName
               ? "WhatsApp template is not configured"
