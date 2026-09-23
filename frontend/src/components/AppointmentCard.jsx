@@ -176,15 +176,43 @@ const AppointmentCard = ({
 
       {appointment.patientResponse && (
         <div
-          className={`mt-4 rounded-lg border px-3 py-2 text-sm font-medium ${
+          className={`mt-4 rounded-lg border px-3 py-2.5 text-sm ${
             appointment.patientResponse === "confirmed"
               ? "border-emerald-200 bg-emerald-50 text-emerald-700"
               : "border-amber-200 bg-amber-50 text-amber-700"
           }`}
         >
-          {appointment.patientResponse === "confirmed"
-            ? "Confirmed by patient"
-            : "Reschedule requested by patient"}
+          <div className="flex items-center gap-2 font-semibold">
+            {appointment.patientResponse === "confirmed" ? (
+              <>
+                <CheckCircle2 size={16} />
+                Confirmed by patient
+              </>
+            ) : (
+              <>
+                <AlertTriangle size={16} />
+                Reschedule requested by patient
+              </>
+            )}
+          </div>
+          {appointment.patientResponseAt && (
+            <div className="mt-1 text-xs opacity-80">
+              {appointment.patientResponse === "confirmed"
+                ? "Confirmed on: "
+                : "Requested on: "}
+              {formatDate(
+                appointment.patientResponseAt,
+                "dd/MM/yyyy hh:mm a",
+              )}
+            </div>
+          )}
+          {appointment.patientResponse === "reschedule_requested" &&
+            appointment.rescheduleReason && (
+              <div className="mt-2 rounded-md bg-white/60 px-2.5 py-2 text-xs">
+                <span className="font-medium">Reason: </span>
+                {appointment.rescheduleReason}
+              </div>
+            )}
         </div>
       )}
 

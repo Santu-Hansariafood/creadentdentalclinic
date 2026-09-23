@@ -32,6 +32,7 @@ const StaffRegistration = lazy(() => import("../pages/StaffRegistration"));
 const StaffList = lazy(() => import("../pages/StaffList"));
 const PaymentLedger = lazy(() => import("../pages/PaymentLedger"));
 const Settings = lazy(() => import("../pages/Settings"));
+const AppointmentConfirm = lazy(() => import("../pages/AppointmentConfirm"));
 
 const PatientRegistrationCheck = ({ children }) => {
   const { user, isDemoUser } = useAuth();
@@ -88,6 +89,7 @@ const AppRoutes = ({ isAuthenticated, user }) => {
           }
         />
         <Route path="/verify-otp" element={<OTPVerification />} />
+        <Route path="/appointment/:token" element={<AppointmentConfirm />} />
 
         <Route
           path="/patient/complete-registration"
