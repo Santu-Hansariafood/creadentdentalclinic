@@ -33,25 +33,55 @@ const logError = (event, error, payload = {}) => {
   if (error?.stack) console.error(`${WEBHOOK_LOG_PREFIX} STACK:`, error.stack);
 };
 
-const getButtonReply = (message) => {
-  const value =
+const parseButtonReply = (message) => {
+  const rawPayload =
     message.button?.payload ||
-    message.button?.text ||
     message.interactive?.button_reply?.id ||
+    "";
+  const textValue =
+    message.button?.text ||
     message.interactive?.button_reply?.title ||
     "";
-  const normalized = String(value).trim().toLowerCase();
-  if (normalized.includes("confirm")) return "confirmed";
+  const payloadStr = String(rawPayload || "").trim();
+  const textStr = String(textValue || "").trim().toLowerCase();
+
+  if (payloadStr) {
+    const colonIdx = payloadStr.indexOf(":");
+    if (colonIdx > 0) {
+      const action = payloadStr.slice(0, colonIdx).toLowerCase();
+      const token = payloadStr.slice(colonIdx + 1);
+      if (action === "confirm" || action === "confirmed") {
+        return { response: "confirmed", token };
+      }
+      if (
+        action === "reschedule" ||
+        action === "reschedule_requested" ||
+        action === "request_reschedule"
+      ) {
+        return { response: "reschedule_requested", token };
+      }
+    }
+    const lower = payloadStr.toLowerCase();
+    if (lower.includes("confirm")) return { response: "confirmed", token: null };
+    if (lower.includes("reschedul")) return { response: "reschedule_requested", token: null };
+  }
+
+  if (textStr.includes("confirm")) return { response: "confirmed", token: null };
   if (
-    normalized.includes("reschedul") ||
-    normalized.includes("schedule_request") ||
-    normalized.includes("schedule request") ||
-    normalized === "schedule" ||
-    normalized === "request_schedule"
+    textStr.includes("reschedul") ||
+    textStr.includes("schedule_request") ||
+    textStr.includes("schedule request") ||
+    textStr === "schedule" ||
+    textStr === "request_schedule"
   ) {
-    return "reschedule_requested";
+    return { response: "reschedule_requested", token: null };
   }
   return null;
+};
+
+const getButtonReply = (message) => {
+  const parsed = parseButtonReply(message);
+  return parsed?.response || null;
 };
 
 router.get("/", (req, res) => {
@@ -216,22 +246,64 @@ const safeProcessInboundMessage = async (message, value = {}) => {
       messageId: message.id,
     });
 
-    const patientResponse = getButtonReply(message);
-    if (patient && patientResponse) {
+    const parsedButton = parseButtonReply(message);
+    if (patient && parsedButton) {
+      const { response: patientResponse, token } = parsedButton;
       log("Patient button response", {
         patientId: String(patient._id),
         response: patientResponse,
+        tokenPresent: Boolean(token),
+        token: token ? token.slice(0, 8) + "..." : null,
       });
-      const appointment = await Appointment.findOne({
-        patientId: patient._id,
-        status: "Scheduled",
-        date: { $gte: new Date() },
-      }).sort({ date: 1, time: 1 });
+
+      let appointment = null;
+      let usedToken = false;
+      if (token && typeof token === "string" && token.length >= 8) {
+        appointment = await Appointment.findOne({
+          confirmToken: token,
+          status: "Scheduled",
+        });
+        if (appointment) {
+          usedToken = true;
+          log("Button matched appointment via confirmToken", {
+            appointmentId: String(appointment._id),
+            token: token.slice(0, 8),
+          });
+        }
+      }
+      if (!appointment) {
+        appointment = await Appointment.findOne({
+          patientId: patient._id,
+          status: "Scheduled",
+          date: { $gte: new Date() },
+        }).sort({ date: 1, time: 1 });
+        if (appointment) {
+          log("Button matched appointment via patient fallback", {
+            appointmentId: String(appointment._id),
+          });
+        }
+      }
 
       if (appointment) {
+        const alreadyResponded = appointment.patientResponse === patientResponse;
         appointment.patientResponse = patientResponse;
         appointment.patientResponseAt = new Date();
+        if (patientResponse !== "reschedule_requested") {
+          appointment.rescheduleReason = undefined;
+        }
         await appointment.save();
+
+        const formatDate = (d) => {
+          try {
+            return new Intl.DateTimeFormat("en-IN", {
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            }).format(d instanceof Date ? d : new Date(d));
+          } catch (_) {
+            return (d && d.toISOString && d.toISOString().slice(0, 10)) || String(d);
+          }
+        };
 
         const staff = await User.find({
           role: { $in: ["admin", "doctor", "employee"] },
@@ -240,9 +312,12 @@ const safeProcessInboundMessage = async (message, value = {}) => {
           patientResponse === "confirmed"
             ? "Appointment confirmed by patient"
             : "Appointment reschedule requested";
+        const dateLabel = formatDate(appointment.date);
         const notificationMessage = `${patient.name} has ${
           patientResponse === "confirmed" ? "confirmed" : "requested to reschedule"
-        } the appointment on ${appointment.date.toISOString().slice(0, 10)} at ${appointment.time}.`;
+        } the appointment on ${dateLabel} at ${appointment.time}${
+          usedToken ? " (via WhatsApp quick reply)" : ""
+        }.`;
         if (staff.length) {
           await Notification.insertMany(
             staff.map((member) => ({
@@ -254,9 +329,31 @@ const safeProcessInboundMessage = async (message, value = {}) => {
               title,
               message: notificationMessage,
               priority: patientResponse === "confirmed" ? "medium" : "high",
+              read: false,
             })),
           );
         }
+
+        if (!alreadyResponded) {
+          log("Button updated appointment patientResponse", {
+            appointmentId: String(appointment._id),
+            response: patientResponse,
+            usedToken,
+            staffNotified: staff.length,
+          });
+        } else {
+          log("Button refreshed patientResponse (same value)", {
+            appointmentId: String(appointment._id),
+            response: patientResponse,
+            usedToken,
+          });
+        }
+      } else {
+        log("Button response: no matching Scheduled appointment found", {
+          patientId: String(patient._id),
+          response: patientResponse,
+          tokenProvided: Boolean(token),
+        });
       }
     }
     return { ok: true, id: message.id, patientId: patient?._id };

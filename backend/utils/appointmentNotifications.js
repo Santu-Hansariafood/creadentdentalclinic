@@ -374,6 +374,30 @@ const sendAppointmentBookingNotifications = async (appointment) => {
     );
     const configuredButtonType =
       process.env.WHATSAPP_TEMPLATE_APPOINTMENT_BOOKED_PATIENT_BUTTON_TYPE;
+    const normalizedButtonType = String(configuredButtonType || "")
+      .trim()
+      .toLowerCase();
+    const isQuickReply = normalizedButtonType === "quick_reply";
+    const usesUrlButtons = Boolean(
+      configuredButtonType && !isQuickReply,
+    );
+    const buttonParams = (() => {
+      if (!configuredButtonType || !confirmToken) return [];
+      if (isQuickReply) {
+        return [`confirm:${confirmToken}`, `reschedule:${confirmToken}`];
+      }
+      if (usesUrlButtons) {
+        const baseLink = buildAppointmentConfirmLink(appointmentWithToken);
+        const confirmUrl = baseLink
+          ? `${baseLink}?action=confirm`
+          : "";
+        const rescheduleUrl = baseLink
+          ? `${baseLink}?action=reschedule`
+          : "";
+        return [confirmUrl, rescheduleUrl];
+      }
+      return [];
+    })();
     const patientResult = await sendTemplateWithFallback({
       to: patientContact.phone,
       templateName: patientTemplate,
@@ -388,9 +412,7 @@ const sendAppointmentBookingNotifications = async (appointment) => {
       buttonType: configuredButtonType,
       buttonIndex:
         process.env.WHATSAPP_TEMPLATE_APPOINTMENT_BOOKED_PATIENT_BUTTON_INDEX,
-      buttonParameters: configuredButtonType && confirmToken
-        ? [`confirm:${confirmToken}`, `reschedule:${confirmToken}`]
-        : [],
+      buttonParameters: buttonParams,
       fallbackText,
     });
 

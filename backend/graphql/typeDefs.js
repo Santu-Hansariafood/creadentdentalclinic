@@ -50,6 +50,7 @@ input UpdateMedicineInput {
     notes: String
     patientResponse: String
     patientResponseAt: String
+    rescheduleReason: String
     lastNotificationError: String
   }
 
