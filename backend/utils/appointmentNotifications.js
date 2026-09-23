@@ -838,7 +838,7 @@ const sendManualAppointmentReminder = async (appointment, { reminderType = "manu
     if (reminderType === "tomorrow") return "tomorrow";
     if (reminderType === "6hours") return "in 6 hours";
     if (reminderType === "1hour") return "in 1 hour";
-    return "shortly";
+    return appointmentTime;
   })();
 
   const updates = {};

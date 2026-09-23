@@ -1227,10 +1227,9 @@ const sendInvoiceWhatsApp = async (
         requirePublicUrl: true,
       });
       invoicePdfUrl =
-        uploadedPdf.publicUrl ||
         (uploadedPdf.url && /^https:\/\//i.test(uploadedPdf.url)
           ? uploadedPdf.url
-          : null);
+          : null) || uploadedPdf.publicUrl;
       if (
         !invoicePdfUrl &&
         process.env.SPACEBYTE_BASE_URL &&

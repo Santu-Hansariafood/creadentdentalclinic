@@ -1,0 +1,331 @@
+root@srv729320:/var/www/creadentdentalclinic/backend# cd d:\creadentdentalclinic\backend
+node utils/whatsappAllTemplatesSmsTestV2.js
+-bash: cd: d:creadentdentalclinicbackend: No such file or directory
+◇ injected env (80) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+====================================================================================================
+  🚀 CREADENT DENTAL CLINIC - WHATSAPP TEMPLATE SMS TEST SUITE (v2)
+====================================================================================================
+  Test Recipient       : 7029481930
+  Normalized E.164     : +917029481930
+  Review Link          : https://g.co/kgs/TC3ksdW
+  Frontend URL         : https://creadentsmiles.com
+  Template count       : 15
+  Static audit status  : running now...
+  Static audit summary : 15/15 OK, 0 warn, 0 err
+  Test begun at        : 9/22/2026, 9:19:09 PM
+====================================================================================================
+
+  📡 Connecting to MongoDB (for WhatsAppMessage audit records)...
+     MongoDB connection state: 1
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [1/15]: Appointment Booked - Patient Confirmation
+     Template Key: APPOINTMENT_BOOKED_PATIENT
+     ⚠️  CONFIG RISK: .env maps this to 'order_confirm_auto_schedule' which is a Meta COMMERCE template. It is HIGHLY LIKELY this template doesn't contain {{1}}..{{5}} dental-appointment placeholders. Consider renaming in Meta to 'appointment_booked_patient'.
+----------------------------------------------------------------------------------------------------
+  Configured Name : "order_confirm_auto_schedule"
+  Language        : EN_US
+  Expected Params : 5 (registry)
+  Actual Params   : 5
+  Sending to: +917029481930
+  Body parameters: ["Test Patient","Dr. Sharma","24 September 2026","10:30 AM","Consultation"]
+  ✅ TEMPLATE DELIVERY SUCCESSFUL
+     Meta template message id: wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSOUQyNEU2MkZGMkI2QUY3QjJGAA==
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [2/15]: Appointment Booked - Doctor Alert
+     Template Key: APPOINTMENT_BOOKED_DOCTOR
+----------------------------------------------------------------------------------------------------
+  Configured Name : "appointment_booked_doctor"
+  Language        : EN_US
+  Expected Params : 5 (registry)
+  Actual Params   : 5
+  Sending to: +917029481930
+  Body parameters: ["Dr. Sharma","Test Patient","24 September 2026","10:30 AM","Consultation"]
+[WHATSAPP] Send failed (status 404) to=917029481930 type=template template=appointment_booked_doctor error=(#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+  ⚠️  DELIVERED VIA FALLBACK (plain text)
+     Template failed reason: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+     Template skipped?       : NO
+     Fallback message id     : wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSNzQ3Mjg3Mzc0ODg1NTI2MjBFAA==
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [3/15]: Appointment Reminder - Patient (1 day before)
+     Template Key: APPOINTMENT_REMINDER_PATIENT
+----------------------------------------------------------------------------------------------------
+  Configured Name : "appointment_reminder_patient"
+  Language        : EN_US
+  Expected Params : 5 (registry)
+  Actual Params   : 5
+  Sending to: +917029481930
+  Body parameters: ["Test Patient","Dr. Sharma","23 September 2026","11:00 AM","tomorrow"]
+[WHATSAPP] Send failed (status 404) to=917029481930 type=template template=appointment_reminder_patient error=(#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+  ⚠️  DELIVERED VIA FALLBACK (plain text)
+     Template failed reason: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+     Template skipped?       : NO
+     Fallback message id     : wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSNzU2OTUyNzNCNEY1ODA4QTNDAA==
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [4/15]: Appointment Reminder - Doctor (1 day before)
+     Template Key: APPOINTMENT_REMINDER_DOCTOR
+----------------------------------------------------------------------------------------------------
+  Configured Name : "appointment_reminder_doctor"
+  Language        : EN_US
+  Expected Params : 5 (registry)
+  Actual Params   : 5
+  Sending to: +917029481930
+  Body parameters: ["Dr. Sharma","Test Patient","23 September 2026","11:00 AM","tomorrow"]
+[WHATSAPP] Send failed (status 404) to=917029481930 type=template template=appointment_reminder_doctor error=(#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+  ⚠️  DELIVERED VIA FALLBACK (plain text)
+     Template failed reason: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+     Template skipped?       : NO
+     Fallback message id     : wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSODc0QUMzREFBQTM2MjExMTgyAA==
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [5/15]: Appointment Rescheduled - Patient Notification
+     Template Key: APPOINTMENT_RESCHEDULED_PATIENT
+----------------------------------------------------------------------------------------------------
+  Configured Name : "appointment_rescheduled_patient"
+  Language        : EN_US
+  Expected Params : 5 (registry)
+  Actual Params   : 5
+  Sending to: +917029481930
+  Body parameters: ["Test Patient","23 September 2026","25 September 2026","02:00 PM","RCT Treatment"]
+[WHATSAPP] Send failed (status 404) to=917029481930 type=template template=appointment_rescheduled_patient error=(#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+  ⚠️  DELIVERED VIA FALLBACK (plain text)
+     Template failed reason: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+     Template skipped?       : NO
+     Fallback message id     : wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSMTQ5MTk2RUVBNjEyNDlENUY3AA==
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [6/15]: Appointment Rescheduled - Doctor Alert
+     Template Key: APPOINTMENT_RESCHEDULED_DOCTOR
+----------------------------------------------------------------------------------------------------
+  Configured Name : "appointment_rescheduled_doctor"
+  Language        : EN_US
+  Expected Params : 6 (registry)
+  Actual Params   : 6
+  Sending to: +917029481930
+  Body parameters: ["Dr. Sharma","Test Patient","23 September 2026","25 September 2026","02:00 PM","RCT Treatment"]
+[WHATSAPP] Send failed (status 404) to=917029481930 type=template template=appointment_rescheduled_doctor error=(#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+  ⚠️  DELIVERED VIA FALLBACK (plain text)
+     Template failed reason: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+     Template skipped?       : NO
+     Fallback message id     : wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSQUU3NzJGM0YxNjlBOTFENjY1AA==
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [7/15]: Appointment Rescheduled - Staff/Employee Alert
+     Template Key: APPOINTMENT_RESCHEDULED_EMPLOYEE
+----------------------------------------------------------------------------------------------------
+  Configured Name : "appointment_rescheduled_employee"
+  Language        : EN_US
+  Expected Params : 7 (registry)
+  Actual Params   : 7
+  Sending to: +917029481930
+  Body parameters: ["Front Desk Staff","Test Patient","Dr. Sharma","23 September 2026","25 September 2026","02:00 PM","RCT Treatment"]
+[WHATSAPP] Send failed (status 404) to=917029481930 type=template template=appointment_rescheduled_employee error=(#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+  ⚠️  DELIVERED VIA FALLBACK (plain text)
+     Template failed reason: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+     Template skipped?       : NO
+     Fallback message id     : wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSOEIxMDA4RTZGMDY2MDI0MTAwAA==
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [8/15]: Prescription Ready Notification
+     Template Key: PRESCRIPTION
+----------------------------------------------------------------------------------------------------
+  Configured Name : "prescription_ready"
+  Language        : EN_US
+  Expected Params : 7 (registry)
+  Actual Params   : 7
+  Sending to: +917029481930
+  Body parameters: ["Test Patient","Dr. Sharma","RX-TEST1234","22 September 2026","Dental infection management","Amoxicillin 500mg - 1-0-1 for 5 days, Paracetamol 500mg - 1-1-1 for 3 days","https://creadentsmiles.com/patient/prescriptions"]
+[WHATSAPP] Send failed (status 404) to=917029481930 type=template template=prescription_ready error=(#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+  ⚠️  DELIVERED VIA FALLBACK (plain text)
+     Template failed reason: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+     Template skipped?       : NO
+     Fallback message id     : wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSREFFMTk1MzJCQzYxNzdEODQyAA==
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [9/15]: Invoice / Bill Share
+     Template Key: INVOICE
+----------------------------------------------------------------------------------------------------
+  Configured Name : "creadent_invoice"
+  Language        : EN_US
+  Expected Params : 6 (registry)
+  Actual Params   : 6
+  Sending to: +917029481930
+  Body parameters: ["Test Patient","INV-TEST-2026-001","₹2,500.00","₹1,000.00","₹1,500.00","https://creadentsmiles.com/patient/billing?invoiceId=test123"]
+[WHATSAPP] Send failed (status 404) to=917029481930 type=template template=creadent_invoice error=(#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+  ⚠️  DELIVERED VIA FALLBACK (plain text)
+     Template failed reason: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+     Template skipped?       : NO
+     Fallback message id     : wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSQjUwOTQ2RDRGQjYyQzQ3MjE1AA==
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [10/15]: Invoice Payment Link Share
+     Template Key: INVOICE_PAYMENT_LINK
+----------------------------------------------------------------------------------------------------
+  Configured Name : "invoice_payment_link"
+  Language        : EN_US
+  Expected Params : 4 (registry)
+  Actual Params   : 4
+  Sending to: +917029481930
+  Body parameters: ["Test Patient","INV-TEST-2026-002","₹3,500.00","https://creadentsmiles.com/patient/billing?invoiceId=test456"]
+[WHATSAPP] Send failed (status 404) to=917029481930 type=template template=invoice_payment_link error=(#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+  ⚠️  DELIVERED VIA FALLBACK (plain text)
+     Template failed reason: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+     Template skipped?       : NO
+     Fallback message id     : wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSOTk4RjAzNkQxMDg4NTcxMDA4AA==
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [11/15]: Patient Login Credentials
+     Template Key: LOGIN_CREDENTIALS
+     ⚠️  CONFIG RISK: .env maps this to 'creadent_invoice_share' which appears to be an INVOICE template name. It is HIGHLY LIKELY Meta's 'creadent_invoice_share' template placeholders are invoice-related (amount/invoiceNo) NOT credentials (phone/password). This 4-parameter template should probably be renamed in Meta to e.g. 'patient_login_credentials'.
+----------------------------------------------------------------------------------------------------
+  Configured Name : "creadent_invoice_share"
+  Language        : EN_US
+  Expected Params : 4 (registry)
+  Actual Params   : 4
+  Sending to: +917029481930
+  Body parameters: ["Test Patient","7029481930","20261930","https://creadentsmiles.com/login"]
+[WHATSAPP] Send failed (status 404) to=917029481930 type=template template=creadent_invoice_share error=(#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+  ⚠️  DELIVERED VIA FALLBACK (plain text)
+     Template failed reason: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+     Template skipped?       : NO
+     Fallback message id     : wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSN0ZFMDJCODBEMkUyMURFRkJDAA==
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [12/15]: Forgot Password OTP (with copy button)
+     Template Key: FORGOT_PASSWORD_OTP
+----------------------------------------------------------------------------------------------------
+  Configured Name : "creadentotp"
+  Language        : EN_US
+  Expected Params : 1 (registry)
+  Actual Params   : 1
+  Sending to: +917029481930
+  Body parameters: ["123456"]
+[WHATSAPP] Send failed (status 404) to=917029481930 type=template template=creadentotp error=(#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+  ⚠️  DELIVERED VIA FALLBACK (plain text)
+     Template failed reason: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+     Template skipped?       : NO
+     Fallback message id     : wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSNTVDMTk5RTQzNTdENjA1OEY5AA==
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [13/15]: Manual / Free-form Message Template
+     Template Key: MANUAL_MESSAGE
+----------------------------------------------------------------------------------------------------
+  Configured Name : "manual_message"
+  Language        : EN_US
+  Expected Params : 2 (registry)
+  Actual Params   : 2
+  Sending to: +917029481930
+  Body parameters: ["Test Patient","This is a test of the manual free-form message template system for Creadent Dental Clinic. Please ignore."]
+[WHATSAPP] Send failed (status 404) to=917029481930 type=template template=manual_message error=(#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+  ⚠️  DELIVERED VIA FALLBACK (plain text)
+     Template failed reason: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+     Template skipped?       : NO
+     Fallback message id     : wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSQTM3RUFFNjUyQkE5MDlFQjAzAA==
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [14/15]: Payment Thank You + Review Request
+     Template Key: PAYMENT_THANK_YOU
+----------------------------------------------------------------------------------------------------
+  Configured Name : "payment_thank_you"
+  Language        : EN_US
+  Expected Params : 3 (registry)
+  Actual Params   : 3
+  Sending to: +917029481930
+  Body parameters: ["Test Patient","INV-TEST-2026-003","₹5,000.00"]
+[WHATSAPP] Send failed (status 404) to=917029481930 type=template template=payment_thank_you error=(#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+  ⚠️  DELIVERED VIA FALLBACK (plain text)
+     Template failed reason: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+     Template skipped?       : NO
+     Fallback message id     : wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSOTcyMDA2OEM1NUYwREVEMzMyAA==
+
+----------------------------------------------------------------------------------------------------
+  📋 TEMPLATE [15/15]: Rate Us / Google Review Request
+     Template Key: RATE_US
+----------------------------------------------------------------------------------------------------
+  Configured Name : "rate_us"
+  Language        : EN_US
+  Expected Params : 2 (registry)
+  Actual Params   : 2
+  Sending to: +917029481930
+  Body parameters: ["Test Patient","https://g.co/kgs/TC3ksdW"]
+[WHATSAPP] Send failed (status 404) to=917029481930 type=template template=rate_us error=(#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+  ⚠️  DELIVERED VIA FALLBACK (plain text)
+     Template failed reason: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured WhatsApp Business account (configured template: payment_thank_you/rate_us, language: en_US).
+     Template skipped?       : NO
+     Fallback message id     : wamid.HBgMOTE3MDI5NDgxOTMwFQIAERgSMkZFNEMzQjAxNjREMTVGRDJFAA==
+
+
+====================================================================================================
+  📊 FINAL TEST SUMMARY
+====================================================================================================
+  Total templates to test     : 15
+  Configured in .env          : 15
+----------------------------------------------------------------------------------------------------
+  ✅ Template native success  : 1
+  ⚠️  Delivered via fallback  : 14
+  📨 TOTAL DELIVERED (either) : 15
+  ⏭️  Skipped (not sent)      : 0
+  ❌ FAILED (no delivery)     : 0
+----------------------------------------------------------------------------------------------------
+  Delivery rate (configured)  : 100.0%
+  Template native pass rate   : 6.7%
+
+====================================================================================================
+  📋 PER-TEMPLATE RESULTS
+====================================================================================================
+
+  ✅ [01] APPOINTMENT_BOOKED_PATIENT           order_confirm_auto_schedule         | TEMPLATE OK
+  ⚠️ [02] APPOINTMENT_BOOKED_DOCTOR            appointment_booked_doctor           | FALLBACK OK
+       └─ Error: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured Wh
+  ⚠️ [03] APPOINTMENT_REMINDER_PATIENT         appointment_reminder_patient        | FALLBACK OK
+       └─ Error: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured Wh
+  ⚠️ [04] APPOINTMENT_REMINDER_DOCTOR          appointment_reminder_doctor         | FALLBACK OK
+       └─ Error: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured Wh
+  ⚠️ [05] APPOINTMENT_RESCHEDULED_PATIENT      appointment_rescheduled_patient     | FALLBACK OK
+       └─ Error: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured Wh
+  ⚠️ [06] APPOINTMENT_RESCHEDULED_DOCTOR       appointment_rescheduled_doctor      | FALLBACK OK
+       └─ Error: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured Wh
+  ⚠️ [07] APPOINTMENT_RESCHEDULED_EMPLOYEE     appointment_rescheduled_employee    | FALLBACK OK
+       └─ Error: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured Wh
+  ⚠️ [08] PRESCRIPTION                         prescription_ready                  | FALLBACK OK
+       └─ Error: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured Wh
+  ⚠️ [09] INVOICE                              creadent_invoice                    | FALLBACK OK
+       └─ Error: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured Wh
+  ⚠️ [10] INVOICE_PAYMENT_LINK                 invoice_payment_link                | FALLBACK OK
+       └─ Error: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured Wh
+  ⚠️ [11] LOGIN_CREDENTIALS                    creadent_invoice_share              | FALLBACK OK
+       └─ Error: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured Wh
+  ⚠️ [12] FORGOT_PASSWORD_OTP                  creadentotp                         | FALLBACK OK
+       └─ Error: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured Wh
+  ⚠️ [13] MANUAL_MESSAGE                       manual_message                      | FALLBACK OK
+       └─ Error: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured Wh
+  ⚠️ [14] PAYMENT_THANK_YOU                    payment_thank_you                   | FALLBACK OK
+       └─ Error: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured Wh
+  ⚠️ [15] RATE_US                              rate_us                             | FALLBACK OK
+       └─ Error: (#132001) Template name does not exist in the translation | Template name or translation is missing. Verify the exact approved Meta template name and language for the configured Wh
+
+====================================================================================================
+  🔧 TROUBLESHOOTING TIPS FOR NATIVE TEMPLATE FAILURES
+====================================================================================================
+
+  For each template that didn't send natively but DID fallback OK:
+  1. Open Meta → WhatsApp Manager → Manage templates → locate template NAME
+  2. Ensure STATUS column says either 'Active - Quality pending' or 'Active - High quality'
+  3. Open template → Language tab → language code must exactly match .env
+  4. Compare Body panel → count {{1}}..{{n}} placeholders vs _BODY_PARAMETER_COUNT in .env
+  5. If template needs to be renamed, create a NEW template in Meta (you cannot rename existing)
+     Then update .env WHATSAPP_TEMPLATE_<KEY>=<new_name> and re-run test.
+
+====================================================================================================
+  🕐 Test finished at  : 9/22/2026, 9:20:06 PM
+  📱 Recipient phone   : +917029481930
+  👉 15 messages should arrive on +917029481930 within 30-120s if any succeeded.
+     🌐 Webhook status events (sent/delivered/read/failed) will be POSTed to:
+        https://creadentsmiles.com/webhooks/whatsapp  ← Configure this in Meta.
+====================================================================================================
+[WHATSAPP] Could not save message history: Cannot use a session that has ended
+root@srv729320:/var/www/creadentdentalclinic/backend# 
