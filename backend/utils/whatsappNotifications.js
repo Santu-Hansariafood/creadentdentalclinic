@@ -27,37 +27,74 @@ const REVIEW_LINK = process.env.WHATSAPP_REVIEW_LINK || "";
 const TEMPLATE_REGISTRY = Object.freeze({
   APPOINTMENT_BOOKED_PATIENT: {
     expectedParams: 5,
-    labels: ["patientName", "doctorName", "appointmentDate", "appointmentTime", "appointmentType"],
+    labels: [
+      "patientName",
+      "doctorName",
+      "appointmentDate",
+      "appointmentTime",
+      "appointmentType",
+    ],
     description: "Appointment booked - patient confirmation",
     required: true,
   },
   APPOINTMENT_BOOKED_DOCTOR: {
     expectedParams: 5,
-    labels: ["doctorName", "patientName", "appointmentDate", "appointmentTime", "appointmentType"],
+    labels: [
+      "doctorName",
+      "patientName",
+      "appointmentDate",
+      "appointmentTime",
+      "appointmentType",
+    ],
     description: "Appointment booked - doctor alert",
     required: true,
   },
   APPOINTMENT_REMINDER_PATIENT: {
     expectedParams: 5,
-    labels: ["patientName", "doctorName", "appointmentDate", "appointmentTime", "whenText"],
+    labels: [
+      "patientName",
+      "doctorName",
+      "appointmentDate",
+      "appointmentTime",
+      "whenText",
+    ],
     description: "Appointment reminder (1d/6h/1h) - patient",
     required: true,
   },
   APPOINTMENT_REMINDER_DOCTOR: {
     expectedParams: 5,
-    labels: ["doctorName", "patientName", "appointmentDate", "appointmentTime", "whenText"],
+    labels: [
+      "doctorName",
+      "patientName",
+      "appointmentDate",
+      "appointmentTime",
+      "whenText",
+    ],
     description: "Appointment reminder (1d/1h) - doctor",
     required: true,
   },
   APPOINTMENT_RESCHEDULED_PATIENT: {
     expectedParams: 5,
-    labels: ["patientName", "previousDate", "newDate", "newTime", "appointmentType"],
+    labels: [
+      "patientName",
+      "previousDate",
+      "newDate",
+      "newTime",
+      "appointmentType",
+    ],
     description: "Appointment rescheduled - patient",
     required: true,
   },
   APPOINTMENT_RESCHEDULED_DOCTOR: {
     expectedParams: 6,
-    labels: ["doctorName", "patientName", "previousDate", "newDate", "newTime", "appointmentType"],
+    labels: [
+      "doctorName",
+      "patientName",
+      "previousDate",
+      "newDate",
+      "newTime",
+      "appointmentType",
+    ],
     description: "Appointment rescheduled - doctor",
     required: true,
   },
@@ -149,7 +186,8 @@ const auditWhatsAppTemplateRegistry = ({ includeValues = false } = {}) => {
   for (const key of keys) {
     const spec = TEMPLATE_REGISTRY[key];
     const envName = getTemplateEnvName(key);
-    const envParamCountStr = process.env[`WHATSAPP_TEMPLATE_${key}_BODY_PARAMETER_COUNT`];
+    const envParamCountStr =
+      process.env[`WHATSAPP_TEMPLATE_${key}_BODY_PARAMETER_COUNT`];
     const envParamCount =
       envParamCountStr === undefined || envParamCountStr === ""
         ? null
@@ -168,7 +206,8 @@ const auditWhatsAppTemplateRegistry = ({ includeValues = false } = {}) => {
     const configured = Boolean(envName) && envParamCount !== null;
     const issues = [];
     if (!envName) issues.push("template name not set in .env");
-    if (envParamCount === null) issues.push("body parameter count not set in .env");
+    if (envParamCount === null)
+      issues.push("body parameter count not set in .env");
     if (paramCountMismatch && paramCountMismatch !== "missing")
       issues.push(`parameter count mismatch (${paramCountMismatch})`);
     if (envName && /[A-Z -]/.test(envName))
@@ -179,7 +218,7 @@ const auditWhatsAppTemplateRegistry = ({ includeValues = false } = {}) => {
       description: spec.description,
       expectedParams: spec.expectedParams,
       labels: spec.labels,
-      templateName: includeValues ? envName : (envName ? "<configured>" : null),
+      templateName: includeValues ? envName : envName ? "<configured>" : null,
       language: envLanguage,
       configured,
       status:
@@ -217,7 +256,8 @@ const runWhatsAppSelfAudit = () => {
 };
 
 const getTemplateBodyParameterCount = (templateKey) => {
-  if (TEMPLATE_REGISTRY[templateKey]) return TEMPLATE_REGISTRY[templateKey].expectedParams;
+  if (TEMPLATE_REGISTRY[templateKey])
+    return TEMPLATE_REGISTRY[templateKey].expectedParams;
   const value =
     process.env[`WHATSAPP_TEMPLATE_${templateKey}_BODY_PARAMETER_COUNT`];
   if (value === undefined || value === "") return null;
@@ -263,10 +303,6 @@ const toE164Format = (digits, countryCode = DEFAULT_COUNTRY_CODE) => {
   return `+${digitsToFormat.replace(/^\+/, "")}`;
 };
 
-/**
- * Meta WhatsApp Cloud API requires the `to` field WITHOUT a leading '+'.
- * This strips everything except digits: +919876543210 -> 919876543210
- */
 const sanitizeRecipient = (to) => String(to || "").replace(/[^\d]/g, "");
 
 const normalizePhoneNumber = (phone) => {
@@ -414,12 +450,18 @@ const buildTextPayload = ({ to, text }) => {
   };
 };
 
-const buildDocumentPayload = ({ to, documentUrl, fileName, caption }) => ({
+const buildDocumentPayload = ({
+  to,
+  documentUrl,
+  documentId,
+  fileName,
+  caption,
+}) => ({
   messaging_product: "whatsapp",
   to: sanitizeRecipient(to),
   type: "document",
   document: {
-    link: documentUrl,
+    ...(documentId ? { id: documentId } : { link: documentUrl }),
     filename: fileName,
     caption,
   },
@@ -601,9 +643,46 @@ const postToWhatsApp = ({
     request.end();
   });
 
+const uploadWhatsAppMedia = async ({ buffer, fileName, mimetype }) => {
+  const form = new FormData();
+  form.append("messaging_product", "whatsapp");
+  form.append(
+    "file",
+    new Blob([buffer], { type: mimetype || "application/pdf" }),
+    fileName,
+  );
+
+  const response = await fetch(
+    `https://${GRAPH_API_HOST}/${GRAPH_API_VERSION}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/media`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+      },
+      body: form,
+    },
+  );
+  const responseBody = await response.text();
+  if (!response.ok) {
+    throw new Error(getWhatsAppErrorMessage(responseBody, response.statusText));
+  }
+
+  let parsedBody;
+  try {
+    parsedBody = JSON.parse(responseBody);
+  } catch (_) {
+    throw new Error("WhatsApp media upload returned an invalid response");
+  }
+  if (!parsedBody.id) {
+    throw new Error("WhatsApp media upload did not return a media ID");
+  }
+  return parsedBody.id;
+};
+
 const sendWhatsAppDocumentMessage = ({
   to,
   documentUrl,
+  documentBuffer,
   fileName,
   caption,
   invoiceId,
@@ -625,7 +704,7 @@ const sendWhatsAppDocumentMessage = ({
       error: "WhatsApp configuration is incomplete",
     });
   }
-  if (!to || !documentUrl) {
+  if (!to || (!documentUrl && !documentBuffer)) {
     void recordWhatsAppMessage({
       phone: to,
       text: caption || `Invoice PDF: ${fileName}`,
@@ -633,22 +712,50 @@ const sendWhatsAppDocumentMessage = ({
       invoiceId,
       eventType,
       status: "skipped",
-      error: "WhatsApp document recipient or URL is missing",
+      error: "WhatsApp document recipient or file is missing",
     });
     return Promise.resolve({
       success: false,
       skipped: true,
-      error: "WhatsApp document recipient or URL is missing",
+      error: "WhatsApp document recipient or file is missing",
     });
   }
-  return postToWhatsApp({
-    payload: buildDocumentPayload({ to, documentUrl, fileName, caption }),
-    to,
-    text: caption || `Invoice PDF: ${fileName}`,
-    messageType: "document",
-    invoiceId,
-    eventType,
-  });
+  return (async () => {
+    try {
+      const documentId = documentBuffer
+        ? await uploadWhatsAppMedia({
+            buffer: documentBuffer,
+            fileName,
+            mimetype: "application/pdf",
+          })
+        : null;
+      return await postToWhatsApp({
+        payload: buildDocumentPayload({
+          to,
+          documentUrl,
+          documentId,
+          fileName,
+          caption,
+        }),
+        to,
+        text: caption || `Invoice PDF: ${fileName}`,
+        messageType: "document",
+        invoiceId,
+        eventType,
+      });
+    } catch (error) {
+      void recordWhatsAppMessage({
+        phone: to,
+        text: caption || `Invoice PDF: ${fileName}`,
+        messageType: "document",
+        invoiceId,
+        eventType,
+        status: "failed",
+        error: error.message,
+      });
+      return { success: false, error: error.message };
+    }
+  })();
 };
 
 const sendWhatsAppTemplateMessage = ({
@@ -860,11 +967,14 @@ const sendTemplateWithFallback = async ({
           : combined.templateError || textResult?.error || "Send failed";
       combined.status = "failed";
       combined.success = false;
-      combined.skipped = Boolean(textResult?.skipped && !combined.templateError);
+      combined.skipped = Boolean(
+        textResult?.skipped && !combined.templateError,
+      );
     }
   }
 
-  const combinedDisplayText = fallbackText || `Template: ${templateName || "unknown"}`;
+  const combinedDisplayText =
+    fallbackText || `Template: ${templateName || "unknown"}`;
   void recordWhatsAppMessage({
     phone: to,
     text: combinedDisplayText,
@@ -911,7 +1021,13 @@ const sendTemplateWithFallback = async ({
   };
 };
 
-const sendWhatsAppTextMessage = ({ to, text, invoiceId, eventType, skipRecord = false }) => {
+const sendWhatsAppTextMessage = ({
+  to,
+  text,
+  invoiceId,
+  eventType,
+  skipRecord = false,
+}) => {
   if (!hasWhatsAppBaseConfig()) {
     if (!skipRecord) {
       void recordWhatsAppMessage({
@@ -1167,8 +1283,7 @@ const sendForgotPasswordOtpWhatsApp = async ({ phone, otp }) => {
     templateKey: "FORGOT_PASSWORD_OTP",
     bodyParameters: [otpValue],
     buttonType: configuredButtonType,
-    buttonIndex:
-      process.env.WHATSAPP_TEMPLATE_FORGOT_PASSWORD_OTP_BUTTON_INDEX,
+    buttonIndex: process.env.WHATSAPP_TEMPLATE_FORGOT_PASSWORD_OTP_BUTTON_INDEX,
     buttonParameters: configuredButtonType ? [otpValue] : [],
     fallbackText,
   });
@@ -1206,6 +1321,7 @@ const sendInvoiceWhatsApp = async (
   const errors = [];
   const results = {};
   let invoicePdfUrl = "";
+  let invoicePdfBuffer = null;
   const detailedMessage = buildInvoiceMessage(
     invoice,
     patientContact,
@@ -1214,13 +1330,13 @@ const sendInvoiceWhatsApp = async (
 
   if (!templateOnly) {
     try {
-      const pdfBuffer = await createInvoicePdfBuffer(invoice, patientContact);
+      invoicePdfBuffer = await createInvoicePdfBuffer(invoice, patientContact);
       const fileName = `Invoice_${invoice.invoiceNumber || invoice._id}.pdf`;
       const uploadedPdf = await storageService.uploadFile({
         file: {
-          buffer: pdfBuffer,
+          buffer: invoicePdfBuffer,
           mimetype: "application/pdf",
-          size: pdfBuffer.length,
+          size: invoicePdfBuffer.length,
         },
         folder: "invoices",
         fileName,
@@ -1288,11 +1404,12 @@ const sendInvoiceWhatsApp = async (
     }
   }
 
-  if (invoicePdfUrl) {
+  if (invoicePdfBuffer || invoicePdfUrl) {
     const fileName = `Invoice_${invoice.invoiceNumber || invoice._id}.pdf`;
     results.document = await sendWhatsAppDocumentMessage({
       to: patientContact.phone,
       documentUrl: invoicePdfUrl,
+      documentBuffer: invoicePdfBuffer,
       fileName,
       caption: `Bill copy for ${invoice.invoiceNumber || "your invoice"}`,
       invoiceId: invoice?._id || invoice?.id,
