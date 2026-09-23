@@ -11,6 +11,7 @@ const {
 const DEFAULT_POLL_INTERVAL_MS = Number(
   process.env.WHATSAPP_REMINDER_POLL_INTERVAL_MS || 300000,
 );
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://creadentsmiles.com";
 
 const toObjectIdString = (value) => {
   if (!value) return "";
@@ -106,13 +107,25 @@ const formatAppointmentDateTimeParts = (appointment) => {
   };
 };
 
+const buildAppointmentConfirmLink = (appointment) => {
+  const token = appointment?.confirmToken;
+  if (!token) return "";
+  try {
+    return `${FRONTEND_URL.replace(/\/+$/, "")}/appointment/${encodeURIComponent(token)}`;
+  } catch (_) {
+    return "";
+  }
+};
+
 const buildAppointmentBookedPatientMessage = (
   patientContact,
   doctorContact,
   appointmentDate,
   appointmentTime,
   appointmentType,
-) => `*🏥 Creadent Dental Clinic - Appointment Confirmed*
+  confirmLink = "",
+) => {
+  const baseMessage = `*🏥 Creadent Dental Clinic - Appointment Confirmed*
 
 Dear ${patientContact.name || "Patient"},
 
@@ -121,16 +134,22 @@ Your appointment has been successfully booked.
 👨‍⚕️ *Doctor:* ${doctorContact.name || "Doctor"}
 📅 *Date:* ${appointmentDate}
 ⏰ *Time:* ${appointmentTime}
-${appointmentType ? `🏷️ *Type:* ${appointmentType}\n` : ""}
-📍 *Clinic:* Creadent Multispeciality Dental Clinic
-   BD-85, Salt Lake Rd, BD Block, Sector 1, Bidhannagar, Kolkata - 700064
+${appointmentType ? `🏷️ *Type:* ${appointmentType}\n` : ""}📍 *Clinic:* Creadent Multispeciality Dental Clinic
+   BD-85, Salt Lake Rd, BD Block, Sector 1, Bidhannagar, Kolkata - 700064`;
 
-📞 For any queries, call us at: +91 6292300343
+  const linkSection = confirmLink
+    ? `\n\n✅ *Confirm or Reschedule your appointment:*\nTap the link below to confirm or request a reschedule:\n${confirmLink}\n`
+    : "";
+
+  const footer = `\n📞 For any queries, call us at: +91 6292300343
 
 Please arrive 10 minutes before your scheduled time.
 
 Regards,
 Team Creadent Dental Clinic`;
+
+  return `${baseMessage}${linkSection}${footer}`;
+};
 
 const buildAppointmentBookedDoctorMessage = (
   doctorContact,
@@ -322,25 +341,39 @@ const sendAppointmentBookingNotifications = async (appointment) => {
   const doctorTemplate =
     process.env.WHATSAPP_TEMPLATE_APPOINTMENT_BOOKED_DOCTOR;
 
-  const appointmentId = appointment?._id || appointment?.id;
+  let appointmentWithToken = appointment;
+  try {
+    const appointmentId = appointmentWithToken?._id || appointmentWithToken?.id;
+    if (appointmentId && !appointmentWithToken?.confirmToken) {
+      const reloaded = await Appointment.findById(appointmentId);
+      if (reloaded) appointmentWithToken = reloaded;
+    }
+  } catch (_) {}
+
+  const appointmentId = appointmentWithToken?._id || appointmentWithToken?.id;
+  const confirmLink = buildAppointmentConfirmLink(appointmentWithToken);
+  const confirmToken = appointmentWithToken?.confirmToken || "";
   const updates = {};
   const errors = [];
   const { appointmentDate, appointmentTime } =
-    formatAppointmentDateTimeParts(appointment);
+    formatAppointmentDateTimeParts(appointmentWithToken);
 
   const [patientContact, doctorContact] = await Promise.all([
-    resolvePatientContact(appointment),
-    resolveDoctorContact(appointment),
+    resolvePatientContact(appointmentWithToken),
+    resolveDoctorContact(appointmentWithToken),
   ]);
 
-  if (!appointment?.bookingPatientNotificationSentAt && patientContact.phone) {
+  if (!appointmentWithToken?.bookingPatientNotificationSentAt && patientContact.phone) {
     const fallbackText = buildAppointmentBookedPatientMessage(
       patientContact,
       doctorContact,
       appointmentDate,
       appointmentTime,
-      appointment?.type || "",
+      appointmentWithToken?.type || "",
+      confirmLink,
     );
+    const configuredButtonType =
+      process.env.WHATSAPP_TEMPLATE_APPOINTMENT_BOOKED_PATIENT_BUTTON_TYPE;
     const patientResult = await sendTemplateWithFallback({
       to: patientContact.phone,
       templateName: patientTemplate,
@@ -350,8 +383,14 @@ const sendAppointmentBookingNotifications = async (appointment) => {
         doctorContact.name,
         appointmentDate,
         appointmentTime,
-        appointment?.type || "",
+        appointmentWithToken?.type || "",
       ],
+      buttonType: configuredButtonType,
+      buttonIndex:
+        process.env.WHATSAPP_TEMPLATE_APPOINTMENT_BOOKED_PATIENT_BUTTON_INDEX,
+      buttonParameters: configuredButtonType && confirmToken
+        ? [`confirm:${confirmToken}`, `reschedule:${confirmToken}`]
+        : [],
       fallbackText,
     });
 
@@ -360,17 +399,17 @@ const sendAppointmentBookingNotifications = async (appointment) => {
     } else {
       errors.push(`Patient booking message failed: ${patientResult.error}`);
     }
-  } else if (!appointment?.bookingPatientNotificationSentAt) {
+  } else if (!appointmentWithToken?.bookingPatientNotificationSentAt) {
     errors.push("Patient phone number not found for booking confirmation");
   }
 
-  if (!appointment?.bookingDoctorNotificationSentAt && doctorContact.phone) {
+  if (!appointmentWithToken?.bookingDoctorNotificationSentAt && doctorContact.phone) {
     const fallbackText = buildAppointmentBookedDoctorMessage(
       doctorContact,
       patientContact,
       appointmentDate,
       appointmentTime,
-      appointment?.type || "",
+      appointmentWithToken?.type || "",
     );
     const doctorResult = await sendTemplateWithFallback({
       to: doctorContact.phone,
@@ -381,7 +420,7 @@ const sendAppointmentBookingNotifications = async (appointment) => {
         patientContact.name,
         appointmentDate,
         appointmentTime,
-        appointment?.type || "",
+        appointmentWithToken?.type || "",
       ],
       fallbackText,
     });
@@ -391,7 +430,7 @@ const sendAppointmentBookingNotifications = async (appointment) => {
     } else {
       errors.push(`Doctor booking message failed: ${doctorResult.error}`);
     }
-  } else if (!appointment?.bookingDoctorNotificationSentAt) {
+  } else if (!appointmentWithToken?.bookingDoctorNotificationSentAt) {
     errors.push("Doctor phone number not found for booking confirmation");
   }
 

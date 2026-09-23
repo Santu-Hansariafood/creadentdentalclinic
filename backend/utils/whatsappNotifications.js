@@ -423,14 +423,19 @@ const buildTemplatePayload = ({
     const parameterType =
       normalizedButtonType === "quick_reply" ? "payload" : "text";
     const parameterKey = parameterType === "payload" ? "payload" : "text";
-    components.push({
-      type: "button",
-      sub_type: normalizedButtonType || undefined,
-      index: String(buttonIndex),
-      parameters: buttonParameters.slice(0, 1).map((value) => ({
-        type: parameterType,
-        [parameterKey]: String(value ?? ""),
-      })),
+    const baseIndex = Number.parseInt(String(buttonIndex || "0"), 10) || 0;
+    buttonParameters.forEach((value, i) => {
+      components.push({
+        type: "button",
+        sub_type: normalizedButtonType || undefined,
+        index: String(baseIndex + i),
+        parameters: [
+          {
+            type: parameterType,
+            [parameterKey]: String(value ?? ""),
+          },
+        ],
+      });
     });
   }
   if (components.length > 0) {

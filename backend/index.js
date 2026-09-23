@@ -18,6 +18,7 @@ const authRoutes = require("./routes/authRoutes");
 const storageRoutes = require("./routes/storageRoutes");
 const iciciPaymentRoutes = require("./routes/iciciPaymentRoutes");
 const whatsappWebhookRoutes = require("./routes/whatsappWebhookRoutes");
+const appointmentConfirmRoutes = require("./routes/appointmentConfirmRoutes");
 const storageService = require("./utils/storageService");
 const {
   startAppointmentReminderScheduler,
@@ -58,6 +59,7 @@ const startServer = async () => {
 
   app.use("/api", authRoutes);
   app.use("/api/icici", iciciPaymentRoutes);
+  app.use("/api/appointments/public", appointmentConfirmRoutes);
 
   app.use((req, res, next) => {
     console.log("=== Incoming request ===");

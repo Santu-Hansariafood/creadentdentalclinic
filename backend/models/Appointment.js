@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const crypto = require("crypto");
 
 const appointmentSchema = new mongoose.Schema(
   {
@@ -30,6 +31,8 @@ const appointmentSchema = new mongoose.Schema(
       enum: ["confirmed", "reschedule_requested"],
     },
     patientResponseAt: { type: Date },
+    rescheduleReason: { type: String },
+    confirmToken: { type: String, index: true, unique: true, sparse: true },
     bookingPatientNotificationSentAt: { type: Date },
     bookingDoctorNotificationSentAt: { type: Date },
     reschedulePatientNotificationSentAt: { type: Date },
@@ -43,5 +46,12 @@ const appointmentSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+appointmentSchema.pre("save", function (next) {
+  if (!this.confirmToken) {
+    this.confirmToken = crypto.randomBytes(16).toString("hex");
+  }
+  next();
+});
 
 module.exports = mongoose.model("Appointment", appointmentSchema);
