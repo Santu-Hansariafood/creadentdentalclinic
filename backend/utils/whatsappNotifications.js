@@ -1,5 +1,6 @@
 const https = require("https");
 const PDFDocument = require("pdfkit");
+const QRCode = require("qrcode");
 const Patient = require("../models/Patient");
 const User = require("../models/User");
 const WhatsAppMessage = require("../models/WhatsAppMessage");
@@ -467,83 +468,174 @@ const buildDocumentPayload = ({
   },
 });
 
-const createInvoicePdfBuffer = (invoice, patientContact) =>
+const fetchImageBuffer = (url) =>
   new Promise((resolve, reject) => {
-    const document = new PDFDocument({ size: "A4", margin: 48 });
-    const chunks = [];
-    document.on("data", (chunk) => chunks.push(chunk));
+    https
+      .get(url, (response) => {
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          response.resume();
+          reject(new Error(`Image request failed with status ${response.statusCode}`));
+          return;
+        }
+        const chunks = [];
+        response.on("data", (chunk) => chunks.push(chunk));
+        response.on("end", () => resolve(Buffer.concat(chunks)));
+      })
+      .on("error", reject);
+  });
+
+const createInvoicePdfBuffer = async (invoice, patientContact) => {
+  const document = new PDFDocument({ size: "A4", margin: 56 });
+  const chunks = [];
+  document.on("data", (chunk) => chunks.push(chunk));
+  const finished = new Promise((resolve, reject) => {
     document.on("end", () => resolve(Buffer.concat(chunks)));
     document.on("error", reject);
-
-    document
-      .fontSize(18)
-      .fillColor("#0f766e")
-      .text("Creadent Multispeciality Dental Clinic");
-    document
-      .fontSize(9)
-      .fillColor("#475569")
-      .text(
-        "BD-85, Salt Lake Rd, BD Block, Sector 1, Bidhannagar, Kolkata, West Bengal 700064",
-      );
-    document.text(
-      "Phone: +91 6292300343 | Email: creadentmultispecialitydentalc@gmail.com",
-    );
-    document.moveDown(1.5);
-    document
-      .fontSize(22)
-      .fillColor("#0f766e")
-      .text(invoice.status === "Paid" ? "RECEIPT" : "INVOICE");
-    document.fontSize(10).fillColor("#111827");
-    document.text(`Invoice #: ${invoice.invoiceNumber || "-"}`);
-    document.text(
-      `Date: ${
-        formatDateIN(invoice.date || invoice.createdAt) ||
-        formatDateIN(new Date())
-      }`,
-    );
-    if (invoice.paymentDate)
-      document.text(`Paid Date: ${formatDateIN(invoice.paymentDate)}`);
-    document.moveDown();
-    document.text(
-      `Bill To: ${patientContact.name || invoice.patientName || "Patient"}`,
-    );
-    if (patientContact.rawPhone)
-      document.text(`Mobile: ${patientContact.rawPhone}`);
-    document.moveDown();
-    const tableTop = document.y;
-    const descriptionX = document.page.margins.left;
-    const quantityX = 410;
-    const amountX = 455;
-    document.font("Helvetica-Bold");
-    document.text("Description", descriptionX, tableTop, { width: 350 });
-    document.text("Qty", quantityX, tableTop, { width: 35, align: "right" });
-    document.text("Amount", amountX, tableTop, { width: 92, align: "right" });
-    document.moveDown(0.5);
-    document.font("Helvetica");
-    (invoice.items || []).forEach((item) => {
-      const rowTop = document.y;
-      document.text(item.description || "Treatment", descriptionX, rowTop, {
-        width: 350,
-      });
-      document.text(String(item.quantity || 1), quantityX, rowTop, {
-        width: 35,
-        align: "right",
-      });
-      document.text(formatCurrencyINR(item.total || 0), amountX, rowTop, {
-        width: 92,
-        align: "right",
-      });
-      document.moveDown(0.35);
-    });
-    document.moveDown();
-    document.text(`Subtotal: ${formatCurrencyINR(invoice.subtotal || 0)}`);
-    document.text(`Total: ${formatCurrencyINR(invoice.total || 0)}`);
-    document.text(`Paid: ${formatCurrencyINR(invoice.amountPaid || 0)}`);
-    document
-      .font("Helvetica-Bold")
-      .text(`Balance Due: ${formatCurrencyINR(invoice.balance || 0)}`);
-    document.end();
   });
+
+  const pageWidth = 595.28;
+  const pageHeight = 841.89;
+  const margin = 56;
+  const right = pageWidth - margin;
+  const clinicEmail = "creadentmultispecialitydentalc@gmail.com";
+  const clinicAddress =
+    "BD-85, Salt Lake Rd, BD Block, Sector 1, Bidhannagar, Kolkata, West Bengal 700064";
+  let y = margin;
+
+  try {
+    const logo = await fetchImageBuffer("https://creadentsmiles.com/logo/logo.png");
+    document.roundedRect(margin, y, 4, 30).fill("#0f766e");
+    document.image(logo, margin + 10, y, { fit: [30, 30] });
+    document.fillColor("#0f172a").font("Helvetica-Bold").fontSize(16)
+      .text("Creadent Multispeciality Dental Clinic", margin + 48, y + 1);
+    document.fillColor("#475569").font("Helvetica").fontSize(8)
+      .text(clinicAddress, margin + 48, y + 17)
+      .text(`Phone: +91 6292300343  |  Email: ${clinicEmail}`, margin + 48, y + 28);
+  } catch (_) {
+    document.roundedRect(margin, y, 4, 30).fill("#0f766e");
+    document.fillColor("#0f172a").font("Helvetica-Bold").fontSize(16)
+      .text("Creadent Multispeciality Dental Clinic", margin + 12, y + 1);
+    document.fillColor("#475569").font("Helvetica").fontSize(8)
+      .text(clinicAddress, margin + 12, y + 17)
+      .text(`Phone: +91 6292300343  |  Email: ${clinicEmail}`, margin + 12, y + 28);
+  }
+  document.strokeColor("#cbd5e1").lineWidth(0.35)
+    .moveTo(margin, y + 40).lineTo(right, y + 40).stroke();
+  y += 58;
+
+  const title = invoice.status === "Paid" ? "RECEIPT" : "INVOICE";
+  document.fillColor("#0f766e").font("Helvetica-Bold").fontSize(22).text(title, margin, y);
+  document.fillColor("#64748b").font("Helvetica").fontSize(8)
+    .text(invoice.status === "Paid" ? "OFFICIAL PAYMENT RECEIPT" : "DENTAL CARE INVOICE", margin, y + 25);
+  document.fillColor("#111827").fontSize(10)
+    .text(`Invoice #: ${invoice.invoiceNumber || "-"}`, right - 150, y + 1, { width: 150, align: "right" })
+    .text(`Date: ${formatDateIN(invoice.date || invoice.createdAt) || formatDateIN(new Date())}`, right - 150, y + 17, { width: 150, align: "right" });
+  if (invoice.status === "Paid" || invoice.paymentDate) {
+    document.fillColor("#10b981")
+      .text(`Received Date: ${formatDateIN(invoice.paymentDate || invoice.date)}`, right - 150, y + 33, { width: 150, align: "right" });
+  }
+  y += 62;
+
+  document.fillColor("#111827").font("Helvetica-Bold").fontSize(12).text("Bill To:", margin, y);
+  y += 18;
+  document.font("Helvetica").fontSize(10);
+  const patient = invoice.patient || {};
+  const patientText = [
+    invoice.patientName || patientContact.name || "Patient",
+    patient.phone || invoice.patientPhone || patientContact.rawPhone
+      ? `Mobile: ${patient.phone || invoice.patientPhone || patientContact.rawPhone}`
+      : null,
+    patient.address || invoice.patientAddress ? `Address: ${patient.address || invoice.patientAddress}` : null,
+    patient.age || invoice.patientAge ? `Age: ${patient.age || invoice.patientAge}` : null,
+  ].filter(Boolean).join(" | ");
+  document.text(patientText, margin, y, { width: right - margin });
+  y += 28;
+
+  const colDescription = margin;
+  const colQuantity = right - 180;
+  const colPrice = right - 105;
+  document.font("Helvetica-Bold").text("Description", colDescription, y)
+    .text("Qty", colQuantity, y, { width: 35 })
+    .text("Price", colPrice, y, { width: 55 })
+    .text("Amount", right - 62, y, { width: 62, align: "right" });
+  y += 8;
+  document.strokeColor("#cbd5e1").moveTo(margin, y).lineTo(right, y).stroke();
+  y += 14;
+  document.font("Helvetica");
+  (invoice.items || []).forEach((item) => {
+    const lines = document.heightOfString(item.description || "Treatment", { width: colQuantity - colDescription - 12 });
+    document.text(item.description || "Treatment", colDescription, y, { width: colQuantity - colDescription - 12 })
+      .text(String(item.quantity || 1), colQuantity, y, { width: 35 })
+      .text(`Rs. ${Number(item.unitPrice || 0).toFixed(2)}`, colPrice, y, { width: 70 })
+      .text(`Rs. ${Number(item.total || 0).toFixed(2)}`, right - 62, y, { width: 62, align: "right" });
+    y += Math.max(20, lines + 6);
+  });
+  document.strokeColor("#cbd5e1").moveTo(margin, y).lineTo(right, y).stroke();
+  y += 18;
+
+  const summaryX = right - 145;
+  const money = (value) => `Rs. ${Number(value || 0).toFixed(2)}`;
+  const summaryLine = (label, value, color = "#111827", bold = false) => {
+    document.fillColor(color).font(bold ? "Helvetica-Bold" : "Helvetica").fontSize(bold ? 12 : 10)
+      .text(label, summaryX, y).text(value, right - 95, y, { width: 95, align: "right" });
+    y += bold ? 20 : 16;
+  };
+  summaryLine("Subtotal:", money(invoice.subtotal));
+  if (Number(invoice.discount || 0) > 0) summaryLine("Discount:", `-${money(invoice.discount)}`, "#10b981");
+  y += 4;
+  document.strokeColor("#007faf").moveTo(summaryX - 5, y).lineTo(right, y).stroke();
+  y += 12;
+  summaryLine("Total:", money(invoice.total), "#111827", true);
+  if (Number(invoice.amountPaid || 0) > 0) summaryLine("Amount Paid:", money(invoice.amountPaid), "#10b981");
+  if (Number(invoice.balance || 0) > 0) summaryLine("Balance Due:", money(invoice.balance), "#ef4444", true);
+
+  if (invoice.insuranceClaim) {
+    y += 10;
+    document.fillColor("#111827").font("Helvetica-Bold").fontSize(10).text("Insurance Claim Information:", margin, y);
+    y += 16;
+    document.font("Helvetica").text(`Provider: ${invoice.insuranceClaim.provider}`, margin, y)
+      .text(`Claim Number: ${invoice.insuranceClaim.claimNumber}`, margin, y + 14)
+      .text(`Claim Amount: ${money(invoice.insuranceClaim.claimAmount)}`, margin, y + 28)
+      .text(`Status: ${invoice.insuranceClaim.status}`, margin, y + 42);
+    y += 58;
+  }
+
+  if (invoice.paymentMethod || invoice.paymentDate || invoice.transactionId || invoice.merchantTxnNo || invoice.pgTxnNo) {
+    y += 8;
+    document.fillColor("#111827").font("Helvetica-Bold").fontSize(10).text("Payment Information:", margin, y);
+    y += 16;
+    document.font("Helvetica").text(`Transaction Mode: ${invoice.paymentMethod || "-"}`, margin, y)
+      .text(`Received Date: ${formatDateIN(invoice.paymentDate || invoice.date)}`, margin, y + 14);
+    y += 30;
+    [["Transaction ID", invoice.transactionId], ["Merchant Reference", invoice.merchantTxnNo], ["PG Transaction No", invoice.pgTxnNo], ["Authorization Ref", invoice.authRefNo]].forEach(([label, value]) => {
+      if (value) {
+        document.text(`${label}: ${value}`, margin, y);
+        y += 14;
+      }
+    });
+  }
+
+  if (invoice.notes) {
+    y += 10;
+    document.fillColor("#646464").font("Helvetica-Oblique").fontSize(9)
+      .text(`Notes: ${invoice.notes}`, margin, y, { width: right - margin - 30 });
+  }
+
+  try {
+    const qrData = invoice.status === "Paid"
+      ? `Receipt: ${invoice.invoiceNumber} | Paid: ${money(invoice.total)}`
+      : `Invoice: ${invoice.invoiceNumber}`;
+    const qrDataUrl = await QRCode.toDataURL(qrData, { width: 120, margin: 2 });
+    document.image(Buffer.from(qrDataUrl.split(",")[1], "base64"), right - 40, pageHeight - 92, { fit: [40, 40] });
+    document.fillColor("#646464").font("Helvetica").fontSize(6).text("Scan to verify", right - 40, pageHeight - 48, { width: 40, align: "center" });
+  } catch (_) {}
+
+  document.fillColor("#969696").font("Helvetica").fontSize(8)
+    .text("Thank you for choosing Creadent Multispeciality Dental Clinic", margin, pageHeight - 28, { width: right - margin, align: "center" })
+    .text(`For questions, contact us at ${clinicEmail}`, margin, pageHeight - 16, { width: right - margin, align: "center" });
+  document.end();
+  return finished;
+};
 
 const postToWhatsApp = ({
   payload,
