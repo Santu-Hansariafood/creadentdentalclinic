@@ -104,6 +104,9 @@ const AppointmentRequests = () => {
                     </h2>
                   </div>
                   <p className="mt-2 text-sm text-gray-600">{appointment.patientName}</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Patient response: {isConfirmed ? "Confirmed appointment" : "Requested reschedule"}
+                  </p>
                 </div>
                 <span
                   className={`inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
@@ -137,7 +140,7 @@ const AppointmentRequests = () => {
 
               {appointment.patientResponseAt && (
                 <p className="mt-3 text-xs text-gray-500">
-                  {isConfirmed ? "Confirmed" : "Requested"} on {formatDate(appointment.patientResponseAt, "dd/MM/yyyy hh:mm a")}
+                  {isConfirmed ? "Confirmed" : "Reschedule requested"} on {formatDate(appointment.patientResponseAt, "dd/MM/yyyy hh:mm a")}
                 </p>
               )}
             </article>

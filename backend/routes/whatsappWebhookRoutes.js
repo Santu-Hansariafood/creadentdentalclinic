@@ -328,6 +328,7 @@ const safeProcessInboundMessage = async (message, value = {}) => {
                   : "APPOINTMENT_RESCHEDULE_REQUESTED",
               title,
               message: notificationMessage,
+              appointmentId: appointment._id,
               priority: patientResponse === "confirmed" ? "medium" : "high",
               read: false,
             })),
