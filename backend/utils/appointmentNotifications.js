@@ -746,7 +746,7 @@ const sendReminderIfDue = async (appointment, now) => {
     now < oneHourBefore &&
     doctorContact.phone
   ) {
-    const whenText = "tomorrow";
+    const whenText = appointmentTime;
     const fallbackText = buildAppointmentReminderDoctorMessage(
       doctorContact,
       appointment?.patientName || "Patient",

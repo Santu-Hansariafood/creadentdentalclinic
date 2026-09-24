@@ -1659,10 +1659,7 @@ const sendInvoiceWhatsApp = async (
     }
   }
 
-  const shouldSendInvoiceDocument =
-    !sendTemplate || !results.template?.templateSucceeded;
-
-  if (shouldSendInvoiceDocument && (invoicePdfBuffer || invoicePdfUrl)) {
+  if (!sendTemplate && (invoicePdfBuffer || invoicePdfUrl)) {
     const fileName = `Invoice_${invoice.invoiceNumber || invoice._id}.pdf`;
     results.document = await sendWhatsAppDocumentMessage({
       to: patientContact.phone,
