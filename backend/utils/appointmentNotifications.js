@@ -1,11 +1,9 @@
 const Appointment = require("../models/Appointment");
 const Patient = require("../models/Patient");
 const User = require("../models/User");
-const Invoice = require("../models/Invoice");
 const {
   normalizePhoneNumber,
   sendTemplateWithFallback,
-  sendInvoiceWhatsApp,
 } = require("./whatsappNotifications");
 
 const DEFAULT_POLL_INTERVAL_MS = Number(
@@ -937,25 +935,6 @@ const sendManualAppointmentReminder = async (appointment, { reminderType = "manu
       errors.push(`Patient reminder failed: ${patientResult.error || "not sent"}`);
     }
 
-    const outstandingInvoice = await Invoice.findOne({
-      patientId: appointment.patientId,
-      balance: { $gt: 0 },
-    }).sort({ date: -1, createdAt: -1 });
-
-    if (outstandingInvoice) {
-      const invoiceResult = await sendInvoiceWhatsApp(
-        outstandingInvoice,
-        appointment.patientId,
-        "",
-        { eventType: "appointment_reminder_invoice", templateOnly: true },
-      );
-      results.invoice = invoiceResult;
-      if (!invoiceResult.success) {
-        errors.push(
-          `Invoice bill failed: ${invoiceResult.errors?.join(" | ") || invoiceResult.error || "not sent"}`,
-        );
-      }
-    }
   } else {
     errors.push("Patient phone number not found");
   }
@@ -1002,13 +981,10 @@ const sendManualAppointmentReminder = async (appointment, { reminderType = "manu
   );
 
   return {
-    success:
-      (results.patient.success || results.doctor.success) &&
-      (!results.invoice || results.invoice.success),
+    success: results.patient.success || results.doctor.success,
     skipped:
       results.patient.skipped &&
-      results.doctor.skipped &&
-      (!results.invoice || results.invoice.skipped),
+      results.doctor.skipped,
     phone: patientContact.phone,
     patientName: patientContact.name,
     doctorName: doctorContact.name,

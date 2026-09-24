@@ -19,6 +19,7 @@ import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import SEO from "../components/SEO";
 import api from "../api/axios";
+import Preloader from "../components/Preloader";
 
 const formatDateDisplay = (isoDate) => {
   if (!isoDate) return "";
@@ -192,14 +193,7 @@ const AppointmentConfirm = () => {
   }, [loading, appointment, completed, initialActionHandled]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-cyan-50 flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 size={48} className="text-primary animate-spin" />
-          <p className="text-gray-600 font-medium">Loading appointment details…</p>
-        </div>
-      </div>
-    );
+    return <Preloader />;
   }
 
   if (error && !appointment) {
@@ -247,7 +241,8 @@ const AppointmentConfirm = () => {
     return formatDateDisplay(d);
   };
 
-  const displayDate = appointment?.dateFormatted || isFormatDate(appointment?.date) || "";
+  const displayDate =
+    appointment?.dateFormatted || isFormatDate(appointment?.date) || "";
   const displayDuration = appointment?.duration || 30;
   const displayReason = appointment?.reason || "";
 
@@ -277,10 +272,12 @@ const AppointmentConfirm = () => {
                   Appointment Details
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-heading font-bold mb-2">
-                  Hi {(appointment?.patientName || "").split(" ")[0] || "there"},
+                  Hi {(appointment?.patientName || "").split(" ")[0] || "there"}
+                  ,
                 </h1>
                 <p className="text-white/90 text-sm sm:text-base max-w-md">
-                  Please review your appointment details below and let us know if you can make it or need to reschedule.
+                  Please review your appointment details below and let us know
+                  if you can make it or need to reschedule.
                 </p>
               </div>
               <div className="hidden sm:block shrink-0">
@@ -346,9 +343,7 @@ const AppointmentConfirm = () => {
                   <Calendar size={14} />
                   Date
                 </div>
-                <p className="font-semibold text-gray-900">
-                  {displayDate}
-                </p>
+                <p className="font-semibold text-gray-900">{displayDate}</p>
               </div>
 
               <div className="rounded-xl bg-gray-50 border border-gray-100 p-4">
@@ -422,7 +417,9 @@ const AppointmentConfirm = () => {
                     ) : (
                       <CheckCircle2 size={18} />
                     )}
-                    {submitting === "confirm" ? "Confirming…" : "Confirm Appointment"}
+                    {submitting === "confirm"
+                      ? "Confirming…"
+                      : "Confirm Appointment"}
                   </button>
 
                   <button
@@ -435,7 +432,8 @@ const AppointmentConfirm = () => {
                   </button>
                 </div>
                 <p className="text-xs text-center text-gray-500 pt-1">
-                  Please confirm your attendance so we can prepare for your visit.
+                  Please confirm your attendance so we can prepare for your
+                  visit.
                 </p>
               </div>
             )}
@@ -535,7 +533,8 @@ const AppointmentConfirm = () => {
             </a>
           </p>
           <p className="mt-2 opacity-75">
-            © {new Date().getFullYear()} Creadent Multispeciality Dental Clinic. All rights reserved.
+            © {new Date().getFullYear()} Creadent Multispeciality Dental Clinic.
+            All rights reserved.
           </p>
         </div>
       </div>
