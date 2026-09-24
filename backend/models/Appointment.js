@@ -47,11 +47,10 @@ const appointmentSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-appointmentSchema.pre("save", function (next) {
+appointmentSchema.pre("save", async function () {
   if (!this.confirmToken) {
     this.confirmToken = crypto.randomBytes(16).toString("hex");
   }
-  next();
 });
 
 module.exports = mongoose.model("Appointment", appointmentSchema);
