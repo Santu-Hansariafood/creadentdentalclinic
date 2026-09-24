@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@apollo/client";
-import { AlertTriangle, Calendar, CheckCircle2, Clock, RefreshCw } from "lucide-react";
+import { AlertTriangle, Calendar, CheckCircle2, Clock, RefreshCw, X } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
 import Preloader from "../components/Preloader";
@@ -9,9 +9,15 @@ import { formatDate } from "../utils/dateUtils";
 
 const AppointmentRequests = () => {
   const location = useLocation();
+  const [selectedDate, setSelectedDate] = useState("");
   const selectedAppointmentId = new URLSearchParams(location.search).get("appointment");
   const { data, loading, error } = useQuery(GET_APPOINTMENTS, {
-    variables: { page: 1, limit: 100, status: "Scheduled" },
+    variables: {
+      page: 1,
+      limit: 100,
+      status: "Scheduled",
+      date: selectedDate || undefined,
+    },
     fetchPolicy: "network-only",
   });
 
@@ -35,6 +41,28 @@ const AppointmentRequests = () => {
         title="Appointment Requests"
         subtitle="Review patient confirmations and reschedule requests."
       />
+
+      <div className="mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <label className="flex min-w-[220px] flex-1 flex-col gap-1 text-sm font-medium text-gray-700">
+          <span>Filter by appointment date</span>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(event) => setSelectedDate(event.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-2 font-normal text-gray-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+          />
+        </label>
+        {selectedDate && (
+          <button
+            type="button"
+            onClick={() => setSelectedDate("")}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+          >
+            <X size={16} />
+            Clear date
+          </button>
+        )}
+      </div>
 
       {error && (
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">

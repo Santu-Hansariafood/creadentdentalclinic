@@ -413,7 +413,7 @@ const resolvers = {
     },
     getAppointments: async (
       _,
-      { page = 1, limit = 10, search = "", status = "All", patientId },
+      { page = 1, limit = 10, search = "", status = "All", patientId, date },
       { user },
     ) => {
       if (user?.role === "patient") {
@@ -437,6 +437,12 @@ const resolvers = {
       }
       if (patientId) {
         query.patientId = patientId;
+      }
+      if (/^\d{4}-\d{2}-\d{2}$/.test(date || "")) {
+        const startOfDay = new Date(`${date}T00:00:00.000Z`);
+        const startOfNextDay = new Date(startOfDay);
+        startOfNextDay.setUTCDate(startOfNextDay.getUTCDate() + 1);
+        query.date = { $gte: startOfDay, $lt: startOfNextDay };
       }
       if (search) {
         query.$or = [

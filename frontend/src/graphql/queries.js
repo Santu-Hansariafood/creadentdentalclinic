@@ -52,6 +52,7 @@ export const GET_APPOINTMENTS = gql`
     $search: String
     $status: String
     $patientId: ID
+    $date: String
   ) {
     getAppointments(
       page: $page
@@ -59,6 +60,7 @@ export const GET_APPOINTMENTS = gql`
       search: $search
       status: $status
       patientId: $patientId
+      date: $date
     ) {
       appointments {
         id
