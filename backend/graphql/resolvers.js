@@ -1265,7 +1265,27 @@ const resolvers = {
       if (!user) throw new Error("Not authenticated");
       let appointmentData = { ...args };
       if (user.role === "patient") {
-        const patient = await getSelfPatient(user);
+        let patient = await getSelfPatient(user);
+        if (!patient) {
+          const normalizedPhone = (user.phone || "").replace(/\D/g, "").slice(-10);
+          if (normalizedPhone && normalizedPhone.length === 10) {
+            patient = await Patient.findOne({ phone: normalizedPhone });
+            if (!patient) {
+              patient = await Patient.create({
+                name: user.name,
+                phone: normalizedPhone,
+                email: user.email,
+                userId: user._id,
+                status: "Active",
+              });
+            } else if (!patient.userId) {
+              patient.userId = user._id;
+              if (user.name) patient.name = user.name;
+              if (user.email) patient.email = user.email;
+              await patient.save();
+            }
+          }
+        }
         if (!patient) throw new Error("Patient profile not found");
         appointmentData = {
           ...appointmentData,
@@ -1274,6 +1294,12 @@ const resolvers = {
         };
       } else {
         requireStaff(user);
+      }
+      if (!appointmentData.patientId) {
+        throw new Error("Please select a patient before booking.");
+      }
+      if (!appointmentData.doctorId) {
+        throw new Error("Please select a doctor before booking.");
       }
       const appointment = new Appointment(appointmentData);
       const savedAppointment = await appointment.save();
