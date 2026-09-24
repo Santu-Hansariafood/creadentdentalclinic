@@ -10,6 +10,10 @@ const notificationSchema = new mongoose.Schema(
     type: { type: String, required: true },
     title: { type: String, required: true },
     message: { type: String, required: true },
+    appointmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Appointment",
+    },
     timestamp: { type: Date, default: Date.now },
     read: { type: Boolean, default: false },
     priority: {

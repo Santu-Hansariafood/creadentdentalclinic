@@ -33,6 +33,7 @@ const StaffList = lazy(() => import("../pages/StaffList"));
 const PaymentLedger = lazy(() => import("../pages/PaymentLedger"));
 const Settings = lazy(() => import("../pages/Settings"));
 const AppointmentConfirm = lazy(() => import("../pages/AppointmentConfirm"));
+const AppointmentRequests = lazy(() => import("../pages/AppointmentRequests"));
 
 const PatientRegistrationCheck = ({ children }) => {
   const { user, isDemoUser } = useAuth();
@@ -138,6 +139,14 @@ const AppRoutes = ({ isAuthenticated, user }) => {
           element={
             <ProtectedRoute role="doctor">
               <Appointments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/appointment-requests"
+          element={
+            <ProtectedRoute role="doctor">
+              <AppointmentRequests />
             </ProtectedRoute>
           }
         />
@@ -295,6 +304,14 @@ const AppRoutes = ({ isAuthenticated, user }) => {
           }
         />
         <Route
+          path="/admin/appointment-requests"
+          element={
+            <ProtectedRoute role="admin">
+              <AppointmentRequests />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin/records"
           element={
             <ProtectedRoute role="admin">
@@ -340,6 +357,14 @@ const AppRoutes = ({ isAuthenticated, user }) => {
           element={
             <ProtectedRoute role="employee">
               <EmployeeDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/appointment-requests"
+          element={
+            <ProtectedRoute role="employee">
+              <AppointmentRequests />
             </ProtectedRoute>
           }
         />

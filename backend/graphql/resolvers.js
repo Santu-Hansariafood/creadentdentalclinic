@@ -1415,6 +1415,7 @@ const resolvers = {
               type,
               title: "Appointment rescheduled",
               message,
+              appointmentId: updatedAppointment._id,
               priority: "high",
             })),
           );

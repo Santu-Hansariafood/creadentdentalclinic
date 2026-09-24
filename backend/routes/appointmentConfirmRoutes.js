@@ -63,6 +63,7 @@ const createStaffNotifications = async (appointment, responseType, patientName, 
         type: isConfirm ? "APPOINTMENT_CONFIRMED" : "APPOINTMENT_RESCHEDULE_REQUESTED",
         title,
         message,
+        appointmentId: appointment._id,
         priority: isConfirm ? "medium" : "high",
       })),
     );

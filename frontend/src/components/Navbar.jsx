@@ -141,9 +141,23 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                   <div className="max-h-[60vh] overflow-y-auto">
                     {unreadNotifications.length > 0 ? (
                       unreadNotifications.map((notification) => (
-                        <div
+                        <button
                           key={notification.id}
+                          type="button"
+                          onClick={() => {
+                            setShowNotifications(false);
+                            navigate(
+                              `/${user?.role}/appointment-requests${
+                                notification.appointmentId
+                                  ? `?appointment=${notification.appointmentId}`
+                                  : ""
+                              }`,
+                            );
+                          }}
                           className="
+                            block
+                            w-full
+                            text-left
                             p-4
                             border-b
                             border-gray-100
@@ -162,7 +176,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                           <p className="text-xs text-gray-400 mt-2">
                             {new Date(notification.timestamp).toLocaleString()}
                           </p>
-                        </div>
+                        </button>
                       ))
                     ) : (
                       <div className="p-8 text-center text-gray-500">

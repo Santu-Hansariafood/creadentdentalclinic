@@ -13,6 +13,7 @@ import {
   PlusCircle,
   Award,
   BarChart3,
+  CheckCircle2,
   Settings,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -35,6 +36,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const doctorLinks = [
     { to: "/doctor/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { to: "/doctor/appointments", icon: Calendar, label: "Appointments" },
+    { to: "/doctor/appointment-requests", icon: CheckCircle2, label: "Appointment Requests" },
     { to: "/doctor/patients", icon: Users, label: "Patients" },
     { to: "/doctor/records", icon: FileText, label: "Medical Records" },
     { to: "/doctor/prescriptions", icon: Pill, label: "Prescriptions" },
@@ -72,6 +74,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     },
     { to: "/admin/payment-ledger", icon: FileText, label: "Payment Ledger" },
     { to: "/admin/appointments", icon: Calendar, label: "Appointments" },
+    { to: "/admin/appointment-requests", icon: CheckCircle2, label: "Appointment Requests" },
     { to: "/admin/records", icon: FileText, label: "Medical Records" },
     { to: "/admin/prescriptions", icon: Pill, label: "Prescriptions" },
     { to: "/admin/billing", icon: CreditCard, label: "Billing" },
@@ -100,6 +103,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     },
     { to: "/employee/payment-ledger", icon: FileText, label: "Payment Ledger" },
     { to: "/employee/appointments", icon: Calendar, label: "Appointments" },
+    { to: "/employee/appointment-requests", icon: CheckCircle2, label: "Appointment Requests" },
     { to: "/employee/records", icon: FileText, label: "Medical Records" },
     { to: "/employee/billing", icon: CreditCard, label: "Billing" },
     { to: "/employee/reports", icon: BarChart3, label: "Reports" },

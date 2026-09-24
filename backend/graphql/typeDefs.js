@@ -493,6 +493,7 @@ input UpdateMedicineInput {
     type: String!
     title: String!
     message: String!
+    appointmentId: ID
     timestamp: String!
     read: Boolean
     priority: String

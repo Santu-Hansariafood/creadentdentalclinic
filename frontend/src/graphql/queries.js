@@ -531,6 +531,7 @@ export const GET_NOTIFICATIONS = gql`
       type
       title
       message
+      appointmentId
       timestamp
       read
       priority
