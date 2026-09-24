@@ -7,6 +7,7 @@ import {
   CreditCard,
   MessageSquare,
   Clock,
+  Plus,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { fadeIn, staggerContainer } from "../utils/motion";
@@ -109,12 +110,21 @@ const PatientDashboard = () => {
               <h2 className="font-heading text-xl font-semibold text-gray-900">
                 Upcoming Appointments
               </h2>
-              <Link
-                to="/patient/appointments"
-                className="text-sm text-primary hover:underline"
-              >
-                View all
-              </Link>
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/patient/appointments#book"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20"
+                >
+                  <Plus size={16} />
+                  Book New
+                </Link>
+                <Link
+                  to="/patient/appointments"
+                  className="text-sm text-primary hover:underline"
+                >
+                  View all
+                </Link>
+              </div>
             </div>
             <div className="space-y-4">
               {appointments.length > 0 ? (

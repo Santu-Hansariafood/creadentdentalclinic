@@ -215,18 +215,40 @@ const Appointments = () => {
 
   const handleBooking = async (e) => {
     e.preventDefault();
-    try {
-      const combinedTime = combineTimeParts(
-        bookingData.timeHour,
-        bookingData.timeMinute,
-        bookingData.timePeriod,
-      );
-      const selectedDoctor = doctors.find((d) => d.id === bookingData.doctorId);
-      const selectedPatient =
-        user.role === "patient"
-          ? { id: user.id, name: user.name }
-          : patients.find((p) => p.id === bookingData.patientId);
+    const isStaff = ["admin", "doctor", "employee"].includes(user.role);
+    const combinedTime = combineTimeParts(
+      bookingData.timeHour,
+      bookingData.timeMinute,
+      bookingData.timePeriod,
+    );
+    const selectedDoctor = doctors.find((d) => d.id === bookingData.doctorId);
+    const selectedPatient =
+      user.role === "patient"
+        ? { id: user.id, name: user.name }
+        : patients.find((p) => p.id === bookingData.patientId);
 
+    if (isStaff && !selectedPatient) {
+      toast.error("Please select a patient before booking.");
+      return;
+    }
+    if (!selectedDoctor) {
+      toast.error("Please select a doctor before booking.");
+      return;
+    }
+    if (!bookingData.date) {
+      toast.error("Please choose an appointment date.");
+      return;
+    }
+    if (!combinedTime) {
+      toast.error("Please choose a valid appointment time slot (Hour / Min / AM/PM).");
+      return;
+    }
+    if (!bookingData.type) {
+      toast.error("Please select an appointment type.");
+      return;
+    }
+
+    try {
       await createAppointment({
         variables: {
           patientId: selectedPatient?.id,
@@ -253,7 +275,15 @@ const Appointments = () => {
         reason: "",
       });
     } catch (err) {
-      toast.error("Failed to book appointment");
+      const graphqlError =
+        err?.graphQLErrors?.[0]?.message ||
+        err?.networkError?.result?.errors?.[0]?.message;
+      const msg =
+        graphqlError ||
+        err?.message ||
+        "Failed to book appointment. Please try again.";
+      toast.error(msg);
+      console.error("[APPOINTMENT] Booking failed:", err);
     }
   };
 
@@ -340,12 +370,20 @@ const Appointments = () => {
 
   const handleReschedule = async (e) => {
     e.preventDefault();
+    const combinedTime = combineTimeParts(
+      rescheduleData.timeHour,
+      rescheduleData.timeMinute,
+      rescheduleData.timePeriod,
+    );
+    if (!rescheduleData.date) {
+      toast.error("Please choose a new date for rescheduling.");
+      return;
+    }
+    if (!combinedTime) {
+      toast.error("Please choose a valid time slot for rescheduling (Hour / Min / AM/PM).");
+      return;
+    }
     try {
-      const combinedTime = combineTimeParts(
-        rescheduleData.timeHour,
-        rescheduleData.timeMinute,
-        rescheduleData.timePeriod,
-      );
       await updateAppointment({
         variables: {
           id: reschedulingAppointment.id,
@@ -356,7 +394,15 @@ const Appointments = () => {
       toast.success("Appointment rescheduled successfully!");
       setReschedulingAppointment(null);
     } catch (err) {
-      toast.error("Failed to reschedule appointment");
+      const graphqlError =
+        err?.graphQLErrors?.[0]?.message ||
+        err?.networkError?.result?.errors?.[0]?.message;
+      const msg =
+        graphqlError ||
+        err?.message ||
+        "Failed to reschedule appointment. Please try again.";
+      toast.error(msg);
+      console.error("[APPOINTMENT] Reschedule failed:", err);
     }
   };
 
@@ -378,15 +424,15 @@ const Appointments = () => {
                 )}
               </p>
             </div>
-            {user.role !== "doctor" && (
+            <div>
               <button
                 onClick={() => setShowBooking(!showBooking)}
                 className="btn-primary flex items-center gap-2"
               >
                 <Plus size={20} />
-                Book Appointment
+                {showBooking ? "Close Booking" : "Book Appointment"}
               </button>
-            )}
+            </div>
           </div>
         </motion.div>
 
@@ -507,7 +553,7 @@ const Appointments = () => {
             </h2>
             <form onSubmit={handleBooking} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {user.role === "admin" && (
+                {["admin", "doctor", "employee"].includes(user.role) && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Select Patient *
