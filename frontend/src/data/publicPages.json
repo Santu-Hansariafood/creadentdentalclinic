@@ -514,6 +514,138 @@
       }
     },
     {
+      "slug": "dr-sunita-agarwalla",
+      "path": "/doctor/sunita-agarwalla",
+      "label": "Dr. Sunita Agarwalla",
+      "badge": "Senior Dental Consultant",
+      "title": "What is Tooth Extraction? Root Canal Treatment in Salt Lake Kolkata | Dr. Sunita Agarwalla",
+      "heroDescription": "Learn about tooth extraction, types of tooth extraction, and root canal treatment in teeth with Dr. Sunita Agarwalla in Salt Lake, Kolkata.",
+      "seo": {
+        "title": "What is Tooth Extraction? Root Canal Treatment in Salt Lake Kolkata | Dr. Sunita Agarwalla",
+        "description": "Understand tooth extraction, root canal treatment in teeth, and dental care options with Dr. Sunita Agarwalla at Creadent Dental Clinic in Salt Lake, Kolkata.",
+        "keywords": "what are the types of tooth extraction, what is tooth extraction, what is root canal treatment in teeth, what does root canal treatment mean, tooth extraction in Salt Lake Kolkata, root canal treatment in Salt Lake Kolkata, dentist in Salt Lake Kolkata, Dr. Sunita Agarwalla, Creadent Dental Clinic"
+      },
+      "schemaType": "MedicalWebPage",
+      "template": "doctor-profile",
+      "images": [
+        {
+          "src": "/creadent/creadent1.webp",
+          "alt": "Dr. Sunita Agarwalla consultation at Creadent Dental Clinic"
+        },
+        {
+          "src": "/creadent/creadent2.webp",
+          "alt": "Dental clinic treatment environment at Creadent Dental Clinic"
+        },
+        {
+          "src": "/creadent/creadent3.webp",
+          "alt": "Smile care and clinic treatment photography"
+        },
+        {
+          "src": "/creadent/creadent4.webp",
+          "alt": "Patient dental care and consultation at Creadent Dental Clinic"
+        }
+      ],
+      "bio": "Dr. Sunita Agarwalla blends compassionate care with a clinical focus on preventive dentistry, gentle restoration, and long-term smile health for both adults and families.",
+      "bioParagraphs": [
+        "Dr. Sunita Agarwalla is a patient-focused dental professional dedicated to helping individuals and families in Salt Lake, Kolkata achieve healthier, more confident smiles through kind, evidence-based dental care.",
+        "Her clinical philosophy combines preventive dentistry, gentle restorative treatment, and clear communication so every patient understands their dental needs and feels comfortable throughout their visit.",
+        "From routine dental checkups and hygiene support to smile-enhancing treatment planning, Dr. Agarwalla is known for creating a calm and reassuring environment where patients feel listened to and well cared for.",
+        "At Creadent Dental Clinic, she works closely with patients to deliver practical, long-term oral health solutions that support comfort, function, and confidence for the years ahead."
+      ],
+      "specialities": [
+        "Tooth extraction and tooth removal care",
+        "Root canal treatment and endodontic care",
+        "Preventive dental care and oral health checkups",
+        "Smile enhancement and restorative dentistry"
+      ],
+      "stats": [
+        {
+          "label": "Care focus",
+          "value": "Preventive & restorative dentistry"
+        },
+        {
+          "label": "Patient experience",
+          "value": "Comfort-first consultations"
+        },
+        {
+          "label": "Clinic location",
+          "value": "Salt Lake, Kolkata"
+        }
+      ],
+      "highlights": [
+        {
+          "icon": "shield",
+          "label": "Approach",
+          "value": "Warm, patient-first dental care with clear guidance"
+        },
+        {
+          "icon": "building",
+          "label": "Clinic",
+          "value": "Creadent Dental Clinic, Salt Lake, Kolkata"
+        },
+        {
+          "icon": "clock",
+          "label": "Availability",
+          "value": "Open daily from 9:00 AM to 8:00 PM"
+        }
+      ],
+      "sections": [
+        {
+          "title": "A compassionate approach to dental care",
+          "paragraphs": [
+            "Dr. Sunita Agarwalla is committed to helping patients feel relaxed, informed, and confident about their oral health journey.",
+            "Her consultations focus on clear diagnosis, transparent care planning, and practical treatment recommendations that support both oral comfort and long-term dental wellness."
+          ]
+        },
+        {
+          "title": "Areas of focus",
+          "items": [
+            "Routine dental checkups and preventive consultations",
+            "Gentle restorative treatment and patient-friendly dental care",
+            "Smile-focused care for everyday confidence and long-term oral health",
+            "Family-friendly guidance for adults and children seeking dependable dental treatment"
+          ]
+        },
+        {
+          "title": "Why patients choose Dr. Sunita Agarwalla",
+          "paragraphs": [
+            "Patients value her attentive communication, reassuring chairside manner, and practical clinical approach that makes treatment decisions easier to understand.",
+            "Whether you need a preventive checkup or a consultation about smile improvement, her focus remains on comfort, clarity, and sustainable oral care outcomes."
+          ]
+        }
+      ],
+      "faq": [
+        {
+          "question": "What are the types of tooth extraction?",
+          "answer": "The main types of tooth extraction include simple extraction for visible teeth and surgical extraction for teeth that are impacted, broken, or difficult to remove. A dentist evaluates the tooth condition and surrounding bone before deciding the safest approach."
+        },
+        {
+          "question": "What is root canal treatment in teeth?",
+          "answer": "Root canal treatment is a procedure used to remove infected or damaged pulp from inside a tooth, clean the canals, and seal the tooth to prevent further infection. It helps preserve the natural tooth and reduce pain caused by infection."
+        },
+        {
+          "question": "Which dental treatments does Dr. Sunita Agarwalla focus on?",
+          "answer": "She focuses on preventive, restorative, and patient-friendly dental treatment with a strong emphasis on comfort, long-term oral health, and family care, including tooth extraction, root canal treatment, and smile restoration."
+        },
+        {
+          "question": "Where is Dr. Sunita Agarwalla based?",
+          "answer": "Dr. Sunita Agarwalla practices at Creadent Dental Clinic in Salt Lake, Kolkata, near AD Block, Sector 1, Bidhannagar."
+        },
+        {
+          "question": "Can I book a consultation with Dr. Sunita Agarwalla?",
+          "answer": "Yes. You can contact the clinic directly on +91 62923 00343 or visit our contact page to request an appointment for tooth extraction, root canal treatment, or preventive dental care."
+        }
+      ],
+      "cta": {
+        "title": "Book a consultation with Dr. Sunita Agarwalla",
+        "description": "Schedule a dental consultation at Creadent Dental Clinic and receive patient-first guidance for preventive, restorative, and smile-focused care.",
+        "primaryLabel": "Book Appointment",
+        "primaryHref": "/contact-us",
+        "secondaryLabel": "Call Clinic",
+        "secondaryHref": "tel:+916292300343"
+      }
+    },
+    {
       "slug": "delete-account",
       "path": "/delete-account",
       "label": "Delete Account",
