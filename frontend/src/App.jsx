@@ -27,6 +27,7 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const EmployeeDashboard = lazy(() => import("./pages/EmployeeDashboard"));
 const PatientRegistration = lazy(() => import("./pages/PatientRegistration"));
 const Appointments = lazy(() => import("./pages/Appointments"));
+const AppointmentRequests = lazy(() => import("./pages/AppointmentRequests"));
 const MedicalRecords = lazy(() => import("./pages/MedicalRecords"));
 const Prescriptions = lazy(() => import("./pages/Prescriptions"));
 const Chat = lazy(() => import("./pages/Chat"));
@@ -271,6 +272,14 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/doctor/appointment-requests"
+                  element={
+                    <ProtectedRoute role="doctor">
+                      <AppointmentRequests />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/doctor/patients"
                   element={
                     <ProtectedRoute role="doctor">
@@ -424,6 +433,14 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/admin/appointment-requests"
+                  element={
+                    <ProtectedRoute role="admin">
+                      <AppointmentRequests />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/admin/records"
                   element={
                     <ProtectedRoute role="admin">
@@ -525,6 +542,14 @@ const App = () => {
                   element={
                     <ProtectedRoute role="employee">
                       <Appointments />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/employee/appointment-requests"
+                  element={
+                    <ProtectedRoute role="employee">
+                      <AppointmentRequests />
                     </ProtectedRoute>
                   }
                 />

@@ -15,6 +15,8 @@ const routeImports = {
   "/patient/billing": () => import("../pages/Billing"),
   "/patient/settings": () => import("../pages/Settings"),
   "/doctor/appointments": () => import("../pages/Appointments"),
+  "/doctor/appointment-requests": () =>
+    import("../pages/AppointmentRequests"),
   "/doctor/patients": () => import("../pages/PatientList"),
   "/doctor/records": () => import("../pages/MedicalRecords"),
   "/doctor/prescriptions": () => import("../pages/Prescriptions"),
@@ -31,7 +33,11 @@ const routeImports = {
   "/admin/patients": () => import("../pages/PatientList"),
   "/employee/patients": () => import("../pages/PatientList"),
   "/admin/appointments": () => import("../pages/Appointments"),
+  "/admin/appointment-requests": () =>
+    import("../pages/AppointmentRequests"),
   "/employee/appointments": () => import("../pages/Appointments"),
+  "/employee/appointment-requests": () =>
+    import("../pages/AppointmentRequests"),
   "/admin/records": () => import("../pages/MedicalRecords"),
   "/admin/prescriptions": () => import("../pages/Prescriptions"),
   "/employee/records": () => import("../pages/MedicalRecords"),
