@@ -7,6 +7,7 @@ const PublicLayout = ({ children }) => {
   const location = useLocation();
   const { isAuthenticated, user } = useAuth();
   const { site, pages } = publicContent;
+  const navPages = pages.filter((page) => page.slug !== "delete-account");
 
   const dashboardPath = user ? `/${user.role}/dashboard` : "/login";
 
@@ -63,7 +64,7 @@ const PublicLayout = ({ children }) => {
           </div>
 
           <nav className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
-            {pages.map((page) => {
+            {navPages.map((page) => {
               const isActive = location.pathname === page.path;
 
               return (
