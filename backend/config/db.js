@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Patient = require("../models/Patient");
 
 const connectDB = async () => {
   const options = {
@@ -11,6 +12,15 @@ const connectDB = async () => {
 
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI, options);
+
+    const patientIndexes = await Patient.collection.indexes();
+    const uniquePhoneIndex = patientIndexes.find(
+      (index) => index.key?.phone === 1 && index.unique,
+    );
+    if (uniquePhoneIndex) {
+      await Patient.collection.dropIndex(uniquePhoneIndex.name);
+    }
+    await Patient.collection.createIndex({ phone: 1 });
 
     console.log(
       `Connection Pool: max=${options.maxPoolSize}, min=${options.minPoolSize}`,

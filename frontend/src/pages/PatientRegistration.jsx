@@ -35,6 +35,7 @@ const PatientRegistration = ({
   });
 
   const [checkPatientExistsQuery] = useLazyQuery(CHECK_PATIENT_EXISTS);
+  const [phoneAvailability, setPhoneAvailability] = useState("idle");
 
   const {
     register,
@@ -52,6 +53,7 @@ const PatientRegistration = ({
       name: "",
       email: "",
       phone: "",
+      isFamilyMember: false,
       dateOfBirth: "",
       age: "",
       gender: "",
@@ -73,6 +75,70 @@ const PatientRegistration = ({
       weight: "",
     },
   });
+  const watchedPhone = watch("phone");
+  const isFamilyMember =
+    watch("isFamilyMember") && isCreatingPatient && !isSelfRegistration;
+  const phoneAvailabilityMessage =
+    phoneAvailability === "checking"
+      ? "Checking mobile number..."
+      : phoneAvailability === "available"
+        ? isFamilyMember
+          ? "No patient found with this number. Register the primary patient first."
+          : "Mobile number is available."
+        : phoneAvailability === "registered"
+          ? isFamilyMember
+            ? "Mobile number found. This profile will be registered as a family member."
+            : "Mobile number is already registered. Select family member to continue."
+          : phoneAvailability === "not-found" && isFamilyMember
+            ? "No patient found with this number. Register the primary patient first."
+            : phoneAvailability === "error"
+              ? "Unable to check this mobile number right now."
+              : "";
+  const phoneAvailabilityClass =
+    phoneAvailability === "available"
+      ? "text-green-600"
+      : phoneAvailability === "registered" && isFamilyMember
+        ? "text-amber-600"
+        : phoneAvailability === "checking" || phoneAvailability === "error"
+          ? "text-gray-500"
+          : "text-red-600";
+
+  useEffect(() => {
+    const phone = (watchedPhone || "").replace(/\D/g, "");
+    if (!isCreatingPatient || isSelfRegistration || phone.length !== 10) {
+      setPhoneAvailability("idle");
+      return;
+    }
+
+    let isCurrentCheck = true;
+    setPhoneAvailability("checking");
+    const timeoutId = setTimeout(async () => {
+      try {
+        const { data } = await checkPatientExistsQuery({
+          variables: { phone },
+          fetchPolicy: "network-only",
+        });
+        if (isCurrentCheck) {
+          setPhoneAvailability(
+            data?.checkPatientExists ? "registered" : "available",
+          );
+        }
+      } catch (error) {
+        console.error("Error checking phone number:", error);
+        if (isCurrentCheck) setPhoneAvailability("error");
+      }
+    }, 350);
+
+    return () => {
+      isCurrentCheck = false;
+      clearTimeout(timeoutId);
+    };
+  }, [
+    watchedPhone,
+    isCreatingPatient,
+    isSelfRegistration,
+    checkPatientExistsQuery,
+  ]);
 
   const calculateAgeFromDOB = (dobStr) => {
     if (!dobStr) return "";
@@ -100,14 +166,17 @@ const PatientRegistration = ({
   }, [watchedDateOfBirth, setValue, watch]);
 
   const checkPhoneExists = async (phone) => {
-    const email = watch("email")?.trim().toLowerCase();
+    if (isFamilyMember) return;
     if (!phone || phone.length !== 10) {
       return;
     }
 
     try {
       const { data } = await checkPatientExistsQuery({
-        variables: { phone, email, patientId: watch("id") || undefined },
+        variables: {
+          phone,
+          patientId: watch("id") || undefined,
+        },
         fetchPolicy: "network-only",
       });
 
@@ -129,7 +198,8 @@ const PatientRegistration = ({
     try {
       const { data } = await checkPatientExistsQuery({
         variables: {
-          phone: phone?.length === 10 ? phone : undefined,
+          phone:
+            !isFamilyMember && phone?.length === 10 ? phone : undefined,
           email: normalizedEmail,
           patientId: watch("id") || undefined,
         },
@@ -229,7 +299,7 @@ const PatientRegistration = ({
   const handleNext = async () => {
     if (currentStep === 1) {
       const fieldsToValidate = ["name", "phone", "gender"];
-      if (canManagePatientPassword && isCreatingPatient) {
+      if (canManagePatientPassword && isCreatingPatient && !isFamilyMember) {
         fieldsToValidate.push("password", "confirmPassword");
       }
       const isValidBasic = await trigger(fieldsToValidate);
@@ -252,7 +322,12 @@ const PatientRegistration = ({
   };
 
   const onSubmit = async (data) => {
-    if (canManagePatientPassword && isCreatingPatient && !data.password) {
+    if (
+      canManagePatientPassword &&
+      isCreatingPatient &&
+      !isFamilyMember &&
+      !data.password
+    ) {
       toast.error("Custom password is required for patient login");
       return;
     }
@@ -282,7 +357,8 @@ const PatientRegistration = ({
           ? data.bloodGroup
           : undefined,
       status: data.status,
-      password: data.password?.trim() ? data.password : undefined,
+      password:
+        !isFamilyMember && data.password?.trim() ? data.password : undefined,
       userId: isSelfRegistration && user ? user.id : undefined,
       emergencyContact:
         (data.emergencyContactName && data.emergencyContactName.trim()) ||
@@ -356,7 +432,7 @@ const PatientRegistration = ({
       });
     } else {
       await createPatient({
-        variables: formattedData,
+        variables: { ...formattedData, isFamilyMember },
       });
     }
   };
@@ -503,6 +579,24 @@ const PatientRegistration = ({
                                 {errors.phone.message}
                               </p>
                             )}
+                            {phoneAvailabilityMessage && (
+                              <p
+                                aria-live="polite"
+                                className={`text-xs mt-1 ${phoneAvailabilityClass}`}
+                              >
+                                {phoneAvailabilityMessage}
+                              </p>
+                            )}
+                            {!isSelfRegistration && isCreatingPatient && (
+                              <label className="mt-3 flex items-center gap-2 text-sm text-gray-700">
+                                <input
+                                  type="checkbox"
+                                  {...register("isFamilyMember")}
+                                  className="rounded border-gray-300 text-primary focus:ring-primary"
+                                />
+                                Register as a family member using an existing patient&apos;s mobile number
+                              </label>
+                            )}
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -600,7 +694,7 @@ const PatientRegistration = ({
                           )}
                         </div>
 
-                        {!isSelfRegistration && (
+                        {!isSelfRegistration && !isFamilyMember && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -922,6 +1016,24 @@ const PatientRegistration = ({
                             {errors.phone.message}
                           </p>
                         )}
+                        {phoneAvailabilityMessage && (
+                          <p
+                            aria-live="polite"
+                            className={`text-xs mt-1 ${phoneAvailabilityClass}`}
+                          >
+                            {phoneAvailabilityMessage}
+                          </p>
+                        )}
+                        {!isSelfRegistration && isCreatingPatient && (
+                          <label className="mt-3 flex items-center gap-2 text-sm text-gray-700">
+                            <input
+                              type="checkbox"
+                              {...register("isFamilyMember")}
+                              className="rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                            Register as a family member using an existing patient&apos;s mobile number
+                          </label>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1019,7 +1131,7 @@ const PatientRegistration = ({
                       )}
                     </div>
 
-                    {canManagePatientPassword && (
+                    {canManagePatientPassword && !isFamilyMember && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">

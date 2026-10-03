@@ -49,6 +49,7 @@ export const CREATE_PATIENT = gql`
     $insurance: InsuranceInput
     $status: String
     $password: String
+    $isFamilyMember: Boolean
   ) {
     createPatient(
       name: $name
@@ -67,6 +68,7 @@ export const CREATE_PATIENT = gql`
       insurance: $insurance
       status: $status
       password: $password
+      isFamilyMember: $isFamilyMember
     ) {
       id
       name

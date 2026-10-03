@@ -30,6 +30,7 @@ import {
 } from "../graphql/mutations";
 import generatePrescriptionPDF from "../components/PrescriptionPDF";
 import Preloader from "../components/Preloader";
+import useDebouncedValue from "../utils/useDebouncedValue";
 
 const DOSAGE_OPTIONS = [
   "125mg",
@@ -112,6 +113,7 @@ const AutocompleteCombobox = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebouncedValue(searchTerm.trim());
   const wrapperRef = useRef(null);
 
   useEffect(() => {
@@ -132,11 +134,13 @@ const AutocompleteCombobox = ({
     : searchTerm;
 
   const filteredOptions = useMemo(() => {
-    if (!searchTerm) return options;
+    if (!debouncedSearchTerm) return options;
     return options.filter((o) =>
-      getOptionLabel(o).toLowerCase().includes(searchTerm.toLowerCase()),
+      getOptionLabel(o)
+        .toLowerCase()
+        .includes(debouncedSearchTerm.toLowerCase()),
     );
-  }, [options, searchTerm, getOptionLabel]);
+  }, [options, debouncedSearchTerm, getOptionLabel]);
 
   return (
     <div ref={wrapperRef} className={`relative ${className}`}>

@@ -53,6 +53,7 @@ export const patientRegistrationSchema = z
       .string()
       .trim()
       .regex(/^\d{10}$/, "Phone number must be exactly 10 digits"),
+    isFamilyMember: z.boolean().optional().default(false),
     dateOfBirth: z.string().trim().optional().or(z.literal("")),
     age: z
       .union([z.string().trim(), z.number()])

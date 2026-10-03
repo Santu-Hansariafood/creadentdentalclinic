@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { useQuery } from "@apollo/client";
 import { GET_CONVERSATIONS, GET_CHAT_MESSAGES } from "../graphql/queries";
 import Preloader from "../components/Preloader";
+import useDebouncedValue from "../utils/useDebouncedValue";
 import { lazy } from "react";
 const PageHeader = lazy(() => import("../components/PageHeader"));
 const ChatMessage = lazy(() => import("../components/ChatMessage"));
@@ -16,6 +17,7 @@ const Chat = () => {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [message, setMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebouncedValue(searchTerm.trim());
   const messagesEndRef = useRef(null);
 
   const { data: convData, loading: convLoading } = useQuery(GET_CONVERSATIONS);
@@ -28,7 +30,7 @@ const Chat = () => {
 
   const filteredConversations = userConversations.filter((conv) =>
     conv.participants.some((p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      p.name.toLowerCase().includes(debouncedSearch.toLowerCase()),
     ),
   );
 

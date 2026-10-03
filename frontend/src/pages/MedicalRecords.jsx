@@ -28,6 +28,7 @@ import { fadeIn, staggerContainer } from "../utils/motion";
 import toast from "react-hot-toast";
 import { useQuery, useMutation, useApolloClient } from "@apollo/client";
 import { GET_MEDICAL_RECORDS, GET_PATIENTS } from "../graphql/queries";
+import useDebouncedValue from "../utils/useDebouncedValue";
 import {
   CREATE_MEDICAL_RECORD,
   UPDATE_MEDICAL_RECORD,
@@ -112,15 +113,16 @@ const CustomCombobox = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim());
   const selected = options.find((o) => getOptionValue(o) === value) || null;
   const display = selected ? getOptionLabel(selected) : search;
 
   const filtered = useMemo(() => {
-    if (!search) return options;
+    if (!debouncedSearch) return options;
     return options.filter((o) =>
-      getOptionLabel(o).toLowerCase().includes(search.toLowerCase()),
+      getOptionLabel(o).toLowerCase().includes(debouncedSearch.toLowerCase()),
     );
-  }, [options, search, getOptionLabel]);
+  }, [options, debouncedSearch, getOptionLabel]);
 
   return (
     <div className={`relative ${className}`}>

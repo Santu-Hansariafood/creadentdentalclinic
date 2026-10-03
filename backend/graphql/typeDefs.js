@@ -153,6 +153,7 @@ input UpdateMedicineInput {
     name: String!
     email: String
     phone: String!
+    isFamilyMember: Boolean
     dateOfBirth: String
     age: Int
     gender: String!
@@ -818,6 +819,7 @@ input UpdateMedicineInput {
       name: String!,
       email: String,
       phone: String!,
+      isFamilyMember: Boolean,
       dateOfBirth: String,
       age: Int,
       gender: String!,

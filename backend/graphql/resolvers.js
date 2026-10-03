@@ -355,14 +355,14 @@ const resolvers = {
     },
     findPatientByNameAndPhone: async (_, { name, phone }) => {
       const normalizedName = name.trim().toLowerCase();
-      const patient = await Patient.findOne({
+      const patients = await Patient.find({
         phone,
       }).collation({ locale: "en", strength: 2 });
-      if (!patient) return null;
-      if (patient.name.trim().toLowerCase() === normalizedName) {
-        return patient;
-      }
-      return null;
+      return (
+        patients.find(
+          (patient) => patient.name.trim().toLowerCase() === normalizedName,
+        ) || null
+      );
     },
     findPatientByNameAndEmail: async (_, { name, email }) => {
       if (!email) return null;
@@ -2243,13 +2243,22 @@ const resolvers = {
       }
 
       const existingPatient = await Patient.findOne({ phone: normalizedPhone });
-      if (existingPatient && existingPatient.userId) {
+      const isFamilyMember = args.isFamilyMember === true;
+      if (isFamilyMember && !isStaff) {
+        throw new Error("Only staff can register a family member");
+      }
+      if (isFamilyMember && !existingPatient) {
+        throw new Error(
+          "Register the primary patient with this mobile number before adding a family member",
+        );
+      }
+      if (!isFamilyMember && existingPatient) {
         throw new Error("A patient with this phone number already exists");
       }
 
       let newUser = null;
       let existingUser = null;
-      if (args.password || isPatientSelf) {
+      if (!isFamilyMember && (args.password || isPatientSelf)) {
         const userQuery = { $or: [{ phone: normalizedPhone }] };
         if (normalizedEmail) {
           userQuery.$or.push({ email: normalizedEmail });
@@ -2273,7 +2282,7 @@ const resolvers = {
         existingUser.phone = normalizedPhone;
         existingUser.verified = true;
         await existingUser.save();
-      } else if (args.password) {
+      } else if (!isFamilyMember && args.password) {
         newUser = await User.create({
           name: args.name,
           email: normalizedEmail || `${normalizedPhone}@patient.creadent.local`,
@@ -2289,7 +2298,7 @@ const resolvers = {
       let resolvedUserId = undefined;
       if (newUser) {
         resolvedUserId = newUser._id;
-      } else if (args.userId) {
+      } else if (!isFamilyMember && args.userId) {
         try {
           const existingUser = await User.findById(args.userId);
           resolvedUserId = existingUser ? existingUser._id : undefined;
