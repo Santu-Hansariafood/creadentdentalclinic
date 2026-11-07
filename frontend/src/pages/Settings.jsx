@@ -64,11 +64,11 @@ const Settings = () => {
       <Suspense fallback={<Preloader />}>
         <div className="max-w-4xl mx-auto">
           <motion.div {...fadeIn("down")} className="card text-center py-16">
-            <Shield size={64} className="mx-auto mb-4 text-gray-300" />
-            <h2 className="font-heading text-2xl font-bold text-gray-900 mb-2">
+            <Shield size={64} className="mx-auto mb-4 text-gray-300 dark:text-gray-400" />
+            <h2 className="font-heading text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               Access Denied
             </h2>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               Only administrators can access the settings page.
             </p>
           </motion.div>
@@ -85,13 +85,13 @@ const Settings = () => {
           subtitle="Manage your account and clinic preferences"
         />
         <motion.div {...fadeIn("up", 0.1)} className="card">
-          <div className="flex border-b border-gray-200 mb-8">
+          <div className="flex border-b border-gray-200 dark:border-gray-700 mb-8">
             <button
               onClick={() => setActiveTab("profile")}
               className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
                 activeTab === "profile"
                   ? "border-primary text-primary"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -104,7 +104,7 @@ const Settings = () => {
               className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
                 activeTab === "notifications"
                   ? "border-primary text-primary"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -117,7 +117,7 @@ const Settings = () => {
               className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
                 activeTab === "clinic"
                   ? "border-primary text-primary"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -131,12 +131,12 @@ const Settings = () => {
             <form onSubmit={handleSaveProfile} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Full Name
                   </label>
                   <div className="relative">
                     <User
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                       size={20}
                     />
                     <input
@@ -153,12 +153,12 @@ const Settings = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email Address
                   </label>
                   <div className="relative">
                     <Mail
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                       size={20}
                     />
                     <input
@@ -178,12 +178,12 @@ const Settings = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Phone Number
                   </label>
                   <div className="relative">
                     <Phone
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                       size={20}
                     />
                     <input
@@ -219,12 +219,12 @@ const Settings = () => {
           {activeTab === "notifications" && (
             <form onSubmit={handleSaveNotifications} className="space-y-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
                       Email Notifications
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Receive emails about appointments and updates
                     </p>
                   </div>
@@ -237,16 +237,16 @@ const Settings = () => {
                         email: e.target.checked,
                       })
                     }
-                    className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                    className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary"
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
                       SMS Notifications
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Get text messages for reminders
                     </p>
                   </div>
@@ -259,16 +259,16 @@ const Settings = () => {
                         sms: e.target.checked,
                       })
                     }
-                    className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                    className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary"
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
                       Push Notifications
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Browser push notifications
                     </p>
                   </div>
@@ -281,7 +281,7 @@ const Settings = () => {
                         push: e.target.checked,
                       })
                     }
-                    className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                    className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary"
                   />
                 </div>
               </div>
@@ -305,10 +305,10 @@ const Settings = () => {
                 <div className="flex items-start gap-3">
                   <Shield className="text-primary mt-1" size={24} />
                   <div>
-                    <h3 className="font-heading text-lg font-semibold text-gray-900 mb-2">
+                    <h3 className="font-heading text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                       Clinic Settings
                     </h3>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
                       Manage clinic preferences, working hours, and staff
                       settings.
                     </p>
@@ -321,15 +321,15 @@ const Settings = () => {
                   onClick={() =>
                     toast.info("Clinic hours feature coming soon!")
                   }
-                  className="card hover:bg-gray-50 text-left"
+                  className="card hover:bg-gray-50 dark:hover:bg-gray-900 text-left"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                       <SettingsIcon size={20} className="text-primary" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">Working Hours</p>
-                      <p className="text-sm text-gray-600">
+                      <p className="font-medium text-gray-900 dark:text-gray-100">Working Hours</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         Set clinic operating hours
                       </p>
                     </div>
@@ -340,15 +340,15 @@ const Settings = () => {
                   onClick={() =>
                     toast.info("Staff management feature coming soon!")
                   }
-                  className="card hover:bg-gray-50 text-left"
+                  className="card hover:bg-gray-50 dark:hover:bg-gray-900 text-left"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                       <Users size={20} className="text-primary" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">Manage Staff</p>
-                      <p className="text-sm text-gray-600">
+                      <p className="font-medium text-gray-900 dark:text-gray-100">Manage Staff</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         View and edit staff members
                       </p>
                     </div>

@@ -137,7 +137,7 @@ const Login = () => {
         noindex
         nofollow
       />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white dark:via-gray-900 to-secondary/5 p-4">
         <motion.div {...fadeIn("up")} className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="w-24 h-24 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 shadow-sm">
@@ -147,14 +147,14 @@ const Login = () => {
                 className="w-16 h-16 object-contain"
               />
             </div>
-            <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="font-heading text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               {view === "login"
                 ? "Welcome Back"
                 : view === "forgot"
                   ? "Forgot Password"
                   : "Reset Password"}
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               {view === "login"
                 ? "Sign in to access your Creadent Dental Clinic account"
                 : view === "forgot"
@@ -176,7 +176,7 @@ const Login = () => {
                   noValidate
                 >
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Select Role
                     </label>
                     <div className="grid grid-cols-3 gap-2">
@@ -192,7 +192,7 @@ const Login = () => {
                           className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
                             role === r.id
                               ? "border-primary bg-primary/10 text-primary"
-                              : "border-gray-200 hover:border-primary/50 text-gray-600"
+                              : "border-gray-200 dark:border-gray-700 hover:border-primary/50 text-gray-600 dark:text-gray-400"
                           }`}
                         >
                           {r.label}
@@ -202,12 +202,12 @@ const Login = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Mobile Number
                     </label>
                     <div className="relative">
                       <Phone
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                         size={20}
                       />
                       <input
@@ -219,19 +219,19 @@ const Login = () => {
                       />
                     </div>
                     {errors.phone && (
-                      <p className="text-red-500 text-xs mt-1">
+                      <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                         {errors.phone.message}
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Password
                     </label>
                     <div className="relative">
                       <Lock
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                         size={20}
                       />
                       <input
@@ -243,7 +243,7 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                       >
                         {showPassword ? (
                           <EyeOff size={20} />
@@ -253,7 +253,7 @@ const Login = () => {
                       </button>
                     </div>
                     {errors.password && (
-                      <p className="text-red-500 text-xs mt-1">
+                      <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                         {errors.password.message}
                       </p>
                     )}
@@ -265,9 +265,9 @@ const Login = () => {
                         type="checkbox"
                         checked={rememberMe}
                         onChange={(e) => setRememberMe(e.target.checked)}
-                        className="rounded border-gray-300"
+                        className="rounded border-gray-300 dark:border-gray-600"
                       />
-                      <span className="text-sm text-gray-600">Remember me</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Remember me</span>
                     </label>
                     <button
                       type="button"
@@ -292,17 +292,17 @@ const Login = () => {
                         <Sparkles size={16} />
                         Quick Demo Access
                       </div>
-                      <div className="text-xs space-y-2 text-gray-700">
+                      <div className="text-xs space-y-2 text-gray-700 dark:text-gray-300">
                         <div className="flex items-center gap-2">
-                          <User size={14} className="text-gray-500" />
-                          <span className="text-gray-500">Phone:</span>
+                          <User size={14} className="text-gray-500 dark:text-gray-400" />
+                          <span className="text-gray-500 dark:text-gray-400">Phone:</span>
                           <span className="font-mono font-semibold">
                             {demoPatient.phone}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Key size={14} className="text-gray-500" />
-                          <span className="text-gray-500">Password:</span>
+                          <Key size={14} className="text-gray-500 dark:text-gray-400" />
+                          <span className="text-gray-500 dark:text-gray-400">Password:</span>
                           <span className="font-mono font-semibold">
                             {demoPatient.password}
                           </span>
@@ -337,12 +337,12 @@ const Login = () => {
                   className="space-y-4"
                 >
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Mobile Number
                     </label>
                     <div className="relative">
                       <Phone
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                         size={20}
                       />
                       <input
@@ -354,7 +354,7 @@ const Login = () => {
                       />
                     </div>
                     {errors.phone && (
-                      <p className="text-red-500 text-xs mt-1">
+                      <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                         {errors.phone.message}
                       </p>
                     )}
@@ -371,7 +371,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={() => setView("login")}
-                    className="flex items-center justify-center gap-2 w-full text-sm text-gray-600 hover:text-primary transition-colors"
+                    className="flex items-center justify-center gap-2 w-full text-sm text-gray-600 dark:text-gray-400 hover:text-primary transition-colors"
                   >
                     <ArrowLeft size={16} />
                     Back to Login
@@ -389,12 +389,12 @@ const Login = () => {
                   className="space-y-4"
                 >
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       6-Digit OTP
                     </label>
                     <div className="relative">
                       <KeyRound
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                         size={20}
                       />
                       <input
@@ -412,12 +412,12 @@ const Login = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       New Password
                     </label>
                     <div className="relative">
                       <Lock
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                         size={20}
                       />
                       <input
@@ -432,12 +432,12 @@ const Login = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Confirm New Password
                     </label>
                     <div className="relative">
                       <Lock
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                         size={20}
                       />
                       <input
@@ -474,7 +474,7 @@ const Login = () => {
                     <button
                       type="button"
                       onClick={() => setView("login")}
-                      className="flex items-center justify-center gap-2 w-full text-sm text-gray-600 hover:text-primary transition-colors"
+                      className="flex items-center justify-center gap-2 w-full text-sm text-gray-600 dark:text-gray-400 hover:text-primary transition-colors"
                     >
                       <ArrowLeft size={16} />
                       Back to Login
@@ -487,7 +487,7 @@ const Login = () => {
             {view === "login" && (
               <>
                 <div className="mt-6 text-center">
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Don't have an account?{" "}
                     <Link
                       to="/register"

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
@@ -96,6 +96,38 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+const SystemThemeToastContainer = () => {
+  const [isDark, setIsDark] = useState(
+    () => window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false,
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (event) => setIsDark(event.matches);
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
+  return (
+    <ToastContainer
+      position="top-right"
+      autoClose={3000}
+      newestOnTop
+      pauseOnFocusLoss={false}
+      limit={4}
+      theme={isDark ? "dark" : "light"}
+      toastStyle={{
+        background: isDark ? "#1f2937" : "#fff",
+        color: isDark ? "#f3f4f6" : "#1f2937",
+        padding: "16px",
+        borderRadius: "12px",
+        boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.12)",
+      }}
+    />
+  );
+};
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <HelmetProvider>
@@ -103,21 +135,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <BrowserRouter>
           <AuthProvider>
             <App />
-            <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              newestOnTop
-              pauseOnFocusLoss={false}
-              limit={4}
-              theme="light"
-              toastStyle={{
-                background: "#fff",
-                color: "#1f2937",
-                padding: "16px",
-                borderRadius: "12px",
-                boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.12)",
-              }}
-            />
+            <SystemThemeToastContainer />
           </AuthProvider>
         </BrowserRouter>
       </ApolloProvider>

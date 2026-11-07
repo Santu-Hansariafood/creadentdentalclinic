@@ -80,7 +80,7 @@ const PatientList = () => {
     return <Preloader />;
   if (error)
     return (
-      <div className="p-6 text-center text-red-500">Error: {error.message}</div>
+      <div className="p-6 text-center text-red-500 dark:text-red-400">Error: {error.message}</div>
     );
 
   const {
@@ -125,7 +125,7 @@ const PatientList = () => {
       <div className="mb-8">
         <div className="relative max-w-md">
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
             size={20}
           />
           <input
@@ -155,9 +155,9 @@ const PatientList = () => {
           </div>
 
           {patients.length === 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center mt-6">
-              <Users size={48} className="text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-12 text-center mt-6">
+              <Users size={48} className="text-gray-300 dark:text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 text-lg">
                 {debouncedSearch
                   ? `No patients found matching "${debouncedSearch}".`
                   : "No patients registered yet."}
@@ -180,7 +180,7 @@ const PatientList = () => {
           )}
 
           {currentPage && (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-8 text-xs text-gray-500">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-8 text-xs text-gray-500 dark:text-gray-400">
               <span>
                 Showing page {currentPage} of {totalPages} (
                 {patients.length} of {totalCount} patients)

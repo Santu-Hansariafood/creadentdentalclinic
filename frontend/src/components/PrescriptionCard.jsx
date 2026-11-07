@@ -94,7 +94,7 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
     <>
       <motion.div
         {...fadeIn("up", delay)}
-        className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-lg hover:border-primary/30 transition-all duration-300"
+        className="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-lg hover:border-primary/30 transition-all duration-300"
       >
         <div className="h-1.5 bg-gradient-to-r from-primary via-primary/80 to-accent" />
 
@@ -106,14 +106,14 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-heading font-bold text-gray-900">
+                  <h3 className="font-heading font-bold text-gray-900 dark:text-gray-100">
                     {prescription.patientName}
                   </h3>
                   <span
                     className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
                       prescription.status === "Active"
-                        ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                        : "bg-blue-50 text-blue-700 ring-1 ring-blue-200"
+                        ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-200 dark:ring-emerald-800"
+                        : "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 ring-1 ring-blue-200 dark:ring-blue-900"
                     }`}
                   >
                     {prescription.status}
@@ -122,7 +122,7 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
                 <p className="text-xs font-mono text-primary/70 mt-0.5">
                   {rxId}
                   {patient?.patientId && (
-                    <span className="ml-2 text-gray-400">
+                    <span className="ml-2 text-gray-400 dark:text-gray-500">
                       | {patient.patientId}
                     </span>
                   )}
@@ -138,8 +138,8 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
                       key={i}
                       className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${
                         d.critical
-                          ? "bg-red-100 text-red-700 border border-red-200 font-bold"
-                          : "bg-gray-100 text-gray-700 border border-gray-200"
+                          ? "bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 font-bold"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
                       }`}
                     >
                       {d.critical && (
@@ -154,22 +154,22 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
           </div>
 
           <div className="flex flex-wrap gap-3 mb-4">
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 px-2.5 py-1.5 rounded-lg">
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 px-2.5 py-1.5 rounded-lg">
               <Calendar size={13} className="text-primary" />
               <span>{formatDate(prescription.date)}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 px-2.5 py-1.5 rounded-lg">
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 px-2.5 py-1.5 rounded-lg">
               <Stethoscope size={13} className="text-primary" />
               <span>Dr. {prescription.doctorName}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 px-2.5 py-1.5 rounded-lg">
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 px-2.5 py-1.5 rounded-lg">
               <Clock size={13} className="text-primary" />
               <span>
                 {(prescription.medications || []).length} medication(s)
               </span>
             </div>
             {patient?.email && (
-              <div className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 px-2.5 py-1.5 rounded-lg ring-1 ring-emerald-100">
+              <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2.5 py-1.5 rounded-lg ring-1 ring-emerald-100 dark:ring-emerald-900">
                 <Mail size={13} />
                 <span className="truncate max-w-[160px]">{patient.email}</span>
               </div>
@@ -180,20 +180,20 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
             {(prescription.medications || []).slice(0, 3).map((med, index) => (
               <div
                 key={index}
-                className="flex items-start gap-3 p-3 rounded-lg bg-gradient-to-r from-gray-50 to-white border border-gray-100"
+                className="flex items-start gap-3 p-3 rounded-lg bg-gradient-to-r from-gray-50 dark:from-gray-800 to-white dark:to-gray-900 border border-gray-100 dark:border-gray-800"
               >
                 <span className="flex-shrink-0 w-6 h-6 rounded-md bg-primary text-white text-xs font-bold flex items-center justify-center">
                   {index + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm">
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
                     {med.name}
                   </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     {med.dosage} • {med.frequency} • {med.duration}
                   </p>
                   {med.instructions && (
-                    <p className="text-xs text-gray-400 italic mt-1 truncate">
+                    <p className="text-xs text-gray-400 dark:text-gray-500 italic mt-1 truncate">
                       {med.instructions}
                     </p>
                   )}
@@ -209,20 +209,20 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
           </div>
 
           {prescription.notes && (
-            <div className="mb-4 p-3 bg-amber-50/60 rounded-lg border border-amber-100">
+            <div className="mb-4 p-3 bg-amber-50/60 dark:bg-amber-950/60 rounded-lg border border-amber-100 dark:border-amber-900">
               <div className="flex items-start gap-2">
                 <FileText
                   size={14}
-                  className="text-amber-600 mt-0.5 flex-shrink-0"
+                  className="text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0"
                 />
-                <p className="text-xs text-amber-800 line-clamp-2 italic">
+                <p className="text-xs text-amber-800 dark:text-amber-300 line-clamp-2 italic">
                   {prescription.notes}
                 </p>
               </div>
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-100">
+          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
             <button
               onClick={() => setShowPreview(true)}
               className="flex-1 min-w-[100px] flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 border border-primary/20 transition-colors"
@@ -256,7 +256,7 @@ const PrescriptionCard = ({ prescription, delay = 0 }) => {
             </button>
           </div>
           {!patient?.email && (
-            <p className="mt-2 text-[11px] text-amber-600 bg-amber-50 px-2.5 py-1 rounded">
+            <p className="mt-2 text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2.5 py-1 rounded">
               ⚠ Patient email not registered. Please update patient profile to
               enable email.
             </p>

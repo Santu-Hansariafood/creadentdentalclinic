@@ -229,7 +229,7 @@ const Billing = () => {
   if (!isDemoUser && loading) return <Preloader />;
   if (!isDemoUser && error)
     return (
-      <div className="p-6 text-center text-red-500">Error: {error.message}</div>
+      <div className="p-6 text-center text-red-500 dark:text-red-400">Error: {error.message}</div>
     );
 
   const enrichInvoiceWithPatient = (invoice) => ({
@@ -746,49 +746,49 @@ const Billing = () => {
             animate={{ opacity: 1, y: 0 }}
             className={`mb-6 rounded-xl border p-4 flex items-start gap-3 ${
               iciciCallbackNotice.status === "SUC"
-                ? "border-green-200 bg-green-50"
+                ? "border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950"
                 : iciciCallbackNotice.status === "REQ" ||
                     iciciCallbackNotice.status === "PENDING"
-                  ? "border-blue-200 bg-blue-50"
-                  : "border-red-200 bg-red-50"
+                  ? "border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950"
+                  : "border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950"
             }`}
           >
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                 iciciCallbackNotice.status === "SUC"
-                  ? "bg-green-100"
+                  ? "bg-green-100 dark:bg-green-950"
                   : iciciCallbackNotice.status === "REQ" ||
                       iciciCallbackNotice.status === "PENDING"
-                    ? "bg-blue-100"
-                    : "bg-red-100"
+                    ? "bg-blue-100 dark:bg-blue-950"
+                    : "bg-red-100 dark:bg-red-950"
               }`}
             >
               {iciciCallbackNotice.status === "SUC" ? (
-                <CheckCircle size={18} className="text-green-700" />
+                <CheckCircle size={18} className="text-green-700 dark:text-green-300" />
               ) : iciciCallbackNotice.status === "REQ" ||
                 iciciCallbackNotice.status === "PENDING" ? (
-                <Loader2 size={18} className="text-blue-700 animate-spin" />
+                <Loader2 size={18} className="text-blue-700 dark:text-blue-300 animate-spin" />
               ) : (
-                <AlertCircle size={18} className="text-red-700" />
+                <AlertCircle size={18} className="text-red-700 dark:text-red-300" />
               )}
             </div>
             <div className="flex-1">
               <p
                 className={`font-semibold text-sm ${
                   iciciCallbackNotice.status === "SUC"
-                    ? "text-green-900"
+                    ? "text-green-900 dark:text-green-200"
                     : iciciCallbackNotice.status === "REQ" ||
                         iciciCallbackNotice.status === "PENDING"
-                      ? "text-blue-900"
-                      : "text-red-900"
+                      ? "text-blue-900 dark:text-blue-200"
+                      : "text-red-900 dark:text-red-200"
                 }`}
               >
                 ICICI Bank Payment — Status: {iciciCallbackNotice.status}
               </p>
-              <p className="text-sm text-gray-700 mt-1">
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
                 {iciciCallbackNotice.message}
               </p>
-              <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-500">
+              <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400">
                 {iciciCallbackNotice.invoiceId && (
                   <span>
                     Invoice: {String(iciciCallbackNotice.invoiceId).slice(-8)}
@@ -805,8 +805,8 @@ const Billing = () => {
                     <span
                       className={
                         iciciCallbackNotice.hashValid
-                          ? "text-green-700 font-medium"
-                          : "text-red-700 font-medium"
+                          ? "text-green-700 dark:text-green-300 font-medium"
+                          : "text-red-700 dark:text-red-300 font-medium"
                       }
                     >
                       {iciciCallbackNotice.hashValid ? "Verified" : "Mismatch"}
@@ -837,7 +837,7 @@ const Billing = () => {
             <button
               type="button"
               onClick={() => setIciciCallbackNotice(null)}
-              className="p-1 hover:bg-white/50 rounded text-gray-500"
+              className="p-1 hover:bg-white/50 dark:hover:bg-gray-800/50 rounded text-gray-500 dark:text-gray-400"
               aria-label="Dismiss"
             >
               <X size={18} />
@@ -878,7 +878,7 @@ const Billing = () => {
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Patient
                   </label>
                   <select
@@ -896,7 +896,7 @@ const Billing = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Date
                   </label>
                   <input
@@ -910,7 +910,7 @@ const Billing = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Discount
                   </label>
                   <input
@@ -928,18 +928,18 @@ const Billing = () => {
               </div>
 
               <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-800">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-800 dark:text-gray-100">
                   <input
                     type="checkbox"
                     checked={autoGenerateLogin}
                     onChange={(e) => setAutoGenerateLogin(e.target.checked)}
-                    className="rounded border-gray-300"
+                    className="rounded border-gray-300 dark:border-gray-600"
                   />
                   Generate patient login password
                 </label>
                 {generatedLogin && (
-                  <div className="text-sm text-gray-700 space-y-2">
-                    <div className="bg-white rounded-lg p-3 border border-gray-200 space-y-1">
+                  <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 space-y-1">
                       <p>
                         Patient:{" "}
                         <span className="font-semibold">
@@ -958,7 +958,7 @@ const Billing = () => {
                           {generatedLogin.password}
                         </span>
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {generatedLogin.preview
                           ? generatedLogin.userId
                             ? "This will reset the patient's current login to the generated password."
@@ -998,7 +998,7 @@ const Billing = () => {
                               );
                             }
                           }}
-                          className="flex items-center justify-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors"
+                          className="flex items-center justify-center gap-2 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg text-sm font-medium transition-colors"
                         >
                           <Copy size={16} />
                         </button>
@@ -1010,7 +1010,7 @@ const Billing = () => {
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Items
                   </label>
                   <button
@@ -1072,7 +1072,7 @@ const Billing = () => {
                         />
                       </div>
                       <div className="col-span-2">
-                        <p className="text-gray-900 font-medium">
+                        <p className="text-gray-900 dark:text-gray-100 font-medium">
                           ₹{item.total.toFixed(2)}
                         </p>
                       </div>
@@ -1081,7 +1081,7 @@ const Billing = () => {
                           <button
                             type="button"
                             onClick={() => handleRemoveItem(index)}
-                            className="text-red-500 hover:text-red-700"
+                            className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                           >
                             <Trash2 size={18} />
                           </button>
@@ -1094,17 +1094,17 @@ const Billing = () => {
 
               <div className="flex flex-col items-end gap-2">
                 <div className="flex items-center gap-4">
-                  <span className="text-gray-600">Subtotal:</span>
+                  <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
                   <span className="font-medium">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-gray-600">Discount:</span>
+                  <span className="text-gray-600 dark:text-gray-400">Discount:</span>
                   <span className="font-medium">
                     -₹{newInvoice.discount.toFixed(2)}
                   </span>
                 </div>
-                <div className="flex items-center gap-4 border-t border-gray-200 pt-2">
-                  <span className="text-gray-900 font-bold">Total:</span>
+                <div className="flex items-center gap-4 border-t border-gray-200 dark:border-gray-700 pt-2">
+                  <span className="text-gray-900 dark:text-gray-100 font-bold">Total:</span>
                   <span className="text-primary text-xl font-bold">
                     ₹{totalAmount.toFixed(2)}
                   </span>
@@ -1112,7 +1112,7 @@ const Billing = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Notes
                 </label>
                 <textarea
@@ -1154,13 +1154,13 @@ const Billing = () => {
                 <IndianRupee size={24} className="text-warning" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Pending Balance</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Pending Balance</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   ₹{totalPending.toFixed(2)}
                 </p>
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
               {pendingCount} unpaid invoice(s)
             </p>
           </motion.div>
@@ -1171,13 +1171,13 @@ const Billing = () => {
                 <CreditCard size={24} className="text-success" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total Paid</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Paid</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   ₹{totalPaid.toFixed(2)}
                 </p>
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-2">All time payments</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">All time payments</p>
           </motion.div>
 
           <motion.div {...fadeIn("up", 0.3)} className="card">
@@ -1186,24 +1186,24 @@ const Billing = () => {
                 <CreditCard size={24} className="text-primary" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total Invoices</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Invoices</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {filteredInvoices.length}
                 </p>
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-2">Generated invoices</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Generated invoices</p>
           </motion.div>
         </div>
 
         <motion.div {...fadeIn("up", 0.4)} className="card mb-6">
-          <div className="flex items-center gap-4 mb-4 border-b border-gray-200 pb-4">
+          <div className="flex items-center gap-4 mb-4 border-b border-gray-200 dark:border-gray-700 pb-4">
             <button
               onClick={() => setActiveTab("invoices")}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === "invoices"
                   ? "bg-primary text-white"
-                  : "text-gray-600 hover:bg-gray-100"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
               }`}
             >
               Invoices
@@ -1214,7 +1214,7 @@ const Billing = () => {
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   activeTab === "history"
                     ? "bg-primary text-white"
-                    : "text-gray-600 hover:bg-gray-100"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                 }`}
               >
                 Payment History
@@ -1227,7 +1227,7 @@ const Billing = () => {
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     activeTab === "payment-methods"
                       ? "bg-primary text-white"
-                      : "text-gray-600 hover:bg-gray-100"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                   }`}
                 >
                   Payment Methods
@@ -1237,7 +1237,7 @@ const Billing = () => {
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     activeTab === "history"
                       ? "bg-primary text-white"
-                      : "text-gray-600 hover:bg-gray-100"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                   }`}
                 >
                   Payment History
@@ -1251,7 +1251,7 @@ const Billing = () => {
               <div className="flex flex-col md:flex-row gap-4 mb-4">
                 <div className="flex-1 relative">
                   <Search
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                     size={20}
                   />
                   <input
@@ -1263,7 +1263,7 @@ const Billing = () => {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Filter size={20} className="text-gray-600" />
+                  <Filter size={20} className="text-gray-600 dark:text-gray-400" />
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
@@ -1280,7 +1280,7 @@ const Billing = () => {
               {user?.role === "admin" && (
                 <div className="flex flex-col md:flex-row gap-4 mb-4">
                   <div className="flex items-center gap-2">
-                    <Calendar size={20} className="text-gray-600" />
+                    <Calendar size={20} className="text-gray-600 dark:text-gray-400" />
                     <input
                       type="date"
                       value={dateRange.start}
@@ -1290,7 +1290,7 @@ const Billing = () => {
                       className="input-field"
                       placeholder="Start date"
                     />
-                    <span className="text-gray-500">to</span>
+                    <span className="text-gray-500 dark:text-gray-400">to</span>
                     <input
                       type="date"
                       value={dateRange.end}
@@ -1322,7 +1322,7 @@ const Billing = () => {
 
               {user?.role === "admin" && selectedInvoices.length > 0 && (
                 <div className="mb-4 p-4 bg-primary/5 rounded-lg flex items-center justify-between">
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
                     {selectedInvoices.length} invoice(s) selected
                   </p>
                   <button onClick={handleBulkPayment} className="btn-primary">
@@ -1343,7 +1343,7 @@ const Billing = () => {
           {activeTab === "payment-methods" && (
             <div>
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-heading text-lg font-semibold text-gray-900">
+                <h3 className="font-heading text-lg font-semibold text-gray-900 dark:text-gray-100">
                   Saved Payment Methods
                 </h3>
                 <button
@@ -1368,7 +1368,7 @@ const Billing = () => {
 
           {activeTab === "history" && (
             <div>
-              <h3 className="font-heading text-lg font-semibold text-gray-900 mb-6">
+              <h3 className="font-heading text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">
                 Payment History
               </h3>
               <div className="space-y-4">
@@ -1378,14 +1378,14 @@ const Billing = () => {
                     <motion.div
                       key={inv.id}
                       {...fadeIn("up", index * 0.05)}
-                      className="p-4 border border-gray-200 rounded-lg"
+                      className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-gray-900 dark:text-gray-100">
                             {inv.invoiceNumber}
                           </p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             Invoice date: {format(new Date(inv.date), "dd/MM/yyyy")}
                           </p>
                           <p className="text-sm text-success">
@@ -1396,13 +1396,13 @@ const Billing = () => {
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-gray-900">
+                          <p className="font-bold text-gray-900 dark:text-gray-100">
                             ₹{inv.total.toFixed(2)}
                           </p>
                           <span className="badge badge-success">Paid</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between text-sm text-gray-600">
+                      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
                         <span>{inv.patientName}</span>
                         <button
                           onClick={() => {
@@ -1422,12 +1422,12 @@ const Billing = () => {
                   <div className="text-center py-12">
                     <CreditCard
                       size={64}
-                      className="mx-auto mb-4 text-gray-300"
+                      className="mx-auto mb-4 text-gray-300 dark:text-gray-400"
                     />
-                    <h3 className="font-heading text-xl font-semibold text-gray-900 mb-2">
+                    <h3 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                       No payment history
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-400">
                       You haven't made any payments yet
                     </p>
                   </div>
@@ -1452,7 +1452,7 @@ const Billing = () => {
                       type="checkbox"
                       checked={selectedInvoices.includes(invoice.id)}
                       onChange={() => toggleInvoiceSelection(invoice.id)}
-                      className="absolute top-4 left-4 z-10 w-5 h-5 rounded border-gray-300"
+                      className="absolute top-4 left-4 z-10 w-5 h-5 rounded border-gray-300 dark:border-gray-600"
                     />
                   )}
                   <InvoiceCard
@@ -1509,11 +1509,11 @@ const Billing = () => {
                 {...fadeIn("up")}
                 className="col-span-2 card text-center py-12"
               >
-                <CreditCard size={64} className="mx-auto mb-4 text-gray-300" />
-                <h3 className="font-heading text-xl font-semibold text-gray-900 mb-2">
+                <CreditCard size={64} className="mx-auto mb-4 text-gray-300 dark:text-gray-400" />
+                <h3 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                   No invoices found
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-400">
                   {searchTerm ||
                   filterStatus !== "All" ||
                   (user?.role === "admin" && dateRange.start)
@@ -1547,16 +1547,16 @@ const Billing = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
             >
-              <div className="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-800">
                 <h2 className="text-xl font-bold">Edit Invoice</h2>
                 <button
                   onClick={() => {
                     setShowEditInvoice(false);
                     setEditingInvoice(null);
                   }}
-                  className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-2xl leading-none"
                 >
                   &times;
                 </button>
@@ -1564,7 +1564,7 @@ const Billing = () => {
               <form onSubmit={handleUpdateInvoice} className="p-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Invoice Number
                     </label>
                     <input
@@ -1581,7 +1581,7 @@ const Billing = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Patient
                     </label>
                     <select
@@ -1599,7 +1599,7 @@ const Billing = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Discount
                     </label>
                     <input
@@ -1615,7 +1615,7 @@ const Billing = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Amount Paid
                     </label>
                     <input
@@ -1633,7 +1633,7 @@ const Billing = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Status
                     </label>
                     <select
@@ -1656,7 +1656,7 @@ const Billing = () => {
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Items
                     </label>
                     <button
@@ -1726,7 +1726,7 @@ const Billing = () => {
                           />
                         </div>
                         <div className="col-span-2">
-                          <p className="text-gray-900 font-medium">
+                          <p className="text-gray-900 dark:text-gray-100 font-medium">
                             ₹{item.total.toFixed(2)}
                           </p>
                         </div>
@@ -1735,7 +1735,7 @@ const Billing = () => {
                             <button
                               type="button"
                               onClick={() => handleEditRemoveItem(index)}
-                              className="text-red-500 hover:text-red-700"
+                              className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                             >
                               <Trash2 size={18} />
                             </button>
@@ -1748,31 +1748,31 @@ const Billing = () => {
 
                 <div className="flex flex-col items-end gap-2">
                   <div className="flex items-center gap-4">
-                    <span className="text-gray-600">Subtotal:</span>
+                    <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
                     <span className="font-medium">
                       ₹{editSubtotal.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-gray-600">Discount:</span>
+                    <span className="text-gray-600 dark:text-gray-400">Discount:</span>
                     <span className="font-medium">
                       -₹{(editInvoiceForm.discount || 0).toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 border-t border-gray-200 pt-2">
-                    <span className="text-gray-900 font-bold">Total:</span>
+                  <div className="flex items-center gap-4 border-t border-gray-200 dark:border-gray-700 pt-2">
+                    <span className="text-gray-900 dark:text-gray-100 font-bold">Total:</span>
                     <span className="text-primary text-xl font-bold">
                       ₹{editTotalAmount.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-gray-600">Paid:</span>
+                    <span className="text-gray-600 dark:text-gray-400">Paid:</span>
                     <span className="font-medium text-success">
                       ₹{(editInvoiceForm.amountPaid || 0).toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 border-t border-gray-200 pt-2">
-                    <span className="text-gray-900 font-bold">Balance:</span>
+                  <div className="flex items-center gap-4 border-t border-gray-200 dark:border-gray-700 pt-2">
+                    <span className="text-gray-900 dark:text-gray-100 font-bold">Balance:</span>
                     <span
                       className={`text-xl font-bold ${
                         editTotalAmount - (editInvoiceForm.amountPaid || 0) > 0
@@ -1790,7 +1790,7 @@ const Billing = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Notes
                   </label>
                   <textarea
@@ -1831,22 +1831,22 @@ const Billing = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-6"
             >
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <Trash2 size={24} className="text-red-600" />
+                <div className="w-12 h-12 bg-red-100 dark:bg-red-950 rounded-full flex items-center justify-center">
+                  <Trash2 size={24} className="text-red-600 dark:text-red-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     Delete Invoice
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     {invoiceToDelete.invoiceNumber}
                   </p>
                 </div>
               </div>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Are you sure you want to delete this invoice? This action cannot
                 be undone and will permanently remove the invoice record for{" "}
                 <span className="font-medium">
@@ -1881,19 +1881,19 @@ const Billing = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             >
-              <div className="p-5 border-b border-gray-200 flex items-start justify-between sticky top-0 bg-white z-10 rounded-t-2xl">
+              <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex items-start justify-between sticky top-0 bg-white dark:bg-gray-800 z-10 rounded-t-2xl">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <MessageCircle size={22} className="text-green-600" />
+                  <div className="w-11 h-11 bg-green-100 dark:bg-green-950 rounded-full flex items-center justify-center flex-shrink-0">
+                    <MessageCircle size={22} className="text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                       {whatsAppPreviewData.title}
                     </h3>
                     {whatsAppPreviewData.phone && (
-                      <p className="text-sm text-gray-500 mt-0.5">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                         Recipient: +{whatsAppPreviewData.phone}
                       </p>
                     )}
@@ -1904,52 +1904,52 @@ const Billing = () => {
                     setShowWhatsAppPreview(false);
                     setWhatsAppPreviewData(null);
                   }}
-                  className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
 
               {whatsAppPreviewData.note && (
-                <div className="mx-5 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-sm text-amber-800">
+                <div className="mx-5 mt-4 p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <p className="text-sm text-amber-800 dark:text-amber-300">
                     ⚠️ {whatsAppPreviewData.note}
                   </p>
                 </div>
               )}
 
               <div className="p-5">
-                <div className="bg-[#e5ddd5] rounded-xl p-4 shadow-inner">
-                  <div className="bg-white rounded-xl p-4 shadow-sm max-w-full">
-                    <div className="flex items-start justify-between mb-3 pb-2 border-b border-gray-100">
+                <div className="bg-[#e5ddd5] dark:bg-[#0b141a] rounded-xl p-4 shadow-inner">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm max-w-full">
+                    <div className="flex items-start justify-between mb-3 pb-2 border-b border-gray-100 dark:border-gray-800">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                           C
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-gray-800">
+                          <p className="text-xs font-semibold text-gray-800 dark:text-gray-100">
                             Creadent Dental Clinic
                           </p>
-                          <p className="text-[10px] text-gray-400">
+                          <p className="text-[10px] text-gray-400 dark:text-gray-500">
                             via WhatsApp Business
                           </p>
                         </div>
                       </div>
-                      <span className="text-[10px] text-gray-400">
+                      <span className="text-[10px] text-gray-400 dark:text-gray-500">
                         {new Date().toLocaleTimeString("en-IN", {
                           hour: "2-digit",
                           minute: "2-digit",
                         })}
                       </span>
                     </div>
-                    <pre className="text-sm text-gray-800 whitespace-pre-wrap break-words font-sans leading-relaxed">
+                    <pre className="text-sm text-gray-800 dark:text-gray-100 whitespace-pre-wrap break-words font-sans leading-relaxed">
                       {whatsAppPreviewData.message}
                     </pre>
                   </div>
                 </div>
               </div>
 
-              <div className="p-5 border-t border-gray-200 flex flex-col sm:flex-row gap-2 justify-end">
+              <div className="p-5 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-2 justify-end">
                 <button
                   onClick={() => {
                     if (navigator.clipboard) {
@@ -1959,7 +1959,7 @@ const Billing = () => {
                       toast.success("Message copied to clipboard");
                     }
                   }}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg font-medium transition-colors"
                 >
                   <Copy size={16} />
                   Copy Message
@@ -1969,7 +1969,7 @@ const Billing = () => {
                     setShowWhatsAppPreview(false);
                     setWhatsAppPreviewData(null);
                   }}
-                  className="flex-1 sm:flex-none px-4 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors"
+                  className="flex-1 sm:flex-none px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg font-medium transition-colors"
                 >
                   Close
                 </button>

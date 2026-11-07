@@ -129,11 +129,11 @@ const CustomCombobox = ({
       <div className="relative">
         <Search
           size={16}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
         />
         <input
           type="text"
-          className={`input-field pl-10 pr-10 ${disabled ? "bg-gray-50 text-gray-500" : ""}`}
+          className={`input-field pl-10 pr-10 ${disabled ? "bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400" : ""}`}
           placeholder={placeholder}
           value={display}
           disabled={disabled}
@@ -153,23 +153,23 @@ const CustomCombobox = ({
               onChange("");
               setSearch("");
             }}
-            className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
           >
             <X size={14} />
           </button>
         )}
         <ChevronDown
           size={16}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none transition-transform"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none transition-transform"
           style={{
             transform: `translateY(-50%) rotate(${isOpen ? 180 : 0}deg)`,
           }}
         />
       </div>
       {isOpen && !disabled && (
-        <div className="absolute z-40 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-72 overflow-y-auto">
+        <div className="absolute z-40 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl max-h-72 overflow-y-auto">
           {filtered.length === 0 ? (
-            <div className="p-3 text-sm text-gray-500 text-center">
+            <div className="p-3 text-sm text-gray-500 dark:text-gray-400 text-center">
               No matching patients
             </div>
           ) : (
@@ -186,10 +186,10 @@ const CustomCombobox = ({
                     setSearch("");
                     setIsOpen(false);
                   }}
-                  className={`px-3 py-2 text-sm cursor-pointer border-b border-gray-50 last:border-b-0 hover:bg-primary/5 ${
+                  className={`px-3 py-2 text-sm cursor-pointer border-b border-gray-50 dark:border-gray-800 last:border-b-0 hover:bg-primary/5 ${
                     selected
                       ? "bg-primary/10 text-primary font-semibold"
-                      : "text-gray-700"
+                      : "text-gray-700 dark:text-gray-300"
                   }`}
                 >
                   {ol}
@@ -274,9 +274,9 @@ const RecordForm = ({
           <div className="flex items-start gap-2">
             <AlertTriangle
               size={18}
-              className="text-amber-500 mt-0.5 flex-shrink-0"
+              className="text-amber-500 dark:text-amber-400 mt-0.5 flex-shrink-0"
             />
-            <div className="text-sm text-gray-800">
+            <div className="text-sm text-gray-800 dark:text-gray-100">
               <b>
                 {skipped} file{skipped === 1 ? "" : "s"}
               </b>{" "}
@@ -286,7 +286,7 @@ const RecordForm = ({
             </div>
             <button
               onClick={() => toast.dismiss(t.id)}
-              className="ml-1 text-gray-400 hover:text-gray-700"
+              className="ml-1 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
               aria-label="Close"
             >
               <X size={16} />
@@ -536,9 +536,9 @@ const RecordForm = ({
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Patient Name *{" "}
-            <span className="text-gray-400 font-normal">(type to search)</span>
+            <span className="text-gray-400 dark:text-gray-500 font-normal">(type to search)</span>
           </label>
           <CustomCombobox
             options={patientOptions}
@@ -555,22 +555,22 @@ const RecordForm = ({
         </div>
 
         {selectedPatient && (
-          <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-3 p-4 bg-gradient-to-br from-primary/5 to-white border border-primary/20 rounded-xl">
+          <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-3 p-4 bg-gradient-to-br from-primary/5 to-white dark:to-gray-900 border border-primary/20 rounded-xl">
             <div className="flex items-center gap-2">
               <Shield size={14} className="text-primary" />
               <div>
-                <p className="text-[11px] text-gray-500">Patient ID</p>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">Patient ID</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {selectedPatient.patientId || "—"}
                 </p>
               </div>
             </div>
             <div>
-              <p className="text-[11px] text-gray-500">Gender / Age</p>
-              <p className="text-sm font-semibold text-gray-900">
+              <p className="text-[11px] text-gray-500 dark:text-gray-400">Gender / Age</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                 {selectedPatient.gender || "—"}
                 {selectedPatient.dateOfBirth && (
-                  <span className="ml-2 text-gray-600 normal-case font-normal">
+                  <span className="ml-2 text-gray-600 dark:text-gray-400 normal-case font-normal">
                     (
                     {Math.floor(
                       (Date.now() -
@@ -583,28 +583,28 @@ const RecordForm = ({
               </p>
             </div>
             <div>
-              <p className="text-[11px] text-gray-500">Blood Group</p>
-              <p className="text-sm font-semibold text-gray-900">
+              <p className="text-[11px] text-gray-500 dark:text-gray-400">Blood Group</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                 {selectedPatient.bloodGroup || "—"}
               </p>
             </div>
             <div>
-              <p className="text-[11px] text-gray-500">Contact</p>
-              <p className="text-sm font-semibold text-gray-900 break-all">
+              <p className="text-[11px] text-gray-500 dark:text-gray-400">Contact</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 break-all">
                 {selectedPatient.phone || selectedPatient.email || "—"}
               </p>
             </div>
             {selectedPatient?.medicalHistory?.allergies?.length > 0 && (
-              <div className="md:col-span-4 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <div className="md:col-span-4 flex items-start gap-2 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
                 <AlertCircle
                   size={14}
-                  className="text-red-600 mt-0.5 flex-shrink-0"
+                  className="text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0"
                 />
                 <div>
-                  <p className="text-[11px] font-semibold text-red-700 uppercase tracking-wide">
+                  <p className="text-[11px] font-semibold text-red-700 dark:text-red-300 uppercase tracking-wide">
                     Known Allergies
                   </p>
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
                     {selectedPatient.medicalHistory.allergies.join(", ")}
                   </p>
                 </div>
@@ -614,7 +614,7 @@ const RecordForm = ({
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Visit Type *
           </label>
           <select
@@ -636,7 +636,7 @@ const RecordForm = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Date of Visit *
           </label>
           <input
@@ -651,7 +651,7 @@ const RecordForm = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1">
             <Stethoscope size={14} className="text-primary" /> Diagnosis /
             Findings *
           </label>
@@ -665,7 +665,7 @@ const RecordForm = ({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1">
             <FileText size={14} className="text-primary" /> Treatment / Plan *
           </label>
           <input
@@ -679,13 +679,13 @@ const RecordForm = ({
         </div>
       </div>
 
-      <div className="border-t border-gray-200 pt-5">
-        <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
           <Heart size={16} className="text-primary" /> Vital Signs
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               BP (mmHg)
             </label>
             <input
@@ -697,7 +697,7 @@ const RecordForm = ({
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Height (cm)
             </label>
             <input
@@ -709,7 +709,7 @@ const RecordForm = ({
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Weight (kg)
             </label>
             <input
@@ -721,7 +721,7 @@ const RecordForm = ({
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Heart Rate
             </label>
             <input
@@ -733,7 +733,7 @@ const RecordForm = ({
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Temp (°F)
             </label>
             <input
@@ -748,7 +748,7 @@ const RecordForm = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Additional Clinical Notes
         </label>
         <textarea
@@ -763,7 +763,7 @@ const RecordForm = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div />
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Follow-up Date
           </label>
           <input
@@ -775,16 +775,16 @@ const RecordForm = ({
         </div>
       </div>
 
-      <div className="border-t border-gray-200 pt-5">
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <Paperclip size={16} className="text-primary" />
             Documents / Reports / X-Rays
-            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+            <span className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded-full">
               {attachments.length} file{attachments.length === 1 ? "" : "s"}
             </span>
             {uploadable.length > 0 && (
-              <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <span className="text-xs bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1">
                 <AlertCircle size={11} /> {uploadable.length} pending upload
               </span>
             )}
@@ -822,14 +822,14 @@ const RecordForm = ({
           className={`cursor-pointer border-2 border-dashed rounded-xl p-6 text-center transition-all ${
             dragActive
               ? "border-primary bg-primary/5"
-              : "border-gray-300 bg-gray-50/50 hover:border-primary/60 hover:bg-primary/5"
+              : "border-gray-300 dark:border-gray-600 bg-gray-50/50 dark:bg-gray-900/50 hover:border-primary/60 hover:bg-primary/5"
           }`}
         >
-          <Upload size={28} className="mx-auto text-gray-400 mb-2" />
-          <p className="text-sm font-medium text-gray-700">
+          <Upload size={28} className="mx-auto text-gray-400 dark:text-gray-500 mb-2" />
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Click to choose files or drag & drop here
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Upload X-rays, reports, prescriptions, lab results, images, PDFs,
             etc. (Multiple files allowed)
           </p>
@@ -851,9 +851,9 @@ const RecordForm = ({
               return (
                 <div
                   key={att.previewUrl || att.storageKey || idx}
-                  className="relative border border-gray-200 rounded-xl overflow-hidden bg-white hover:border-primary/40 transition-colors"
+                  className="relative border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-gray-800 hover:border-primary/40 transition-colors"
                 >
-                  <div className="h-28 bg-gray-100 relative overflow-hidden">
+                  <div className="h-28 bg-gray-100 dark:bg-gray-800 relative overflow-hidden">
                     {img && previewUrl ? (
                       <img
                         src={previewUrl}
@@ -880,19 +880,19 @@ const RecordForm = ({
                     <button
                       type="button"
                       onClick={() => removeAttachment(idx)}
-                      className="absolute top-2 right-2 w-7 h-7 bg-white/90 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-lg flex items-center justify-center shadow"
+                      className="absolute top-2 right-2 w-7 h-7 bg-white/90 dark:bg-gray-800/90 hover:bg-red-50 dark:hover:bg-red-950 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg flex items-center justify-center shadow"
                     >
                       <Trash2 size={13} />
                     </button>
                   </div>
                   <div className="p-3">
                     <p
-                      className="text-sm font-medium text-gray-900 truncate"
+                      className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate"
                       title={att.name || att.originalName}
                     >
                       {att.name || att.originalName || "Document"}
                     </p>
-                    <div className="flex items-center justify-between mt-1.5 text-xs text-gray-500">
+                    <div className="flex items-center justify-between mt-1.5 text-xs text-gray-500 dark:text-gray-400">
                       <span>{formatSize(att.size)}</span>
                       {previewUrl && (
                         <button
@@ -915,9 +915,9 @@ const RecordForm = ({
           </div>
         )}
         {selectedPreview && getPreviewUrl(selectedPreview) && (
-          <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-            <div className="px-3 py-2 border-b border-gray-200 bg-white flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-gray-900 truncate">
+          <div className="mt-4 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900">
+            <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                 {selectedPreview.name ||
                   selectedPreview.originalName ||
                   "Preview"}
@@ -925,7 +925,7 @@ const RecordForm = ({
               <button
                 type="button"
                 onClick={() => setSelectedPreview(null)}
-                className="text-gray-500 hover:text-gray-800 p-1 rounded"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 p-1 rounded"
                 title="Close preview"
               >
                 <X size={15} />
@@ -947,7 +947,7 @@ const RecordForm = ({
               <iframe
                 src={getPreviewUrl(selectedPreview)}
                 title={selectedPreview.name || "PDF preview"}
-                className="w-full h-[32rem] bg-white"
+                className="w-full h-[32rem] bg-white dark:bg-gray-800"
               />
             ) : null}
           </div>
@@ -1031,7 +1031,7 @@ const MedicalRecords = () => {
   if (loading) return <Preloader />;
   if (error)
     return (
-      <div className="p-6 text-center text-red-500">Error: {error.message}</div>
+      <div className="p-6 text-center text-red-500 dark:text-red-400">Error: {error.message}</div>
     );
 
   const medicalRecords = data?.getMedicalRecords || [];
@@ -1161,10 +1161,10 @@ const MedicalRecords = () => {
         <motion.div {...fadeIn("down")} className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="font-heading text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 Medical Records
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 View, create and manage patient medical records & documents
               </p>
             </div>
@@ -1226,7 +1226,7 @@ const MedicalRecords = () => {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                 size={20}
               />
               <input
@@ -1241,7 +1241,7 @@ const MedicalRecords = () => {
               />
             </div>
             <div className="flex items-center gap-2">
-              <Filter size={20} className="text-gray-600" />
+              <Filter size={20} className="text-gray-600 dark:text-gray-400" />
               <select
                 value={filterType}
                 onChange={(e) => {
@@ -1293,17 +1293,17 @@ const MedicalRecords = () => {
                       <FileText size={24} className="text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-heading font-semibold text-gray-900 leading-tight">
+                      <h3 className="font-heading font-semibold text-gray-900 dark:text-gray-100 leading-tight">
                         {record.visitType || "Medical Record"}
                       </h3>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <User size={13} className="text-gray-400" />
-                        <p className="text-sm text-gray-700 font-medium">
+                        <User size={13} className="text-gray-400 dark:text-gray-500" />
+                        <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                           {record.patientName}
                         </p>
                       </div>
                       {record.patient?.patientId && (
-                        <div className="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5">
+                        <div className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
                           <Shield size={10} /> ID: {record.patient.patientId}
                         </div>
                       )}
@@ -1312,7 +1312,7 @@ const MedicalRecords = () => {
                 </div>
 
                 <div className="space-y-2 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                     <Calendar size={14} />
                     <span>
                       {new Date(record.date).toLocaleDateString("en-US", {
@@ -1323,7 +1323,7 @@ const MedicalRecords = () => {
                       })}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                     <Stethoscope size={14} />
                     <span className="line-clamp-1">
                       Dr. {record.doctorName}
@@ -1336,7 +1336,7 @@ const MedicalRecords = () => {
                     <p className="text-[11px] font-semibold text-primary/80 uppercase tracking-wide mb-0.5">
                       Diagnosis
                     </p>
-                    <p className="text-sm text-gray-800 line-clamp-2">
+                    <p className="text-sm text-gray-800 dark:text-gray-100 line-clamp-2">
                       {record.diagnosis}
                     </p>
                   </div>
@@ -1346,13 +1346,13 @@ const MedicalRecords = () => {
                     <p className="text-[11px] font-semibold text-accent/80 uppercase tracking-wide mb-0.5">
                       Treatment
                     </p>
-                    <p className="text-sm text-gray-800 line-clamp-2">
+                    <p className="text-sm text-gray-800 dark:text-gray-100 line-clamp-2">
                       {record.treatment}
                     </p>
                   </div>
                 )}
 
-                <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -1394,11 +1394,11 @@ const MedicalRecords = () => {
               {...fadeIn("up")}
               className="col-span-full card text-center py-12"
             >
-              <FileText size={64} className="mx-auto mb-4 text-gray-300" />
-              <h3 className="font-heading text-xl font-semibold text-gray-900 mb-2">
+              <FileText size={64} className="mx-auto mb-4 text-gray-300 dark:text-gray-400" />
+              <h3 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 No medical records found
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {searchTerm || filterType !== "All"
                   ? "Try adjusting your search or filters"
                   : "Get started by creating your first medical record"}

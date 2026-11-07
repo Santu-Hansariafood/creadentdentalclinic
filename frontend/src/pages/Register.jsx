@@ -56,7 +56,7 @@ const Register = () => {
         noindex
         nofollow
       />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white dark:via-gray-900 to-secondary/5 p-4">
         <motion.div {...fadeIn("up")} className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="w-24 h-24 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 shadow-sm">
@@ -66,10 +66,10 @@ const Register = () => {
                 className="w-16 h-16 object-contain"
               />
             </div>
-            <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="font-heading text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               Create Account
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               Join our creadent dental clinic management system
             </p>
           </div>
@@ -81,12 +81,12 @@ const Register = () => {
               noValidate
             >
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Full Name
                 </label>
                 <div className="relative">
                   <User
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                     size={20}
                   />
                   <input
@@ -97,20 +97,20 @@ const Register = () => {
                   />
                 </div>
                 {errors.name && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                     {errors.name.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Email Address{" "}
-                  <span className="text-gray-500 text-xs">(optional)</span>
+                  <span className="text-gray-500 dark:text-gray-400 text-xs">(optional)</span>
                 </label>
                 <div className="relative">
                   <Mail
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                     size={20}
                   />
                   <input
@@ -121,19 +121,19 @@ const Register = () => {
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                     {errors.email.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Phone Number
                 </label>
                 <div className="relative">
                   <Phone
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                     size={20}
                   />
                   <input
@@ -145,18 +145,18 @@ const Register = () => {
                   />
                 </div>
                 {errors.phone && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                     {errors.phone.message}
                   </p>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Password
                 </label>
                 <div className="relative">
                   <Lock
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                     size={20}
                   />
                   <input
@@ -168,25 +168,25 @@ const Register = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                     {errors.password.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Confirm Password
                 </label>
                 <div className="relative">
                   <Lock
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                     size={20}
                   />
                   <input
@@ -197,7 +197,7 @@ const Register = () => {
                   />
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                     {errors.confirmPassword.message}
                   </p>
                 )}
@@ -206,10 +206,10 @@ const Register = () => {
               <div className="flex items-start gap-2">
                 <input
                   type="checkbox"
-                  className="mt-1 rounded border-gray-300"
+                  className="mt-1 rounded border-gray-300 dark:border-gray-600"
                   required
                 />
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
                   I agree to the{" "}
                   <Link to="#" className="text-primary hover:underline">
                     Terms of Service
@@ -231,7 +231,7 @@ const Register = () => {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Already have an account?{" "}
                 <Link
                   to="/login"

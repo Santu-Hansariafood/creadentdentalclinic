@@ -27,11 +27,11 @@ import { generateInvoicePDF } from "../utils/pdfGenerator";
 
 const STATUS_LABELS = {
   SUC: { label: "Success", color: "text-success", bg: "bg-success/10" },
-  REJ: { label: "Rejected", color: "text-red-600", bg: "bg-red-50" },
-  ERR: { label: "Error", color: "text-red-600", bg: "bg-red-50" },
-  REQ: { label: "Requested", color: "text-blue-600", bg: "bg-blue-50" },
+  REJ: { label: "Rejected", color: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-950" },
+  ERR: { label: "Error", color: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-950" },
+  REQ: { label: "Requested", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950" },
   PENDING: { label: "Pending", color: "text-warning", bg: "bg-warning/10" },
-  INITIATED: { label: "Initiated", color: "text-blue-600", bg: "bg-blue-50" },
+  INITIATED: { label: "Initiated", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950" },
 };
 
 const ICICIPayment = ({
@@ -369,8 +369,8 @@ const ICICIPayment = ({
 
   const statusInfo = STATUS_LABELS[txnStatus] || {
     label: txnStatus,
-    color: "text-gray-600",
-    bg: "bg-gray-100",
+    color: "text-gray-600 dark:text-gray-400",
+    bg: "bg-gray-100 dark:bg-gray-800",
   };
 
   return (
@@ -384,18 +384,18 @@ const ICICIPayment = ({
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="rounded-2xl border border-gray-200 bg-white shadow-sm"
+        className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
       >
-        <div className="border-b border-gray-200 bg-white p-6 flex items-center justify-between">
+        <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
               <ShieldCheck size={24} className="text-primary" />
             </div>
             <div>
-              <h2 className="font-heading text-2xl font-bold text-gray-900">
+              <h2 className="font-heading text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Pay via ICICI Bank
               </h2>
-              <p className="text-xs text-gray-500 flex items-center gap-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                 <Banknote size={12} />
                 Secure Payment Gateway
               </p>
@@ -404,9 +404,9 @@ const ICICIPayment = ({
           <button
             onClick={onClose}
             disabled={processing}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50"
           >
-            <X size={24} className="text-gray-600" />
+            <X size={24} className="text-gray-600 dark:text-gray-400" />
           </button>
         </div>
 
@@ -417,29 +417,29 @@ const ICICIPayment = ({
               animate={{ opacity: 1, y: 0 }}
               className="space-y-6"
             >
-              <div className="p-4 bg-gray-50 rounded-lg">
+              <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600">Invoice</span>
-                  <span className="font-medium text-gray-900">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Invoice</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
                     {invoice.invoiceNumber}
                   </span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600">Patient</span>
-                  <span className="font-medium text-gray-900">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Patient</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
                     {invoice.patientName}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Amount Due</span>
-                  <span className="text-2xl font-bold text-gray-900">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Amount Due</span>
+                  <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                     ₹{(invoice.balance || 0).toFixed(2)}
                   </span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Payment Amount
                 </label>
                 <input
@@ -447,7 +447,7 @@ const ICICIPayment = ({
                   value={`₹${numericAmount.toFixed(2)}`}
                   readOnly
                   aria-readonly="true"
-                  className="input-field bg-gray-100 cursor-not-allowed font-semibold"
+                  className="input-field bg-gray-100 dark:bg-gray-800 cursor-not-allowed font-semibold"
                   required
                 />
               </div>
@@ -459,10 +459,10 @@ const ICICIPayment = ({
                     className="text-primary flex-shrink-0 mt-0.5"
                   />
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
                       Secure ICICI Bank checkout
                     </p>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                       Payment will be completed securely inside this page using
                       the OTP sent to your registered mobile number.
                     </p>
@@ -471,12 +471,12 @@ const ICICIPayment = ({
               </div>
 
               {errorMsg && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-2">
                   <AlertCircle
                     size={18}
-                    className="text-red-600 flex-shrink-0 mt-0.5"
+                    className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5"
                   />
-                  <p className="text-sm text-red-700">{errorMsg}</p>
+                  <p className="text-sm text-red-700 dark:text-red-300">{errorMsg}</p>
                 </div>
               )}
 
@@ -516,7 +516,7 @@ const ICICIPayment = ({
                   </span>
                   {transactionId && (
                     <span
-                      className="text-xs text-gray-500 truncate max-w-[200px]"
+                      className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[200px]"
                       title={transactionId}
                     >
                       Txn: {transactionId.slice(-10)}
@@ -524,7 +524,7 @@ const ICICIPayment = ({
                   )}
                 </div>
                 {txnResponseMsg && (
-                  <p className="text-xs text-gray-600 mt-1">{txnResponseMsg}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{txnResponseMsg}</p>
                 )}
               </div>
 
@@ -538,11 +538,11 @@ const ICICIPayment = ({
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                           <Smartphone size={20} className="text-primary" />
                           Pay via OTP
                         </h4>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                           Receive an OTP on the registered mobile number, then
                           complete payment here
                         </p>
@@ -556,7 +556,7 @@ const ICICIPayment = ({
                   type="button"
                   onClick={handleCheckStatus}
                   disabled={processing}
-                  className="w-full p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all text-left flex items-center justify-between"
+                  className="w-full p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 transition-all text-left flex items-center justify-between"
                 >
                   <div className="flex items-center gap-2">
                     <RefreshCw
@@ -564,14 +564,14 @@ const ICICIPayment = ({
                       className={
                         processing
                           ? "animate-spin text-primary"
-                          : "text-gray-500"
+                          : "text-gray-500 dark:text-gray-400"
                       }
                     />
-                    <span className="font-medium text-gray-700">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">
                       Check Payment Status
                     </span>
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {STATUS_LABELS[txnStatus]?.label || txnStatus}
                   </span>
                 </button>
@@ -585,22 +585,22 @@ const ICICIPayment = ({
               animate={{ opacity: 1, y: 0 }}
               className="text-center py-8 space-y-6"
             >
-              <div className="w-16 h-16 mx-auto rounded-full bg-blue-100 flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto rounded-full bg-blue-100 dark:bg-blue-950 flex items-center justify-center">
                 <Loader2 size={32} className="animate-spin text-primary" />
               </div>
               <div>
-                <h3 className="font-heading text-xl font-bold text-gray-900 mb-2">
+                <h3 className="font-heading text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                   {isDemo
                     ? "Simulating Redirect..."
                     : "Redirecting to ICICI Bank..."}
                 </h3>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
                   {isDemo
                     ? "This is a demo redirect simulation. Awaiting simulated callback..."
                     : "Do not close this window. You will be redirected back after payment."}
                 </p>
               </div>
-              <div className="text-xs text-gray-500 space-y-1">
+              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
                 <p>Transaction Ref: {transactionId?.slice(-12)}</p>
                 <p>Amount: ₹{numericAmount.toFixed(2)}</p>
               </div>
@@ -625,10 +625,10 @@ const ICICIPayment = ({
                 <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <Smartphone size={32} className="text-primary" />
                 </div>
-                <h3 className="font-heading text-xl font-bold text-gray-900 mb-2">
+                <h3 className="font-heading text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                   Enter OTP
                 </h3>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
                   {isDemo
                     ? "Demo: Enter 123456 as OTP"
                     : "Please enter the OTP sent to your registered mobile number"}
@@ -636,7 +636,7 @@ const ICICIPayment = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   One-Time Password
                 </label>
                 <input
@@ -662,18 +662,18 @@ const ICICIPayment = ({
                 >
                   Resend OTP
                 </button>
-                <span className="text-gray-500">
+                <span className="text-gray-500 dark:text-gray-400">
                   Txn: {transactionId?.slice(-8)}
                 </span>
               </div>
 
               {errorMsg && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-2">
                   <AlertCircle
                     size={18}
-                    className="text-red-600 flex-shrink-0 mt-0.5"
+                    className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5"
                   />
-                  <p className="text-sm text-red-700">{errorMsg}</p>
+                  <p className="text-sm text-red-700 dark:text-red-300">{errorMsg}</p>
                 </div>
               )}
 
@@ -704,18 +704,18 @@ const ICICIPayment = ({
               animate={{ opacity: 1, y: 0 }}
               className="text-center py-8 space-y-4"
             >
-              <div className="w-16 h-16 mx-auto rounded-full bg-yellow-100 flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto rounded-full bg-yellow-100 dark:bg-yellow-950 flex items-center justify-center">
                 <Loader2 size={32} className="animate-spin text-warning" />
               </div>
               <div>
-                <h3 className="font-heading text-xl font-bold text-gray-900 mb-2">
+                <h3 className="font-heading text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                   Authorizing Payment
                 </h3>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
                   Please wait while we confirm your payment with ICICI Bank...
                 </p>
               </div>
-              <div className="inline-flex items-center gap-2 text-xs text-gray-500 px-3 py-1 bg-gray-50 rounded-full">
+              <div className="inline-flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 px-3 py-1 bg-gray-50 dark:bg-gray-900 rounded-full">
                 <RefreshCw size={12} className="animate-spin" />
                 Amount: ₹{numericAmount.toFixed(2)}
               </div>
@@ -750,11 +750,11 @@ const ICICIPayment = ({
                       Payment {statusInfo.label}
                     </h3>
                     {txnResponseMsg && (
-                      <p className="text-sm text-gray-700 mt-1">
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
                         {txnResponseMsg}
                       </p>
                     )}
-                    <div className="mt-3 text-xs text-gray-600 space-y-1">
+                    <div className="mt-3 text-xs text-gray-600 dark:text-gray-400 space-y-1">
                       <p>Amount: ₹{numericAmount.toFixed(2)}</p>
                       {transactionId && <p>Txn ID: {transactionId}</p>}
                       {pgTxnNo && <p>PG Txn: {pgTxnNo}</p>}
@@ -802,35 +802,35 @@ const ICICIPayment = ({
               >
                 <CheckCircle size={72} className="mx-auto text-success mb-4" />
               </motion.div>
-              <h3 className="font-heading text-2xl font-bold text-gray-900 mb-2">
+              <h3 className="font-heading text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 Payment Successful!
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Payment of{" "}
-                <span className="font-bold text-gray-900">
+                <span className="font-bold text-gray-900 dark:text-gray-100">
                   ₹{numericAmount.toFixed(2)}
                 </span>{" "}
                 has been processed via ICICI Bank.
               </p>
-              <div className="max-w-sm mx-auto p-4 bg-gray-50 rounded-lg text-left text-sm">
+              <div className="max-w-sm mx-auto p-4 bg-gray-50 dark:bg-gray-900 rounded-lg text-left text-sm">
                 <div className="flex justify-between mb-1">
-                  <span className="text-gray-600">Invoice</span>
+                  <span className="text-gray-600 dark:text-gray-400">Invoice</span>
                   <span className="font-medium">{invoice.invoiceNumber}</span>
                 </div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-gray-600">Method</span>
+                  <span className="text-gray-600 dark:text-gray-400">Method</span>
                   <span className="font-medium">ICICI Bank</span>
                 </div>
                 {transactionId && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Txn Ref</span>
+                    <span className="text-gray-600 dark:text-gray-400">Txn Ref</span>
                     <span className="font-mono text-xs">
                       {transactionId.slice(-16)}
                     </span>
                   </div>
                 )}
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Your receipt is ready to download.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 max-w-sm mx-auto pt-2">
@@ -857,8 +857,8 @@ const ICICIPayment = ({
           )}
         </div>
 
-        <div className="p-4 border-t border-gray-200 flex items-center justify-center gap-2 text-xs text-gray-500 bg-gray-50">
-          <ShieldCheck size={14} className="text-green-600" />
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900">
+          <ShieldCheck size={14} className="text-green-600 dark:text-green-400" />
           Payments secured with ICICI Bank Payment Gateway
         </div>
       </motion.div>

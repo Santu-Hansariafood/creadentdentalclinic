@@ -33,21 +33,21 @@ const TemplateMessage = ({ message }) => {
   const hasPreview = message.text && !message.text.startsWith("Template:");
 
   return (
-    <div className="overflow-hidden rounded-xl border border-emerald-200 bg-white/75">
-      <div className="flex items-start justify-between gap-3 border-b border-emerald-100 bg-emerald-50/80 px-3 py-2">
+    <div className="overflow-hidden rounded-xl border border-emerald-200 dark:border-emerald-800 bg-white/75 dark:bg-gray-800/75">
+      <div className="flex items-start justify-between gap-3 border-b border-emerald-100 dark:border-emerald-900 bg-emerald-50/80 dark:bg-emerald-950/80 px-3 py-2">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-700">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-700 dark:text-emerald-300">
             Approved template
           </p>
-          <p className="mt-0.5 break-all text-sm font-semibold text-gray-900">
+          <p className="mt-0.5 break-all text-sm font-semibold text-gray-900 dark:text-gray-100">
             {message.templateName || "Unnamed template"}
           </p>
         </div>
         <span
           className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
             message.status === "sent" || message.status === "delivered" || message.status === "read"
-              ? "bg-emerald-100 text-emerald-700"
-              : "bg-amber-100 text-amber-700"
+              ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300"
+              : "bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300"
           }`}
         >
           {getStatusLabel(message.status)}
@@ -57,10 +57,10 @@ const TemplateMessage = ({ message }) => {
       <div className="space-y-3 px-3 py-3">
         {hasPreview ? (
           <div>
-            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
               Message preview
             </p>
-            <p className="whitespace-pre-wrap break-words text-sm leading-5 text-gray-800">
+            <p className="whitespace-pre-wrap break-words text-sm leading-5 text-gray-800 dark:text-gray-100">
               {message.text}
             </p>
           </div>
@@ -68,16 +68,16 @@ const TemplateMessage = ({ message }) => {
 
         {message.templateParameters?.length ? (
           <div>
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
               Template variables
             </p>
             <div className="space-y-1.5">
               {message.templateParameters.map((parameter, index) => (
                 <div
                   key={`${message.id}-parameter-${index}`}
-                  className="flex gap-2 text-xs text-gray-700"
+                  className="flex gap-2 text-xs text-gray-700 dark:text-gray-300"
                 >
-                  <span className="font-semibold text-emerald-700">{`{{${index + 1}}}`}</span>
+                  <span className="font-semibold text-emerald-700 dark:text-emerald-300">{`{{${index + 1}}}`}</span>
                   <span className="min-w-0 break-words">{parameter || "-"}</span>
                 </div>
               ))}
@@ -86,7 +86,7 @@ const TemplateMessage = ({ message }) => {
         ) : null}
 
         {!hasPreview && !message.templateParameters?.length ? (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             Template content is managed in Meta WhatsApp Manager.
           </p>
         ) : null}
@@ -309,7 +309,7 @@ const WhatsAppMessages = () => {
         <section className="card p-4 h-fit">
           <div className="flex items-center gap-2 mb-4">
             <User size={19} className="text-primary" />
-            <h2 className="font-heading font-semibold text-gray-900">Message History</h2>
+            <h2 className="font-heading font-semibold text-gray-900 dark:text-gray-100">Message History</h2>
           </div>
           <input
             value={search}
@@ -346,12 +346,12 @@ const WhatsAppMessages = () => {
                 className={`w-full text-left p-3 rounded-lg border transition-colors ${
                   activePatient?.id === patient.id
                     ? "border-primary bg-primary/10"
-                    : "border-gray-100 hover:bg-gray-50"
+                    : "border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900"
                 }`}
               >
-                <p className="font-medium text-gray-900 truncate">{patient.name}</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{patient.name}</p>
                 <div className="flex items-center justify-between gap-2 mt-1">
-                  <p className="text-xs text-gray-500">{patient.phone}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{patient.phone}</p>
                   {patient.unreadCount > 0 && (
                     <span className="min-w-5 h-5 px-1.5 rounded-full bg-green-600 text-white text-[11px] font-semibold flex items-center justify-center">
                       {patient.unreadCount}
@@ -360,20 +360,20 @@ const WhatsAppMessages = () => {
                 </div>
               </button>
             ))}
-            {!historyRecipients.length && <p className="text-sm text-gray-500 py-4">No WhatsApp messages found.</p>}
+            {!historyRecipients.length && <p className="text-sm text-gray-500 dark:text-gray-400 py-4">No WhatsApp messages found.</p>}
           </div>
         </section>
 
         <section className="card p-0 overflow-hidden min-h-[38rem] flex flex-col">
           {activePatient ? (
             <>
-              <header className="p-5 border-b border-gray-200 flex items-center gap-3">
+              <header className="p-5 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
                 <div className="w-11 h-11 rounded-full bg-[#25D366]/15 flex items-center justify-center">
                   <MessageCircle className="text-[#128C7E]" size={24} />
                 </div>
                 <div>
-                  <h2 className="font-heading font-semibold text-gray-900">{activePatient.name}</h2>
-                  <p className="text-sm text-gray-500 flex items-center gap-1"><Smartphone size={14} /> {activePatient.phone}</p>
+                  <h2 className="font-heading font-semibold text-gray-900 dark:text-gray-100">{activePatient.name}</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1"><Smartphone size={14} /> {activePatient.phone}</p>
                 </div>
               </header>
               <div
@@ -383,10 +383,10 @@ const WhatsAppMessages = () => {
                     void handleLoadOlder();
                   }
                 }}
-                className="flex-1 px-4 py-5 sm:px-6 space-y-3 overflow-y-auto bg-gray-50/60"
+                className="flex-1 px-4 py-5 sm:px-6 space-y-3 overflow-y-auto bg-gray-50/60 dark:bg-gray-900/60"
               >
                 {loadingOlder && (
-                  <p className="py-2 text-center text-xs text-gray-500">
+                  <p className="py-2 text-center text-xs text-gray-500 dark:text-gray-400">
                     Loading previous messages...
                   </p>
                 )}
@@ -399,7 +399,7 @@ const WhatsAppMessages = () => {
                     <div key={item.id}>
                       {showDate && (
                         <div className="flex justify-center my-4">
-                          <span className="px-3 py-1 rounded-full bg-gray-200 text-[11px] font-medium text-gray-600">
+                          <span className="px-3 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-[11px] font-medium text-gray-600 dark:text-gray-400">
                             {getDateLabel(item.createdAt)}
                           </span>
                         </div>
@@ -414,17 +414,17 @@ const WhatsAppMessages = () => {
                         <div
                           className={`w-fit max-w-[85%] sm:max-w-[72%] rounded-2xl px-4 py-3 shadow-sm ${
                             item.direction === "outbound"
-                              ? "bg-[#d9fdd3] text-gray-900"
-                              : "bg-white border border-gray-200 text-gray-800"
+                              ? "bg-[#d9fdd3] dark:bg-[#005c4b] text-gray-900 dark:text-gray-100"
+                              : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100"
                           }`}
                         >
                           {item.messageType === "template" ? (
                             <TemplateMessage message={item} />
                           ) : (
-                            <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">{item.text || "No text content"}</p>
+                            <p className="text-sm text-gray-800 dark:text-gray-100 whitespace-pre-wrap break-words">{item.text || "No text content"}</p>
                           )}
                           <p
-                            className={`text-[11px] text-gray-500 mt-2 flex items-center gap-2 ${
+                            className={`text-[11px] text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-2 ${
                               item.direction === "outbound" ? "justify-end" : "justify-start"
                             }`}
                           >
@@ -448,10 +448,10 @@ const WhatsAppMessages = () => {
                       </div>
                     </div>
                   );
-                }) : <div className="h-full flex items-center justify-center text-sm text-gray-500">No WhatsApp messages recorded for this patient.</div>}
+                }) : <div className="h-full flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">No WhatsApp messages recorded for this patient.</div>}
                 <div ref={messagesEndRef} />
               </div>
-              <form onSubmit={handleSend} className="p-4 border-t border-gray-200 flex gap-2">
+              <form onSubmit={handleSend} className="p-4 border-t border-gray-200 dark:border-gray-700 flex gap-2">
                 <textarea
                   value={message}
                   onChange={(event) => setMessage(event.target.value)}
@@ -466,7 +466,7 @@ const WhatsAppMessages = () => {
               </form>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-500">Select a patient to view messages.</div>
+            <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">Select a patient to view messages.</div>
           )}
         </section>
       </div>

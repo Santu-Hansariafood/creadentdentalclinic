@@ -28,10 +28,10 @@ const PrescriptionPreview = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 16 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col print:shadow-none print:rounded-none"
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col print:shadow-none print:rounded-none"
         >
-          <div className="sticky top-0 bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between print:hidden">
-            <h2 className="font-heading text-lg font-semibold text-gray-900">
+          <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-5 py-3 flex items-center justify-between print:hidden">
+            <h2 className="font-heading text-lg font-semibold text-gray-900 dark:text-gray-100">
               Prescription
             </h2>
             <div className="flex flex-wrap items-center gap-2">
@@ -67,9 +67,9 @@ const PrescriptionPreview = ({
               </button>
               <button
                 onClick={onClose}
-                className="p-1.5 hover:bg-gray-100 rounded-lg"
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
               >
-                <X size={20} className="text-gray-500" />
+                <X size={20} className="text-gray-500 dark:text-gray-400" />
               </button>
             </div>
           </div>

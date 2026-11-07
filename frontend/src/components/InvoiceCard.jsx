@@ -69,10 +69,10 @@ const InvoiceCard = ({
             <FileText size={24} className="text-primary" />
           </div>
           <div>
-            <h3 className="font-heading font-semibold text-gray-900">
+            <h3 className="font-heading font-semibold text-gray-900 dark:text-gray-100">
               {invoice.invoiceNumber}
             </h3>
-            <p className="text-sm text-gray-600">{invoice.patientName}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{invoice.patientName}</p>
           </div>
         </div>
         <span className={`badge ${statusColors[invoice.status]}`}>
@@ -81,14 +81,14 @@ const InvoiceCard = ({
       </div>
 
       <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
           <Calendar size={16} />
           <span>Date: {formatDate(invoice.date, "MMM dd, yyyy")}</span>
         </div>
         {invoice.paymentMethod && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             {invoice.paymentMethod.toLowerCase() === "cash" ? (
-              <Banknote size={16} className="text-emerald-600" />
+              <Banknote size={16} className="text-emerald-600 dark:text-emerald-400" />
             ) : (
               <CreditCard size={16} />
             )}
@@ -99,7 +99,7 @@ const InvoiceCard = ({
           </div>
         )}
         {invoice.transactionId && (
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-gray-500 dark:text-gray-400">
             Transaction ID: {invoice.transactionId}
           </div>
         )}
@@ -115,15 +115,15 @@ const InvoiceCard = ({
         {invoice.items.map((item, index) => (
           <div
             key={index}
-            className="flex justify-between text-sm py-2 border-b border-gray-100"
+            className="flex justify-between text-sm py-2 border-b border-gray-100 dark:border-gray-800"
           >
             <div className="flex-1">
-              <p className="text-gray-900">{item.description}</p>
-              <p className="text-xs text-gray-500">
+              <p className="text-gray-900 dark:text-gray-100">{item.description}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Qty: {item.quantity} × {formatCurrency(item.unitPrice)}
               </p>
             </div>
-            <p className="font-medium text-gray-900">
+            <p className="font-medium text-gray-900 dark:text-gray-100">
               {formatCurrency(item.total)}
             </p>
           </div>
@@ -131,7 +131,7 @@ const InvoiceCard = ({
       </div>
 
       <div className="space-y-1 mb-4">
-        <div className="flex justify-between text-sm text-gray-600">
+        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
           <span>Subtotal:</span>
           <span>{formatCurrency(invoice.subtotal)}</span>
         </div>
@@ -141,7 +141,7 @@ const InvoiceCard = ({
             <span>-{formatCurrency(invoice.discount)}</span>
           </div>
         )}
-        <div className="flex justify-between text-base font-semibold text-gray-900 pt-2 border-t border-gray-200">
+        <div className="flex justify-between text-base font-semibold text-gray-900 dark:text-gray-100 pt-2 border-t border-gray-200 dark:border-gray-700">
           <span>Total:</span>
           <span>{formatCurrency(invoice.total)}</span>
         </div>
@@ -160,11 +160,11 @@ const InvoiceCard = ({
       </div>
 
       {invoice.insuranceClaim && (
-        <div className="p-3 bg-blue-50 rounded-lg mb-4">
-          <p className="text-xs font-medium text-blue-900 mb-1">
+        <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg mb-4">
+          <p className="text-xs font-medium text-blue-900 dark:text-blue-200 mb-1">
             Insurance Claim
           </p>
-          <div className="text-xs text-blue-700 space-y-1">
+          <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
             <p>Provider: {invoice.insuranceClaim.provider}</p>
             <p>Claim #: {invoice.insuranceClaim.claimNumber}</p>
             <p>Amount: {formatCurrency(invoice.insuranceClaim.claimAmount)}</p>
@@ -176,11 +176,11 @@ const InvoiceCard = ({
       )}
 
       {hasInstallmentPlan && (
-        <div className="p-3 bg-purple-50 rounded-lg mb-4">
-          <p className="text-xs font-medium text-purple-900 mb-2">
+        <div className="p-3 bg-purple-50 dark:bg-purple-950 rounded-lg mb-4">
+          <p className="text-xs font-medium text-purple-900 dark:text-purple-200 mb-2">
             Installment Plan
           </p>
-          <div className="text-xs text-purple-700 space-y-1">
+          <div className="text-xs text-purple-700 dark:text-purple-300 space-y-1">
             <p>
               Monthly Payment:{" "}
               {formatCurrency(invoice.installmentPlan.monthlyAmount)}
@@ -201,8 +201,8 @@ const InvoiceCard = ({
       )}
 
       {invoice.notes && (
-        <div className="p-3 bg-gray-50 rounded-lg mb-4">
-          <p className="text-xs text-gray-600">{invoice.notes}</p>
+        <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg mb-4">
+          <p className="text-xs text-gray-600 dark:text-gray-400">{invoice.notes}</p>
         </div>
       )}
 
@@ -302,7 +302,7 @@ const InvoiceCard = ({
             {onDelete && user?.role === "admin" && (
               <button
                 onClick={() => onDelete(invoice)}
-                className="btn-outline text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                className="btn-outline text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-700 dark:hover:text-red-300 hover:border-red-300 dark:hover:border-red-700"
                 title="Delete Invoice"
               >
                 <Trash2 size={18} />

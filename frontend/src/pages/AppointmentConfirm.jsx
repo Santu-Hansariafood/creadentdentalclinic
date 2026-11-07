@@ -198,20 +198,20 @@ const AppointmentConfirm = () => {
 
   if (error && !appointment) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-cyan-50">
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 dark:from-teal-950 via-white dark:via-gray-900 to-cyan-50 dark:to-cyan-950">
         <SEO
           title="Appointment Not Found | Creadent Dental Clinic"
           description="The appointment you are looking for could not be found."
         />
         <div className="max-w-2xl mx-auto px-4 py-12 sm:py-16">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-10 text-center">
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100">
-              <AlertTriangle size={40} className="text-amber-600" />
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6 sm:p-10 text-center">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-950">
+              <AlertTriangle size={40} className="text-amber-600 dark:text-amber-400" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-heading font-bold text-gray-900 mb-3">
+            <h1 className="text-2xl sm:text-3xl font-heading font-bold text-gray-900 dark:text-gray-100 mb-3">
               Appointment Not Found
             </h1>
-            <p className="text-gray-600 mb-8 leading-relaxed">{error}</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">{error}</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 to="/"
@@ -247,7 +247,7 @@ const AppointmentConfirm = () => {
   const displayReason = appointment?.reason || "";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-cyan-50">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 dark:from-teal-950 via-white dark:via-gray-900 to-cyan-50 dark:to-cyan-950">
       <SEO
         title={`Confirm Appointment | ${appointment?.patientName || "Creadent Dental Clinic"}`}
         description={`Confirm or reschedule your dental appointment with ${appointment?.doctorName || "Creadent Dental Clinic"}.`}
@@ -256,14 +256,14 @@ const AppointmentConfirm = () => {
         <div className="mb-6">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary transition-colors"
           >
             <ChevronLeft size={16} />
             Back to Creadent Dental Clinic
           </Link>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden">
           <div className="bg-gradient-to-r from-primary to-teal-500 px-6 py-8 sm:px-8 sm:py-10 text-white">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -293,15 +293,15 @@ const AppointmentConfirm = () => {
               <div
                 className={`rounded-xl border p-4 flex items-start gap-3 ${
                   completed.type === "confirmed"
-                    ? "bg-emerald-50 border-emerald-200"
-                    : "bg-amber-50 border-amber-200"
+                    ? "bg-emerald-50 dark:bg-emerald-950 border-emerald-200 dark:border-emerald-800"
+                    : "bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800"
                 }`}
               >
                 <div
                   className={`shrink-0 p-2 rounded-full ${
                     completed.type === "confirmed"
-                      ? "bg-emerald-100 text-emerald-600"
-                      : "bg-amber-100 text-amber-600"
+                      ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400"
+                      : "bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400"
                   }`}
                 >
                   {completed.type === "confirmed" ? (
@@ -314,8 +314,8 @@ const AppointmentConfirm = () => {
                   <h3
                     className={`font-semibold ${
                       completed.type === "confirmed"
-                        ? "text-emerald-800"
-                        : "text-amber-800"
+                        ? "text-emerald-800 dark:text-emerald-300"
+                        : "text-amber-800 dark:text-amber-300"
                     }`}
                   >
                     {completed.type === "confirmed"
@@ -325,8 +325,8 @@ const AppointmentConfirm = () => {
                   <p
                     className={`text-sm mt-1 ${
                       completed.type === "confirmed"
-                        ? "text-emerald-700"
-                        : "text-amber-700"
+                        ? "text-emerald-700 dark:text-emerald-300"
+                        : "text-amber-700 dark:text-amber-300"
                     }`}
                   >
                     {completed.type === "confirmed"
@@ -338,64 +338,64 @@ const AppointmentConfirm = () => {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="rounded-xl bg-gray-50 border border-gray-100 p-4">
-                <div className="flex items-center gap-2 text-gray-500 text-sm mb-1.5">
+              <div className="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4">
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-1.5">
                   <Calendar size={14} />
                   Date
                 </div>
-                <p className="font-semibold text-gray-900">{displayDate}</p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">{displayDate}</p>
               </div>
 
-              <div className="rounded-xl bg-gray-50 border border-gray-100 p-4">
-                <div className="flex items-center gap-2 text-gray-500 text-sm mb-1.5">
+              <div className="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4">
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-1.5">
                   <Clock size={14} />
                   Time
                 </div>
-                <p className="font-semibold text-gray-900">
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
                   {appointment?.time || ""}
-                  <span className="text-gray-500 font-normal ml-2 text-sm">
+                  <span className="text-gray-500 dark:text-gray-400 font-normal ml-2 text-sm">
                     • {displayDuration} min
                   </span>
                 </p>
               </div>
 
-              <div className="rounded-xl bg-gray-50 border border-gray-100 p-4">
-                <div className="flex items-center gap-2 text-gray-500 text-sm mb-1.5">
+              <div className="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4">
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-1.5">
                   <Stethoscope size={14} />
                   Doctor
                 </div>
-                <p className="font-semibold text-gray-900">
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
                   {appointment?.doctorName || ""}
                 </p>
               </div>
 
-              <div className="rounded-xl bg-gray-50 border border-gray-100 p-4">
-                <div className="flex items-center gap-2 text-gray-500 text-sm mb-1.5">
+              <div className="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4">
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-1.5">
                   <User size={14} />
                   Appointment Type
                 </div>
-                <p className="font-semibold text-gray-900">
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
                   {appointment?.type || ""}
                 </p>
               </div>
             </div>
 
             {displayReason && (
-              <div className="rounded-xl bg-gray-50 border border-gray-100 p-4">
-                <div className="flex items-center gap-2 text-gray-500 text-sm mb-1.5">
+              <div className="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4">
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-1.5">
                   <MessageSquare size={14} />
                   Reason for visit
                 </div>
-                <p className="text-gray-800">{displayReason}</p>
+                <p className="text-gray-800 dark:text-gray-100">{displayReason}</p>
               </div>
             )}
 
-            <div className="rounded-xl bg-teal-50 border border-teal-100 p-4">
-              <h3 className="font-semibold text-teal-900 mb-2 flex items-center gap-2">
+            <div className="rounded-xl bg-teal-50 dark:bg-teal-950 border border-teal-100 dark:border-teal-900 p-4">
+              <h3 className="font-semibold text-teal-900 dark:text-teal-200 mb-2 flex items-center gap-2">
                 <MapPin size={16} />
                 Clinic Address
               </h3>
-              <p className="text-sm text-teal-800 leading-relaxed">
+              <p className="text-sm text-teal-800 dark:text-teal-300 leading-relaxed">
                 Creadent Multispeciality Dental Clinic
                 <br />
                 BD-85, Salt Lake Rd, BD Block, Sector 1,
@@ -431,7 +431,7 @@ const AppointmentConfirm = () => {
                     Request Reschedule
                   </button>
                 </div>
-                <p className="text-xs text-center text-gray-500 pt-1">
+                <p className="text-xs text-center text-gray-500 dark:text-gray-400 pt-1">
                   Please confirm your attendance so we can prepare for your
                   visit.
                 </p>
@@ -440,12 +440,12 @@ const AppointmentConfirm = () => {
 
             {!completed && showRescheduleForm && (
               <div className="pt-2">
-                <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 mb-4">
-                  <h3 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
+                <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/50 p-4 mb-4">
+                  <h3 className="font-semibold text-amber-900 dark:text-amber-200 mb-3 flex items-center gap-2">
                     <RefreshCw size={18} />
                     Request Appointment Reschedule
                   </h3>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Reason for rescheduling (optional)
                   </label>
                   <textarea
@@ -454,10 +454,10 @@ const AppointmentConfirm = () => {
                     rows={4}
                     maxLength={500}
                     placeholder="Please let us know why you need to reschedule, or any preferred new dates/times…"
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 focus:outline-none resize-none transition-colors"
+                    className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 focus:outline-none resize-none transition-colors"
                   />
                   <div className="mt-2 flex justify-end">
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       {rescheduleReason.length}/500
                     </span>
                   </div>
@@ -470,7 +470,7 @@ const AppointmentConfirm = () => {
                       setRescheduleReason("");
                     }}
                     disabled={submitting !== null}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-60"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors disabled:opacity-60"
                   >
                     <X size={16} />
                     Cancel
@@ -494,7 +494,7 @@ const AppointmentConfirm = () => {
             )}
 
             {completed && (
-              <div className="pt-2 border-t border-gray-100">
+              <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <a
                     href="tel:+916292300343"
@@ -515,7 +515,7 @@ const AppointmentConfirm = () => {
           </div>
         </div>
 
-        <div className="mt-6 text-center text-xs text-gray-500">
+        <div className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
           <p>
             Need help? Call us at{" "}
             <a

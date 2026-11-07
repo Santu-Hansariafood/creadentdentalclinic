@@ -54,7 +54,7 @@ const MedicineList = () => {
   if (loading && !data) return <Preloader />;
   if (error)
     return (
-      <div className="p-6 text-center text-red-500">
+      <div className="p-6 text-center text-red-500 dark:text-red-400">
         Error loading inventory: {error.message}
       </div>
     );
@@ -89,7 +89,7 @@ const MedicineList = () => {
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
               size={20}
             />
             <input
@@ -102,7 +102,7 @@ const MedicineList = () => {
           </div>
           <div className="relative w-full md:w-64">
             <Filter
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
               size={20}
             />
             <select
@@ -136,9 +136,9 @@ const MedicineList = () => {
             </div>
 
             {filteredMedicines.length === 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-                <Pill size={48} className="text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-12 text-center">
+                <Pill size={48} className="text-gray-300 dark:text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400 text-lg">
                   No medicines found matching your criteria.
                 </p>
               </div>

@@ -36,7 +36,7 @@ const Preloader = () => {
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-white via-primary/5 to-white"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-white dark:from-gray-900 via-primary/5 to-white dark:to-gray-900"
     >
       <motion.div
         variants={containerVariants}
@@ -71,7 +71,7 @@ const Preloader = () => {
           </motion.div>
           {/* Logo */}
           <div className="absolute inset-10 flex items-center justify-center">
-            <div className="w-14 h-14 rounded-xl bg-white shadow-lg flex items-center justify-center">
+            <div className="w-14 h-14 rounded-xl bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center">
               <img
                 src="/logo/logo.png"
                 alt="Creadent Dental Clinic"
@@ -82,10 +82,10 @@ const Preloader = () => {
         </motion.div>
 
         <motion.div variants={itemVariants} className="mb-2">
-          <h1 className="font-heading font-bold text-2xl text-gray-900">
+          <h1 className="font-heading font-bold text-2xl text-gray-900 dark:text-gray-100">
             Creadent
           </h1>
-          <p className="text-sm text-gray-500">Dental Clinic</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Dental Clinic</p>
         </motion.div>
 
         <motion.div

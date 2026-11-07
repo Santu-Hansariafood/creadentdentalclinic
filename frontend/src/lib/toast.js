@@ -1,12 +1,18 @@
 import { Slide, toast as toastifyToast } from "react-toastify";
 
+const prefersDarkMode = () =>
+  typeof window !== "undefined" &&
+  (window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false);
+
 const DEFAULT_OPTIONS = {
   position: "top-right",
   autoClose: 3000,
   closeOnClick: true,
   pauseOnHover: true,
   draggable: true,
-  theme: "light",
+  get theme() {
+    return prefersDarkMode() ? "dark" : "light";
+  },
   transition: Slide,
 };
 

@@ -124,13 +124,13 @@ const PaymentForm = ({
         >
           <CheckCircle size={64} className="mx-auto text-success mb-4" />
         </motion.div>
-        <h3 className="font-heading text-2xl font-bold text-gray-900 mb-2">
+        <h3 className="font-heading text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           Payment Successful!
         </h3>
-        <p className="text-gray-600 mb-4">
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
           Payment of ₹{parseFloat(amount || 0).toFixed(2)} has been recorded.
         </p>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           The invoice status has been updated.
         </p>
       </motion.div>
@@ -140,7 +140,7 @@ const PaymentForm = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <h3 className="font-heading text-xl font-semibold text-gray-900 mb-4">
+        <h3 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Complete Payment
         </h3>
 
@@ -154,7 +154,7 @@ const PaymentForm = ({
               <p className="font-semibold text-primary">
                 You are paying your own invoice
               </p>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
                 Complete your payment securely through ICICI Bank Payment
                 Gateway.
               </p>
@@ -162,22 +162,22 @@ const PaymentForm = ({
           </div>
         )}
 
-        <div className="p-4 bg-gray-50 rounded-lg mb-4">
+        <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg mb-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-600">Invoice:</span>
-            <span className="font-medium text-gray-900">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Invoice:</span>
+            <span className="font-medium text-gray-900 dark:text-gray-100">
               {invoice.invoiceNumber}
             </span>
           </div>
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-600">Patient:</span>
-            <span className="font-medium text-gray-900">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Patient:</span>
+            <span className="font-medium text-gray-900 dark:text-gray-100">
               {invoice.patientName}
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Amount Due:</span>
-            <span className="text-2xl font-bold text-gray-900">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Amount Due:</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               ₹{(invoice.balance || 0).toFixed(2)}
             </span>
           </div>
@@ -185,7 +185,7 @@ const PaymentForm = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Payment Amount
         </label>
         <input
@@ -193,13 +193,13 @@ const PaymentForm = ({
           value={`₹${(invoice.balance || 0).toFixed(2)}`}
           readOnly
           aria-readonly="true"
-          className="input-field bg-gray-100 cursor-not-allowed font-semibold"
+          className="input-field bg-gray-100 dark:bg-gray-800 cursor-not-allowed font-semibold"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
           Payment Method
         </label>
 
@@ -210,7 +210,7 @@ const PaymentForm = ({
             className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
               paymentMethod === "ICICI Bank"
                 ? "border-primary bg-primary/5 shadow-sm"
-                : "border-gray-200 hover:border-gray-300"
+                : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
             }`}
           >
             <div className="flex items-start justify-between">
@@ -219,7 +219,7 @@ const PaymentForm = ({
                   className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                     paymentMethod === "ICICI Bank"
                       ? "bg-primary/15"
-                      : "bg-gray-100"
+                      : "bg-gray-100 dark:bg-gray-800"
                   }`}
                 >
                   <CreditCard
@@ -227,7 +227,7 @@ const PaymentForm = ({
                     className={
                       paymentMethod === "ICICI Bank"
                         ? "text-primary"
-                        : "text-gray-500"
+                        : "text-gray-500 dark:text-gray-400"
                     }
                   />
                 </div>
@@ -236,12 +236,12 @@ const PaymentForm = ({
                     className={`font-semibold ${
                       paymentMethod === "ICICI Bank"
                         ? "text-primary"
-                        : "text-gray-800"
+                        : "text-gray-800 dark:text-gray-100"
                     }`}
                   >
                     Pay Online — ICICI Bank
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Secure payment through ICICI Bank&apos;s configured payment
                     flow.
                   </p>
@@ -253,7 +253,7 @@ const PaymentForm = ({
                   className={
                     paymentMethod === "ICICI Bank"
                       ? "text-success"
-                      : "text-gray-400"
+                      : "text-gray-400 dark:text-gray-500"
                   }
                 />
                 <ExternalLink
@@ -261,7 +261,7 @@ const PaymentForm = ({
                   className={
                     paymentMethod === "ICICI Bank"
                       ? "text-primary"
-                      : "text-gray-400"
+                      : "text-gray-400 dark:text-gray-500"
                   }
                 />
               </div>
@@ -275,14 +275,14 @@ const PaymentForm = ({
               className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
               paymentMethod === "Cash"
                 ? "border-primary bg-primary/5 shadow-sm"
-                : "border-gray-200 hover:border-gray-300"
+                : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
               }`}
             >
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-3">
                 <div
                   className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    paymentMethod === "Cash" ? "bg-primary/15" : "bg-gray-100"
+                    paymentMethod === "Cash" ? "bg-primary/15" : "bg-gray-100 dark:bg-gray-800"
                   }`}
                 >
                   <Wallet
@@ -290,7 +290,7 @@ const PaymentForm = ({
                     className={
                       paymentMethod === "Cash"
                         ? "text-primary"
-                        : "text-gray-500"
+                        : "text-gray-500 dark:text-gray-400"
                     }
                   />
                 </div>
@@ -299,12 +299,12 @@ const PaymentForm = ({
                     className={`font-semibold ${
                       paymentMethod === "Cash"
                         ? "text-primary"
-                        : "text-gray-800"
+                        : "text-gray-800 dark:text-gray-100"
                     }`}
                   >
                     Cash
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {isPatientSelfServe
                       ? "For staff use only"
                       : "Record an in-clinic cash payment"}
@@ -314,7 +314,7 @@ const PaymentForm = ({
               <Banknote
                 size={18}
                 className={
-                  paymentMethod === "Cash" ? "text-primary" : "text-gray-400"
+                  paymentMethod === "Cash" ? "text-primary" : "text-gray-400 dark:text-gray-500"
                 }
               />
             </div>
@@ -332,7 +332,7 @@ const PaymentForm = ({
               <p className="font-semibold text-success">
                 Secure ICICI Bank Payment Gateway
               </p>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
                 Complete payment through the secure ICICI Bank payment flow.
               </p>
             </div>
@@ -346,7 +346,7 @@ const PaymentForm = ({
               <p className="font-semibold text-warning">
                 Cash payment (in-clinic)
               </p>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
                 Record this payment only after the patient has paid in cash at
                 the clinic counter.
               </p>
@@ -385,10 +385,10 @@ const PaymentForm = ({
         </button>
       </div>
 
-      <div className="flex items-center justify-center gap-4 pt-4 border-t border-gray-200">
+      <div className="flex items-center justify-center gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
         <div className="flex gap-2">
-          <CreditCard size={24} className="text-gray-400" />
-          <span className="text-xs text-gray-500">
+          <CreditCard size={24} className="text-gray-400 dark:text-gray-500" />
+          <span className="text-xs text-gray-500 dark:text-gray-400">
             Recorded in billing ledger
           </span>
         </div>
@@ -416,11 +416,11 @@ const PaymentModal = ({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="rounded-2xl border border-gray-200 bg-white shadow-sm"
+          className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
         >
-          <div className="border-b border-gray-200 p-6 flex items-center justify-between">
+          <div className="border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between">
             <div>
-              <h2 className="font-heading text-2xl font-bold text-gray-900">
+              <h2 className="font-heading text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Complete Payment
               </h2>
               {isDemo && (
@@ -431,9 +431,9 @@ const PaymentModal = ({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
-              <X size={24} className="text-gray-600" />
+              <X size={24} className="text-gray-600 dark:text-gray-400" />
             </button>
           </div>
 

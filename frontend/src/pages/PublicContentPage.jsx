@@ -122,7 +122,7 @@ const PublicContentPage = ({ pageSlug }) => {
       <PublicLayout>
         {page.template === "doctor-profile" ? (
           <>
-            <section className="relative overflow-hidden border-b border-gray-100 bg-gradient-to-br from-slate-900 via-sky-900 to-cyan-700 text-white">
+            <section className="relative overflow-hidden border-b border-gray-100 dark:border-gray-800 bg-gradient-to-br from-slate-900 via-sky-900 to-cyan-700 text-white">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.22),transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(34,211,238,0.25),transparent_30%)] pointer-events-none" />
 
               <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-18 lg:px-8 lg:py-20">
@@ -156,7 +156,7 @@ const PublicContentPage = ({ pageSlug }) => {
                       {renderCtaLink(
                         page.cta.primaryHref,
                         page.cta.primaryLabel,
-                        "rounded-full bg-white px-6 py-3 text-center text-sm font-bold text-sky-900 shadow-xl transition-all hover:-translate-y-0.5 hover:bg-sky-50",
+                        "rounded-full bg-white dark:bg-gray-800 px-6 py-3 text-center text-sm font-bold text-sky-900 dark:text-sky-200 shadow-xl transition-all hover:-translate-y-0.5 hover:bg-sky-50 dark:hover:bg-sky-950",
                       )}
                       {renderCtaLink(
                         page.cta.secondaryHref,
@@ -193,12 +193,12 @@ const PublicContentPage = ({ pageSlug }) => {
                   {page.stats.map((stat) => (
                     <div
                       key={stat.label}
-                      className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-100"
+                      className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-800 p-6 shadow-xl shadow-slate-100"
                     >
                       <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
                         {stat.label}
                       </p>
-                      <p className="mt-3 text-lg font-semibold text-slate-900">
+                      <p className="mt-3 text-lg font-semibold text-slate-900 dark:text-slate-100">
                         {stat.value}
                       </p>
                     </div>
@@ -208,14 +208,14 @@ const PublicContentPage = ({ pageSlug }) => {
             ) : null}
 
             <section className="mx-auto max-w-5xl px-4 pb-12 pt-8 sm:px-6 lg:px-8 lg:pb-16">
-              <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
+              <div className="rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-800 p-6 shadow-sm sm:p-10">
                 <p className="text-xs font-bold uppercase tracking-[0.22em] text-primary">
                   About the doctor
                 </p>
-                <h2 className="mt-4 font-heading text-3xl font-bold text-slate-900">
+                <h2 className="mt-4 font-heading text-3xl font-bold text-slate-900 dark:text-slate-100">
                   Dr. Sunita Agarwalla
                 </h2>
-                <div className="mt-5 space-y-5 text-lg leading-relaxed text-slate-600">
+                <div className="mt-5 space-y-5 text-lg leading-relaxed text-slate-600 dark:text-slate-400">
                   {(page.bioParagraphs?.length ? page.bioParagraphs : [page.bio]).map(
                     (paragraph, index) => (
                       <p key={`${page.slug}-bio-${index}`}>{paragraph}</p>
@@ -227,13 +227,13 @@ const PublicContentPage = ({ pageSlug }) => {
 
             {page.images?.length ? (
               <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-                <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+                <div className="rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-800 p-6 shadow-sm sm:p-8">
                   <div className="mb-6 flex items-center justify-between gap-4">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-[0.22em] text-primary">
                         Dental care experience
                       </p>
-                      <h2 className="mt-2 font-heading text-3xl font-bold text-slate-900">
+                      <h2 className="mt-2 font-heading text-3xl font-bold text-slate-900 dark:text-slate-100">
                         Smile care and treatment environment
                       </h2>
                     </div>
@@ -243,7 +243,7 @@ const PublicContentPage = ({ pageSlug }) => {
                     {page.images.map((image, idx) => (
                       <div
                         key={`${image.src}-${idx}`}
-                        className="overflow-hidden rounded-[1.5rem] shadow-lg shadow-slate-200 ring-1 ring-slate-200"
+                        className="overflow-hidden rounded-[1.5rem] shadow-lg shadow-slate-200 ring-1 ring-slate-200 dark:ring-slate-700"
                       >
                         <img
                           src={image.src}
@@ -263,14 +263,14 @@ const PublicContentPage = ({ pageSlug }) => {
                   {page.sections.map((section) => (
                     <article
                       key={section.title}
-                      className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-10"
+                      className="rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-800 p-6 shadow-sm sm:p-10"
                     >
-                      <h2 className="font-heading text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                      <h2 className="font-heading text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
                         {section.title}
                       </h2>
 
                       {section.paragraphs?.length ? (
-                        <div className="mt-5 space-y-4 text-base leading-relaxed text-slate-600 sm:text-lg">
+                        <div className="mt-5 space-y-4 text-base leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg">
                           {section.paragraphs.map((paragraph, idx) => (
                             <p key={`${section.title}-paragraph-${idx}`}>{paragraph}</p>
                           ))}
@@ -282,7 +282,7 @@ const PublicContentPage = ({ pageSlug }) => {
                           {section.items.map((item, idx) => (
                             <li
                               key={`${section.title}-item-${idx}`}
-                              className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4 text-base leading-6 text-slate-700"
+                              className="flex items-start gap-3 rounded-2xl bg-slate-50 dark:bg-slate-900 p-4 text-base leading-6 text-slate-700 dark:text-slate-300"
                             >
                               <span className="mt-2 h-2.5 w-2.5 rounded-full bg-primary shrink-0" />
                               <span>{item}</span>
@@ -298,11 +298,11 @@ const PublicContentPage = ({ pageSlug }) => {
 
             {page.faq?.length ? (
               <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24">
-                <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
+                <div className="rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-800 p-6 shadow-sm sm:p-10">
                   <p className="text-xs font-bold uppercase tracking-[0.22em] text-primary">
                     FAQs
                   </p>
-                  <h2 className="mt-2 font-heading text-3xl font-bold text-slate-900">
+                  <h2 className="mt-2 font-heading text-3xl font-bold text-slate-900 dark:text-slate-100">
                     Frequently asked questions
                   </h2>
                   <div className="mt-8 space-y-5">
@@ -312,27 +312,27 @@ const PublicContentPage = ({ pageSlug }) => {
                       return (
                         <div
                           key={`${item.question}-${idx}`}
-                          className="rounded-2xl border border-slate-200 bg-slate-50"
+                          className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
                         >
                           <button
                             type="button"
                             onClick={() => setOpenFaq(isOpen ? -1 : idx)}
                             className="flex w-full items-center justify-between gap-4 p-5 text-left"
                           >
-                            <h3 className="font-heading text-lg font-bold text-slate-900">
+                            <h3 className="font-heading text-lg font-bold text-slate-900 dark:text-slate-100">
                               {item.question}
                             </h3>
                             <ChevronDown
                               size={20}
-                              className={`shrink-0 text-slate-500 transition-transform ${
+                              className={`shrink-0 text-slate-500 dark:text-slate-400 transition-transform ${
                                 isOpen ? "rotate-180" : ""
                               }`}
                             />
                           </button>
 
                           {isOpen ? (
-                            <div className="border-t border-slate-200 px-5 pb-5 pt-4">
-                              <p className="text-base leading-relaxed text-slate-600">
+                            <div className="border-t border-slate-200 dark:border-slate-700 px-5 pb-5 pt-4">
+                              <p className="text-base leading-relaxed text-slate-600 dark:text-slate-400">
                                 {item.answer}
                               </p>
                             </div>
@@ -347,7 +347,7 @@ const PublicContentPage = ({ pageSlug }) => {
           </>
         ) : (
           <>
-            <section className="relative overflow-hidden border-b border-gray-100 bg-gradient-to-br from-slate-900 via-primary/90 to-cyan-800 text-white">
+            <section className="relative overflow-hidden border-b border-gray-100 dark:border-gray-800 bg-gradient-to-br from-slate-900 via-primary/90 to-cyan-800 text-white">
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-black/30 pointer-events-none" />
 
               <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8 lg:py-28">
@@ -392,15 +392,15 @@ const PublicContentPage = ({ pageSlug }) => {
                     return (
                       <div
                         key={item.label}
-                        className="rounded-3xl border border-gray-100 bg-white/90 backdrop-blur-sm p-6 shadow-xl shadow-gray-100 transition-all hover:-translate-y-1 hover:shadow-2xl"
+                        className="rounded-3xl border border-gray-100 dark:border-gray-800 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm p-6 shadow-xl shadow-gray-100 transition-all hover:-translate-y-1 hover:shadow-2xl"
                       >
                         <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/15 to-cyan-500/15 text-primary shadow-inner">
                           <Icon size={26} />
                         </div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                        <p className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
                           {item.label}
                         </p>
-                        <p className="mt-2 text-base font-semibold leading-7 text-gray-900">
+                        <p className="mt-2 text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">
                           {valueContent}
                         </p>
                       </div>
@@ -415,14 +415,14 @@ const PublicContentPage = ({ pageSlug }) => {
                 {page.sections.map((section) => (
                   <article
                     key={section.title}
-                    className="rounded-3xl border border-gray-100 bg-white p-6 sm:p-10 shadow-sm transition-all hover:border-gray-200"
+                    className="rounded-3xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 p-6 sm:p-10 shadow-sm transition-all hover:border-gray-200 dark:hover:border-gray-700"
                   >
-                    <h2 className="font-heading text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+                    <h2 className="font-heading text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl">
                       {section.title}
                     </h2>
 
                     {section.paragraphs?.length ? (
-                      <div className="mt-5 space-y-4 text-base leading-relaxed text-gray-600 sm:text-lg">
+                      <div className="mt-5 space-y-4 text-base leading-relaxed text-gray-600 dark:text-gray-400 sm:text-lg">
                         {section.paragraphs.map((paragraph, idx) => (
                           <p key={idx}>{paragraph}</p>
                         ))}
@@ -434,7 +434,7 @@ const PublicContentPage = ({ pageSlug }) => {
                         {section.items.map((item, idx) => (
                           <li
                             key={idx}
-                            className="flex items-start gap-3 rounded-2xl bg-gradient-to-r from-gray-50 to-white border border-gray-100 p-4 text-base leading-6 text-gray-700 shadow-sm"
+                            className="flex items-start gap-3 rounded-2xl bg-gradient-to-r from-gray-50 dark:from-gray-800 to-white dark:to-gray-900 border border-gray-100 dark:border-gray-800 p-4 text-base leading-6 text-gray-700 dark:text-gray-300 shadow-sm"
                           >
                             <span className="mt-2 h-2.5 w-2.5 rounded-full bg-primary shrink-0 shadow-sm" />
                             <span className="font-medium">{item}</span>
@@ -449,20 +449,20 @@ const PublicContentPage = ({ pageSlug }) => {
 
             {page.faq?.length ? (
               <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8 lg:pb-16">
-                <div className="rounded-3xl border border-gray-100 bg-white p-6 sm:p-10 shadow-sm">
-                  <h2 className="font-heading text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+                <div className="rounded-3xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 p-6 sm:p-10 shadow-sm">
+                  <h2 className="font-heading text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl">
                     Frequently Asked Questions
                   </h2>
                   <div className="mt-8 grid gap-6 md:grid-cols-2">
                     {page.faq.map((item, idx) => (
                       <article
                         key={idx}
-                        className="rounded-2xl border border-gray-200/80 bg-gray-50/50 p-6 transition-all hover:border-primary/50 hover:bg-white hover:shadow-md"
+                        className="rounded-2xl border border-gray-200/80 dark:border-gray-700/80 bg-gray-50/50 dark:bg-gray-900/50 p-6 transition-all hover:border-primary/50 hover:bg-white dark:hover:bg-gray-800 hover:shadow-md"
                       >
-                        <h3 className="font-heading text-lg font-bold text-gray-900">
+                        <h3 className="font-heading text-lg font-bold text-gray-900 dark:text-gray-100">
                           {item.question}
                         </h3>
-                        <p className="mt-3 text-base leading-relaxed text-gray-600">
+                        <p className="mt-3 text-base leading-relaxed text-gray-600 dark:text-gray-400">
                           {item.answer}
                         </p>
                       </article>
@@ -495,7 +495,7 @@ const PublicContentPage = ({ pageSlug }) => {
                       {renderCtaLink(
                         page.cta.primaryHref,
                         page.cta.primaryLabel,
-                        "w-full rounded-full bg-white px-5 py-3 text-center text-sm font-bold text-primary shadow-xl transition-all hover:-translate-y-0.5 hover:bg-cyan-50 hover:text-cyan-900 sm:w-auto sm:px-8 sm:py-4",
+                        "w-full rounded-full bg-white dark:bg-gray-800 px-5 py-3 text-center text-sm font-bold text-primary shadow-xl transition-all hover:-translate-y-0.5 hover:bg-cyan-50 dark:hover:bg-cyan-950 hover:text-cyan-900 dark:hover:text-cyan-200 sm:w-auto sm:px-8 sm:py-4",
                       )}
                       {renderCtaLink(
                         page.cta.secondaryHref,

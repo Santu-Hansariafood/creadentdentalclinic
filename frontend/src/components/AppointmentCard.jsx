@@ -29,7 +29,7 @@ const AppointmentCard = ({
   const statusColors = {
     Scheduled: "border-primary bg-primary/5",
     Completed: "border-success bg-success/5",
-    Cancelled: "border-gray-400 bg-gray-50",
+    Cancelled: "border-gray-400 dark:border-gray-500 bg-gray-50 dark:bg-gray-900",
     Pending: "border-warning bg-warning/5",
   };
 
@@ -55,29 +55,29 @@ const AppointmentCard = ({
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-heading font-semibold text-gray-900">
+            <h3 className="font-heading font-semibold text-gray-900 dark:text-gray-100">
               {appointment.type}
             </h3>
             {today && !isDone && !isCancelled && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                 <AlertTriangle size={10} />
                 Today
               </span>
             )}
             {isDone && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                 <CheckCircle2 size={10} />
                 Done
               </span>
             )}
             {missed && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-100 text-red-700 border border-red-200">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800">
                 <AlertTriangle size={10} />
                 Not Done
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
             {appointment.reason || "No reason provided"}
           </p>
         </div>
@@ -89,10 +89,10 @@ const AppointmentCard = ({
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center gap-2 text-sm text-gray-700">
+        <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
           <Calendar size={16} className="text-primary shrink-0" />
           <div className="flex flex-col">
-            <span className="font-semibold text-gray-900">
+            <span className="font-semibold text-gray-900 dark:text-gray-100">
               {formatDate(appointment.date, "dd/MM/yyyy")}
             </span>
             {today && (
@@ -104,10 +104,10 @@ const AppointmentCard = ({
               <span
                 className={`text-[11px] font-medium ${
                   isDone
-                    ? "text-emerald-600"
+                    ? "text-emerald-600 dark:text-emerald-400"
                     : isCancelled
-                      ? "text-gray-500"
-                      : "text-red-600"
+                      ? "text-gray-500 dark:text-gray-400"
+                      : "text-red-600 dark:text-red-400"
                 }`}
               >
                 {isDone
@@ -120,11 +120,11 @@ const AppointmentCard = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-sm text-gray-700">
+        <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
           <Clock size={16} className="text-primary shrink-0" />
           <span>
             <span className="font-semibold">{appointment.time}</span>
-            <span className="text-gray-500">
+            <span className="text-gray-500 dark:text-gray-400">
               {" "}
               • {appointment.duration || 30} min
             </span>
@@ -132,43 +132,43 @@ const AppointmentCard = ({
         </div>
 
         {showPatient ? (
-          <div className="flex items-start gap-2 text-sm text-gray-700">
+          <div className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
             <Stethoscope size={16} className="text-primary shrink-0 mt-0.5" />
             <div className="flex flex-col min-w-0">
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-gray-900 dark:text-gray-100">
                 {appointment.doctorName}
               </span>
-              <span className="text-gray-500 text-xs">Doctor</span>
+              <span className="text-gray-500 dark:text-gray-400 text-xs">Doctor</span>
             </div>
           </div>
         ) : (
-          <div className="flex items-start gap-2 text-sm text-gray-700">
+          <div className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
             <User size={16} className="text-primary shrink-0 mt-0.5" />
             <div className="flex flex-col min-w-0">
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-gray-900 dark:text-gray-100">
                 {appointment.doctorName}
               </span>
-              <span className="text-gray-500 text-xs">Doctor</span>
+              <span className="text-gray-500 dark:text-gray-400 text-xs">Doctor</span>
             </div>
           </div>
         )}
 
         {showPatient && appointment.patientName && (
-          <div className="flex items-start gap-2 text-sm text-gray-700">
+          <div className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
             <IdCard size={16} className="text-primary shrink-0 mt-0.5" />
             <div className="flex flex-col min-w-0">
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-gray-900 dark:text-gray-100">
                 {appointment.patientName}
               </span>
-              <span className="text-gray-500 text-xs">Patient</span>
+              <span className="text-gray-500 dark:text-gray-400 text-xs">Patient</span>
             </div>
           </div>
         )}
       </div>
 
       {appointment.notes && (
-        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-600">
+        <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+          <p className="text-xs text-gray-600 dark:text-gray-400">
             <span className="font-medium">Note:</span> {appointment.notes}
           </p>
         </div>
@@ -178,8 +178,8 @@ const AppointmentCard = ({
         <div
           className={`mt-4 rounded-lg border px-3 py-2.5 text-sm ${
             appointment.patientResponse === "confirmed"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-              : "border-amber-200 bg-amber-50 text-amber-700"
+              ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300"
+              : "border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300"
           }`}
         >
           <div className="flex items-center gap-2 font-semibold">
@@ -208,7 +208,7 @@ const AppointmentCard = ({
           )}
           {appointment.patientResponse === "reschedule_requested" &&
             appointment.rescheduleReason && (
-              <div className="mt-2 rounded-md bg-white/60 px-2.5 py-2 text-xs">
+              <div className="mt-2 rounded-md bg-white/60 dark:bg-gray-800/60 px-2.5 py-2 text-xs">
                 <span className="font-medium">Reason: </span>
                 {appointment.rescheduleReason}
               </div>
@@ -260,7 +260,7 @@ const AppointmentCard = ({
         <button
           type="button"
           onClick={() => onAction("delete", appointment)}
-          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 dark:border-red-800 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 transition-colors hover:bg-red-50 dark:hover:bg-red-950"
         >
           <Trash2 size={16} />
           Delete Appointment

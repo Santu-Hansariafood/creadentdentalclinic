@@ -107,7 +107,7 @@ const PatientDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <motion.div {...fadeIn("right", 0.2)}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading text-xl font-semibold text-gray-900">
+              <h2 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100">
                 Upcoming Appointments
               </h2>
               <div className="flex items-center gap-3">
@@ -137,8 +137,8 @@ const PatientDashboard = () => {
                 ))
               ) : (
                 <div className="card text-center py-8">
-                  <Calendar size={48} className="mx-auto mb-4 text-gray-300" />
-                  <p className="text-gray-500">No upcoming appointments</p>
+                  <Calendar size={48} className="mx-auto mb-4 text-gray-300 dark:text-gray-400" />
+                  <p className="text-gray-500 dark:text-gray-400">No upcoming appointments</p>
                   <Link
                     to="/patient/appointments"
                     className="btn-primary mt-4 inline-block"
@@ -152,7 +152,7 @@ const PatientDashboard = () => {
 
           <motion.div {...fadeIn("left", 0.3)}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading text-xl font-semibold text-gray-900">
+              <h2 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100">
                 Active Prescriptions
               </h2>
               <Link
@@ -175,10 +175,10 @@ const PatientDashboard = () => {
                         <Pill size={20} className="text-primary" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-medium text-gray-900 mb-1">
+                        <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
                           {pres.medications[0].name}
                         </h3>
-                        <p className="text-sm text-gray-600 mb-2">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                           {pres.medications[0].dosage} -{" "}
                           {pres.medications[0].frequency}
                         </p>
@@ -189,8 +189,8 @@ const PatientDashboard = () => {
                 ))
               ) : (
                 <div className="card text-center py-8">
-                  <Pill size={48} className="mx-auto mb-4 text-gray-300" />
-                  <p className="text-gray-500">No active prescriptions</p>
+                  <Pill size={48} className="mx-auto mb-4 text-gray-300 dark:text-gray-400" />
+                  <p className="text-gray-500 dark:text-gray-400">No active prescriptions</p>
                 </div>
               )}
             </div>
@@ -199,7 +199,7 @@ const PatientDashboard = () => {
 
         <motion.div {...fadeIn("up", 0.4)}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading text-xl font-semibold text-gray-900">
+            <h2 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100">
               Recent Medical Records
             </h2>
             <Link
@@ -222,13 +222,13 @@ const PatientDashboard = () => {
                       <FileText size={20} className="text-primary" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 mb-1">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
                         {record.visitType} - {record.diagnosis}
                       </h3>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         {new Date(record.date).toLocaleDateString()}
                       </p>
-                      <p className="text-xs text-gray-500 line-clamp-2">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
                         {record.treatment}
                       </p>
                     </div>
@@ -237,8 +237,8 @@ const PatientDashboard = () => {
               ))
             ) : (
               <div className="card text-center py-8 col-span-2">
-                <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-                <p className="text-gray-500">No medical records available</p>
+                <FileText size={48} className="mx-auto mb-4 text-gray-300 dark:text-gray-400" />
+                <p className="text-gray-500 dark:text-gray-400">No medical records available</p>
               </div>
             )}
           </div>

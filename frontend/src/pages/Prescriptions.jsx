@@ -146,7 +146,7 @@ const AutocompleteCombobox = ({
     <div ref={wrapperRef} className={`relative ${className}`}>
       <div className="relative">
         <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
           size={16}
         />
         <input
@@ -168,13 +168,13 @@ const AutocompleteCombobox = ({
               onChange("");
               setSearchTerm("");
             }}
-            className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
           >
             <X size={14} />
           </button>
         )}
         <ChevronDown
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none transition-transform"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none transition-transform"
           size={16}
           style={{
             transform: `translateY(-50%) rotate(${isOpen ? 180 : 0}deg)`,
@@ -183,9 +183,9 @@ const AutocompleteCombobox = ({
       </div>
 
       {isOpen && (
-        <div className="absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-30 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {filteredOptions.length === 0 ? (
-            <div className="p-3 text-sm text-gray-500 text-center">
+            <div className="p-3 text-sm text-gray-500 dark:text-gray-400 text-center">
               No matches found
             </div>
           ) : (
@@ -201,10 +201,10 @@ const AutocompleteCombobox = ({
                     setSearchTerm("");
                     setIsOpen(false);
                   }}
-                  className={`px-3 py-2 text-sm cursor-pointer border-b border-gray-50 last:border-b-0 hover:bg-primary/5 ${
+                  className={`px-3 py-2 text-sm cursor-pointer border-b border-gray-50 dark:border-gray-800 last:border-b-0 hover:bg-primary/5 ${
                     isSelected
                       ? "bg-primary/10 text-primary font-semibold"
-                      : "text-gray-700"
+                      : "text-gray-700 dark:text-gray-300"
                   }`}
                 >
                   {optionLabel}
@@ -246,11 +246,11 @@ const CustomSelect = ({
   return (
     <div ref={wrapperRef} className={`relative ${className}`}>
       <div
-        className="input-field flex items-center justify-between cursor-pointer bg-white min-h-[42px]"
+        className="input-field flex items-center justify-between cursor-pointer bg-white dark:bg-gray-800 min-h-[42px]"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span
-          className={`text-sm ${value ? "text-gray-900" : "text-gray-400"}`}
+          className={`text-sm ${value ? "text-gray-900 dark:text-gray-100" : "text-gray-400 dark:text-gray-500"}`}
         >
           {value || placeholder}
         </span>
@@ -262,13 +262,13 @@ const CustomSelect = ({
               onChange("");
               setCustomValue("");
             }}
-            className="text-gray-400 hover:text-gray-600 mr-1"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 mr-1"
           >
             <X size={14} />
           </button>
         )}
         <ChevronDown
-          className="text-gray-400 transition-transform flex-shrink-0"
+          className="text-gray-400 dark:text-gray-500 transition-transform flex-shrink-0"
           size={16}
           style={{ transform: `rotate(${isOpen ? 180 : 0}deg)` }}
         />
@@ -279,12 +279,12 @@ const CustomSelect = ({
       )}
 
       {isOpen && (
-        <div className="absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-30 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {allowCustom && (
-            <div className="p-2 border-b border-gray-100 sticky top-0 bg-white">
+            <div className="p-2 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-800">
               <input
                 type="text"
-                className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                className="w-full px-2 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 placeholder="Or type custom value..."
                 value={customValue}
                 onChange={(e) => setCustomValue(e.target.value)}
@@ -306,10 +306,10 @@ const CustomSelect = ({
                 setIsOpen(false);
                 setCustomValue("");
               }}
-              className={`px-3 py-2 text-sm cursor-pointer border-b border-gray-50 last:border-b-0 hover:bg-primary/5 ${
+              className={`px-3 py-2 text-sm cursor-pointer border-b border-gray-50 dark:border-gray-800 last:border-b-0 hover:bg-primary/5 ${
                 value === opt
                   ? "bg-primary/10 text-primary font-semibold"
-                  : "text-gray-700"
+                  : "text-gray-700 dark:text-gray-300"
               }`}
             >
               {opt}
@@ -321,7 +321,7 @@ const CustomSelect = ({
                 onChange(value);
                 setIsOpen(false);
               }}
-              className="px-3 py-2 text-sm cursor-pointer bg-amber-50 border-b border-gray-50 text-amber-700 font-medium hover:bg-amber-100"
+              className="px-3 py-2 text-sm cursor-pointer bg-amber-50 dark:bg-amber-950 border-b border-gray-50 dark:border-gray-800 text-amber-700 dark:text-amber-300 font-medium hover:bg-amber-100 dark:hover:bg-amber-950"
             >
               Use custom: "{value}"
             </div>
@@ -376,7 +376,7 @@ const Prescriptions = () => {
   if (loading) return <Preloader />;
   if (error)
     return (
-      <div className="p-6 text-center text-red-500">Error: {error.message}</div>
+      <div className="p-6 text-center text-red-500 dark:text-red-400">Error: {error.message}</div>
     );
 
   const prescriptions = data?.getPrescriptions || [];
@@ -664,10 +664,10 @@ const Prescriptions = () => {
         <motion.div {...fadeIn("down")} className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="font-heading text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 Prescriptions
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 View and manage medication prescriptions
               </p>
             </div>
@@ -700,9 +700,9 @@ const Prescriptions = () => {
             </div>
             <form onSubmit={handleCreatePrescription} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Patient Name *{" "}
-                  <span className="text-gray-400 font-normal">
+                  <span className="text-gray-400 dark:text-gray-500 font-normal">
                     (type to search)
                   </span>
                 </label>
@@ -719,13 +719,13 @@ const Prescriptions = () => {
                 />
               </div>
 
-              <div className="border-t border-gray-200 pt-5">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                       Diagnosis / Clinical Findings *
                     </h3>
-                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
                       {diagnoses.filter((d) => d.name.trim()).length} added
                     </span>
                   </div>
@@ -747,16 +747,16 @@ const Prescriptions = () => {
                       transition={{ delay: index * 0.03 }}
                       className={`flex gap-3 items-start p-3 rounded-xl border transition-all ${
                         diag.critical
-                          ? "bg-red-50/50 border-red-200"
-                          : "bg-gray-50/50 border-gray-200"
+                          ? "bg-red-50/50 dark:bg-red-950/50 border-red-200 dark:border-red-800"
+                          : "bg-gray-50/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700"
                       }`}
                     >
                       <div className="flex-1">
                         <input
                           type="text"
-                          className={`input-field bg-white ${
+                          className={`input-field bg-white dark:bg-gray-800 ${
                             diag.critical
-                              ? "border-red-300 focus:border-red-500 focus:ring-red-200 text-red-700 font-bold"
+                              ? "border-red-300 dark:border-red-700 focus:border-red-500 focus:ring-red-200 dark:focus:ring-red-900 text-red-700 dark:text-red-300 font-bold"
                               : ""
                           }`}
                           placeholder={`Diagnosis ${index + 1} (e.g., Acute Periapical Abscess)`}
@@ -770,8 +770,8 @@ const Prescriptions = () => {
                       <label
                         className={`flex items-center gap-1.5 px-3 py-2.5 rounded-lg cursor-pointer border transition-all select-none flex-shrink-0 ${
                           diag.critical
-                            ? "bg-red-100 border-red-300 text-red-700"
-                            : "bg-white border-gray-200 text-gray-600 hover:border-red-200 hover:bg-red-50"
+                            ? "bg-red-100 dark:bg-red-950 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300"
+                            : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:bg-red-50 dark:hover:bg-red-950"
                         }`}
                       >
                         <input
@@ -788,7 +788,7 @@ const Prescriptions = () => {
                         />
                         <AlertTriangle
                           size={14}
-                          className={diag.critical ? "text-red-600" : ""}
+                          className={diag.critical ? "text-red-600 dark:text-red-400" : ""}
                         />
                         <span className="text-xs font-medium whitespace-nowrap">
                           Critical
@@ -798,7 +798,7 @@ const Prescriptions = () => {
                         <button
                           type="button"
                           onClick={() => removeDiagnosis(index)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                          className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors flex-shrink-0"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -808,13 +808,13 @@ const Prescriptions = () => {
                 </div>
               </div>
 
-              <div className="border-t border-gray-200 pt-5">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                       Medication List & Doses
                     </h3>
-                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
                       {medications.length} medicine
                       {medications.length !== 1 ? "s" : ""}
                     </span>
@@ -835,14 +835,14 @@ const Prescriptions = () => {
                       initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.03 }}
-                      className="p-5 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 relative shadow-sm"
+                      className="p-5 bg-gradient-to-br from-gray-50 dark:from-gray-800 to-white dark:to-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 relative shadow-sm"
                     >
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                           <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-primary text-white text-xs font-bold flex items-center justify-center">
                             {index + 1}
                           </span>
-                          <h4 className="font-semibold text-gray-800 text-sm">
+                          <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">
                             Medicine {index + 1}
                           </h4>
                         </div>
@@ -850,7 +850,7 @@ const Prescriptions = () => {
                           <button
                             type="button"
                             onClick={() => removeMedication(index)}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                            className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950 p-1.5 rounded-lg transition-colors"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -859,9 +859,9 @@ const Prescriptions = () => {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                         <div className="lg:col-span-3">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Medication Name *{" "}
-                            <span className="text-gray-400 font-normal">
+                            <span className="text-gray-400 dark:text-gray-500 font-normal">
                               (type to search)
                             </span>
                           </label>
@@ -884,12 +884,12 @@ const Prescriptions = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Dosage Form
                           </label>
-                          <div className="input-field bg-gray-50/80 text-gray-600 flex items-center text-sm min-h-[42px]">
+                          <div className="input-field bg-gray-50/80 dark:bg-gray-900/80 text-gray-600 dark:text-gray-400 flex items-center text-sm min-h-[42px]">
                             {med.dosageForm || (
-                              <span className="text-gray-400 italic">
+                              <span className="text-gray-400 dark:text-gray-500 italic">
                                 Auto-filled when medicine selected
                               </span>
                             )}
@@ -897,7 +897,7 @@ const Prescriptions = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Dose / Strength *
                           </label>
                           <CustomSelect
@@ -912,7 +912,7 @@ const Prescriptions = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Frequency *
                           </label>
                           <CustomSelect
@@ -927,7 +927,7 @@ const Prescriptions = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Duration *
                           </label>
                           <CustomSelect
@@ -942,7 +942,7 @@ const Prescriptions = () => {
                         </div>
 
                         <div className="lg:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Instructions *
                           </label>
                           <CustomSelect
@@ -961,8 +961,8 @@ const Prescriptions = () => {
                 </div>
               </div>
 
-              <div className="border-t border-gray-200 pt-5">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Additional Notes / Advice for Patient
                 </label>
                 <textarea
@@ -1001,7 +1001,7 @@ const Prescriptions = () => {
                   Cancel
                 </button>
               </div>
-              <p className="text-xs text-gray-500 -mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1">
                 ✅ After generating, the prescription PDF is downloaded and
                 automatically emailed to the patient's registered email address.
               </p>
@@ -1013,7 +1013,7 @@ const Prescriptions = () => {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                 size={20}
               />
               <input
@@ -1025,7 +1025,7 @@ const Prescriptions = () => {
               />
             </div>
             <div className="flex items-center gap-2">
-              <Filter size={20} className="text-gray-600" />
+              <Filter size={20} className="text-gray-600 dark:text-gray-400" />
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -1058,11 +1058,11 @@ const Prescriptions = () => {
               {...fadeIn("up")}
               className="col-span-2 card text-center py-12"
             >
-              <Pill size={64} className="mx-auto mb-4 text-gray-300" />
-              <h3 className="font-heading text-xl font-semibold text-gray-900 mb-2">
+              <Pill size={64} className="mx-auto mb-4 text-gray-300 dark:text-gray-400" />
+              <h3 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 No prescriptions found
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 {searchTerm || filterStatus !== "All"
                   ? "Try adjusting your search or filter"
                   : "No prescriptions available"}

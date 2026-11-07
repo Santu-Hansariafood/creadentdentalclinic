@@ -148,7 +148,7 @@ const Appointments = () => {
   if (loadingApts && !dataApts) return <Preloader />;
   if (errorApts)
     return (
-      <div className="p-6 text-center text-red-500">
+      <div className="p-6 text-center text-red-500 dark:text-red-400">
         Error: {errorApts.message}
       </div>
     );
@@ -412,10 +412,10 @@ const Appointments = () => {
         <motion.div {...fadeIn("down")} className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="font-heading text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 Appointments
               </h1>
-              <p className="text-gray-600 flex items-center gap-2 flex-wrap">
+              <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2 flex-wrap">
                 Manage your dental appointments
                 {totalCount > 0 && (
                   <span className="inline-flex items-center gap-1.5 ml-1 px-2.5 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium">
@@ -439,15 +439,15 @@ const Appointments = () => {
         {reschedulingAppointment && (
           <motion.div
             {...fadeIn("up", 0.1)}
-            className="card mb-8 bg-blue-50 border-blue-200"
+            className="card mb-8 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800"
           >
-            <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
+            <h2 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Reschedule Appointment for {reschedulingAppointment.patientName}
             </h2>
             <form onSubmit={handleReschedule} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     New Date *
                   </label>
                   <input
@@ -466,7 +466,7 @@ const Appointments = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     New Time Slot *
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -548,14 +548,14 @@ const Appointments = () => {
 
         {showBooking && (
           <motion.div {...fadeIn("up", 0.1)} className="card mb-8">
-            <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
+            <h2 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Book New Appointment
             </h2>
             <form onSubmit={handleBooking} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {["admin", "doctor", "employee"].includes(user.role) && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Select Patient *
                     </label>
                     <select
@@ -576,7 +576,7 @@ const Appointments = () => {
                   </div>
                 )}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Select Doctor *
                   </label>
                   <select
@@ -598,7 +598,7 @@ const Appointments = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Appointment Type *
                   </label>
                   <select
@@ -617,7 +617,7 @@ const Appointments = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Date *
                   </label>
                   <input
@@ -631,7 +631,7 @@ const Appointments = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Time Slot *
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -681,7 +681,7 @@ const Appointments = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Reason for Visit (Optional)
                 </label>
                 <textarea
@@ -714,7 +714,7 @@ const Appointments = () => {
             <div
               role="tablist"
               aria-label="Appointment groups"
-              className="flex flex-wrap gap-2 border-b border-gray-200 pb-2"
+              className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700 pb-2"
             >
               {GROUP_TABS.map((tab) => {
                 const active = groupTab === tab.value;
@@ -727,7 +727,7 @@ const Appointments = () => {
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       active
                         ? "bg-primary text-white shadow-sm"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
                     }`}
                   >
                     {tab.label}
@@ -738,7 +738,7 @@ const Appointments = () => {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="relative flex-1">
                 <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                   size={20}
                 />
                 <input
@@ -751,7 +751,7 @@ const Appointments = () => {
               </div>
               <div className="relative w-full md:w-64">
                 <Filter
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                   size={20}
                 />
                 <select
@@ -778,7 +778,7 @@ const Appointments = () => {
           >
             <div className="flex items-center gap-2 mb-4">
               <Clock size={20} className="text-primary" />
-              <h2 className="font-heading text-xl font-bold text-gray-900">
+              <h2 className="font-heading text-xl font-bold text-gray-900 dark:text-gray-100">
                 Upcoming Appointments
               </h2>
               <span className="ml-auto text-xs font-medium px-3 py-1 rounded-full bg-primary/10 text-primary">
@@ -810,11 +810,11 @@ const Appointments = () => {
             className="mb-10"
           >
             <div className="flex items-center gap-2 mb-4">
-              <CheckCircle2 size={20} className="text-emerald-600" />
-              <h2 className="font-heading text-xl font-bold text-gray-900">
+              <CheckCircle2 size={20} className="text-emerald-600 dark:text-emerald-400" />
+              <h2 className="font-heading text-xl font-bold text-gray-900 dark:text-gray-100">
                 Previous — Done
               </h2>
-              <span className="ml-auto text-xs font-medium px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+              <span className="ml-auto text-xs font-medium px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900">
                 {displayPreviousDone.length}{" "}
                 {displayPreviousDone.length === 1 ? "visit" : "visits"} done
               </span>
@@ -840,11 +840,11 @@ const Appointments = () => {
             className="mb-10"
           >
             <div className="flex items-center gap-2 mb-4">
-              <AlertCircle size={20} className="text-red-600" />
-              <h2 className="font-heading text-xl font-bold text-gray-900">
+              <AlertCircle size={20} className="text-red-600 dark:text-red-400" />
+              <h2 className="font-heading text-xl font-bold text-gray-900 dark:text-gray-100">
                 Previous — Not Done
               </h2>
-              <span className="ml-auto text-xs font-medium px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-100">
+              <span className="ml-auto text-xs font-medium px-3 py-1 rounded-full bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 border border-red-100 dark:border-red-900">
                 {displayPreviousNotDone.length} missed / not completed
               </span>
             </div>
@@ -872,11 +872,11 @@ const Appointments = () => {
             className="mb-10"
           >
             <div className="flex items-center gap-2 mb-4">
-              <XCircle size={20} className="text-gray-500" />
-              <h2 className="font-heading text-xl font-bold text-gray-900">
+              <XCircle size={20} className="text-gray-500 dark:text-gray-400" />
+              <h2 className="font-heading text-xl font-bold text-gray-900 dark:text-gray-100">
                 Previous — Cancelled
               </h2>
-              <span className="ml-auto text-xs font-medium px-3 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+              <span className="ml-auto text-xs font-medium px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
                 {displayPreviousCancelled.length}{" "}
                 {displayPreviousCancelled.length === 1
                   ? "appointment"
@@ -902,11 +902,11 @@ const Appointments = () => {
             {...fadeIn("up")}
             className="col-span-2 card text-center py-12"
           >
-            <CalendarIcon size={64} className="mx-auto mb-4 text-gray-300" />
-            <h3 className="font-heading text-xl font-semibold text-gray-900 mb-2">
+            <CalendarIcon size={64} className="mx-auto mb-4 text-gray-300 dark:text-gray-400" />
+            <h3 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
               No appointments found
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               {searchTerm || filterStatus !== "All" || groupTab !== "all"
                 ? "Try adjusting your search, filter, or group tab"
                 : "You don't have any appointments yet"}
@@ -922,7 +922,7 @@ const Appointments = () => {
           </motion.div>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-8 text-xs text-gray-500">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-8 text-xs text-gray-500 dark:text-gray-400">
           <span>
             Showing page {page} of {totalPages} ({groupedDisplayCount} of{" "}
             {totalCount} appointments

@@ -14,7 +14,7 @@ const ChatMessage = ({ message, currentUserId, delay = 0 }) => {
         className={`max-w-md ${isSent ? "items-end" : "items-start"} flex flex-col gap-1`}
       >
         {!isSent && (
-          <span className="text-xs text-gray-500 px-2">
+          <span className="text-xs text-gray-500 dark:text-gray-400 px-2">
             {message.senderName}
           </span>
         )}
@@ -26,7 +26,7 @@ const ChatMessage = ({ message, currentUserId, delay = 0 }) => {
                 <div
                   key={index}
                   className={`flex items-center gap-2 p-2 rounded-lg ${
-                    isSent ? "bg-white/20" : "bg-gray-200"
+                    isSent ? "bg-white/20" : "bg-gray-200 dark:bg-gray-700"
                   }`}
                 >
                   <Download size={14} />
@@ -41,7 +41,7 @@ const ChatMessage = ({ message, currentUserId, delay = 0 }) => {
             </div>
           )}
         </div>
-        <span className="text-xs text-gray-400 px-2">
+        <span className="text-xs text-gray-400 dark:text-gray-500 px-2">
           {new Date(message.timestamp).toLocaleTimeString("en-US", {
             hour: "2-digit",
             minute: "2-digit",

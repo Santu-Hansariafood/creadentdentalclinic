@@ -41,7 +41,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="p-2 rounded-lg border border-gray-200 disabled:opacity-50 hover:bg-gray-50 transition-colors"
+        className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
       >
         <ChevronLeft size={20} />
       </button>
@@ -56,7 +56,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
               ? "bg-primary text-white border-primary"
               : page === "..."
                 ? "border-transparent cursor-default"
-                : "border-gray-200 hover:bg-gray-50"
+                : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900"
           }`}
         >
           {page}
@@ -66,7 +66,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="p-2 rounded-lg border border-gray-200 disabled:opacity-50 hover:bg-gray-50 transition-colors"
+        className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
       >
         <ChevronRight size={20} />
       </button>

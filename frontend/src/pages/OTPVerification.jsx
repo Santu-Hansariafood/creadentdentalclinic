@@ -71,11 +71,11 @@ const OTPVerification = () => {
         noindex
         nofollow
       />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white dark:via-gray-900 to-secondary/5 p-4">
         <motion.div {...fadeIn("up")} className="w-full max-w-md">
           <button
             onClick={() => navigate("/login")}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8 transition-colors"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-8 transition-colors"
           >
             <ArrowLeft size={20} />
             <span className="text-sm">Back to login</span>
@@ -85,10 +85,10 @@ const OTPVerification = () => {
             <div className="w-20 h-20 bg-gradient-medical rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Shield className="text-white" size={40} />
             </div>
-            <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="font-heading text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               Verify Your Account
             </h1>
-            <p className="text-gray-600">We've sent a verification code to</p>
+            <p className="text-gray-600 dark:text-gray-400">We've sent a verification code to</p>
             <p className="text-primary font-medium mt-1">
               {pendingUser?.email}
             </p>
@@ -97,7 +97,7 @@ const OTPVerification = () => {
           <div className="card">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-4 text-center">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4 text-center">
                   Enter 6-digit code
                 </label>
                 <div className="flex gap-2 justify-center">
@@ -110,7 +110,7 @@ const OTPVerification = () => {
                       value={digit}
                       onChange={(e) => handleChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
-                      className="w-12 h-12 text-center text-xl font-bold border-2 border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                      className="w-12 h-12 text-center text-xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                     />
                   ))}
                 </div>
@@ -127,7 +127,7 @@ const OTPVerification = () => {
 
             <div className="mt-6 text-center">
               {timer > 0 ? (
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Resend code in{" "}
                   <span className="font-medium text-primary">{timer}s</span>
                 </p>

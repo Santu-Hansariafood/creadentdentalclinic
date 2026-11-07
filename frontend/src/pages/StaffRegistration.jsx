@@ -112,7 +112,7 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
     <Suspense fallback={<Preloader />}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Staff Role
           </label>
           <div className="grid grid-cols-3 gap-4">
@@ -128,7 +128,7 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
                 className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
                   watchRole === role.id
                     ? "border-primary bg-primary/5 text-primary"
-                    : "border-gray-200 hover:border-primary/50 text-gray-600"
+                    : "border-gray-200 dark:border-gray-700 hover:border-primary/50 text-gray-600 dark:text-gray-400"
                 }`}
               >
                 <role.icon size={24} />
@@ -140,12 +140,12 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Full Name *
             </label>
             <div className="relative">
               <User
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                 size={18}
               />
               <input
@@ -156,17 +156,17 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
               />
             </div>
             {errors.name && (
-              <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.name.message}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Email Address *
             </label>
             <div className="relative">
               <Mail
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                 size={18}
               />
               <input
@@ -177,19 +177,19 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
               />
             </div>
             {errors.email && (
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                 {errors.email.message}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Phone Number *
             </label>
             <div className="relative">
               <Phone
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                 size={18}
               />
               <input
@@ -201,7 +201,7 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
               />
             </div>
             {errors.phone && (
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                 {errors.phone.message}
               </p>
             )}
@@ -210,12 +210,12 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
           {watchRole === "doctor" && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Specialization *
                 </label>
                 <div className="relative">
                   <Briefcase
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                     size={18}
                   />
                   <input
@@ -226,19 +226,19 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
                   />
                 </div>
                 {errors.specialization && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                     {errors.specialization.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   License Number *
                 </label>
                 <div className="relative">
                   <Award
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                     size={18}
                   />
                   <input
@@ -249,7 +249,7 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
                   />
                 </div>
                 {errors.license && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                     {errors.license.message}
                   </p>
                 )}
@@ -258,14 +258,14 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100 dark:border-gray-800">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Password {!initialStaff && "*"}
             </label>
             <div className="relative">
               <Lock
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                 size={18}
               />
               <input
@@ -279,25 +279,25 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
             {errors.password && (
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                 {errors.password.message}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Confirm Password {!initialStaff && "*"}
             </label>
             <div className="relative">
               <Lock
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                 size={18}
               />
               <input
@@ -316,7 +316,7 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
               />
             </div>
             {errors.confirmPassword && (
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                 {errors.confirmPassword.message}
               </p>
             )}
@@ -356,15 +356,15 @@ const StaffRegistration = ({ initialStaff, onClose }) => {
     return (
       <Suspense fallback={<Preloader />}>
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="font-heading text-xl font-bold text-gray-900">
+                <h2 className="font-heading text-xl font-bold text-gray-900 dark:text-gray-100">
                   Edit Staff
                 </h2>
                 <button
                   onClick={onClose}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                 >
                   ✕
                 </button>

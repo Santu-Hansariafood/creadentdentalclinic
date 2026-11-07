@@ -12,8 +12,8 @@ const PublicLayout = ({ children }) => {
   const dashboardPath = user ? `/${user.role}/dashboard` : "/login";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-white to-secondary/10">
-      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-white dark:via-gray-900 to-secondary/10">
+      <header className="sticky top-0 z-20 border-b border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-800/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <Link to="/" className="flex min-w-0 items-center gap-3">
@@ -28,10 +28,10 @@ const PublicLayout = ({ children }) => {
                 />
               </div>
               <div className="min-w-0">
-                <p className="truncate font-heading text-base font-semibold text-gray-900 sm:text-lg">
+                <p className="truncate font-heading text-base font-semibold text-gray-900 dark:text-gray-100 sm:text-lg">
                   {site.name}
                 </p>
-                <p className="truncate text-xs text-gray-600 sm:text-sm">
+                <p className="truncate text-xs text-gray-600 dark:text-gray-400 sm:text-sm">
                   {site.tagline}
                 </p>
               </div>
@@ -74,7 +74,7 @@ const PublicLayout = ({ children }) => {
                   className={`shrink-0 whitespace-nowrap rounded-full px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
                     isActive
                       ? "bg-primary text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-primary/10 hover:text-primary"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary"
                   }`}
                 >
                   {page.label}
@@ -87,7 +87,7 @@ const PublicLayout = ({ children }) => {
 
       <main>{children}</main>
 
-      <footer className="border-t border-gray-200 bg-slate-950 text-white">
+      <footer className="border-t border-gray-200 dark:border-gray-700 bg-slate-950 text-white">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr] lg:gap-12 lg:px-8 lg:py-10">
           <div className="space-y-4 md:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3">

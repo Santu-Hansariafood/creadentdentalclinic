@@ -6,6 +6,7 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     --color-primary: #007FAF;
     --color-secondary: #A7D9F4;
     --color-accent: #0056b3;
@@ -34,6 +35,19 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: #f8fafc;
+    color: #0f172a;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --border-color: #374151;
+    }
+
+    body {
+      background-color: #111827;
+      color: #f3f4f6;
+    }
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -41,7 +55,7 @@
   }
 
   input, textarea, select {
-    @apply border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary;
+    @apply border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary;
   }
 
   button {
@@ -59,11 +73,11 @@
   }
 
   th, td {
-    @apply border border-gray-200 px-4 py-2 text-left;
+    @apply border border-gray-200 dark:border-gray-700 px-4 py-2 text-left;
   }
 
   hr {
-    @apply border-0 border-t border-gray-200 my-4;
+    @apply border-0 border-t border-gray-200 dark:border-gray-700 my-4;
   }
 }
 
@@ -117,7 +131,7 @@
   }
 
   .card {
-    @apply bg-white rounded-lg border border-gray-200 shadow-sm p-4 sm:p-6 transition-all duration-200;
+    @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-4 sm:p-6 transition-all duration-200;
   }
 
   .card-hover {
@@ -125,7 +139,7 @@
   }
 
   .container-bordered {
-    @apply border border-gray-200 rounded-lg p-3 sm:p-4;
+    @apply border border-gray-200 dark:border-gray-700 rounded-lg p-3 sm:p-4;
   }
 
   .btn-primary {
@@ -149,7 +163,7 @@
   }
 
   .input-field {
-    @apply w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base;
+    @apply w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base;
   }
 
   .input-error {
@@ -161,19 +175,19 @@
   }
 
   .divider {
-    @apply border-t border-gray-200 my-4 sm:my-6;
+    @apply border-t border-gray-200 dark:border-gray-700 my-4 sm:my-6;
   }
 
   .divider-vertical {
-    @apply border-l border-gray-200 mx-4 sm:mx-6;
+    @apply border-l border-gray-200 dark:border-gray-700 mx-4 sm:mx-6;
   }
 
   .panel {
-    @apply bg-white rounded-lg shadow-sm p-4 sm:p-6;
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6;
   }
 
   .panel-bordered {
-    @apply panel border border-gray-200;
+    @apply panel border border-gray-200 dark:border-gray-700;
   }
 
   .badge {
@@ -197,11 +211,11 @@
   }
 
   .badge-info {
-    @apply badge bg-blue-100 text-blue-700;
+    @apply badge bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300;
   }
 
   .medical-card {
-    @apply card bg-gradient-to-br from-white to-medical-light/20 border-medical-blue/20;
+    @apply card bg-gradient-to-br from-white dark:from-gray-800 to-medical-light/20 dark:to-gray-800/40 border-medical-blue/20;
   }
 
   .stat-card {
@@ -221,11 +235,11 @@
   }
 
   .chat-bubble-received {
-    @apply chat-bubble bg-gray-100 text-gray-800;
+    @apply chat-bubble bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100;
   }
 
   .stripe-element {
-    @apply w-full px-4 py-3 border-2 border-gray-300 rounded-lg transition-all duration-200;
+    @apply w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg transition-all duration-200;
   }
 
   .stripe-element:focus-within {
@@ -249,11 +263,11 @@
   }
 
   .payment-status-refunded {
-    @apply badge bg-gray-200 text-gray-700;
+    @apply badge bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200;
   }
 
   .payment-status-processing {
-    @apply badge bg-blue-100 text-blue-700;
+    @apply badge bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300;
   }
 
   .payment-modal-backdrop {
@@ -398,6 +412,20 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background: #1f2937;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
 }
 
 ::selection {

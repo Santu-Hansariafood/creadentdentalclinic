@@ -42,21 +42,21 @@ const AppointmentRequests = () => {
         subtitle="Review patient confirmations and reschedule requests."
       />
 
-      <div className="mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-        <label className="flex min-w-[220px] flex-1 flex-col gap-1 text-sm font-medium text-gray-700">
+      <div className="mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm">
+        <label className="flex min-w-[220px] flex-1 flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-300">
           <span>Filter by appointment date</span>
           <input
             type="date"
             value={selectedDate}
             onChange={(event) => setSelectedDate(event.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2 font-normal text-gray-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 font-normal text-gray-900 dark:text-gray-100 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
         </label>
         {selectedDate && (
           <button
             type="button"
             onClick={() => setSelectedDate("")}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-900"
           >
             <X size={16} />
             Clear date
@@ -65,16 +65,16 @@ const AppointmentRequests = () => {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="mb-6 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 p-4 text-sm text-red-700 dark:text-red-300">
           Unable to load appointment requests. Please try again.
         </div>
       )}
 
       {!error && requests.length === 0 && (
-        <div className="rounded-xl border border-gray-200 bg-white p-10 text-center shadow-sm">
-          <Calendar size={40} className="mx-auto mb-3 text-gray-400" />
-          <h2 className="font-heading text-lg font-semibold text-gray-900">No appointment requests</h2>
-          <p className="mt-1 text-sm text-gray-500">Patient confirmations and reschedule requests will appear here.</p>
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-10 text-center shadow-sm">
+          <Calendar size={40} className="mx-auto mb-3 text-gray-400 dark:text-gray-500" />
+          <h2 className="font-heading text-lg font-semibold text-gray-900 dark:text-gray-100">No appointment requests</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Patient confirmations and reschedule requests will appear here.</p>
         </div>
       )}
 
@@ -87,30 +87,30 @@ const AppointmentRequests = () => {
             <article
               key={appointment.id}
               id={`appointment-request-${appointment.id}`}
-              className={`rounded-xl border bg-white p-5 shadow-sm transition-shadow ${
-                isSelected ? "border-primary ring-2 ring-primary/20" : "border-gray-200"
+              className={`rounded-xl border bg-white dark:bg-gray-800 p-5 shadow-sm transition-shadow ${
+                isSelected ? "border-primary ring-2 ring-primary/20" : "border-gray-200 dark:border-gray-700"
               }`}
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <div className="flex items-center gap-2">
                     {isConfirmed ? (
-                      <CheckCircle2 size={20} className="text-emerald-600" />
+                      <CheckCircle2 size={20} className="text-emerald-600 dark:text-emerald-400" />
                     ) : (
-                      <AlertTriangle size={20} className="text-amber-600" />
+                      <AlertTriangle size={20} className="text-amber-600 dark:text-amber-400" />
                     )}
-                    <h2 className="font-heading text-lg font-semibold text-gray-900">
+                    <h2 className="font-heading text-lg font-semibold text-gray-900 dark:text-gray-100">
                       {isConfirmed ? "Confirmed by patient" : "Reschedule requested by patient"}
                     </h2>
                   </div>
-                  <p className="mt-2 text-sm text-gray-600">{appointment.patientName}</p>
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{appointment.patientName}</p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     Patient response: {isConfirmed ? "Confirmed appointment" : "Requested reschedule"}
                   </p>
                 </div>
                 <span
                   className={`inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-                    isConfirmed ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+                    isConfirmed ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300" : "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300"
                   }`}
                 >
                   {isConfirmed ? <CheckCircle2 size={14} /> : <RefreshCw size={14} />}
@@ -118,7 +118,7 @@ const AppointmentRequests = () => {
                 </span>
               </div>
 
-              <div className="mt-4 grid gap-3 border-t border-gray-100 pt-4 text-sm text-gray-600 sm:grid-cols-3">
+              <div className="mt-4 grid gap-3 border-t border-gray-100 dark:border-gray-800 pt-4 text-sm text-gray-600 dark:text-gray-400 sm:grid-cols-3">
                 <div className="flex items-center gap-2">
                   <Calendar size={16} className="text-primary" />
                   {formatDate(appointment.date, "dd/MM/yyyy")}
@@ -128,18 +128,18 @@ const AppointmentRequests = () => {
                   {appointment.time}
                 </div>
                 <div>
-                  <span className="font-medium text-gray-800">Doctor:</span> {appointment.doctorName}
+                  <span className="font-medium text-gray-800 dark:text-gray-100">Doctor:</span> {appointment.doctorName}
                 </div>
               </div>
 
               {!isConfirmed && appointment.rescheduleReason && (
-                <div className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                <div className="mt-4 rounded-lg bg-amber-50 dark:bg-amber-950 px-3 py-2 text-sm text-amber-800 dark:text-amber-300">
                   <span className="font-semibold">Reason:</span> {appointment.rescheduleReason}
                 </div>
               )}
 
               {appointment.patientResponseAt && (
-                <p className="mt-3 text-xs text-gray-500">
+                <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
                   {isConfirmed ? "Confirmed" : "Reschedule requested"} on {formatDate(appointment.patientResponseAt, "dd/MM/yyyy hh:mm a")}
                 </p>
               )}

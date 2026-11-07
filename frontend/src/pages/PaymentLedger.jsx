@@ -41,7 +41,7 @@ const PaymentLedger = () => {
   if (loading) return <Preloader />;
   if (error)
     return (
-      <div className="p-6 text-center text-red-500">Error: {error.message}</div>
+      <div className="p-6 text-center text-red-500 dark:text-red-400">Error: {error.message}</div>
     );
 
   const {
@@ -159,10 +159,10 @@ const PaymentLedger = () => {
         <motion.div {...fadeIn("down")} className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="font-heading text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 Payment Ledger MIS
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Track payments and dues by Treatment Name
               </p>
             </div>
@@ -179,7 +179,7 @@ const PaymentLedger = () => {
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
               size={20}
             />
             <input
@@ -193,74 +193,74 @@ const PaymentLedger = () => {
         </div>
 
         <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="rounded-xl border border-green-100 bg-green-50 p-4">
-            <p className="text-xs text-green-700">Total payment</p>
-            <p className="text-xl font-bold text-green-800">
+          <div className="rounded-xl border border-green-100 dark:border-green-900 bg-green-50 dark:bg-green-950 p-4">
+            <p className="text-xs text-green-700 dark:text-green-300">Total payment</p>
+            <p className="text-xl font-bold text-green-800 dark:text-green-300">
               ₹{totalPayment.toLocaleString()}
             </p>
           </div>
           {dateWiseTotals.slice(0, 3).map(({ date, amount }) => (
             <div
               key={date}
-              className="rounded-xl border border-gray-100 bg-white p-4"
+              className="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 p-4"
             >
-              <p className="text-xs text-gray-500">{formatDate(date)}</p>
-              <p className="text-xl font-bold text-gray-900">
+              <p className="text-xs text-gray-500 dark:text-gray-400">{formatDate(date)}</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
                 ₹{amount.toLocaleString()}
               </p>
-              <p className="text-xs text-gray-500">Payment total</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Payment total</p>
             </div>
           ))}
         </div>
 
         <div className="mb-6 grid gap-6 lg:grid-cols-2">
-          <section className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+          <section className="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <BarChart3 size={18} className="text-primary" />
-              <h2 className="font-semibold text-gray-900">Payment by mode</h2>
+              <h2 className="font-semibold text-gray-900 dark:text-gray-100">Payment by mode</h2>
             </div>
             <div className="mt-4 space-y-3">
               {paymentModeTotals.length ? (
                 paymentModeTotals.map((item) => (
                   <div
                     key={item.name}
-                    className="flex items-center justify-between border-b border-gray-100 pb-2 text-sm"
+                    className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-2 text-sm"
                   >
-                    <span className="text-gray-600">
+                    <span className="text-gray-600 dark:text-gray-400">
                       {item.name} ({item.count})
                     </span>
-                    <span className="font-semibold text-gray-900">
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
                       ₹{item.amount.toLocaleString()}
                     </span>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500">No mode data available.</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">No mode data available.</p>
               )}
             </div>
           </section>
-          <section className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+          <section className="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <BarChart3 size={18} className="text-primary" />
-              <h2 className="font-semibold text-gray-900">Payment by status</h2>
+              <h2 className="font-semibold text-gray-900 dark:text-gray-100">Payment by status</h2>
             </div>
             <div className="mt-4 space-y-3">
               {statusTotals.length ? (
                 statusTotals.map((item) => (
                   <div
                     key={item.name}
-                    className="flex items-center justify-between border-b border-gray-100 pb-2 text-sm"
+                    className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-2 text-sm"
                   >
-                    <span className="text-gray-600">
+                    <span className="text-gray-600 dark:text-gray-400">
                       {item.name} ({item.count})
                     </span>
-                    <span className="font-semibold text-gray-900">
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
                       ₹{item.amount.toLocaleString()}
                     </span>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   No status data available.
                 </p>
               )}
@@ -270,84 +270,84 @@ const PaymentLedger = () => {
 
         <motion.div
           {...fadeIn("up", 0.2)}
-          className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden"
         >
           <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[980px] text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                <tr className="bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Sl No
                   </th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Treatment Name
                   </th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Payment Date
                   </th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Payment Mode
                   </th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Reference No
                   </th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Payment Amount
                   </th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Due Amount
                   </th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Remarks
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                 {filteredLedgers.map((ledger) => (
                   <tr
                     key={ledger.id}
-                    className="hover:bg-gray-50/50 transition-colors"
+                    className="hover:bg-gray-50/50 dark:hover:bg-gray-900/50 transition-colors"
                   >
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                       {ledger.slNo}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <Activity size={16} className="text-primary" />
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-gray-900 dark:text-gray-100">
                           {ledger.treatmentName || "General payment"}
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                       <div className="flex items-center gap-2">
                         <Calendar size={14} />
                         {formatDate(ledger.paymentDate)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                       <div className="flex items-center gap-2">
-                        <CreditCard size={14} className="text-gray-400" />
+                        <CreditCard size={14} className="text-gray-400 dark:text-gray-500" />
                         {ledger.paymentMode || "-"}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                       <div className="flex items-center gap-2">
-                        <Hash size={14} className="text-gray-400" />
+                        <Hash size={14} className="text-gray-400 dark:text-gray-500" />
                         {ledger.referenceNo || "-"}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-1 text-green-600 font-semibold">
+                      <div className="flex items-center gap-1 text-green-600 dark:text-green-400 font-semibold">
                         <IndianRupee size={14} />
                         {(ledger.paymentAmount || 0).toLocaleString()}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-1 text-red-600 font-semibold">
+                      <div className="flex items-center gap-1 text-red-600 dark:text-red-400 font-semibold">
                         <IndianRupee size={14} />
                         {(ledger.dueAmount || 0).toLocaleString()}
                       </div>
@@ -356,16 +356,16 @@ const PaymentLedger = () => {
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
                           ledger.status === "Paid"
-                            ? "bg-green-100 text-green-700"
+                            ? "bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300"
                             : ledger.status === "Partial"
-                              ? "bg-orange-100 text-orange-700"
-                              : "bg-red-100 text-red-700"
+                              ? "bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300"
+                              : "bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300"
                         }`}
                       >
                         {ledger.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       <div>{ledger.remarks || "-"}</div>
                       {ledger.transactionId && (
                         <div className="mt-1 font-mono text-xs break-all">
@@ -389,7 +389,7 @@ const PaymentLedger = () => {
                   <tr>
                     <td
                       colSpan="9"
-                      className="px-6 py-12 text-center text-gray-500"
+                      className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
                     >
                       <FileText
                         size={48}
@@ -401,15 +401,15 @@ const PaymentLedger = () => {
                 )}
               </tbody>
               {filteredLedgers.length > 0 && (
-                <tfoot className="bg-gray-50 font-semibold">
+                <tfoot className="bg-gray-50 dark:bg-gray-900 font-semibold">
                   <tr>
                     <td
                       colSpan="5"
-                      className="px-6 py-4 text-right text-gray-700"
+                      className="px-6 py-4 text-right text-gray-700 dark:text-gray-300"
                     >
                       Total:
                     </td>
-                    <td className="px-6 py-4 text-green-600">
+                    <td className="px-6 py-4 text-green-600 dark:text-green-400">
                       <div className="flex items-center gap-1">
                         <IndianRupee size={14} />
                         {filteredLedgers
@@ -420,7 +420,7 @@ const PaymentLedger = () => {
                           .toLocaleString()}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-red-600">
+                    <td className="px-6 py-4 text-red-600 dark:text-red-400">
                       <div className="flex items-center gap-1">
                         <IndianRupee size={14} />
                         {filteredLedgers
@@ -434,25 +434,25 @@ const PaymentLedger = () => {
               )}
             </table>
           </div>
-          <div className="divide-y divide-gray-100 md:hidden">
+          <div className="divide-y divide-gray-100 dark:divide-gray-800 md:hidden">
             {filteredLedgers.map((ledger) => (
               <article key={ledger.id} className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-semibold text-gray-900 truncate">
+                    <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">
                       {ledger.treatmentName || "General payment"}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {ledger.lorryNo || "-"} · {formatDate(ledger.paymentDate)}
                     </p>
                   </div>
                   <span
                     className={`shrink-0 px-2 py-1 rounded-full text-xs font-medium ${
                       ledger.status === "Paid"
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300"
                         : ledger.status === "Partial"
-                          ? "bg-orange-100 text-orange-700"
-                          : "bg-red-100 text-red-700"
+                          ? "bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300"
+                          : "bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300"
                     }`}
                   >
                     {ledger.status || "Pending"}
@@ -460,32 +460,32 @@ const PaymentLedger = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="text-xs text-gray-500">Payment mode</p>
-                    <p className="font-medium text-gray-800 truncate">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Payment mode</p>
+                    <p className="font-medium text-gray-800 dark:text-gray-100 truncate">
                       {ledger.paymentMode || "-"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Reference</p>
-                    <p className="font-mono text-xs text-gray-800 break-all">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Reference</p>
+                    <p className="font-mono text-xs text-gray-800 dark:text-gray-100 break-all">
                       {ledger.referenceNo || "-"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Paid</p>
-                    <p className="font-semibold text-green-600">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Paid</p>
+                    <p className="font-semibold text-green-600 dark:text-green-400">
                       ₹{(ledger.paymentAmount || 0).toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Due</p>
-                    <p className="font-semibold text-red-600">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Due</p>
+                    <p className="font-semibold text-red-600 dark:text-red-400">
                       ₹{(ledger.dueAmount || 0).toLocaleString()}
                     </p>
                   </div>
                 </div>
                 {(ledger.transactionId || ledger.remarks) && (
-                  <p className="text-xs text-gray-500 break-all">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 break-all">
                     {ledger.transactionId
                       ? `Transaction ID: ${ledger.transactionId}`
                       : ledger.remarks}
@@ -494,7 +494,7 @@ const PaymentLedger = () => {
                 {(ledger.merchantTxnNo ||
                   ledger.pgTxnNo ||
                   ledger.authRefNo) && (
-                  <div className="space-y-1 text-xs text-gray-500 break-all">
+                  <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400 break-all">
                     {ledger.merchantTxnNo && (
                       <p>Merchant: {ledger.merchantTxnNo}</p>
                     )}
@@ -505,7 +505,7 @@ const PaymentLedger = () => {
               </article>
             ))}
             {filteredLedgers.length === 0 && (
-              <div className="px-4 py-12 text-center text-gray-500">
+              <div className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
                 No ledger entries found.
               </div>
             )}

@@ -20,7 +20,7 @@ const PatientCard = ({ patient, delay = 0, onSelect, onEdit, onDelete }) => {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h3 className="font-heading font-semibold text-gray-900 mb-1">
+              <h3 className="font-heading font-semibold text-gray-900 dark:text-gray-100 mb-1">
                 {patient.name}
               </h3>
               {patient.patientId && (
@@ -39,7 +39,7 @@ const PatientCard = ({ patient, delay = 0, onSelect, onEdit, onDelete }) => {
                     e.stopPropagation();
                     onEdit(patient);
                   }}
-                  className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                  className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                 >
                   <Edit3 size={16} />
                 </button>
@@ -50,7 +50,7 @@ const PatientCard = ({ patient, delay = 0, onSelect, onEdit, onDelete }) => {
                     e.stopPropagation();
                     onDelete(patient);
                   }}
-                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors"
                 >
                   <Trash2 size={16} />
                 </button>
@@ -58,16 +58,16 @@ const PatientCard = ({ patient, delay = 0, onSelect, onEdit, onDelete }) => {
             </div>
           </div>
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <Mail size={14} />
               <span className="truncate">{patient.email || "—"}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <Phone size={14} />
               <span>{patient.phone}</span>
             </div>
             {patient.dateOfBirth && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Calendar size={14} />
                 <span>
                   DOB: {new Date(patient.dateOfBirth).toLocaleDateString()}
@@ -84,7 +84,7 @@ const PatientCard = ({ patient, delay = 0, onSelect, onEdit, onDelete }) => {
           >
             {patient.status}
           </span>
-          <span className="text-xs text-gray-500">{patient.gender}</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">{patient.gender}</span>
         </div>
       </div>
     </motion.div>

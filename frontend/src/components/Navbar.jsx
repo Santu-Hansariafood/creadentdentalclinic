@@ -41,13 +41,13 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 shadow-sm">
+    <nav className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-50 shadow-sm">
       <div className="max-w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <button
               onClick={toggleSidebar}
-              className="lg:hidden mr-3 p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600"
+              className="lg:hidden mr-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
               aria-label="Toggle Sidebar"
             >
               {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
@@ -76,12 +76,12 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                 relative
                 p-2.5
                 rounded-lg
-                hover:bg-gray-100
+                hover:bg-gray-100 dark:hover:bg-gray-800
                 transition-colors
               "
               aria-label="Messages"
             >
-              <MessageSquare size={20} className="text-gray-600" />
+              <MessageSquare size={20} className="text-gray-600 dark:text-gray-400" />
             </Link>
 
             <div className="relative">
@@ -91,12 +91,12 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                   relative
                   p-2.5
                   rounded-lg
-                  hover:bg-gray-100
+                  hover:bg-gray-100 dark:hover:bg-gray-800
                   transition-colors
                 "
                 aria-label="Notifications"
               >
-                <Bell size={20} className="text-gray-600" />
+                <Bell size={20} className="text-gray-600 dark:text-gray-400" />
 
                 {unreadNotifications.length > 0 && (
                   <span
@@ -124,16 +124,16 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                     mt-2
                     w-[280px]
                     sm:w-80
-                    bg-white
+                    bg-white dark:bg-gray-800
                     rounded-lg
                     shadow-lg
                     border
-                    border-gray-200
+                    border-gray-200 dark:border-gray-700
                     overflow-hidden
                   "
                 >
-                  <div className="p-4 border-b border-gray-200">
-                    <h3 className="font-heading font-semibold text-gray-900">
+                  <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 className="font-heading font-semibold text-gray-900 dark:text-gray-100">
                       Notifications
                     </h3>
                   </div>
@@ -160,26 +160,26 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                             text-left
                             p-4
                             border-b
-                            border-gray-100
-                            hover:bg-gray-50
+                            border-gray-100 dark:border-gray-800
+                            hover:bg-gray-50 dark:hover:bg-gray-900
                             transition-colors
                           "
                         >
-                          <p className="font-medium text-sm text-gray-900">
+                          <p className="font-medium text-sm text-gray-900 dark:text-gray-100">
                             {notification.title}
                           </p>
 
-                          <p className="text-xs text-gray-600 mt-1">
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                             {notification.message}
                           </p>
 
-                          <p className="text-xs text-gray-400 mt-2">
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
                             {new Date(notification.timestamp).toLocaleString()}
                           </p>
                         </button>
                       ))
                     ) : (
-                      <div className="p-8 text-center text-gray-500">
+                      <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                         <Bell size={32} className="mx-auto mb-2 opacity-50" />
 
                         <p className="text-sm">No new notifications</p>
@@ -200,7 +200,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                   p-1
                   sm:p-2
                   rounded-lg
-                  hover:bg-gray-100
+                  hover:bg-gray-100 dark:hover:bg-gray-800
                   transition-colors
                 "
               >
@@ -223,7 +223,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                   className="
                     font-medium
                     text-sm
-                    text-gray-700
+                    text-gray-700 dark:text-gray-300
                     hidden
                     md:block
                   "
@@ -241,20 +241,20 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                     right-0
                     mt-2
                     w-56
-                    bg-white
+                    bg-white dark:bg-gray-800
                     rounded-lg
                     shadow-lg
                     border
-                    border-gray-200
+                    border-gray-200 dark:border-gray-700
                     overflow-hidden
                   "
                 >
-                  <div className="p-4 border-b border-gray-200">
-                    <p className="font-heading font-semibold text-gray-900 truncate">
+                  <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <p className="font-heading font-semibold text-gray-900 dark:text-gray-100 truncate">
                       {user?.name}
                     </p>
 
-                    <p className="text-xs text-gray-500 capitalize">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
                       {user?.role}
                     </p>
                   </div>
@@ -269,14 +269,14 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                         px-4
                         py-2
                         rounded-lg
-                        hover:bg-gray-50
+                        hover:bg-gray-50 dark:hover:bg-gray-900
                         transition-colors
                       "
                       onClick={() => setShowProfile(false)}
                     >
-                      <User size={16} className="text-gray-600" />
+                      <User size={16} className="text-gray-600 dark:text-gray-400" />
 
-                      <span className="text-sm text-gray-700">Settings</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">Settings</span>
                     </Link>
 
                     <button
@@ -289,14 +289,14 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                         px-4
                         py-2
                         rounded-lg
-                        hover:bg-red-50
+                        hover:bg-red-50 dark:hover:bg-red-950
                         transition-colors
                         text-left
                       "
                     >
-                      <LogOut size={16} className="text-red-600" />
+                      <LogOut size={16} className="text-red-600 dark:text-red-400" />
 
-                      <span className="text-sm text-red-600">Logout</span>
+                      <span className="text-sm text-red-600 dark:text-red-400">Logout</span>
                     </button>
                   </div>
                 </motion.div>

@@ -72,7 +72,7 @@ const Chat = () => {
               <div className="mb-4">
                 <div className="relative">
                   <Search
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                     size={20}
                   />
                   <input
@@ -96,7 +96,7 @@ const Chat = () => {
                       className={`p-3 sm:p-4 rounded-lg cursor-pointer transition-all border-2 ${
                         selectedConversation?.id === conv.id
                           ? "bg-primary/10 border-primary"
-                          : "bg-gray-50 hover:bg-gray-100 border-transparent"
+                          : "bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent"
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -105,7 +105,7 @@ const Chat = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <h3 className="font-medium text-gray-900 truncate text-sm sm:text-base">
+                            <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate text-sm sm:text-base">
                               {otherParticipant?.name}
                             </h3>
                             {conv.unreadCount > 0 && (
@@ -114,10 +114,10 @@ const Chat = () => {
                               </span>
                             )}
                           </div>
-                          <p className="text-xs sm:text-sm text-gray-600 truncate">
+                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                             {conv.lastMessage}
                           </p>
-                          <p className="text-[10px] sm:text-xs text-gray-400 mt-1">
+                          <p className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 mt-1">
                             {new Date(conv.lastMessageTime).toLocaleTimeString(
                               "en-US",
                               {
@@ -141,10 +141,10 @@ const Chat = () => {
           >
             {selectedConversation ? (
               <div className="card flex flex-col h-[75vh] lg:h-[700px] p-0 overflow-hidden">
-                <div className="flex items-center gap-3 p-4 border-b border-gray-200">
+                <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => setSelectedConversation(null)}
-                    className="lg:hidden p-2 -ml-2 rounded-full hover:bg-gray-100"
+                    className="lg:hidden p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
                     <Search size={20} className="rotate-180" />{" "}
                   </button>
@@ -152,16 +152,16 @@ const Chat = () => {
                     <User size={20} className="text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h2 className="font-heading font-semibold text-gray-900 truncate text-sm sm:text-base">
+                    <h2 className="font-heading font-semibold text-gray-900 dark:text-gray-100 truncate text-sm sm:text-base">
                       {getOtherParticipant(selectedConversation)?.name}
                     </h2>
-                    <p className="text-xs text-gray-600 capitalize">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 capitalize">
                       {getOtherParticipant(selectedConversation)?.role}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50">
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50 dark:bg-gray-900/50">
                   {conversationMessages.map((msg, index) => (
                     <ChatMessage
                       key={msg.id}
@@ -175,15 +175,15 @@ const Chat = () => {
 
                 <form
                   onSubmit={handleSendMessage}
-                  className="p-4 border-t border-gray-200 bg-white"
+                  className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
                 >
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={handleFileAttach}
-                      className="p-2 sm:p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="p-2 sm:p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                     >
-                      <Paperclip size={20} className="text-gray-600" />
+                      <Paperclip size={20} className="text-gray-600 dark:text-gray-400" />
                     </button>
                     <input
                       type="text"
@@ -205,11 +205,11 @@ const Chat = () => {
             ) : (
               <div className="card flex items-center justify-center h-[50vh] lg:h-[700px]">
                 <div className="text-center p-6">
-                  <User size={64} className="mx-auto mb-4 text-gray-300" />
-                  <h3 className="font-heading text-xl font-semibold text-gray-900 mb-2">
+                  <User size={64} className="mx-auto mb-4 text-gray-300 dark:text-gray-400" />
+                  <h3 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                     Select a conversation
                   </h3>
-                  <p className="text-gray-600 max-w-xs mx-auto">
+                  <p className="text-gray-600 dark:text-gray-400 max-w-xs mx-auto">
                     Choose a conversation from the list to start messaging
                   </p>
                 </div>

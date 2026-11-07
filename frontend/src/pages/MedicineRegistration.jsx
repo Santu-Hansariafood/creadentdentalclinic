@@ -25,12 +25,12 @@ const FormContent = ({
   <form onSubmit={handleSubmit} className="space-y-6">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Medicine Name *
         </label>
         <div className="relative">
           <Pill
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
             size={18}
           />
           <input
@@ -46,14 +46,14 @@ const FormContent = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Category *
         </label>
         <div className="space-y-2">
           {!showNewCategoryInput ? (
             <div className="relative">
               <Tag
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                 size={18}
               />
               <select
@@ -79,7 +79,7 @@ const FormContent = ({
                   ))}
               </select>
               {categoriesError && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   Failed to load categories. You can still add a new one.
                 </p>
               )}
@@ -87,7 +87,7 @@ const FormContent = ({
           ) : (
             <div className="relative">
               <Tag
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                 size={18}
               />
               <input
@@ -124,7 +124,7 @@ const FormContent = ({
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Dosage Form *
         </label>
         <select
@@ -145,7 +145,7 @@ const FormContent = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Dosage Strength *
         </label>
         <input
@@ -161,7 +161,7 @@ const FormContent = ({
     </div>
 
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Description
       </label>
       <textarea
@@ -329,15 +329,15 @@ const MedicineRegistration = ({ initialMedicine, onClose }) => {
   if (initialMedicine) {
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-heading text-xl font-bold text-gray-900">
+              <h2 className="font-heading text-xl font-bold text-gray-900 dark:text-gray-100">
                 Edit Medicine
               </h2>
               <button
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                 aria-label="Close"
               >
                 ✕
@@ -367,10 +367,10 @@ const MedicineRegistration = ({ initialMedicine, onClose }) => {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <motion.div {...fadeIn("down")} className="mb-8">
-        <h1 className="font-heading text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="font-heading text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           Medicine Registration
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           Add new medicine to the clinic inventory
         </p>
       </motion.div>

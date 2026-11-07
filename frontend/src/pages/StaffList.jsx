@@ -63,7 +63,7 @@ const StaffList = () => {
   if (loading && !data) return <Preloader />;
   if (error)
     return (
-      <div className="p-6 text-center text-red-500">Error: {error.message}</div>
+      <div className="p-6 text-center text-red-500 dark:text-red-400">Error: {error.message}</div>
     );
 
   const allUsers = data?.getUsers || [];
@@ -102,7 +102,7 @@ const StaffList = () => {
         <div className="mb-8">
           <div className="relative max-w-md">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
               size={20}
             />
             <input
@@ -130,35 +130,35 @@ const StaffList = () => {
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="font-bold text-gray-900">{staff.name}</h3>
-                      <p className="text-sm text-gray-600 capitalize">
+                      <h3 className="font-bold text-gray-900 dark:text-gray-100">{staff.name}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
                         {staff.role}
                       </p>
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setViewingStaff(staff)}
-                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 rounded-lg transition-colors"
                       >
                         <Eye size={18} />
                       </button>
                       <button
                         onClick={() => setSelectedStaff(staff)}
-                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 rounded-lg transition-colors"
                       >
                         <Edit2 size={18} />
                       </button>
                       {user?.role === "admin" && (
                         <button
                           onClick={() => handleDelete(staff)}
-                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors"
                         >
                           <Trash2 size={18} />
                         </button>
                       )}
                     </div>
                   </div>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                     <p className="flex items-center gap-2">
                       <Mail size={14} />
                       {staff.email}
@@ -189,8 +189,8 @@ const StaffList = () => {
             </div>
 
             {filteredStaff.length === 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center mt-6">
-                <p className="text-gray-500">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-8 text-center mt-6">
+                <p className="text-gray-500 dark:text-gray-400">
                   No staff members found matching "{debouncedSearch}".
                 </p>
               </div>
@@ -205,41 +205,41 @@ const StaffList = () => {
         )}
         {viewingStaff && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-lg max-w-lg w-full">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-lg w-full">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="font-heading text-xl font-bold text-gray-900">
+                  <h2 className="font-heading text-xl font-bold text-gray-900 dark:text-gray-100">
                     Staff Details
                   </h2>
                   <button
                     onClick={() => setViewingStaff(null)}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                   >
                     ✕
                   </button>
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Name</p>
-                    <p className="font-medium text-gray-900">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Name</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
                       {viewingStaff.name}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Role</p>
-                    <p className="font-medium text-gray-900 capitalize">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Role</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100 capitalize">
                       {viewingStaff.role}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Email</p>
-                    <p className="font-medium text-gray-900">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Email</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
                       {viewingStaff.email}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Phone</p>
-                    <p className="font-medium text-gray-900">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Phone</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
                       {viewingStaff.phone}
                     </p>
                   </div>
@@ -247,20 +247,20 @@ const StaffList = () => {
                     <>
                       {viewingStaff.specialization && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
                             Specialization
                           </p>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-gray-900 dark:text-gray-100">
                             {viewingStaff.specialization}
                           </p>
                         </div>
                       )}
                       {viewingStaff.license && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
                             License Number
                           </p>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-gray-900 dark:text-gray-100">
                             {viewingStaff.license}
                           </p>
                         </div>

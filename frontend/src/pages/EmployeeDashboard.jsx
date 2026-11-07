@@ -138,7 +138,7 @@ const EmployeeDashboard = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <motion.div {...fadeIn("right", 0.2)} className="card">
-            <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
+            <h2 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Monthly Revenue Trend
             </h2>
             <ResponsiveContainer width="100%" height={300}>
@@ -154,7 +154,7 @@ const EmployeeDashboard = () => {
           </motion.div>
 
           <motion.div {...fadeIn("left", 0.3)} className="card">
-            <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
+            <h2 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Appointments by Type
             </h2>
             <ResponsiveContainer width="100%" height={300}>
@@ -183,7 +183,7 @@ const EmployeeDashboard = () => {
         </div>
 
         <motion.div {...fadeIn("up", 0.4)}>
-          <h2 className="font-heading text-xl font-semibold text-gray-900 mb-4">
+          <h2 className="font-heading text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Quick Actions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -192,29 +192,29 @@ const EmployeeDashboard = () => {
               className="card-hover text-center p-6"
             >
               <UserPlus size={32} className="mx-auto mb-3 text-primary" />
-              <h3 className="font-medium text-gray-900 mb-1">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
                 Register Patient
               </h3>
-              <p className="text-sm text-gray-600">Add new patient to system</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Add new patient to system</p>
             </Link>
             <Link
               to="/employee/appointments"
               className="card-hover text-center p-6"
             >
               <Calendar size={32} className="mx-auto mb-3 text-primary" />
-              <h3 className="font-medium text-gray-900 mb-1">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
                 Manage Appointments
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 View and schedule appointments
               </p>
             </Link>
             <Link to="/employee/reports" className="card-hover text-center p-6">
               <FileText size={32} className="mx-auto mb-3 text-primary" />
-              <h3 className="font-medium text-gray-900 mb-1">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
                 Generate Reports
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 View analytics and insights
               </p>
             </Link>
