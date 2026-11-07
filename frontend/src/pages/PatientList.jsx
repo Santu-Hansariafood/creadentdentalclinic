@@ -95,16 +95,18 @@ const PatientList = () => {
       <PageHeader
         title="Patient List"
         subtitle={
-          <>
-            View and manage patient records.
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>View and manage patient records.</span>
             {totalCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 ml-2 px-2.5 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium">
-                <Users size={12} />
-                {totalCount} total {totalCount === 1 ? "patient" : "patients"}
-                {debouncedSearch && <> {" "}• matching "{debouncedSearch}"</>}
+              <span className="inline-flex items-center gap-1.5 max-w-full px-2.5 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium">
+                <Users size={12} className="flex-shrink-0" />
+                <span className="truncate">
+                  {totalCount} total {totalCount === 1 ? "patient" : "patients"}
+                  {debouncedSearch && ` • matching "${debouncedSearch}"`}
+                </span>
               </span>
             )}
-          </>
+          </span>
         }
         action={
           user &&
