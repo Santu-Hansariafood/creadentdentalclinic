@@ -237,7 +237,7 @@ const resolvers = {
       requireStaff(user);
       return await User.findById(id);
     },
-    getMedicines: async (_, { page = 1, limit = 10, search = "" }) => {
+    getMedicines: async (_, { page = 1, limit = 12, search = "" }) => {
       const skip = (page - 1) * limit;
       const query = search ? { name: { $regex: search, $options: "i" } } : {};
       const medicines = await Medicine.find(query).skip(skip).limit(limit);
@@ -264,7 +264,7 @@ const resolvers = {
             "Other",
           ];
     },
-    getPatients: async (_, { page = 1, limit = 10, search = "" }, { user }) => {
+    getPatients: async (_, { page = 1, limit = 12, search = "" }, { user }) => {
       if (user?.role === "patient") {
         const patient = await getSelfPatient(user);
         return {
@@ -413,7 +413,7 @@ const resolvers = {
     },
     getAppointments: async (
       _,
-      { page = 1, limit = 10, search = "", status = "All", patientId, date },
+      { page = 1, limit = 12, search = "", status = "All", patientId, date },
       { user },
     ) => {
       if (user?.role === "patient") {
@@ -530,7 +530,7 @@ const resolvers = {
     },
     getPaymentLedgers: async (
       _,
-      { page = 1, limit = 10, search = "" },
+      { page = 1, limit = 12, search = "" },
       { user },
     ) => {
       requireStaff(user);
@@ -897,7 +897,7 @@ const resolvers = {
     },
     getTransactions: async (
       _,
-      { page = 1, limit = 10, invoiceId, patientId, txnStatus },
+      { page = 1, limit = 12, invoiceId, patientId, txnStatus },
       { user },
     ) => {
       if (!user) throw new Error("Not authenticated");

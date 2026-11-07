@@ -30,7 +30,7 @@ const StaffList = () => {
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [viewingStaff, setViewingStaff] = useState(null);
   const { user } = useAuth();
-  const staffPerPage = 9;
+  const staffPerPage = 12;
 
   useEffect(() => {
     const timer = setTimeout(() => {

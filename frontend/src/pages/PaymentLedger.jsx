@@ -24,7 +24,7 @@ const PaymentLedger = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
-  const limit = 10;
+  const limit = 12;
 
   useEffect(() => {
     const timer = setTimeout(() => {

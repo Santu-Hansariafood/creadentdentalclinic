@@ -21,7 +21,7 @@ const PatientList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const limit = 10;
+  const limit = 12;
 
   useEffect(() => {
     const timer = setTimeout(() => {

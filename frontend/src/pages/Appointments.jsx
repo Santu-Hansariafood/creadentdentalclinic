@@ -75,7 +75,7 @@ const Appointments = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
-  const limit = 20;
+  const limit = 12;
   const [bookingData, setBookingData] = useState({
     patientId: "",
     doctorId: "",

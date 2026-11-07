@@ -999,7 +999,7 @@ const MedicalRecords = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [viewerRecord, setViewerRecord] = useState(null);
   const [page, setPage] = useState(1);
-  const recordsPerPage = 9;
+  const recordsPerPage = 12;
 
   useEffect(() => {
     const timer = setTimeout(() => {
