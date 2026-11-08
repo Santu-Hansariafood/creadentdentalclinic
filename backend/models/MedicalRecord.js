@@ -44,4 +44,7 @@ const medicalRecordSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+medicalRecordSchema.index({ patientId: 1, date: -1 });
+medicalRecordSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model("MedicalRecord", medicalRecordSchema);

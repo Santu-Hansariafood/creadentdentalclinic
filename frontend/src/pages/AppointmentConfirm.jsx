@@ -202,6 +202,8 @@ const AppointmentConfirm = () => {
         <SEO
           title="Appointment Not Found | Creadent Dental Clinic"
           description="The appointment you are looking for could not be found."
+          noindex
+          nofollow
         />
         <div className="max-w-2xl mx-auto px-4 py-12 sm:py-16">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6 sm:p-10 text-center">
@@ -251,6 +253,8 @@ const AppointmentConfirm = () => {
       <SEO
         title={`Confirm Appointment | ${appointment?.patientName || "Creadent Dental Clinic"}`}
         description={`Confirm or reschedule your dental appointment with ${appointment?.doctorName || "Creadent Dental Clinic"}.`}
+        noindex
+        nofollow
       />
       <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
         <div className="mb-6">

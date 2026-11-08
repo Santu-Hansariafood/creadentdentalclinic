@@ -16,4 +16,6 @@ const conversationSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+conversationSchema.index({ "participants.id": 1, lastMessageTime: -1 });
+
 module.exports = mongoose.model("Conversation", conversationSchema);

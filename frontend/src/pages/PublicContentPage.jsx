@@ -116,6 +116,8 @@ const PublicContentPage = ({ pageSlug }) => {
         keywords={page.seo.keywords}
         url={page.path}
         canonical={`${site.website}${page.path}`}
+        image={page.images?.[0]?.src || "/logo/logo.png"}
+        imageAlt={page.images?.[0]?.alt || page.title}
         structuredData={structuredData}
       />
 

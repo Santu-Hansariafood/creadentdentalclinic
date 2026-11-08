@@ -47,5 +47,7 @@ whatsAppMessageSchema.index(
   { invoiceId: 1, eventType: 1, messageType: 1 },
   { unique: true, sparse: true },
 );
+whatsAppMessageSchema.index({ patientId: 1, createdAt: -1 });
+whatsAppMessageSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("WhatsAppMessage", whatsAppMessageSchema);

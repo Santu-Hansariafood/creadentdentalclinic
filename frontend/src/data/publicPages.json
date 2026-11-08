@@ -124,6 +124,93 @@
       }
     },
     {
+      "slug": "pediatric-dentistry",
+      "path": "/pediatric-dentistry",
+      "label": "Pediatric Dentistry",
+      "badge": "Child Dental Care",
+      "title": "Pediatric Dental Clinic in Salt Lake Kolkata | Child Dentist Near You",
+      "heroDescription": "Gentle, child-friendly dental care for kids in Salt Lake and Kolkata — checkups, cavity treatment, fluoride application, and habit counselling in a calm, reassuring environment.",
+      "seo": {
+        "title": "Pediatric Dental Clinic in Salt Lake Kolkata | Child Dental Clinic Near Me",
+        "description": "Looking for a pediatric dental clinic or child dental clinic near you in Salt Lake, Kolkata? Creadent Dental Clinic offers gentle kids' dentistry, cavity care, fluoride, and habit counselling for children.",
+        "keywords": "pediatric dental clinic Kolkata, child dental clinic near me, kids dentist Salt Lake Kolkata, pediatric dentist Bidhannagar, child dental care Kolkata, dental clinic for kids Kolkata, children's dentist near me"
+      },
+      "highlights": [
+        {
+          "icon": "building",
+          "label": "Speciality",
+          "value": "Child-friendly preventive and restorative dentistry"
+        },
+        {
+          "icon": "map-pin",
+          "label": "Location",
+          "value": "BD-85, Salt Lake Rd, AD Block, Sector 1, Bidhannagar, Kolkata 700064"
+        },
+        {
+          "icon": "clock",
+          "label": "Timings",
+          "value": "Open daily from 9:00 AM to 8:00 PM"
+        }
+      ],
+      "sections": [
+        {
+          "title": "Gentle dental care for children in Salt Lake, Kolkata",
+          "paragraphs": [
+            "Creadent Dental Clinic provides pediatric and child dental care in a calm, welcoming environment so children feel safe and parents feel confident.",
+            "Our team introduces dental visits gently, explains each step in simple language, and focuses on building positive dental habits from an early age."
+          ]
+        },
+        {
+          "title": "Pediatric and child dental services",
+          "items": [
+            "First dental visit and kid-friendly checkups",
+            "Cavity treatment and tooth-coloured fillings for children",
+            "Fluoride application and dental sealants for cavity prevention",
+            "Habit counselling for thumb sucking, mouth breathing, and teething",
+            "Guidance on brushing, diet, and oral hygiene for kids",
+            "Monitoring of tooth eruption and early alignment concerns"
+          ]
+        },
+        {
+          "title": "Why parents choose our child dental clinic",
+          "paragraphs": [
+            "We understand that a child's first dental experiences shape their attitude towards oral care for life. Our approach is patient, reassuring, and free of pressure.",
+            "Parents across Salt Lake, Bidhannagar, and nearby Kolkata neighbourhoods choose Creadent Dental Clinic for honest guidance, gentle treatment, and a comfortable experience for their children."
+          ]
+        }
+      ],
+      "faq": [
+        {
+          "question": "Is there a pediatric dental clinic or child dental clinic near me in Salt Lake?",
+          "answer": "Yes. Creadent Dental Clinic in Salt Lake, Kolkata offers pediatric and child dental care for kids, including checkups, cavity treatment, fluoride application, and habit counselling."
+        },
+        {
+          "question": "At what age should my child first visit the dentist?",
+          "answer": "A child's first dental visit is recommended around the time the first tooth appears or by their first birthday. Early visits help your child get comfortable with the dentist and allow us to monitor healthy dental development."
+        },
+        {
+          "question": "How do you make dental treatment comfortable for children?",
+          "answer": "We use a gentle, friendly approach — explaining each step in simple words, working at your child's pace, and keeping the environment calm and reassuring to reduce fear and anxiety."
+        },
+        {
+          "question": "Do you treat cavities and tooth decay in children?",
+          "answer": "Yes. We treat cavities in children using tooth-coloured fillings and also provide preventive care like fluoride application and sealants to reduce the risk of future decay."
+        },
+        {
+          "question": "How can I book a child dental appointment in Salt Lake, Kolkata?",
+          "answer": "You can call the clinic on +91 62923 00343 or visit our contact page to book a pediatric or child dental appointment at Creadent Dental Clinic in Salt Lake, Kolkata."
+        }
+      ],
+      "cta": {
+        "title": "Book a child dental appointment",
+        "description": "Give your child a gentle, positive dental experience at Creadent Dental Clinic in Salt Lake, Kolkata.",
+        "primaryLabel": "Book Appointment",
+        "primaryHref": "/contact-us",
+        "secondaryLabel": "Call Clinic",
+        "secondaryHref": "tel:+916292300343"
+      }
+    },
+    {
       "slug": "about-us",
       "path": "/about-us",
       "label": "About us",

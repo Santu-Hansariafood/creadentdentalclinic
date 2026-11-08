@@ -1,62 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://creadentsmiles.com/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-11-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://creadentsmiles.com/logo/logo.png</image:loc>
+      <image:title>Creadent Dental Clinic, Salt Lake, Kolkata</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://creadentsmiles.com/pediatric-dentistry</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://creadentsmiles.com/about-us</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-11-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://creadentsmiles.com/contact-us</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-11-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://creadentsmiles.com/google-reviews</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-11-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://creadentsmiles.com/doctor/sunita-agarwalla</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://creadentsmiles.com/creadent/creadent1.webp</image:loc>
+      <image:title>Dr. Sunita Agarwalla consultation at Creadent Dental Clinic</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://creadentsmiles.com/creadent/creadent2.webp</image:loc>
+      <image:title>Dental clinic treatment environment at Creadent Dental Clinic</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://creadentsmiles.com/creadent/creadent3.webp</image:loc>
+      <image:title>Smile care and clinic treatment at Creadent Dental Clinic</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://creadentsmiles.com/creadent/creadent4.webp</image:loc>
+      <image:title>Patient dental care and consultation at Creadent Dental Clinic</image:title>
+    </image:image>
+  </url>
+  <url>
     <loc>https://creadentsmiles.com/privacy-policy</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-11-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://creadentsmiles.com/terms-and-conditions</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-11-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://creadentsmiles.com/refund-policy</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-11-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://creadentsmiles.com/cancellation-policy</loc>
-    <lastmod>2026-09-05</lastmod>
-    <changefreq>weekly</changefreq>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://creadentsmiles.com/doctor/sunita-agarwalla</loc>
-    <lastmod>2026-09-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://creadentsmiles.com/delete-account</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-11-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

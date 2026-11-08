@@ -45,13 +45,78 @@ const DEFAULT_BUSINESS_SCHEMA = {
     "https://www.instagram.com/creadent_dentalclinic/",
     "https://www.google.com/search?sca_esv=eed109301477b38c&authuser=0&hl=en&gl=in&output=search&q=Creadent&ludocid=3495056172186083733&lsig=AB86z5XjgcXiZv-kwyUA9q8TFFnD&ved=1i%3A3%2Ct%3A109124%2Ce%3A2%2Cp%3AZDGJarOzI7SaseMPwN-jgAU%3A89",
   ],
-  areaServed: ["Salt Lake", "Bidhannagar", "Kolkata", "West Bengal"],
+  areaServed: [
+    "Salt Lake",
+    "Bidhannagar",
+    "Sector 1 Salt Lake",
+    "Ultadanga",
+    "Lake Town",
+    "Kolkata",
+    "West Bengal",
+  ],
+  hasMap:
+    "https://maps.google.com/?q=Creadent+Dental+Clinic,+BD-85,+Salt+Lake+Rd,+AD+Block,+Sector+1,+Bidhannagar,+Kolkata,+West+Bengal+700064",
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "Advanced Dental Services",
+    itemListElement: [
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "General Dentistry & Checkups",
+          description: "Routine dental checkups, cleaning, and preventative care",
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "Root Canal Treatment",
+          description: "Pain-free advanced root canal therapy",
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "Dental Implants",
+          description: "Permanent and natural-looking tooth replacement options",
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "Teeth Whitening",
+          description: "Professional cosmetic teeth whitening services",
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "Orthodontics & Braces",
+          description: "Braces and clear aligners for teeth alignment",
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "Pediatric & Child Dentistry",
+          description:
+            "Gentle dental care for children including checkups, cavity treatment, fluoride application, and habit counselling",
+        },
+      },
+    ],
+  },
 };
 
 const SEO = ({
   title = "Creadent Dental Clinic | Dentist in Salt Lake, Kolkata",
   description = "Creadent Dental Clinic in Salt Lake, Kolkata offers root canal treatment, dental implants, braces, teeth whitening, and family dental care.",
-  keywords = "best dental clinic in Kolkata, dentist near me, root canal treatment Kolkata, teeth whitening, dental implants, Creadent Dental Clinic, dental clinic Kolkata, orthodontist Kolkata, pediatric dentist Kolkata, cosmetic dentistry",
+  keywords = "dental clinic near me, best dental clinic in Salt Lake Kolkata, child dental clinic Kolkata, pediatric dentist Salt Lake, dentist near me, root canal treatment Kolkata, teeth whitening, dental implants, Creadent Dental Clinic, orthodontist Kolkata, cosmetic dentistry",
   image = "/logo/logo.png",
   imageWidth = "512",
   imageHeight = "512",
@@ -84,6 +149,11 @@ const SEO = ({
   const canonicalUrl = toAbsoluteUrl(canonical || resolvedUrl.split("?")[0]);
   const imageUrl = image.startsWith("http") ? image : `${baseUrl}${image}`;
   const imageDescription = imageAlt || `${title} preview image`;
+  const imageType = /\.webp$/i.test(imageUrl)
+    ? "image/webp"
+    : /\.jpe?g$/i.test(imageUrl)
+      ? "image/jpeg"
+      : "image/png";
 
   const apiOrigin = (() => {
     try {
@@ -113,9 +183,11 @@ const SEO = ({
   schemaList.push({
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": `${baseUrl}/#website`,
     name: "Creadent Dental Clinic",
     url: baseUrl,
     inLanguage: "en-IN",
+    publisher: { "@id": baseUrl },
   });
 
   if (breadcrumbs && breadcrumbs.length) {
@@ -164,7 +236,6 @@ const SEO = ({
       <meta name="keywords" content={keywords} />
       <meta name="author" content={author} />
       <meta name="application-name" content="Creadent Dental Clinic" />
-      <meta name="theme-color" content="#007FAF" />
       <meta name="referrer" content="strict-origin-when-cross-origin" />
       <meta name="googlebot" content={robotsDirective} />
       <meta name="robots" content={robotsDirective} />
@@ -200,6 +271,7 @@ const SEO = ({
       <meta property="og:description" content={description} />
       <meta property="og:image" content={imageUrl} />
       <meta property="og:image:secure_url" content={imageUrl} />
+      <meta property="og:image:type" content={imageType} />
       <meta property="og:image:width" content={imageWidth} />
       <meta property="og:image:height" content={imageHeight} />
       <meta property="og:image:alt" content={imageDescription} />

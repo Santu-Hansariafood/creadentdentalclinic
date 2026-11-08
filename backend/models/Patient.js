@@ -87,4 +87,7 @@ patientSchema.pre("save", async function () {
   }
 });
 
+patientSchema.index({ createdAt: -1 });
+patientSchema.index({ userId: 1 });
+
 module.exports = mongoose.model("Patient", patientSchema);

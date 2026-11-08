@@ -40,4 +40,7 @@ const paymentLedgerSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+paymentLedgerSchema.index({ invoiceId: 1, paymentDate: -1 });
+paymentLedgerSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model("PaymentLedger", paymentLedgerSchema);

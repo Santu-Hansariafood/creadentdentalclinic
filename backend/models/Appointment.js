@@ -53,4 +53,10 @@ appointmentSchema.pre("save", async function () {
   }
 });
 
+appointmentSchema.index({ createdAt: -1, _id: -1 });
+appointmentSchema.index({ patientId: 1, createdAt: -1 });
+appointmentSchema.index({ doctorId: 1, date: -1 });
+appointmentSchema.index({ status: 1, createdAt: -1 });
+appointmentSchema.index({ date: 1 });
+
 module.exports = mongoose.model("Appointment", appointmentSchema);

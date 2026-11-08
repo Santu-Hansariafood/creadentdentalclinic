@@ -20,6 +20,8 @@ import publicContent from "./data/publicPages.json";
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const OTPVerification = lazy(() => import("./pages/OTPVerification"));
+const AppointmentConfirm = lazy(() => import("./pages/AppointmentConfirm"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 const PublicContentPage = lazy(() => import("./pages/PublicContentPage"));
 const PatientDashboard = lazy(() => import("./pages/PatientDashboard"));
 const DoctorDashboard = lazy(() => import("./pages/DoctorDashboard"));
@@ -174,6 +176,10 @@ const App = () => {
                   }
                 />
                 <Route path="/verify-otp" element={<OTPVerification />} />
+                <Route
+                  path="/appointment/:token"
+                  element={<AppointmentConfirm />}
+                />
 
                 <Route
                   path="/patient/complete-registration"
@@ -594,12 +600,7 @@ const App = () => {
                   }
                 />
 
-                <Route
-                  path="*"
-                  element={
-                    <Navigate to={isAuthenticated ? getDashboardRoute() : "/"} />
-                  }
-                />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
           </div>

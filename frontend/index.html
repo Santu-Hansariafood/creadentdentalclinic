@@ -16,12 +16,16 @@
   <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
 
+  <!-- Per-path SEO placeholders. The Express server (backend/index.js ->
+       renderPublicSeoHtml) rewrites these for crawlers that do not run JavaScript,
+       and the React <SEO> component updates them on the client for the rendered DOM.
+       Keep the exact `<meta name="..." content="...">` and
+       `<link rel="canonical" href="...">` shape so the server replacements keep matching. -->
   <title>Creadent Dental Clinic | Dentist in Salt Lake, Kolkata</title>
   <meta name="title" content="Creadent Dental Clinic | Dentist in Salt Lake, Kolkata">
-  <meta name="description"
-    content="Creadent Dental Clinic in Salt Lake, Kolkata offers root canal treatment, dental implants, braces, teeth whitening, and family dental care." />
+  <meta name="description" content="Creadent Dental Clinic in Salt Lake, Kolkata offers root canal treatment, dental implants, braces, teeth whitening, and family dental care." />
   <meta name="keywords"
-    content="best dental clinic in Kolkata, dental clinic in Salt Lake, dentist near me, root canal treatment Kolkata, teeth whitening Salt Lake, dental implants Bidhannagar, Creadent Dental Clinic, orthodontist Kolkata, pediatric dentist Kolkata, cosmetic dentistry Salt Lake" />
+    content="dental clinic near me, best dental clinic in Salt Lake Kolkata, child dental clinic Kolkata, pediatric dentist Salt Lake, dentist near me, root canal treatment Kolkata, teeth whitening Salt Lake, dental implants Bidhannagar, Creadent Dental Clinic, orthodontist Kolkata, cosmetic dentistry Salt Lake" />
   <meta name="author" content="Creadent Dental Clinic" />
   <meta name="application-name" content="Creadent Dental Clinic" />
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
@@ -35,9 +39,10 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://creadentsmiles.com" />
   <meta property="og:title" content="Creadent Dental Clinic | Dentist in Salt Lake, Kolkata" />
-  <meta property="og:description"
-    content="Creadent Dental Clinic in Salt Lake, Kolkata offers root canal treatment, dental implants, braces, teeth whitening, and family dental care." />
+  <meta property="og:description" content="Creadent Dental Clinic in Salt Lake, Kolkata offers root canal treatment, dental implants, braces, teeth whitening, and family dental care." />
   <meta property="og:image" content="https://creadentsmiles.com/logo/logo.png" />
+  <meta property="og:image:secure_url" content="https://creadentsmiles.com/logo/logo.png" />
+  <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="512" />
   <meta property="og:image:height" content="512" />
   <meta property="og:image:alt" content="Creadent Dental Clinic logo" />
@@ -55,11 +60,9 @@
   <meta name="geo.placename" content="Salt Lake, Kolkata" />
   <meta name="geo.position" content="22.5855;88.4017" />
   <meta name="ICBM" content="22.5855, 88.4017" />
-  
+
   <meta name="google-site-verification" content="lU3TVKFVUijHkU9KPs2Ht5PUeYIWKo0a8OyMdF4do6c" />
   <link rel="canonical" href="https://creadentsmiles.com/" />
-  <link rel="alternate" hreflang="en-IN" href="https://creadentsmiles.com/" />
-  <link rel="alternate" hreflang="x-default" href="https://creadentsmiles.com/" />
   <link rel="sitemap" type="application/xml" href="https://creadentsmiles.com/sitemap.xml" />
 
   <!-- Enhanced Local Business and FAQ Schema Markup -->
@@ -68,12 +71,16 @@
     {
       "@context": "https://schema.org",
       "@type": "Dentist",
+      "@id": "https://creadentsmiles.com",
       "name": "Creadent Dental Clinic",
       "image": "https://creadentsmiles.com/logo/logo.png",
-      "@id": "https://creadentsmiles.com",
       "url": "https://creadentsmiles.com",
       "telephone": "+91 62923 00343",
+      "email": "info@creadentdentalclinic.com",
       "priceRange": "₹200-₹5000",
+      "currenciesAccepted": "INR",
+      "paymentAccepted": "UPI, Credit Card, Debit Card, Net Banking, Wallet",
+      "medicalSpecialty": "Dentistry",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "BD-85, Salt Lake Rd, AD Block, Sector 1, Bidhannagar",
@@ -102,9 +109,13 @@
       "areaServed": [
         "Salt Lake",
         "Bidhannagar",
+        "Sector 1 Salt Lake",
+        "Ultadanga",
+        "Lake Town",
         "Kolkata",
         "West Bengal"
       ],
+      "hasMap": "https://maps.google.com/?q=Creadent+Dental+Clinic,+BD-85,+Salt+Lake+Rd,+AD+Block,+Sector+1,+Bidhannagar,+Kolkata,+West+Bengal+700064",
       "hasOfferCatalog": {
         "@type": "OfferCatalog",
         "name": "Advanced Dental Services",
@@ -148,6 +159,14 @@
               "name": "Orthodontics & Braces",
               "description": "Braces and clear aligners for teeth alignment"
             }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Pediatric & Child Dentistry",
+              "description": "Gentle dental care for children including checkups, cavity treatment, fluoride application, and habit counselling"
+            }
           }
         ]
       }
@@ -187,6 +206,22 @@
             "@type": "Answer",
             "text": "Our clinic is situated at BD-85, Salt Lake Rd, AD Block, Sector 1, Bidhannagar, Kolkata, West Bengal 700064."
           }
+        },
+        {
+          "@type": "Question",
+          "name": "Is there a dental clinic near me in Salt Lake, Kolkata?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Creadent Dental Clinic is located in AD Block, Sector 1, Salt Lake (Bidhannagar), Kolkata 700064, easily reachable from Ultadanga, Lake Town, Kankurgachi and nearby areas."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do you offer pediatric or child dental care in Kolkata?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, Creadent Dental Clinic provides child-friendly dental care, including routine checkups, cavity treatment, fluoride application, and preventive guidance for children in Salt Lake, Kolkata."
+          }
         }
       ]
     }
@@ -203,6 +238,48 @@
 
 <body>
   <div id="root"></div>
+
+  <noscript>
+    <div style="font-family: Arial, Helvetica, sans-serif; max-width: 900px; margin: 0 auto; padding: 24px; color: #111827;">
+      <h1>Creadent Dental Clinic &mdash; Trusted Dentist in Salt Lake, Kolkata</h1>
+      <p>
+        Searching for a dental clinic near me in Salt Lake, Kolkata? Creadent
+        Dental Clinic in Bidhannagar offers advanced dental care including root
+        canal treatment, dental implants, teeth whitening, braces and
+        orthodontics, and pediatric (child) dentistry for adults and children.
+        Our clinic is open daily from 9:00 AM to 8:00 PM.
+      </p>
+      <h2>Our Dental Services</h2>
+      <ul>
+        <li>General Dentistry &amp; Checkups</li>
+        <li>Root Canal Treatment</li>
+        <li>Dental Implants</li>
+        <li>Teeth Whitening &amp; Cosmetic Dentistry</li>
+        <li>Orthodontics &amp; Braces</li>
+        <li>Pediatric &amp; Family Dentistry</li>
+      </ul>
+      <h2>Visit Us</h2>
+      <address>
+        BD-85, Salt Lake Rd, AD Block, Sector 1, Bidhannagar, Kolkata, West Bengal 700064<br />
+        Phone: <a href="tel:+916292300343">+91 62923 00343</a><br />
+        Email: <a href="mailto:info@creadentdentalclinic.com">info@creadentdentalclinic.com</a>
+      </address>
+      <h2>Explore</h2>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/about-us">About Us</a></li>
+        <li><a href="/contact-us">Contact &amp; Book Appointment</a></li>
+        <li><a href="/google-reviews">Google Reviews</a></li>
+        <li><a href="/doctor/sunita-agarwalla">Our Doctor</a></li>
+        <li><a href="/privacy-policy">Privacy Policy</a></li>
+        <li><a href="/terms-and-conditions">Terms &amp; Conditions</a></li>
+      </ul>
+      <p>
+        Please enable JavaScript to use the full Creadent Dental Clinic website
+        and online appointment booking features.
+      </p>
+    </div>
+  </noscript>
 
   <script type="module" src="/src/main.jsx"></script>
 </body>

@@ -119,7 +119,29 @@ const serializeAttachments = async (attachments) => {
 
 const resolvers = {
   Appointment: {
+    id: (parent) => (parent.id || parent._id)?.toString(),
     date: (parent) => toIsoDateString(parent.date),
+  },
+  Medicine: {
+    id: (parent) => (parent.id || parent._id)?.toString(),
+  },
+  Invoice: {
+    id: (parent) => (parent.id || parent._id)?.toString(),
+  },
+  Conversation: {
+    id: (parent) => (parent.id || parent._id)?.toString(),
+  },
+  ChatMessage: {
+    id: (parent) => (parent.id || parent._id)?.toString(),
+  },
+  Notification: {
+    id: (parent) => (parent.id || parent._id)?.toString(),
+  },
+  Transaction: {
+    id: (parent) => (parent.id || parent._id)?.toString(),
+  },
+  PaymentLedger: {
+    id: (parent) => (parent.id || parent._id)?.toString(),
   },
   MedicalRecord: {
     id: (parent) => (parent.id || parent._id)?.toString(),
@@ -240,7 +262,10 @@ const resolvers = {
     getMedicines: async (_, { page = 1, limit = 12, search = "" }) => {
       const skip = (page - 1) * limit;
       const query = search ? { name: { $regex: search, $options: "i" } } : {};
-      const medicines = await Medicine.find(query).skip(skip).limit(limit);
+      const medicines = await Medicine.find(query)
+        .skip(skip)
+        .limit(limit)
+        .lean();
       const totalCount = await Medicine.countDocuments(query);
       return {
         medicines,
@@ -289,7 +314,8 @@ const resolvers = {
       const patients = await Patient.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit);
+        .limit(limit)
+        .lean();
       const totalCount = await Patient.countDocuments(query);
       return {
         patients,
@@ -454,7 +480,8 @@ const resolvers = {
       const appointments = await Appointment.find(query)
         .sort({ createdAt: -1, _id: -1 })
         .skip(skip)
-        .limit(limit);
+        .limit(limit)
+        .lean();
       const totalCount = await Appointment.countDocuments(query);
       return {
         appointments,
@@ -473,7 +500,7 @@ const resolvers = {
       }
       const query = {};
       if (patientId) query.patientId = patientId;
-      return await MedicalRecord.find(query).sort({ date: -1 });
+      return await MedicalRecord.find(query).sort({ date: -1 }).lean();
     },
     getInvoices: async (_, { patientId }, { user }) => {
       if (!user) throw new Error("Not authenticated");
@@ -485,13 +512,17 @@ const resolvers = {
       } else if (patientId) {
         query.patientId = patientId;
       }
-      const invoices = await Invoice.find(query).sort({
-        date: -1,
-      });
+      const invoices = await Invoice.find(query)
+        .sort({
+          date: -1,
+        })
+        .lean();
       const invoiceIds = invoices.map((invoice) => invoice._id);
       const ledgerEntries = await PaymentLedger.find({
         invoiceId: { $in: invoiceIds },
-      }).sort({ paymentDate: -1 });
+      })
+        .sort({ paymentDate: -1 })
+        .lean();
       const latestLedgerByInvoice = new Map();
       ledgerEntries.forEach((ledger) => {
         const invoiceId = String(ledger.invoiceId);
@@ -503,7 +534,7 @@ const resolvers = {
         const ledger = latestLedgerByInvoice.get(String(invoice._id));
         if (!ledger) return invoice;
         return {
-          ...invoice.toObject(),
+          ...invoice,
           id: invoice._id.toString(),
           paymentMethod: invoice.paymentMethod || ledger.paymentMode,
           paymentDate: invoice.paymentDate || ledger.paymentDate,
@@ -526,7 +557,7 @@ const resolvers = {
       }
       const query = {};
       if (patientId) query.patientId = patientId;
-      return await Prescription.find(query).sort({ date: -1 });
+      return await Prescription.find(query).sort({ date: -1 }).lean();
     },
     getPaymentLedgers: async (
       _,
@@ -623,54 +654,52 @@ const resolvers = {
       }
       requireStaff(user);
 
-      const totalPatients = await Patient.countDocuments();
       const today = new Date().toISOString().split("T")[0];
-      const todayAppointments = await Appointment.countDocuments({
-        date: today,
-      });
 
-      const invoices = await Invoice.find();
+      const [
+        totalPatients,
+        todayAppointments,
+        invoices,
+        unreadMessages,
+        upcomingAppointments,
+        pendingBills,
+        doctorApts,
+        doctorPatients,
+        pendingReports,
+        totalAppointments,
+      ] = await Promise.all([
+        Patient.countDocuments(),
+        Appointment.countDocuments({ date: today }),
+        Invoice.find().lean(),
+        ChatMessage.countDocuments({ receiverId: user._id, read: false }),
+        Appointment.countDocuments({
+          patientId: user._id,
+          date: { $gte: today },
+          status: "Scheduled",
+        }),
+        Invoice.countDocuments({ patientId: user._id, balance: { $gt: 0 } }),
+        Appointment.countDocuments({ doctorId: user._id, date: today }),
+        Appointment.distinct("patientId", { doctorId: user._id }),
+        MedicalRecord.countDocuments({
+          doctorId: user._id,
+          diagnosis: { $exists: false },
+        }),
+        Appointment.countDocuments({ patientId: user._id }),
+      ]);
+
       const pendingPayments = invoices.filter((inv) => inv.balance > 0).length;
       const monthlyRevenue = invoices.reduce((sum, inv) => sum + inv.total, 0);
-
-      const unreadMessages = await ChatMessage.countDocuments({
-        receiverId: user._id,
-        read: false,
-      });
-      const upcomingAppointments = await Appointment.countDocuments({
-        patientId: user._id,
-        date: { $gte: today },
-        status: "Scheduled",
-      });
-      const pendingBills = await Invoice.countDocuments({
-        patientId: user._id,
-        balance: { $gt: 0 },
-      });
-
-      const doctorApts = await Appointment.countDocuments({
-        doctorId: user._id,
-        date: today,
-      });
-      const doctorPatients = await Appointment.distinct("patientId", {
-        doctorId: user._id,
-      }).length;
-      const pendingReports = await MedicalRecord.countDocuments({
-        doctorId: user._id,
-        diagnosis: { $exists: false },
-      });
 
       return {
         patient: {
           upcomingAppointments,
-          totalAppointments: await Appointment.countDocuments({
-            patientId: user._id,
-          }),
+          totalAppointments,
           pendingBills,
           unreadMessages,
         },
         doctor: {
           todayAppointments: doctorApts,
-          totalPatients: doctorPatients,
+          totalPatients: doctorPatients.length,
           pendingReports,
           unreadMessages,
         },
@@ -684,7 +713,13 @@ const resolvers = {
     },
     getReportsData: async (_, __, { user }) => {
       requireStaff(user);
-      const invoices = await Invoice.find();
+      const [invoices, appointments, patients, medicalRecords] =
+        await Promise.all([
+          Invoice.find().lean(),
+          Appointment.find().lean(),
+          Patient.find().lean(),
+          MedicalRecord.find().lean(),
+        ]);
       const monthlyRevenueMap = {};
       const months = [
         "Jan",
@@ -715,7 +750,6 @@ const resolvers = {
         revenue: monthlyRevenueMap[month] || 0,
       }));
 
-      const appointments = await Appointment.find();
       const typeCount = {};
       appointments.forEach((apt) => {
         if (!typeCount[apt.type]) {
@@ -729,7 +763,6 @@ const resolvers = {
         count: typeCount[type],
       }));
 
-      const patients = await Patient.find();
       const ageGroups = {
         "0-18": 0,
         "19-35": 0,
@@ -759,7 +792,6 @@ const resolvers = {
         count: ageGroups[ageGroup],
       }));
 
-      const medicalRecords = await MedicalRecord.find();
       const treatmentCounts = {};
 
       medicalRecords.forEach((record) => {
@@ -794,9 +826,11 @@ const resolvers = {
     },
     getConversations: async (_, __, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return await Conversation.find({ "participants.id": user._id }).sort({
-        lastMessageTime: -1,
-      });
+      return await Conversation.find({ "participants.id": user._id })
+        .sort({
+          lastMessageTime: -1,
+        })
+        .lean();
     },
     getChatMessages: async (_, { conversationId }, { user }) => {
       if (!user) throw new Error("Not authenticated");
@@ -807,38 +841,38 @@ const resolvers = {
       if (!conversation) {
         throw new Error("Unauthorized: Conversation access denied");
       }
-      return await ChatMessage.find({ conversationId }).sort({ timestamp: 1 });
+      return await ChatMessage.find({ conversationId })
+        .sort({ timestamp: 1 })
+        .lean();
     },
     getNotifications: async (_, __, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return await Notification.find({ userId: user._id }).sort({
-        timestamp: -1,
-      });
+      return await Notification.find({ userId: user._id })
+        .sort({
+          timestamp: -1,
+        })
+        .lean();
     },
     getRecentActivities: async (_, { limit = 10 }, { user }) => {
       requireStaff(user);
-      // Fetch recent records from all collections
-      const patients = await Patient.find()
-        .sort({ createdAt: -1 })
-        .limit(limit);
-      const appointments = await Appointment.find()
-        .sort({ createdAt: -1 })
-        .limit(limit);
-      const prescriptions = await Prescription.find()
-        .sort({ createdAt: -1 })
-        .limit(limit);
-      const medicines = await Medicine.find()
-        .sort({ createdAt: -1 })
-        .limit(limit);
-      const medicalRecords = await MedicalRecord.find()
-        .sort({ createdAt: -1 })
-        .limit(limit);
-      const invoices = await Invoice.find()
-        .sort({ createdAt: -1 })
-        .limit(limit);
-      const paymentLedgers = await PaymentLedger.find()
-        .sort({ createdAt: -1 })
-        .limit(limit);
+      // Fetch recent records from all collections in parallel
+      const [
+        patients,
+        appointments,
+        prescriptions,
+        medicines,
+        medicalRecords,
+        invoices,
+        paymentLedgers,
+      ] = await Promise.all([
+        Patient.find().sort({ createdAt: -1 }).limit(limit).lean(),
+        Appointment.find().sort({ createdAt: -1 }).limit(limit).lean(),
+        Prescription.find().sort({ createdAt: -1 }).limit(limit).lean(),
+        Medicine.find().sort({ createdAt: -1 }).limit(limit).lean(),
+        MedicalRecord.find().sort({ createdAt: -1 }).limit(limit).lean(),
+        Invoice.find().sort({ createdAt: -1 }).limit(limit).lean(),
+        PaymentLedger.find().sort({ createdAt: -1 }).limit(limit).lean(),
+      ]);
 
       const activities = [
         ...patients.map((p) => ({
@@ -922,7 +956,8 @@ const resolvers = {
       const transactions = await Transaction.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit);
+        .limit(limit)
+        .lean();
       const totalCount = await Transaction.countDocuments(query);
       return {
         transactions,
@@ -961,7 +996,8 @@ const resolvers = {
       }
       const messages = await WhatsAppMessage.find(query)
         .sort({ createdAt: -1 })
-        .limit(safeLimit);
+        .limit(safeLimit)
+        .lean();
       return await Promise.all(
         messages.map(async (message) => {
           if (message.patientName || !message.phone) return message;

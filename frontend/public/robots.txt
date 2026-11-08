@@ -4,6 +4,7 @@
 
 User-agent: Googlebot
 Allow: /
+Allow: /doctor/sunita-agarwalla
 Disallow: /api/
 Disallow: /admin/
 Disallow: /doctor/
@@ -11,10 +12,13 @@ Disallow: /employee/
 Disallow: /patient/
 Disallow: /login
 Disallow: /register
+Disallow: /verify-otp
+Disallow: /appointment/
 Disallow: /dashboard/
 
 User-agent: *
 Allow: /
+Allow: /doctor/sunita-agarwalla
 Disallow: /api/
 Disallow: /admin/
 Disallow: /doctor/
@@ -22,6 +26,8 @@ Disallow: /employee/
 Disallow: /patient/
 Disallow: /login
 Disallow: /register
+Disallow: /verify-otp
+Disallow: /appointment/
 Disallow: /dashboard/
 
 # Sitemap

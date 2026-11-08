@@ -4,6 +4,7 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
+const compression = require("compression");
 const fs = require("fs");
 const { ApolloServer } = require("@apollo/server");
 const { expressMiddleware } = require("@apollo/server/express4");
@@ -31,17 +32,25 @@ const startServer = async () => {
   const PORT = process.env.PORT || 25000;
 
   app.use(cors());
+  app.use(
+    compression({
+      threshold: 1024,
+      level: 6,
+    }),
+  );
 
   const storageRoutesLogger = (prefix) => (req, res, next) => {
-    console.log(
-      "[STORAGE-MOUNT:%s] method=%s path=%s originalUrl=%s ct=%s cl=%s",
-      prefix,
-      req.method,
-      req.path,
-      req.originalUrl,
-      req.headers["content-type"] || "?",
-      req.headers["content-length"] || "?",
-    );
+    if (process.env.DEBUG_REQUESTS === "true") {
+      console.log(
+        "[STORAGE-MOUNT:%s] method=%s path=%s originalUrl=%s ct=%s cl=%s",
+        prefix,
+        req.method,
+        req.path,
+        req.originalUrl,
+        req.headers["content-type"] || "?",
+        req.headers["content-length"] || "?",
+      );
+    }
     next();
   };
   app.use("/api/storage", storageRoutesLogger("api"), storageRoutes);
@@ -61,27 +70,24 @@ const startServer = async () => {
   app.use("/api/icici", iciciPaymentRoutes);
   app.use("/api/appointments/public", appointmentConfirmRoutes);
 
-  app.use((req, res, next) => {
-    console.log("=== Incoming request ===");
-    console.log("Method:", req.method);
-    console.log("URL:", req.url);
-    console.log("Origin:", req.headers.origin);
-    console.log("Headers:", req.headers);
+  const DEBUG_REQUESTS = process.env.DEBUG_REQUESTS === "true";
+  const allowedOrigins = [
+    "https://creadentsmiles.com",
+    "https://api.creadentsmiles.com",
+    "http://localhost:5173",
+    "http://localhost:25001",
+    "http://localhost:3000",
+  ];
 
-    const allowedOrigins = [
-      "https://creadentsmiles.com",
-      "https://api.creadentsmiles.com",
-      "http://localhost:5173",
-      "http://localhost:25001",
-      "http://localhost:3000",
-    ];
+  app.use((req, res, next) => {
+    if (DEBUG_REQUESTS) {
+      console.log("[REQ] %s %s origin=%s", req.method, req.url, req.headers.origin || "-");
+    }
+
     const origin = req.headers.origin;
 
     if (allowedOrigins.includes(origin) || !origin) {
       res.setHeader("Access-Control-Allow-Origin", origin || "*");
-      console.log("Set Access-Control-Allow-Origin to:", origin || "*");
-    } else {
-      console.log("Origin not allowed:", origin);
     }
 
     res.setHeader(
@@ -95,7 +101,6 @@ const startServer = async () => {
     res.setHeader("Access-Control-Allow-Credentials", "true");
 
     if (req.method === "OPTIONS") {
-      console.log("Handling OPTIONS preflight request");
       return res.sendStatus(204);
     }
 
@@ -187,7 +192,7 @@ const startServer = async () => {
   );
 
   app.use((req, res, next) => {
-    if (req.path.startsWith("/api/")) {
+    if (DEBUG_REQUESTS && req.path.startsWith("/api/")) {
       console.log("[API-DEBUG] path=%s method=%s", req.path, req.method);
     }
     next();
@@ -234,9 +239,15 @@ const startServer = async () => {
   const frontendBuildPath = path.join(__dirname, "../frontend/dist");
   const publicSeo = {
     "/": {
-      title: "Best Dental Clinic in Salt Lake Kolkata | Creadent Dental Clinic",
+      title: "Creadent Dental Clinic | Dentist in Salt Lake, Kolkata",
       description:
-        "Looking for the best dental clinic in Salt Lake, Kolkata? Creadent Dental Clinic offers expert dentists, root canal treatment, dental implants, braces, teeth whitening, and family dental care.",
+        "Creadent Dental Clinic in Salt Lake, Kolkata offers root canal treatment, dental implants, braces, teeth whitening, and family dental care.",
+    },
+    "/pediatric-dentistry": {
+      title:
+        "Pediatric Dental Clinic in Salt Lake Kolkata | Child Dental Clinic Near Me",
+      description:
+        "Looking for a pediatric dental clinic or child dental clinic near you in Salt Lake, Kolkata? Creadent Dental Clinic offers gentle kids' dentistry, cavity care, fluoride, and habit counselling for children.",
     },
     "/about-us": {
       title: "About Us | Best Dental Clinic in Salt Lake Kolkata",
@@ -277,6 +288,12 @@ const startServer = async () => {
       title: "Delete Account | Creadent Dental Clinic",
       description:
         "Request deletion of your Creadent Dental Clinic account and associated personal information.",
+    },
+    "/doctor/sunita-agarwalla": {
+      title:
+        "What is Tooth Extraction? Root Canal Treatment in Salt Lake Kolkata | Dr. Sunita Agarwalla",
+      description:
+        "Understand tooth extraction, root canal treatment in teeth, and dental care options with Dr. Sunita Agarwalla at Creadent Dental Clinic in Salt Lake, Kolkata.",
     },
   };
   const escapeHtml = (value) =>
